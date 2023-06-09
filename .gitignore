@@ -1,5 +1,7 @@
 # Outdated
 # Remove candidates
+# Outdated
+# Remove candidates
 *.o
 *.swp
 *.kate-swp
