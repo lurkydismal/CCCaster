@@ -4,19 +4,19 @@ on:
       - 'main'
 
 # Declare default permissions as read only.
-permissions: write-all
+# permissions: read-all
 
 jobs:
   mirror_job:
-    permissions:
-        pull-requests: write
+#     permissions:
+#         pull-requests: write
     runs-on: ubuntu-latest
     name: Mirror SOURCE_BRANCH_NAME branch to DESTINATION_BRANCH_NAME branch
     steps:
-    - name: Harden Runner
-      uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
-      with:
-        egress-policy: audit
+#     - name: Harden Runner
+#       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
+#       with:
+#         egress-policy: audit
 
     - name: Mirror action step
       id: mirror
