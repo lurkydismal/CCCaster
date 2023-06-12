@@ -11,9 +11,6 @@ jobs:
     permissions:
         contents: write
         deployments: write
-        pull-requests: write
-        repository-projects: write
-        statuses: write
     runs-on: ubuntu-latest
     name: Mirror SOURCE_BRANCH_NAME branch to DESTINATION_BRANCH_NAME branch
     steps:
