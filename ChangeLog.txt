@@ -1,3 +1,9 @@
+v3.1.004
+- Updated relay.txt
+- Minor ui fixes
+- Relay server ported to py3
+- Default update channel is now stable
+
 v3.1.003
 - Updated relay.txt
 - Fixed issue causing high CPU usage in caster menu
