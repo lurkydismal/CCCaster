@@ -1504,7 +1504,7 @@ void MainUi::initialize()
     _config.setInteger ( "frameLimiter", 0 );
     _config.setString ( "matchmakingRegion", "NA West" );
     _config.setDouble ( "heldStartDuration", 1.5 );
-    _config.setInteger ( "updateChannel", static_cast<int>(MainUpdater::Channel::Dev ) );
+    _config.setInteger ( "updateChannel", static_cast<int>(MainUpdater::Channel::Stable ) );
     _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
 
     // Cached UI state (defaults)
@@ -1996,11 +1996,13 @@ string MainUi::getUpdate ( bool isStartup )
         std::string name = _updater.getTargetDescName();
         name[0] = std::toupper(name[0]);
         if (!isStartup) _ui->pop();
+        string revision = _updater.getTargetVersion().revision;
+        string revisionString = revision == "" ? "" : "-" + revision;
         _ui->pushBelow ( new ConsoleUi::TextBox ( format (
-                             "%s" + name + " version is %s-%s",
+                             "%s" + name + " version is %s%s",
                              /* sessionMessage.empty() ? */ "" /* : ( sessionMessage + "\n" ) */,
                              _updater.getTargetVersion(),
-                             _updater.getTargetVersion().revision ) ) );
+                             revision ) ) );
 
         sessionMessage.clear();
 

@@ -28,6 +28,7 @@ TAGS
 *.bmp
 *.png
 scripts/seqlists*
+debugging
 
 # Miscellaneous
 *.class
