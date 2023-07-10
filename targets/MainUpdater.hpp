@@ -7,33 +7,30 @@
 
 #include <string>
 
+class MainUpdater : private HttpDownload::Owner, private HttpGet::Owner {
+   public:
+    ENUM( Type, Version, ChangeLog, Archive );
 
-class MainUpdater
-    : private HttpDownload::Owner
-    , private HttpGet::Owner
-{
-public:
+    ENUM( Channel, Stable, Dev );
 
-    ENUM ( Type, Version, ChangeLog, Archive );
+    ENUM( Temporal, Latest, Previous );
 
-    ENUM(Channel, Stable, Dev);
+    struct Owner {
+        virtual void fetchCompleted( MainUpdater* updater,
+                                     const Type& type ) = 0;
 
-    ENUM(Temporal, Latest, Previous);
+        virtual void fetchFailed( MainUpdater* updater, const Type& type ) = 0;
 
-    struct Owner
-    {
-        virtual void fetchCompleted ( MainUpdater *updater, const Type& type ) = 0;
-
-        virtual void fetchFailed ( MainUpdater *updater, const Type& type ) = 0;
-
-        virtual void fetchProgress ( MainUpdater *updater, const Type& type, double progress ) = 0;
+        virtual void fetchProgress( MainUpdater* updater,
+                                    const Type& type,
+                                    double progress ) = 0;
     };
 
-    Owner *owner = 0;
+    Owner* owner = 0;
 
-    MainUpdater ( Owner *owner );
+    MainUpdater( Owner* owner );
 
-    void fetch ( const Type& type );
+    void fetch( const Type& type );
 
     bool openChangeLog() const;
 
@@ -41,8 +38,8 @@ public:
 
     std::string getVersionFilePath() const;
 
-    void setChannel(const Channel& channel) { _channel = channel; }
-    void setTemporal(const Temporal& temporal) { _temporal = temporal; }
+    void setChannel( const Channel& channel ) { _channel = channel; }
+    void setTemporal( const Temporal& temporal ) { _temporal = temporal; }
 
     std::string getChannelName() const;
     std::string getTemporalName() const;
@@ -52,13 +49,12 @@ public:
 
     const Version& getTargetVersion() const { return _targetVersion; }
 
-private:
-
+   private:
     Type _type;
 
-    std::shared_ptr<HttpGet> _httpGet;
+    std::shared_ptr< HttpGet > _httpGet;
 
-    std::shared_ptr<HttpDownload> _httpDownload;
+    std::shared_ptr< HttpDownload > _httpDownload;
 
     uint32_t _currentServerIdx = 0;
 
@@ -70,13 +66,20 @@ private:
 
     std::string _downloadDir;
 
-    void doFetch ( const Type& type );
+    void doFetch( const Type& type );
 
-    void httpResponse ( HttpGet *httpGet, int code, const std::string& data, uint32_t remainingBytes ) override;
-    void httpFailed ( HttpGet *httpGet ) override;
-    void httpProgress ( HttpGet *httpGet, uint32_t receivedBytes, uint32_t totalBytes ) override {}
+    void httpResponse( HttpGet* httpGet,
+                       int code,
+                       const std::string& data,
+                       uint32_t remainingBytes ) override;
+    void httpFailed( HttpGet* httpGet ) override;
+    void httpProgress( HttpGet* httpGet,
+                       uint32_t receivedBytes,
+                       uint32_t totalBytes ) override {}
 
-    void downloadComplete ( HttpDownload *httpDownload ) override;
-    void downloadFailed ( HttpDownload *httpDownload ) override;
-    void downloadProgress ( HttpDownload *httpDownload, uint32_t downloadedBytes, uint32_t totalBytes ) override;
+    void downloadComplete( HttpDownload* httpDownload ) override;
+    void downloadFailed( HttpDownload* httpDownload ) override;
+    void downloadProgress( HttpDownload* httpDownload,
+                           uint32_t downloadedBytes,
+                           uint32_t totalBytes ) override;
 };

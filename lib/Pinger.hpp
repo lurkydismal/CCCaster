@@ -1,34 +1,32 @@
 #pragma once
 
-#include "Timer.hpp"
 #include "Protocol.hpp"
 #include "Statistics.hpp"
+#include "Timer.hpp"
 
-
-struct Ping : public SerializableMessage
-{
+struct Ping : public SerializableMessage {
     uint64_t timestamp;
 
-    Ping ( uint64_t timestamp ) : timestamp ( timestamp ) {}
+    Ping( uint64_t timestamp ) : timestamp( timestamp ) {}
 
-    std::string str() const override { return format ( "Ping[%llu]", timestamp ); }
+    std::string str() const override {
+        return format( "Ping[%llu]", timestamp );
+    }
 
-    PROTOCOL_MESSAGE_BOILERPLATE ( Ping, timestamp )
+    PROTOCOL_MESSAGE_BOILERPLATE( Ping, timestamp )
 };
 
+class Pinger : private Timer::Owner {
+   public:
+    struct Owner {
+        virtual void pingerSendPing( Pinger* pinger, const MsgPtr& ping ) = 0;
 
-class Pinger : private Timer::Owner
-{
-public:
-
-    struct Owner
-    {
-        virtual void pingerSendPing ( Pinger *pinger, const MsgPtr& ping ) = 0;
-
-        virtual void pingerCompleted ( Pinger *pinger, const Statistics& stats, uint8_t packetLoss ) = 0;
+        virtual void pingerCompleted( Pinger* pinger,
+                                      const Statistics& stats,
+                                      uint8_t packetLoss ) = 0;
     };
 
-    Owner *owner = 0;
+    Owner* owner = 0;
 
     uint64_t pingInterval = 0;
 
@@ -36,7 +34,7 @@ public:
 
     Pinger();
 
-    Pinger ( Owner *owner, uint64_t pingInterval, size_t numPings );
+    Pinger( Owner* owner, uint64_t pingInterval, size_t numPings );
 
     void start();
 
@@ -44,7 +42,7 @@ public:
 
     void reset();
 
-    void gotPong ( const MsgPtr& ping );
+    void gotPong( const MsgPtr& ping );
 
     const Statistics& getStats() const { return _stats; }
 
@@ -52,8 +50,7 @@ public:
 
     bool isPinging() const { return _pinging; }
 
-private:
-
+   private:
     TimerPtr _pingTimer;
 
     size_t _pingCount = 0;
@@ -64,5 +61,5 @@ private:
 
     bool _pinging = false;
 
-    void timerExpired ( Timer *timer ) override;
+    void timerExpired( Timer* timer ) override;
 };

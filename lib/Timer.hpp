@@ -3,22 +3,18 @@
 #include <iostream>
 #include <memory>
 
-
-class Timer
-{
-public:
-
-    struct Owner
-    {
-        virtual void timerExpired ( Timer *timer ) = 0;
+class Timer {
+   public:
+    struct Owner {
+        virtual void timerExpired( Timer* timer ) = 0;
     };
 
-    Owner *owner = 0;
+    Owner* owner = 0;
 
-    Timer ( Owner *owner );
+    Timer( Owner* owner );
     ~Timer();
 
-    void start ( uint64_t delay );
+    void start( uint64_t delay );
 
     void stop();
 
@@ -28,9 +24,8 @@ public:
 
     friend class TimerManager;
 
-private:
-
+   private:
     uint64_t _delay = 0, _expiry = 0;
 };
 
-typedef std::shared_ptr<Timer> TimerPtr;
+typedef std::shared_ptr< Timer > TimerPtr;

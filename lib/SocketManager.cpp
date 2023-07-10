@@ -1,41 +1,37 @@
 #include "SocketManager.hpp"
+#include "ErrorStrings.hpp"
+#include "Exceptions.hpp"
 #include "Socket.hpp"
 #include "TimerManager.hpp"
-#include "Exceptions.hpp"
-#include "ErrorStrings.hpp"
 
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock2.h>
 
 using namespace std;
 
-
-void SocketManager::check ( uint64_t timeout )
-{
-    if ( ! _initialized )
+void SocketManager::check( uint64_t timeout ) {
+    if ( !_initialized )
         return;
 
-    if ( _changed )
-    {
-        for ( Socket *socket : _allocatedSockets )
-        {
-            if ( _activeSockets.find ( socket ) != _activeSockets.end() )
+    if ( _changed ) {
+        for ( Socket* socket : _allocatedSockets ) {
+            if ( _activeSockets.find( socket ) != _activeSockets.end() )
                 continue;
 
-            LOG_SOCKET ( socket, "added" );
-            _activeSockets.insert ( socket );
+            LOG_SOCKET( socket, "added" );
+            _activeSockets.insert( socket );
         }
 
-        for ( auto it = _activeSockets.cbegin(); it != _activeSockets.cend(); )
-        {
-            if ( _allocatedSockets.find ( *it ) != _allocatedSockets.end() )
-            {
+        for ( auto it = _activeSockets.cbegin();
+              it != _activeSockets.cend(); ) {
+            if ( _allocatedSockets.find( *it ) != _allocatedSockets.end() ) {
                 ++it;
                 continue;
             }
 
-            LOG ( "socket=%08x removed", *it ); // Don't log any extra data cus already deleted
-            _activeSockets.erase ( it++ );
+            LOG( "socket=%08x removed",
+                 *it ); // Don't log any extra data cus already deleted
+            _activeSockets.erase( it++ );
         }
 
         _changed = false;
@@ -45,88 +41,78 @@ void SocketManager::check ( uint64_t timeout )
         return;
 
     fd_set readFds, writeFds;
-    FD_ZERO ( &readFds );
-    FD_ZERO ( &writeFds );
+    FD_ZERO( &readFds );
+    FD_ZERO( &writeFds );
 
-    for ( Socket *socket : _activeSockets )
-    {
+    for ( Socket* socket : _activeSockets ) {
         if ( socket->isConnecting() && socket->isTCP() )
-            FD_SET ( socket->_fd, &writeFds );
+            FD_SET( socket->_fd, &writeFds );
         else
-            FD_SET ( socket->_fd, &readFds );
+            FD_SET( socket->_fd, &readFds );
     }
 
-    ASSERT ( timeout > 0 );
+    ASSERT( timeout > 0 );
 
     timeval tv;
     tv.tv_sec = timeout / 1000UL;
     tv.tv_usec = ( timeout * 1000UL ) % 1000000UL;
 
-    // Note: select should be called between timeBeginPeriod / timeEndPeriod to ensure accurate timeouts
-    int count = select ( 0, &readFds, &writeFds, 0, &tv );
+    // Note: select should be called between timeBeginPeriod / timeEndPeriod to
+    // ensure accurate timeouts
+    int count = select( 0, &readFds, &writeFds, 0, &tv );
 
     if ( count == SOCKET_ERROR )
-        THROW_WIN_EXCEPTION ( WSAGetLastError(), "select failed", ERROR_NETWORK_GENERIC );
+        THROW_WIN_EXCEPTION( WSAGetLastError(), "select failed",
+                             ERROR_NETWORK_GENERIC );
 
     if ( count == 0 )
         return;
 
-    ASSERT ( TimerManager::get().isInitialized() == true );
+    ASSERT( TimerManager::get().isInitialized() == true );
     TimerManager::get().updateNow();
 
-    for ( Socket *socket : _activeSockets )
-    {
-        if ( _allocatedSockets.find ( socket ) == _allocatedSockets.end() )
+    for ( Socket* socket : _activeSockets ) {
+        if ( _allocatedSockets.find( socket ) == _allocatedSockets.end() )
             continue;
 
-        if ( socket->isConnecting() && socket->isTCP() )
-        {
-            if ( ! FD_ISSET ( socket->_fd, &writeFds ) )
+        if ( socket->isConnecting() && socket->isTCP() ) {
+            if ( !FD_ISSET( socket->_fd, &writeFds ) )
                 continue;
 
-            LOG_SOCKET ( socket, "socketConnected" );
+            LOG_SOCKET( socket, "socketConnected" );
             socket->socketConnected();
-        }
-        else
-        {
-            if ( ! FD_ISSET ( socket->_fd, &readFds ) )
+        } else {
+            if ( !FD_ISSET( socket->_fd, &readFds ) )
                 continue;
 
-            if ( socket->isServer() && socket->isTCP() )
-            {
-                LOG_SOCKET ( socket, "socketAccepted" );
+            if ( socket->isServer() && socket->isTCP() ) {
+                LOG_SOCKET( socket, "socketAccepted" );
                 socket->socketAccepted();
-            }
-            else
-            {
-                LOG_SOCKET ( socket, "socketRead" );
+            } else {
+                LOG_SOCKET( socket, "socketRead" );
                 socket->socketRead();
             }
         }
     }
 }
 
-void SocketManager::add ( Socket *socket )
-{
-    LOG_SOCKET ( socket, "Adding socket" );
+void SocketManager::add( Socket* socket ) {
+    LOG_SOCKET( socket, "Adding socket" );
 
-    _allocatedSockets.insert ( socket );
+    _allocatedSockets.insert( socket );
     _changed = true;
 }
 
-void SocketManager::remove ( Socket *socket )
-{
-    if ( _allocatedSockets.erase ( socket ) )
-    {
-        LOG_SOCKET ( socket, "Removing socket" );
+void SocketManager::remove( Socket* socket ) {
+    if ( _allocatedSockets.erase( socket ) ) {
+        LOG_SOCKET( socket, "Removing socket" );
 
         _changed = true;
     }
 }
 
-void SocketManager::clear()
-{
-    LOG ( "Clearing sockets" );
+void SocketManager::clear() {
+    LOG( "Clearing sockets" );
 
     for ( auto it = _allocatedSockets.begin(); it != _allocatedSockets.end(); )
         ( *it++ )->disconnect();
@@ -138,8 +124,7 @@ void SocketManager::clear()
 
 SocketManager::SocketManager() {}
 
-void SocketManager::initialize()
-{
+void SocketManager::initialize() {
     if ( _initialized )
         return;
 
@@ -147,15 +132,14 @@ void SocketManager::initialize()
 
     // Initialize WinSock
     WSADATA wsaData;
-    int error = WSAStartup ( MAKEWORD ( 2, 2 ), &wsaData );
+    int error = WSAStartup( MAKEWORD( 2, 2 ), &wsaData );
 
     if ( error != NO_ERROR )
-        THROW_WIN_EXCEPTION ( error, "WSAStartup failed", ERROR_NETWORK_INIT );
+        THROW_WIN_EXCEPTION( error, "WSAStartup failed", ERROR_NETWORK_INIT );
 }
 
-void SocketManager::deinitialize()
-{
-    if ( ! _initialized )
+void SocketManager::deinitialize() {
+    if ( !_initialized )
         return;
 
     _initialized = false;
@@ -165,8 +149,7 @@ void SocketManager::deinitialize()
     WSACleanup();
 }
 
-SocketManager& SocketManager::get()
-{
+SocketManager& SocketManager::get() {
     static SocketManager instance;
     return instance;
 }

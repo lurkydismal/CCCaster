@@ -2,11 +2,9 @@
 
 using namespace std;
 
-
 ChangeMonitor::ChangeMonitor() {}
 
-ChangeMonitor& ChangeMonitor::get()
-{
+ChangeMonitor& ChangeMonitor::get() {
     static ChangeMonitor instance;
     return instance;
 }

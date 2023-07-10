@@ -6,39 +6,32 @@
 
 #define DEFAULT_GET_TIMEOUT ( 5000 )
 
-enum GameType
-{
+enum GameType {
     FFA,
     WinnerStaysOn,
 };
 
-enum LobbyMode
-{
+enum LobbyMode {
     MENU,
     CONCERTO_BROWSE,
     CONCERTO_LOBBY,
     DEFAULT_LOBBY,
 };
 
-class Lobby
-    : Socket::Owner
-    , Timer::Owner
-    , public Thread
-{
-public:
-    struct Owner
-    {
+class Lobby : Socket::Owner, Timer::Owner, public Thread {
+   public:
+    struct Owner {
         virtual void connectionFailed( Lobby* lobby ) = 0;
         virtual void unlock( Lobby* lobby ) = 0;
     };
 
-    Owner *owner = 0;
+    Owner* owner = 0;
 
-    std::vector<std::string> getMenu();
-    std::vector<std::string> getIps();
-    std::vector<std::string> getIds();
+    std::vector< std::string > getMenu();
+    std::vector< std::string > getIps();
+    std::vector< std::string > getIds();
 
-    Lobby ( Owner* owner );
+    Lobby( Owner* owner );
 
     bool connect( std::string url );
     void disconnect();
@@ -71,35 +64,38 @@ public:
     std::string lobbyError;
     std::string lobbyMsg;
 
-
-private:
+   private:
     SocketPtr _socket;
 
     TimerPtr _timer;
 
     std::string blankEntry;
 
-    std::vector<std::string> entries;
-    std::vector<std::string> lobbyentries;
-    std::vector<std::string> publiclobbies;
-    std::vector<std::string> roomcodes;
-    std::vector<std::string> ips;
-    std::vector<std::string> lobbyips;
-    std::vector<std::string> lobbyids;
+    std::vector< std::string > entries;
+    std::vector< std::string > lobbyentries;
+    std::vector< std::string > publiclobbies;
+    std::vector< std::string > roomcodes;
+    std::vector< std::string > ips;
+    std::vector< std::string > lobbyips;
+    std::vector< std::string > lobbyids;
 
     bool hostResponse;
 
     // Socket callbacks
-    void socketAccepted ( Socket *socket ) override {}
-    void socketConnected ( Socket *socket ) override;
-    void socketDisconnected ( Socket *socket ) override;
-    void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override {}
-    void socketRead ( Socket *socket, const char *bytes, size_t len, const IpAddrPort& address ) override;
+    void socketAccepted( Socket* socket ) override {}
+    void socketConnected( Socket* socket ) override;
+    void socketDisconnected( Socket* socket ) override;
+    void socketRead( Socket* socket,
+                     const MsgPtr& msg,
+                     const IpAddrPort& address ) override {}
+    void socketRead( Socket* socket,
+                     const char* bytes,
+                     size_t len,
+                     const IpAddrPort& address ) override;
 
     // Timer callback
-    void timerExpired ( Timer *timer ) override;
+    void timerExpired( Timer* timer ) override;
 
     // Thread
     void run() override;
-
 };

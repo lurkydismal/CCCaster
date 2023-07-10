@@ -5,26 +5,24 @@
 
 #include <string>
 
-
 #define DEFAULT_GET_TIMEOUT ( 5000 )
 
+class HttpGet : private Socket::Owner, private Timer::Owner {
+   public:
+    struct Owner {
+        virtual void httpResponse( HttpGet* httpGet,
+                                   int code,
+                                   const std::string& data,
+                                   uint32_t remainingBytes ) = 0;
 
-class HttpGet
-    : private Socket::Owner
-    , private Timer::Owner
-{
-public:
+        virtual void httpFailed( HttpGet* httpGet ) = 0;
 
-    struct Owner
-    {
-        virtual void httpResponse ( HttpGet *httpGet, int code, const std::string& data, uint32_t remainingBytes ) = 0;
-
-        virtual void httpFailed ( HttpGet *httpGet ) = 0;
-
-        virtual void httpProgress ( HttpGet *httpGet, uint32_t receivedBytes, uint32_t totalBytes ) = 0;
+        virtual void httpProgress( HttpGet* httpGet,
+                                   uint32_t receivedBytes,
+                                   uint32_t totalBytes ) = 0;
     };
 
-    Owner *owner = 0;
+    Owner* owner = 0;
 
     const std::string url;
 
@@ -32,7 +30,10 @@ public:
 
     const enum Mode { Buffered, Incremental } mode;
 
-    HttpGet ( Owner *owner, const std::string& url, uint64_t timeout = DEFAULT_GET_TIMEOUT, Mode mode = Buffered );
+    HttpGet( Owner* owner,
+             const std::string& url,
+             uint64_t timeout = DEFAULT_GET_TIMEOUT,
+             Mode mode = Buffered );
 
     void start();
 
@@ -42,8 +43,7 @@ public:
 
     uint32_t getContentLength() const { return _contentLength; }
 
-private:
-
+   private:
     SocketPtr _socket;
 
     TimerPtr _timer;
@@ -56,17 +56,22 @@ private:
 
     uint32_t _contentLength, _remainingBytes;
 
-    void socketAccepted ( Socket *socket ) override {}
-    void socketConnected ( Socket *socket ) override;
-    void socketDisconnected ( Socket *socket ) override;
-    void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override {}
-    void socketRead ( Socket *socket, const char *bytes, size_t len, const IpAddrPort& address ) override;
+    void socketAccepted( Socket* socket ) override {}
+    void socketConnected( Socket* socket ) override;
+    void socketDisconnected( Socket* socket ) override;
+    void socketRead( Socket* socket,
+                     const MsgPtr& msg,
+                     const IpAddrPort& address ) override {}
+    void socketRead( Socket* socket,
+                     const char* bytes,
+                     size_t len,
+                     const IpAddrPort& address ) override;
 
-    void timerExpired ( Timer *timer ) override;
+    void timerExpired( Timer* timer ) override;
 
-    void parseResponse ( const std::string& data );
+    void parseResponse( const std::string& data );
 
-    void parseData ( const std::string& data );
+    void parseData( const std::string& data );
 
     void finalize();
 };

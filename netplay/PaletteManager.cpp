@@ -1,133 +1,116 @@
 #include "PaletteManager.hpp"
-#include "StringUtils.hpp"
 #include "Algorithms.hpp"
+#include "StringUtils.hpp"
 
 #include <fstream>
 #include <sstream>
 
 using namespace std;
 
-
 #define PALETTES_FILE_SUFFIX "_palettes.txt"
 
-
-uint32_t PaletteManager::computeHighlightColor ( uint32_t color )
-{
+uint32_t PaletteManager::computeHighlightColor( uint32_t color ) {
     const uint32_t r = ( color & 0xFF );
     const uint32_t g = ( color & 0xFF00 ) >> 8;
     const uint32_t b = ( color & 0xFF0000 ) >> 16;
 
     const uint32_t absDivColor2 = 3 * 230 * 230;
 
-    if ( r * r + g * g + b * b > absDivColor2 )
-    {
+    if ( r * r + g * g + b * b > absDivColor2 ) {
         // If too light, use inverse color
-        const uint32_t R = clamped<uint32_t> ( 255 - r, 0, 255 );
-        const uint32_t G = clamped<uint32_t> ( 255 - g, 0, 255 );
-        const uint32_t B = clamped<uint32_t> ( 255 - b, 0, 255 );
+        const uint32_t R = clamped< uint32_t >( 255 - r, 0, 255 );
+        const uint32_t G = clamped< uint32_t >( 255 - g, 0, 255 );
+        const uint32_t B = clamped< uint32_t >( 255 - b, 0, 255 );
 
-        return ( color & 0xFF000000 ) | COLOR_RGB ( R, G, B );
-    }
-    else
-    {
+        return ( color & 0xFF000000 ) | COLOR_RGB( R, G, B );
+    } else {
         return ( color & 0xFF000000 ) | 0xFFFFFF;
     }
 }
 
-void PaletteManager::cache ( const uint32_t **allPaletteData )
-{
-    for ( uint32_t i = 0; i < _originals.size(); ++i )
-    {
-        for ( uint32_t j = 0; j < _originals[i].size(); ++j )
-        {
-            _originals[i][j] = SWAP_R_AND_B ( allPaletteData[i][j] );
+void PaletteManager::cache( const uint32_t** allPaletteData ) {
+    for ( uint32_t i = 0; i < _originals.size(); ++i ) {
+        for ( uint32_t j = 0; j < _originals[ i ].size(); ++j ) {
+            _originals[ i ][ j ] = SWAP_R_AND_B( allPaletteData[ i ][ j ] );
         }
     }
 }
 
-void PaletteManager::apply ( uint32_t **allPaletteData ) const
-{
-    for ( uint32_t i = 0; i < _originals.size(); ++i )
-    {
-        for ( uint32_t j = 0; j < _originals[i].size(); ++j )
-        {
-            allPaletteData[i][j] = ( allPaletteData[i][j] & 0xFF000000 )
-                                   | ( 0xFFFFFF & SWAP_R_AND_B ( get ( i, j ) ) );
+void PaletteManager::apply( uint32_t** allPaletteData ) const {
+    for ( uint32_t i = 0; i < _originals.size(); ++i ) {
+        for ( uint32_t j = 0; j < _originals[ i ].size(); ++j ) {
+            allPaletteData[ i ][ j ] =
+                ( allPaletteData[ i ][ j ] & 0xFF000000 ) |
+                ( 0xFFFFFF & SWAP_R_AND_B( get( i, j ) ) );
         }
     }
 }
 
-void PaletteManager::cache ( const uint32_t *allPaletteData )
-{
-    for ( uint32_t i = 0; i < _originals.size(); ++i )
-    {
-        for ( uint32_t j = 0; j < _originals[i].size(); ++j )
-        {
-            _originals[i][j] = SWAP_R_AND_B ( allPaletteData [ i * 256 + j ] );
+void PaletteManager::cache( const uint32_t* allPaletteData ) {
+    for ( uint32_t i = 0; i < _originals.size(); ++i ) {
+        for ( uint32_t j = 0; j < _originals[ i ].size(); ++j ) {
+            _originals[ i ][ j ] =
+                SWAP_R_AND_B( allPaletteData[ i * 256 + j ] );
         }
     }
 }
 
-void PaletteManager::apply ( uint32_t *allPaletteData ) const
-{
-    for ( uint32_t i = 0; i < 36; ++i )
-    {
-        for ( uint32_t j = 0; j < 256; ++j )
-        {
-            allPaletteData [ i * 256 + j ] = ( allPaletteData [ i * 256 + j ] & 0xFF000000 )
-                                             | ( 0xFFFFFF & SWAP_R_AND_B ( get ( i, j ) ) );
+void PaletteManager::apply( uint32_t* allPaletteData ) const {
+    for ( uint32_t i = 0; i < 36; ++i ) {
+        for ( uint32_t j = 0; j < 256; ++j ) {
+            allPaletteData[ i * 256 + j ] =
+                ( allPaletteData[ i * 256 + j ] & 0xFF000000 ) |
+                ( 0xFFFFFF & SWAP_R_AND_B( get( i, j ) ) );
         }
     }
 }
 
-void PaletteManager::apply ( uint32_t paletteNumber, uint32_t *singlePaletteData ) const
-{
-    for ( uint32_t j = 0; j < 256; ++j )
-    {
-        singlePaletteData[j] = ( singlePaletteData [j] & 0xFF000000 )
-                               | ( 0xFFFFFF & SWAP_R_AND_B ( get ( paletteNumber, j ) ) );
+void PaletteManager::apply( uint32_t paletteNumber,
+                            uint32_t* singlePaletteData ) const {
+    for ( uint32_t j = 0; j < 256; ++j ) {
+        singlePaletteData[ j ] =
+            ( singlePaletteData[ j ] & 0xFF000000 ) |
+            ( 0xFFFFFF & SWAP_R_AND_B( get( paletteNumber, j ) ) );
     }
 }
 
-uint32_t PaletteManager::getOriginal ( uint32_t paletteNumber, uint32_t colorNumber ) const
-{
-    return 0xFFFFFF & _originals[paletteNumber][colorNumber];
+uint32_t PaletteManager::getOriginal( uint32_t paletteNumber,
+                                      uint32_t colorNumber ) const {
+    return 0xFFFFFF & _originals[ paletteNumber ][ colorNumber ];
 }
 
-uint32_t PaletteManager::get ( uint32_t paletteNumber, uint32_t colorNumber ) const
-{
-    const auto it = _palettes.find ( paletteNumber );
+uint32_t PaletteManager::get( uint32_t paletteNumber,
+                              uint32_t colorNumber ) const {
+    const auto it = _palettes.find( paletteNumber );
 
-    if ( it != _palettes.end() )
-    {
-        const auto jt = it->second.find ( colorNumber );
+    if ( it != _palettes.end() ) {
+        const auto jt = it->second.find( colorNumber );
 
         if ( jt != it->second.end() )
             return 0xFFFFFF & jt->second;
     }
 
-    return getOriginal ( paletteNumber, colorNumber );
+    return getOriginal( paletteNumber, colorNumber );
 }
 
-void PaletteManager::set ( uint32_t paletteNumber, uint32_t colorNumber, uint32_t color )
-{
-    _palettes[paletteNumber][colorNumber] = 0xFFFFFF & color;
+void PaletteManager::set( uint32_t paletteNumber,
+                          uint32_t colorNumber,
+                          uint32_t color ) {
+    _palettes[ paletteNumber ][ colorNumber ] = 0xFFFFFF & color;
 
 #ifndef DISABLE_SERIALIZATION
     invalidate();
 #endif
 }
 
-void PaletteManager::clear ( uint32_t paletteNumber, uint32_t colorNumber )
-{
-    const auto it = _palettes.find ( paletteNumber );
+void PaletteManager::clear( uint32_t paletteNumber, uint32_t colorNumber ) {
+    const auto it = _palettes.find( paletteNumber );
 
-    if ( it != _palettes.end() )
-    {
-        it->second.erase ( colorNumber );
+    if ( it != _palettes.end() ) {
+        it->second.erase( colorNumber );
 
         if ( it->second.empty() )
-            clear ( paletteNumber );
+            clear( paletteNumber );
     }
 
 #ifndef DISABLE_SERIALIZATION
@@ -135,17 +118,15 @@ void PaletteManager::clear ( uint32_t paletteNumber, uint32_t colorNumber )
 #endif
 }
 
-void PaletteManager::clear ( uint32_t paletteNumber )
-{
-    _palettes.erase ( paletteNumber );
+void PaletteManager::clear( uint32_t paletteNumber ) {
+    _palettes.erase( paletteNumber );
 
 #ifndef DISABLE_SERIALIZATION
     invalidate();
 #endif
 }
 
-void PaletteManager::clear()
-{
+void PaletteManager::clear() {
     _palettes.clear();
 
 #ifndef DISABLE_SERIALIZATION
@@ -153,35 +134,31 @@ void PaletteManager::clear()
 #endif
 }
 
-bool PaletteManager::empty() const
-{
+bool PaletteManager::empty() const {
     return _palettes.empty();
 }
 
-void PaletteManager::optimize()
-{
-    for ( uint32_t i = 0; i < 36; ++i )
-    {
-        const auto it = _palettes.find ( i );
+void PaletteManager::optimize() {
+    for ( uint32_t i = 0; i < 36; ++i ) {
+        const auto it = _palettes.find( i );
 
         if ( it == _palettes.end() )
             continue;
 
-        for ( uint32_t j = 0; j < 256; ++j )
-        {
-            const auto jt = it->second.find ( j );
+        for ( uint32_t j = 0; j < 256; ++j ) {
+            const auto jt = it->second.find( j );
 
             if ( jt == it->second.end() )
                 continue;
 
-            if ( ( 0xFFFFFF & jt->second ) != ( 0xFFFFFF & _originals[i][j] ) )
+            if ( ( 0xFFFFFF & jt->second ) !=
+                 ( 0xFFFFFF & _originals[ i ][ j ] ) )
                 continue;
 
-            it->second.erase ( j );
+            it->second.erase( j );
 
-            if ( it->second.empty() )
-            {
-                _palettes.erase ( i );
+            if ( it->second.empty() ) {
+                _palettes.erase( i );
                 break;
             }
         }
@@ -192,37 +169,37 @@ void PaletteManager::optimize()
 #endif
 }
 
-bool PaletteManager::save ( const string& folder, const string& charaName )
-{
+bool PaletteManager::save( const string& folder, const string& charaName ) {
     optimize();
 
-    ofstream fout ( ( folder + charaName + PALETTES_FILE_SUFFIX ).c_str() );
+    ofstream fout( ( folder + charaName + PALETTES_FILE_SUFFIX ).c_str() );
     bool good = fout.good();
 
-    if ( good )
-    {
+    if ( good ) {
         fout << "######## " << charaName << " palettes ########" << endl;
         fout << endl;
-        fout << "#"                                                  << endl;
+        fout << "#" << endl;
         fout << "# Color are specified as color_NUMBER_ID=#HEX_CODE" << endl;
-        fout << "#"                                                  << endl;
-        fout << "#   eg. color_03_123=#FF0000"                       << endl;
-        fout << "#"                                                  << endl;
-        fout << "# Lines starting with # are ignored"                << endl;
-        fout << "#"                                                  << endl;
+        fout << "#" << endl;
+        fout << "#   eg. color_03_123=#FF0000" << endl;
+        fout << "#" << endl;
+        fout << "# Lines starting with # are ignored" << endl;
+        fout << "#" << endl;
 
-        for ( auto it = _palettes.cbegin(); it != _palettes.cend(); ++it )
-        {
-            fout << format ( "\n### Color %02d start ###\n", it->first + 1 ) << endl;
+        for ( auto it = _palettes.cbegin(); it != _palettes.cend(); ++it ) {
+            fout << format( "\n### Color %02d start ###\n", it->first + 1 )
+                 << endl;
 
-            for ( const auto& kv : it->second )
-            {
-                const string line = format ( "color_%02d_%03d=#%06X", it->first + 1, kv.first + 1, kv.second );
+            for ( const auto& kv : it->second ) {
+                const string line =
+                    format( "color_%02d_%03d=#%06X", it->first + 1,
+                            kv.first + 1, kv.second );
 
                 fout << line << endl;
             }
 
-            fout << format ( "\n#### Color %02d end ####\n", it->first + 1 ) << endl;
+            fout << format( "\n#### Color %02d end ####\n", it->first + 1 )
+                 << endl;
         }
 
         good = fout.good();
@@ -232,39 +209,40 @@ bool PaletteManager::save ( const string& folder, const string& charaName )
     return good;
 }
 
-bool PaletteManager::load ( const string& folder, const string& charaName )
-{
-    ifstream fin ( ( folder + charaName + PALETTES_FILE_SUFFIX ).c_str() );
+bool PaletteManager::load( const string& folder, const string& charaName ) {
+    ifstream fin( ( folder + charaName + PALETTES_FILE_SUFFIX ).c_str() );
     bool good = fin.good();
 
-    if ( good )
-    {
+    if ( good ) {
         string line;
 
-        while ( getline ( fin, line ) )
-        {
-            if ( line.empty() || line[0] == '#' )
+        while ( getline( fin, line ) ) {
+            if ( line.empty() || line[ 0 ] == '#' )
                 continue;
 
-            vector<string> parts = split ( line, "=" );
+            vector< string > parts = split( line, "=" );
 
-            if ( parts.size() != 2 || parts[0].empty() || parts[1].empty() || parts[1][0] != '#' )
+            if ( parts.size() != 2 || parts[ 0 ].empty() ||
+                 parts[ 1 ].empty() || parts[ 1 ][ 0 ] != '#' )
                 continue;
 
-            vector<string> prefix = split ( parts[0], "_" );
+            vector< string > prefix = split( parts[ 0 ], "_" );
 
-            if ( prefix.size() != 3 || prefix[0] != "color" || prefix[1].empty() || prefix[2].empty() )
+            if ( prefix.size() != 3 || prefix[ 0 ] != "color" ||
+                 prefix[ 1 ].empty() || prefix[ 2 ].empty() )
                 continue;
 
-            const uint32_t paletteNumber = lexical_cast<uint32_t> ( prefix[1] ) - 1;
-            const uint32_t colorNumber = lexical_cast<uint32_t> ( prefix[2] ) - 1;
+            const uint32_t paletteNumber =
+                lexical_cast< uint32_t >( prefix[ 1 ] ) - 1;
+            const uint32_t colorNumber =
+                lexical_cast< uint32_t >( prefix[ 2 ] ) - 1;
 
             uint32_t color;
 
-            stringstream ss ( parts[1].substr ( 1 ) );
+            stringstream ss( parts[ 1 ].substr( 1 ) );
             ss >> hex >> color;
 
-            _palettes[paletteNumber][colorNumber] = color;
+            _palettes[ paletteNumber ][ colorNumber ] = color;
         }
 
         optimize();

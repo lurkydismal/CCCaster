@@ -2,20 +2,16 @@
 
 #include <unordered_set>
 
-
 class Socket;
 
-
-class SocketManager
-{
-public:
-
+class SocketManager {
+   public:
     // Check for socket events
-    void check ( uint64_t timeout );
+    void check( uint64_t timeout );
 
     // Add / remove / clear socket instances
-    void add ( Socket *socket );
-    void remove ( Socket *socket );
+    void add( Socket* socket );
+    void remove( Socket* socket );
     void clear();
 
     // Initialize / deinitialize socket manager
@@ -24,18 +20,16 @@ public:
     bool isInitialized() const { return _initialized; }
 
     // Check if a socket is still allocated
-    bool isAllocated ( Socket *socket ) const
-    {
-        return ( _allocatedSockets.find ( socket ) != _allocatedSockets.end() );
+    bool isAllocated( Socket* socket ) const {
+        return ( _allocatedSockets.find( socket ) != _allocatedSockets.end() );
     }
 
     // Get the singleton instance
     static SocketManager& get();
 
-private:
-
+   private:
     // Sets of active and allocated socket instances
-    std::unordered_set<Socket *> _activeSockets, _allocatedSockets;
+    std::unordered_set< Socket* > _activeSockets, _allocatedSockets;
 
     // Flag to indicate the set of allocated sockets has changed
     bool _changed = false;
@@ -45,6 +39,6 @@ private:
 
     // Private constructor, etc. for singleton class
     SocketManager();
-    SocketManager ( const SocketManager& );
-    const SocketManager& operator= ( const SocketManager& );
+    SocketManager( const SocketManager& );
+    const SocketManager& operator=( const SocketManager& );
 };

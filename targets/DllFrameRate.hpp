@@ -2,9 +2,7 @@
 
 #include <cstdint>
 
-
-namespace DllFrameRate
-{
+namespace DllFrameRate {
 
 extern double desiredFps;
 
@@ -12,4 +10,4 @@ extern double actualFps;
 
 void enable();
 
-}
+} // namespace DllFrameRate

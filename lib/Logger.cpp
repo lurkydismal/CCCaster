@@ -4,73 +4,68 @@
 
 using namespace std;
 
-
 #ifdef DISABLE_LOGGING
 
-void Logger::initialize ( const string& filePath, uint32_t _options ) {}
+void Logger::initialize( const string& filePath, uint32_t _options ) {}
 void Logger::deinitialize() {}
 void Logger::flush() {}
-void Logger::log ( const char *srcFile, int srcLine, const char *srcFunc, const char *logMessage ) {}
+void Logger::log( const char* srcFile,
+                  int srcLine,
+                  const char* srcFunc,
+                  const char* logMessage ) {}
 
 #else
 
-void Logger::initialize ( const string& filePath, uint32_t _options )
-{
+void Logger::initialize( const string& filePath, uint32_t _options ) {
 #ifdef LOGGER_MUTEXED
-    LOCK ( _mutex );
+    LOCK( _mutex );
 #endif
 
     bool same = _initialized && ( _filePath == filePath );
 
     this->_options = _options;
 
-    if ( filePath.empty() )
-    {
+    if ( filePath.empty() ) {
         _filePath.clear();
         _fd = stdout;
-    }
-    else
-    {
-        if ( _options & PID_IN_FILENAME )
-        {
-            const size_t i = filePath.find_last_of ( '.' );
-            const string tmp = filePath.substr ( 0, i ) + format ( "_%08d", _getpid() ) + filePath.substr ( i );
+    } else {
+        if ( _options & PID_IN_FILENAME ) {
+            const size_t i = filePath.find_last_of( '.' );
+            const string tmp = filePath.substr( 0, i ) +
+                               format( "_%08d", _getpid() ) +
+                               filePath.substr( i );
             same = ( _filePath == tmp );
             _filePath = tmp;
-        }
-        else
-        {
+        } else {
             _filePath = filePath;
         }
 
         // Reopen the file if the path changed
-        if ( _fd && !same )
-        {
-            fflush ( _fd );
-            fclose ( _fd );
+        if ( _fd && !same ) {
+            fflush( _fd );
+            fclose( _fd );
         }
 
         // Append to the file if the path is the same
-        _fd = fopen ( _filePath.c_str(), same ? "a" : "w" );
+        _fd = fopen( _filePath.c_str(), same ? "a" : "w" );
     }
 
-    if ( ! _initialized )
+    if ( !_initialized )
         _logId = generateRandomId();
 
     _initialized = true;
 }
 
-void Logger::deinitialize()
-{
-    if ( ! _initialized )
+void Logger::deinitialize() {
+    if ( !_initialized )
         return;
 
 #ifdef LOGGER_MUTEXED
-    LOCK ( _mutex );
+    LOCK( _mutex );
 #endif
 
     if ( _fd && _fd != stdout )
-        fclose ( _fd );
+        fclose( _fd );
 
     sessionId.clear();
     _filePath.clear();
@@ -80,67 +75,64 @@ void Logger::deinitialize()
     _initialized = false;
 }
 
-void Logger::flush()
-{
+void Logger::flush() {
 #ifdef LOGGER_MUTEXED
-    LOCK ( _mutex );
+    LOCK( _mutex );
 #endif
 
-    fflush ( _fd );
+    fflush( _fd );
 }
 
-void Logger::log ( const char *srcFile, int srcLine, const char *srcFunc, const char *logMessage )
-{
-    if ( ! _fd )
+void Logger::log( const char* srcFile,
+                  int srcLine,
+                  const char* srcFunc,
+                  const char* logMessage ) {
+    if ( !_fd )
         return;
 
 #ifdef LOGGER_MUTEXED
-    LOCK ( _mutex );
+    LOCK( _mutex );
 #endif
 
     bool hasPrefix = false;
 
-    if ( _options & ( LOG_GM_TIME | LOG_LOCAL_TIME ) )
-    {
+    if ( _options & ( LOG_GM_TIME | LOG_LOCAL_TIME ) ) {
         time_t t;
-        time ( &t );
+        time( &t );
 
-        tm *ts;
+        tm* ts;
         if ( _options & LOG_GM_TIME )
-            ts = gmtime ( &t );
+            ts = gmtime( &t );
         else
-            ts = localtime ( &t );
+            ts = localtime( &t );
 
-        strftime ( _buffer, sizeof ( _buffer ), "%H:%M:%S", ts );
+        strftime( _buffer, sizeof( _buffer ), "%H:%M:%S", ts );
 
-        const uint64_t now = TimerManager::get().getNow ( true );
+        const uint64_t now = TimerManager::get().getNow( true );
 
-        fprintf ( _fd, "%s.%03u:", _buffer, ( uint32_t ) ( now % 1000 ) );
+        fprintf( _fd, "%s.%03u:", _buffer, ( uint32_t )( now % 1000 ) );
         hasPrefix = true;
     }
 
-    if ( _options & LOG_FILE_LINE )
-    {
-        fprintf ( _fd, "%s:%3d:", srcFile, srcLine );
+    if ( _options & LOG_FILE_LINE ) {
+        fprintf( _fd, "%s:%3d:", srcFile, srcLine );
         hasPrefix = true;
     }
 
-    if ( _options & LOG_FUNC_NAME )
-    {
-        string shortFunc ( srcFunc );
-        shortFunc = shortFunc.substr ( 0, shortFunc.find ( '(' ) );
-        fprintf ( _fd, "%s:", shortFunc.c_str() );
+    if ( _options & LOG_FUNC_NAME ) {
+        string shortFunc( srcFunc );
+        shortFunc = shortFunc.substr( 0, shortFunc.find( '(' ) );
+        fprintf( _fd, "%s:", shortFunc.c_str() );
         hasPrefix = true;
     }
 
-    fprintf ( _fd, ( hasPrefix ? " %s\n" : "%s\n" ), logMessage );
-    fflush ( _fd );
+    fprintf( _fd, ( hasPrefix ? " %s\n" : "%s\n" ), logMessage );
+    fflush( _fd );
 }
 
 #endif // DISABLE_LOGGING
 
-Logger& Logger::get()
-{
+Logger& Logger::get() {
     static Logger instance;
     return instance;
 }

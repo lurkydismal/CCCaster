@@ -1,15 +1,13 @@
 #pragma once
 
-#include <sys/time.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #include <memory>
 
-
-inline timespec gettimeoffset ( long milliseconds )
-{
+inline timespec gettimeoffset( long milliseconds ) {
     timeval tv;
-    gettimeofday ( &tv, 0 );
+    gettimeofday( &tv, 0 );
 
     timespec ts;
     ts.tv_sec = tv.tv_sec + ( milliseconds / 1000L );
@@ -18,110 +16,64 @@ inline timespec gettimeoffset ( long milliseconds )
     return ts;
 }
 
-
-class Mutex
-{
-public:
-
-    Mutex()
-    {
+class Mutex {
+   public:
+    Mutex() {
         pthread_mutexattr_t attr;
-        pthread_mutexattr_init ( &attr );
-        pthread_mutexattr_settype ( &attr, PTHREAD_MUTEX_RECURSIVE );
-        pthread_mutex_init ( &_mutex, &attr );
+        pthread_mutexattr_init( &attr );
+        pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
+        pthread_mutex_init( &_mutex, &attr );
     }
 
-    ~Mutex()
-    {
-        pthread_mutex_destroy ( &_mutex );
-    }
+    ~Mutex() { pthread_mutex_destroy( &_mutex ); }
 
-    void lock()
-    {
-        pthread_mutex_lock ( &_mutex );
-    }
+    void lock() { pthread_mutex_lock( &_mutex ); }
 
-    void unlock()
-    {
-        pthread_mutex_unlock ( &_mutex );
-    }
+    void unlock() { pthread_mutex_unlock( &_mutex ); }
 
     friend class CondVar;
 
-private:
-
+   private:
     pthread_mutex_t _mutex;
 };
 
+class Lock {
+   public:
+    Lock( Mutex& mutex ) : _mutex( mutex ) { _mutex.lock(); }
 
-class Lock
-{
-public:
+    ~Lock() { _mutex.unlock(); }
 
-    Lock ( Mutex& mutex ) : _mutex ( mutex )
-    {
-        _mutex.lock();
-    }
-
-    ~Lock()
-    {
-        _mutex.unlock();
-    }
-
-private:
-
+   private:
     Mutex& _mutex;
 };
 
+#define LOCK( MUTEX ) Lock lock##MUTEX( MUTEX )
 
-#define LOCK(MUTEX) Lock lock ## MUTEX ( MUTEX )
+class CondVar {
+   public:
+    CondVar() { pthread_cond_init( &_cond, 0 ); }
 
+    ~CondVar() { pthread_cond_destroy( &_cond ); }
 
-class CondVar
-{
-public:
-
-    CondVar()
-    {
-        pthread_cond_init ( &_cond, 0 );
+    int wait( Mutex& mutex ) {
+        return pthread_cond_wait( &_cond, &( mutex._mutex ) );
     }
 
-    ~CondVar()
-    {
-        pthread_cond_destroy ( &_cond );
+    int wait( Mutex& mutex, long timeout ) {
+        timespec ts = gettimeoffset( timeout );
+        return pthread_cond_timedwait( &_cond, &( mutex._mutex ), &ts );
     }
 
-    int wait ( Mutex& mutex )
-    {
-        return pthread_cond_wait ( &_cond, & ( mutex._mutex ) );
-    }
+    void signal() { pthread_cond_signal( &_cond ); }
 
-    int wait ( Mutex& mutex, long timeout )
-    {
-        timespec ts = gettimeoffset ( timeout );
-        return pthread_cond_timedwait ( &_cond, & ( mutex._mutex ), &ts );
-    }
+    void broadcast() { pthread_cond_broadcast( &_cond ); }
 
-    void signal()
-    {
-        pthread_cond_signal ( &_cond );
-    }
-
-    void broadcast()
-    {
-        pthread_cond_broadcast ( &_cond );
-    }
-
-private:
-
+   private:
     pthread_cond_t _cond;
 };
 
-
-class Thread
-{
-public:
-
+class Thread {
+   public:
     virtual ~Thread() { join(); }
 
     virtual void start();
@@ -130,32 +82,30 @@ public:
 
     void release();
 
-    bool isRunning() const
-    {
-        LOCK ( _mutex );
+    bool isRunning() const {
+        LOCK( _mutex );
         return _running;
     }
 
     virtual void run() = 0;
 
-private:
+   private:
     bool _running = false;
 
     pthread_t _thread;
 
     mutable Mutex _mutex;
 
-    static void *func ( void *ptr );
+    static void* func( void* ptr );
 };
 
+typedef std::shared_ptr< Thread > ThreadPtr;
 
-typedef std::shared_ptr<Thread> ThreadPtr;
-
-
-#define THREAD(NAME, CONTEXT)                                   \
-    class NAME : public Thread {                                \
-        CONTEXT& context;                                       \
-    public:                                                     \
-        NAME ( CONTEXT& context ) : context ( context ) {}      \
-        void run() override;                                    \
+#define THREAD( NAME, CONTEXT )                          \
+    class NAME : public Thread {                         \
+        CONTEXT& context;                                \
+                                                         \
+       public:                                           \
+        NAME( CONTEXT& context ) : context( context ) {} \
+        void run() override;                             \
     } //

@@ -5,38 +5,32 @@
 
 #include <cstring>
 
-
 // Windows GUID type forward declaration
 typedef struct _GUID GUID;
 
-
 // Guid type
-struct Guid
-{
-    uint8_t guid[16];
+struct Guid {
+    uint8_t guid[ 16 ];
 
     Guid() {}
 
-    Guid ( std::initializer_list<uint8_t> guid );
+    Guid( std::initializer_list< uint8_t > guid );
 
-    Guid ( const GUID& guid );
+    Guid( const GUID& guid );
 
-    void getGUID ( GUID& guid ) const;
+    void getGUID( GUID& guid ) const;
 };
 
-
 // Hash function
-namespace std
-{
+namespace std {
 
-template<> struct hash<Guid>
-{
-    size_t operator() ( const Guid& a ) const
-    {
+template <>
+struct hash< Guid > {
+    size_t operator()( const Guid& a ) const {
         size_t seed = 0;
 
-        for ( size_t i = 0; i < sizeof ( a.guid ); ++i )
-            hash_combine ( seed, a.guid[i] );
+        for ( size_t i = 0; i < sizeof( a.guid ); ++i )
+            hash_combine( seed, a.guid[ i ] );
 
         return seed;
     }
@@ -44,15 +38,18 @@ template<> struct hash<Guid>
 
 } // namespace std
 
-
 // Comparison operators
-inline bool operator< ( const Guid& a, const Guid& b ) { return ( std::memcmp ( &a, &b, sizeof ( a ) ) < 0 ); }
-inline bool operator== ( const Guid& a, const Guid& b ) { return ( !std::memcmp ( &a, &b, sizeof ( a ) ) ); }
-inline bool operator!= ( const Guid& a, const Guid& b ) { return ! ( a == b ); }
-
+inline bool operator<( const Guid& a, const Guid& b ) {
+    return ( std::memcmp( &a, &b, sizeof( a ) ) < 0 );
+}
+inline bool operator==( const Guid& a, const Guid& b ) {
+    return ( !std::memcmp( &a, &b, sizeof( a ) ) );
+}
+inline bool operator!=( const Guid& a, const Guid& b ) {
+    return !( a == b );
+}
 
 // Stream operators
-inline std::ostream& operator<< ( std::ostream& os, const Guid& a )
-{
-    return ( os << formatAsHex ( a.guid, sizeof ( a.guid ) ) );
+inline std::ostream& operator<<( std::ostream& os, const Guid& a ) {
+    return ( os << formatAsHex( a.guid, sizeof( a.guid ) ) );
 }

@@ -2,9 +2,7 @@
 
 using namespace std;
 
-
-MouseManager& MouseManager::get()
-{
+MouseManager& MouseManager::get() {
     static MouseManager instance;
     return instance;
 }
