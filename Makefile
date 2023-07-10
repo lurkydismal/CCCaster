@@ -65,14 +65,14 @@ $(info VAR=$(UNAME))
 ifeq ($(OS),Windows_NT)
 	CHMOD_X = icacls $@ /grant Everyone:F
 	GRANT = icacls $@ /grant Everyone:F
-	ASTYLE = 3rdparty/astyle.exe
+	FORMAT_TOOL = clang-format.exe
 	OPENGL_HEADERS = /usr/mingw/i686-w64-mingw32/include/GL
 else
 	WINDRES = $(PREFIX)windres
 	STRIP = $(PREFIX)strip
 	CHMOD_X = chmod +x $@
 	GRANT =
-	ASTYLE = 3rdparty/astyle
+	FORMAT_TOOL = clang-format-15
 	TOUCH = $(STRIP)
 	OPENGL_HEADERS = /usr/i686-w64-mingw32/include/GL
 endif
@@ -352,20 +352,9 @@ trim:
 	sed --in-place 's/[[:space:]]\\+$$//' $(NON_GEN_SRCS) $(NON_GEN_HEADERS)
 
 format:
-	$(ASTYLE)                   	\
-    --indent=spaces=4           	\
-    --convert-tabs              	\
-    --indent-preprocessor       	\
-    --indent-switches           	\
-    --style=allman              	\
-    --max-code-length=120       	\
-    --pad-paren                 	\
-    --pad-oper                  	\
-    --suffix=none               	\
-    --formatted                 	\
-    --keep-one-line-blocks      	\
-    --align-pointer=name        	\
-    --align-reference=type      	\
+	$(FORMAT_TOOL)  \
+    --style=file    \
+	-i				\
 $(filter-out tools/Generator.cpp netplay/CharacterSelect.cpp lib/KeyboardVKeyNames.hpp targets/DllAsmHacks.hpp,\
 $(NON_GEN_SRCS) $(NON_GEN_HEADERS))
 
