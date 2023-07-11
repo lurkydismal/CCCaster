@@ -41,7 +41,7 @@ class ReplayCreator {
                                                         //(this->buttonUp == 7
                                                         //&& in2.buttonUp == 9)
                                                         //|| (this->buttonUp ==
-                                                        //9 && in2.buttonUp ==
+                                                        // 9 && in2.buttonUp ==
                                                         // 3) ||
                                                         // (this->buttonUp == 9
                                                         // && in2.buttonUp == 0)
