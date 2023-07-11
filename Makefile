@@ -141,7 +141,7 @@ palettes: $(PALETTES)
 
 
 $(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(FOLDER)/$(UPDATER)
-$(ARCHIVE): $(FOLDER)/unzip.exe $(FOLDER)/$(README) $(FOLDER)/$(CHANGELOG) $(FOLDER)/trials
+$(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/$(CHANGELOG) $(FOLDER)/trials
 	@echo
 ifneq (,$(findstring release,$(MAKECMDGOALS)))
 		rm -f $(wildcard $(NAME)*.zip)
@@ -153,7 +153,7 @@ ifneq (,$(findstring release,$(MAKECMDGOALS)))
 		$(ZIP) $(ARCHIVE) -r GRP
 		$(ZIP) $(ARCHIVE) -r cccaster/trials
 		rm -rf GRP
-	        $(GRANT)
+			$(GRANT)
 endif
 	echo $(MAKECMDGOALS)
 
@@ -185,9 +185,6 @@ $(FOLDER)/$(UPDATER): tools/Updater.cpp lib/StringUtils.cpp | $(FOLDER)
 	$(STRIP) $@
 	$(CHMOD_X)
 	@echo
-
-$(FOLDER)/unzip.exe: 3rdparty/unzip.exe | $(FOLDER)
-	cp -f $^ $(FOLDER)/
 
 $(FOLDER)/trials: trials | $(FOLDER)
 	cp -r $^ $(FOLDER)/
