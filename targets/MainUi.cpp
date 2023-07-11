@@ -1937,10 +1937,10 @@ string MainUi::formatStats ( const PingStats& pingStats )
            );
 }
 
-string MainUi::getUpdate ( bool isStartup )
-{
-    if ( ! isOnline() )
-    {
+string MainUi::getUpdate( bool isStartup ) {
+    return "No Internet connection";
+
+    if ( !isOnline() ) {
         return "No Internet connection";
     }
 
