@@ -141,7 +141,7 @@ palettes: $(PALETTES)
 
 
 $(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(FOLDER)/$(UPDATER)
-$(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/$(CHANGELOG) $(FOLDER)/trials
+$(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/trials
 	@echo
 ifneq (,$(findstring release,$(MAKECMDGOALS)))
 		rm -f $(wildcard $(NAME)*.zip)
