@@ -352,7 +352,7 @@ format:
 	$(FORMAT_TOOL)  \
     --style=file    \
 	-i				\
-$(filter-out tools/Generator.cpp netplay/CharacterSelect.cpp lib/KeyboardVKeyNames.hpp targets/DllAsmHacks.hpp,\
+$(filter-out lib/ProtocolEnums.hpp tools/Generator.cpp netplay/CharacterSelect.cpp lib/KeyboardVKeyNames.hpp targets/DllAsmHacks.hpp,\
 $(NON_GEN_SRCS) $(NON_GEN_HEADERS))
 
 count:
