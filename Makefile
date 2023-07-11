@@ -139,7 +139,7 @@ palettes: $(PALETTES)
 
 
 $(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(FOLDER)/$(UPDATER)
-$(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/$(CHANGELOG) $(FOLDER)/trials
+$(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/trials
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
 	$(ZIP) $(ARCHIVE) $^
