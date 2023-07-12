@@ -1,15 +1,17 @@
 #include "ReplayCreator.hpp"
-#include "StringUtils.hpp"
 
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
+
+#include "StringUtils.hpp"
 using namespace std;
 
 void ReplayCreator::dump( ReplayCreator::ReplayFile rf, char* fname ) {

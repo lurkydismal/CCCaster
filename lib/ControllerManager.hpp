@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Controller.hpp"
-#include "Guid.hpp"
-#include "JoystickDetector.hpp"
-#include "Thread.hpp"
-
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "Controller.hpp"
+#include "Guid.hpp"
+#include "JoystickDetector.hpp"
+#include "Thread.hpp"
 
 struct ControllerMappings : public SerializableSequence {
     std::unordered_map< std::string, MsgPtr > mappings;

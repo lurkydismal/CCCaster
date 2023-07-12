@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Logger.hpp"
-#include "Protocol.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <limits>
+
+#include "Logger.hpp"
+#include "Protocol.hpp"
 
 // Template class to calculate stats with an online algorithm
 class Statistics : public SerializableSequence {

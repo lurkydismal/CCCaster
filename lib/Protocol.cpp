@@ -1,4 +1,5 @@
 #include "Protocol.hpp"
+
 #include "Compression.hpp"
 #include "Enum.hpp"
 #include "Logger.hpp"

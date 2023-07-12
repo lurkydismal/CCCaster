@@ -1,13 +1,13 @@
 #include "PaletteEditor.hpp"
-#include "Algorithms.hpp"
-#include "CharacterSelect.hpp"
-#include "StringUtils.hpp"
-
-#include "mbaacc_framedisplay.h"
 
 #include <direct.h>
 
 #include <cctype>
+
+#include "Algorithms.hpp"
+#include "CharacterSelect.hpp"
+#include "StringUtils.hpp"
+#include "mbaacc_framedisplay.h"
 
 using namespace std;
 

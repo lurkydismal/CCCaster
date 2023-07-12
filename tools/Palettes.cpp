@@ -1,15 +1,10 @@
-#include "Algorithms.hpp"
-#include "KeyValueStore.hpp"
-#include "PaletteEditor.hpp"
+#include <windows.h>
 
 #include <AntTweakBar.h>
-
+#include <direct.h>
 #include <gl.h>
 #include <glfw.h>
 #include <glu.h>
-
-#include <direct.h>
-#include <windows.h>
 
 #include <algorithm>
 #include <climits>
@@ -17,6 +12,10 @@
 #include <cstdarg>
 #include <string>
 #include <unordered_map>
+
+#include "Algorithms.hpp"
+#include "KeyValueStore.hpp"
+#include "PaletteEditor.hpp"
 
 using namespace std;
 

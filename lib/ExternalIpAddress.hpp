@@ -1,9 +1,9 @@
 #pragma once
 
-#include "HttpGet.hpp"
-
 #include <memory>
 #include <string>
+
+#include "HttpGet.hpp"
 
 class ExternalIpAddress : private HttpGet::Owner {
    public:

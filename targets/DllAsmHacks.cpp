@@ -1,15 +1,18 @@
 #include "DllAsmHacks.hpp"
+
+#include <windows.h>
+
+#include <d3dx9.h>
+
+#include <fstream>
+#include <iterator>
+#include <vector>
+
 #include "CharacterSelect.hpp"
 #include "DllNetplayManager.hpp"
 #include "DllTrialManager.hpp"
 #include "Logger.hpp"
 #include "Messages.hpp"
-
-#include <d3dx9.h>
-#include <windows.h>
-#include <fstream>
-#include <iterator>
-#include <vector>
 
 using namespace std;
 

@@ -1,13 +1,5 @@
 #pragma once
 
-#include "CharacterSelect.hpp"
-#include "Compression.hpp"
-#include "Constants.hpp"
-#include "Logger.hpp"
-#include "Protocol.hpp"
-#include "Statistics.hpp"
-#include "Version.hpp"
-
 #include <cereal/types/array.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/unordered_map.hpp>
@@ -15,6 +7,14 @@
 
 #include <array>
 #include <cstring>
+
+#include "CharacterSelect.hpp"
+#include "Compression.hpp"
+#include "Constants.hpp"
+#include "Logger.hpp"
+#include "Protocol.hpp"
+#include "Statistics.hpp"
+#include "Version.hpp"
 
 struct ErrorMessage : public SerializableSequence {
     std::string error;

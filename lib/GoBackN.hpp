@@ -1,9 +1,9 @@
 #pragma once
 
+#include <list>
+
 #include "Protocol.hpp"
 #include "Timer.hpp"
-
-#include <list>
 
 #define DEFAULT_SEND_INTERVAL ( 50 )
 

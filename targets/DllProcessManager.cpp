@@ -1,11 +1,12 @@
+#include <windows.h>
+
+#include <direct.h>
+
 #include "Constants.hpp"
 #include "ErrorStringsExt.hpp"
 #include "Exceptions.hpp"
 #include "ProcessManager.hpp"
 #include "TcpSocket.hpp"
-
-#include <direct.h>
-#include <windows.h>
 
 using namespace std;
 

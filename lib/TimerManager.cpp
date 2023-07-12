@@ -1,9 +1,11 @@
 #include "TimerManager.hpp"
-#include "Logger.hpp"
-#include "Timer.hpp"
+
+#include <windows.h>
 
 #include <mmsystem.h>
-#include <windows.h>
+
+#include "Logger.hpp"
+#include "Timer.hpp"
 
 using namespace std;
 

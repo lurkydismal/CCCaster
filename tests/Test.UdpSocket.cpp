@@ -1,10 +1,10 @@
 #ifndef RELEASE
 
+#include <memory>
+
 #include "Test.Socket.hpp"
 #include "Timer.hpp"
 #include "UdpSocket.hpp"
-
-#include <memory>
 
 using namespace std;
 

@@ -1,9 +1,10 @@
 #include "KeyValueStore.hpp"
-#include "Logger.hpp"
-#include "StringUtils.hpp"
 
 #include <fstream>
 #include <sstream>
+
+#include "Logger.hpp"
+#include "StringUtils.hpp"
 
 using namespace std;
 

@@ -1,10 +1,11 @@
 #include "ReplayManager.hpp"
-#include "Exceptions.hpp"
-#include "Logger.hpp"
-#include "Messages.hpp"
 
 #include <fstream>
 #include <iostream>
+
+#include "Exceptions.hpp"
+#include "Logger.hpp"
+#include "Messages.hpp"
 
 using namespace std;
 

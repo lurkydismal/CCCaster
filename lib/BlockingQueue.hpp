@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Thread.hpp"
-
 #include <list>
 #include <unordered_set>
+
+#include "Thread.hpp"
 
 template < typename T >
 class BlockingQueue {

@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstring>
+
 #include "Algorithms.hpp"
 #include "StringUtils.hpp"
-
-#include <cstring>
 
 // Windows GUID type forward declaration
 typedef struct _GUID GUID;

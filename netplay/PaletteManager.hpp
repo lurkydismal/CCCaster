@@ -2,6 +2,7 @@
 
 #ifndef DISABLE_SERIALIZATION
 #include <cereal/types/map.hpp>
+
 #include "Protocol.hpp"
 #endif
 

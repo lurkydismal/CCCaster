@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Logger.hpp"
-
 #include <JLib/ConsoleCore.h>
 
 #include <memory>
 #include <sstream>
 #include <vector>
+
+#include "Logger.hpp"
 
 // Operators
 inline COORD operator+( const COORD& a, const COORD& b ) {

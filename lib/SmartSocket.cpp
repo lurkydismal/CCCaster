@@ -1,10 +1,12 @@
 #include "SmartSocket.hpp"
+
+#include <ws2tcpip.h>
+
+#include <fstream>
+
 #include "Logger.hpp"
 #include "TcpSocket.hpp"
 #include "UdpSocket.hpp"
-
-#include <ws2tcpip.h>
-#include <fstream>
 
 using namespace std;
 

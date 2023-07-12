@@ -1,11 +1,12 @@
+#include <windows.h>
+
+#include <distorm.h>
+#include <mnemonics.h>
+
 #include "Constants.hpp"
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "StringUtils.hpp"
-
-#include <distorm.h>
-#include <mnemonics.h>
-#include <windows.h>
 
 using namespace std;
 

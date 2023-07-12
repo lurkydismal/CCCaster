@@ -1,16 +1,19 @@
 #include "Main.hpp"
+
+#include <windows.h>
+
+#include <optionparser.h>
+
+#include <algorithm>
+#include <fstream>
+#include <iterator>
+
 #include "ConsoleUi.hpp"
 #include "Exceptions.hpp"
 #include "MainUi.hpp"
 #include "StringUtils.hpp"
 #include "Test.hpp"
 #include "Version.hpp"
-
-#include <optionparser.h>
-#include <windows.h>
-#include <algorithm>
-#include <fstream>
-#include <iterator>
 
 using namespace std;
 using namespace option;

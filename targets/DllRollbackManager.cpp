@@ -1,10 +1,11 @@
 #include "DllRollbackManager.hpp"
-#include "DllAsmHacks.hpp"
-#include "ErrorStringsExt.hpp"
-#include "MemDump.hpp"
 
 #include <algorithm>
 #include <utility>
+
+#include "DllAsmHacks.hpp"
+#include "ErrorStringsExt.hpp"
+#include "MemDump.hpp"
 
 using namespace std;
 

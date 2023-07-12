@@ -1,3 +1,7 @@
+#include <windows.h>
+
+#include <ws2tcpip.h>
+
 #include "Algorithms.hpp"
 #include "CharacterSelect.hpp"
 #include "Constants.hpp"
@@ -10,9 +14,6 @@
 #include "SmartSocket.hpp"
 #include "SpectatorManager.hpp"
 #include "UdpSocket.hpp"
-
-#include <windows.h>
-#include <ws2tcpip.h>
 
 using namespace std;
 

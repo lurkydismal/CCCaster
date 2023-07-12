@@ -1,9 +1,10 @@
 #include "PaletteManager.hpp"
-#include "Algorithms.hpp"
-#include "StringUtils.hpp"
 
 #include <fstream>
 #include <sstream>
+
+#include "Algorithms.hpp"
+#include "StringUtils.hpp"
 
 using namespace std;
 

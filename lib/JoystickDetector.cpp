@@ -1,4 +1,5 @@
 #include "JoystickDetector.hpp"
+
 #include "ControllerManager.hpp"
 #include "ErrorStrings.hpp"
 #include "Exceptions.hpp"
@@ -6,9 +7,10 @@
 #include "UdpSocket.hpp"
 
 #define INITGUID
+#include <windows.h>
+
 #include <dbt.h>
 #include <oleauto.h>
-#include <windows.h>
 
 using namespace std;
 

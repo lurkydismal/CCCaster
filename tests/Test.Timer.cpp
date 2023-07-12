@@ -1,14 +1,14 @@
 #ifndef RELEASE
 
-#include "EventManager.hpp"
-#include "SocketManager.hpp"
-#include "Timer.hpp"
-#include "TimerManager.hpp"
-
 #include <gtest/gtest.h>
 
 #include <cstdlib>
 #include <vector>
+
+#include "EventManager.hpp"
+#include "SocketManager.hpp"
+#include "Timer.hpp"
+#include "TimerManager.hpp"
 
 using namespace std;
 

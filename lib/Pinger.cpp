@@ -1,4 +1,5 @@
 #include "Pinger.hpp"
+
 #include "Logger.hpp"
 #include "TimerManager.hpp"
 

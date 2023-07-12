@@ -1,18 +1,20 @@
 #include "ProcessManager.hpp"
+
+#include <windows.h>
+
+#include <direct.h>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <memory>
+
 #include "Constants.hpp"
 #include "ErrorStringsExt.hpp"
 #include "EventManager.hpp"
 #include "Exceptions.hpp"
 #include "Messages.hpp"
 #include "TcpSocket.hpp"
-
-#include <direct.h>
-#include <windows.h>
-
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <memory>
 
 using namespace std;
 

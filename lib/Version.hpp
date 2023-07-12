@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Protocol.hpp"
-
 #include <cereal/types/string.hpp>
 
 #include <string>
+
+#include "Protocol.hpp"
 
 class Version : public SerializableSequence {
    public:

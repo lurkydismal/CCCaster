@@ -1,4 +1,14 @@
 #include "DllTrialManager.hpp"
+
+#include <windows.h>
+
+#include <mmsystem.h>
+
+#include <codecvt>
+#include <fstream>
+#include <locale>
+#include <string>
+
 #include "CharacterSelect.hpp"
 #include "Constants.hpp"
 #include "DllNetplayManager.hpp"
@@ -8,13 +18,6 @@
 #include "Sequences.hpp"
 #include "Shlwapi.h"
 #include "StringUtils.hpp"
-
-#include <mmsystem.h>
-#include <windows.h>
-#include <codecvt>
-#include <fstream>
-#include <locale>
-#include <string>
 
 using namespace std;
 

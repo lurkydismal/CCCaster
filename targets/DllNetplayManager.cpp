@@ -1,10 +1,4 @@
 #include "DllNetplayManager.hpp"
-#include "CharacterSelect.hpp"
-#include "DllAsmHacks.hpp"
-#include "DllTrialManager.hpp"
-#include "Exceptions.hpp"
-#include "ProcessManager.hpp"
-#include "ReplayCreator.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -12,6 +6,13 @@
 #include <fstream>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "CharacterSelect.hpp"
+#include "DllAsmHacks.hpp"
+#include "DllTrialManager.hpp"
+#include "Exceptions.hpp"
+#include "ProcessManager.hpp"
+#include "ReplayCreator.hpp"
 
 using namespace std;
 

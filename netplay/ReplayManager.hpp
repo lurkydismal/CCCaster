@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Constants.hpp"
-#include "Protocol.hpp"
-
 #include <string>
 #include <vector>
+
+#include "Constants.hpp"
+#include "Protocol.hpp"
 
 class ReplayManager {
    public:

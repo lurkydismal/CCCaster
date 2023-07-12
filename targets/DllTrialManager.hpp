@@ -1,7 +1,7 @@
 #pragma once
-#include <vector>
-
 #include <d3dx9.h>
+
+#include <vector>
 
 using namespace std;
 

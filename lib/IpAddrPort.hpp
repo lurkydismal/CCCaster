@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Algorithms.hpp"
-#include "Protocol.hpp"
-
 #include <cereal/types/string.hpp>
 
 #include <memory>
+
+#include "Algorithms.hpp"
+#include "Protocol.hpp"
 
 struct addrinfo;
 struct sockaddr;

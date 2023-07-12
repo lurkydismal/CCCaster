@@ -1,7 +1,8 @@
 #include "ExternalIpAddress.hpp"
-#include "Logger.hpp"
 
 #include <vector>
+
+#include "Logger.hpp"
 
 using namespace std;
 

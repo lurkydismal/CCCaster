@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "EventManager.hpp"
 #include "IpAddrPort.hpp"
 #include "KeyboardManager.hpp"
@@ -9,8 +11,6 @@
 #include "SocketManager.hpp"
 #include "Timer.hpp"
 #include "TimerManager.hpp"
-
-#include <unordered_set>
 
 // Log file that contains all the data needed to keep games in sync
 #define SYNC_LOG_FILE FOLDER "sync.log"

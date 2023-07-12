@@ -1,10 +1,12 @@
 #include "KeyboardManager.hpp"
+
+#include <windows.h>
+
+#include <mmsystem.h>
+
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "UdpSocket.hpp"
-
-#include <mmsystem.h>
-#include <windows.h>
 
 using namespace std;
 

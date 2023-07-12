@@ -1,11 +1,12 @@
 #include "MainUpdater.hpp"
-#include "Logger.hpp"
-#include "ProcessManager.hpp"
+
+#include <windows.h>
 
 #include <unordered_set>
 #include <vector>
 
-#include <windows.h>
+#include "Logger.hpp"
+#include "ProcessManager.hpp"
 
 using namespace std;
 

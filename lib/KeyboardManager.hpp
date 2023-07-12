@@ -1,9 +1,9 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "Protocol.hpp"
 #include "Socket.hpp"
-
-#include <unordered_set>
 
 struct KeyboardEvent : public SerializableMessage {
     uint32_t vkCode = 0;

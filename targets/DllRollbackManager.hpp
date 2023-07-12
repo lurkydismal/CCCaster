@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Constants.hpp"
-#include "DllNetplayManager.hpp"
-
 #include <array>
 #include <cfenv>
 #include <list>
 #include <memory>
 #include <stack>
+
+#include "Constants.hpp"
+#include "DllNetplayManager.hpp"
 
 struct __attribute__( ( packed ) ) RepInputState {
     char unk1;

@@ -12,6 +12,12 @@ struct TestMessage : public SerializableSequence {
 
 #ifndef RELEASE
 
+#include <cereal/types/string.hpp>
+#include <gtest/gtest.h>
+
+#include <string>
+#include <vector>
+
 #include "EventManager.hpp"
 #include "Logger.hpp"
 #include "Socket.hpp"
@@ -19,12 +25,6 @@ struct TestMessage : public SerializableSequence {
 #include "Timer.hpp"
 #include "TimerManager.hpp"
 #include "UdpSocket.hpp"
-
-#include <cereal/types/string.hpp>
-#include <gtest/gtest.h>
-
-#include <string>
-#include <vector>
 
 using namespace std;
 

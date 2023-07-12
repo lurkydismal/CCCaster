@@ -1,9 +1,9 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "Socket.hpp"
 #include "Timer.hpp"
-
-#include <unordered_map>
 
 // Socket class that tries to listen / connect over the desired protocol, but
 // automatically falls back to using UDP tunnel if the initial protocol fails.

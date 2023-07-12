@@ -1,3 +1,9 @@
+#include <windows.h>
+
+#include <algorithm>
+#include <memory>
+#include <vector>
+
 #include "ChangeMonitor.hpp"
 #include "CharacterSelect.hpp"
 #include "DllControllerManager.hpp"
@@ -17,12 +23,6 @@
 #include "SpectatorManager.hpp"
 #include "Thread.hpp"
 #include "UdpSocket.hpp"
-
-#include <windows.h>
-
-#include <algorithm>
-#include <memory>
-#include <vector>
 
 using namespace std;
 

@@ -1,11 +1,11 @@
 #pragma once
 
+#include <list>
+#include <unordered_map>
+
 #include "Constants.hpp"
 #include "Socket.hpp"
 #include "Timer.hpp"
-
-#include <list>
-#include <unordered_map>
 
 // Default pending socket timeout
 #define DEFAULT_PENDING_TIMEOUT ( 20000 )

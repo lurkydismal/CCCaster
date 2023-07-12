@@ -1,9 +1,9 @@
 #pragma once
 
+#include <memory>
+
 #include "BlockingQueue.hpp"
 #include "Thread.hpp"
-
-#include <memory>
 
 #define CHECK_TIMERS 0x0001
 #define CHECK_SOCKETS 0x0002

@@ -1,6 +1,8 @@
 #include "DllHacks.hpp"
+
 #include "Algorithms.hpp"
 #include "ControllerManager.hpp"
+#include "D3DHook.h"
 #include "DllAsmHacks.hpp"
 #include "DllFrameRate.hpp"
 #include "Exceptions.hpp"
@@ -8,12 +10,11 @@
 #include "MouseManager.hpp"
 #include "ProcessManager.hpp"
 
-#include "D3DHook.h"
-
 #define INITGUID
+#include <windows.h>
+
 #include <MinHook.h>
 #include <dbt.h>
-#include <windows.h>
 #include <windowsx.h>
 
 using namespace std;

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "TimerManager.hpp"
-
 #include <unordered_map>
+
+#include "TimerManager.hpp"
 
 #define DEFAULT_HELD_DURATION ( 300 )
 

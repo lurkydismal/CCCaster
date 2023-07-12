@@ -1,4 +1,5 @@
 #include "Logger.hpp"
+
 #include "Algorithms.hpp"
 #include "TimerManager.hpp"
 

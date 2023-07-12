@@ -1,10 +1,11 @@
 #include "DllFrameRate.hpp"
+
+#include <d3dx9.h>
+
 #include "Constants.hpp"
 #include "DllAsmHacks.hpp"
 #include "ProcessManager.hpp"
 #include "TimerManager.hpp"
-
-#include <d3dx9.h>
 
 using namespace std;
 using namespace DllFrameRate;
