@@ -1,4 +1,5 @@
 #include "SpectatorManager.hpp"
+
 #include "Logger.hpp"
 #include "ProcessManager.hpp"
 

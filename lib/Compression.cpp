@@ -1,4 +1,5 @@
 #include "Compression.hpp"
+
 #include "Logger.hpp"
 
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES

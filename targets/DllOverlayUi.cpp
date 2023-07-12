@@ -1,12 +1,12 @@
 #include "DllOverlayUi.hpp"
+
+#include <d3dx9.h>
+
 #include "Constants.hpp"
 #include "ProcessManager.hpp"
-
 #include "imgui.h"
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
-
-#include <d3dx9.h>
 
 using namespace std;
 using namespace DllOverlayUi;

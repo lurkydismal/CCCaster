@@ -1,10 +1,11 @@
 #include "ConsoleUi.hpp"
-#include "Algorithms.hpp"
-#include "StringUtils.hpp"
 
 #include <windows.h>
 
 #include <climits>
+
+#include "Algorithms.hpp"
+#include "StringUtils.hpp"
 
 using namespace std;
 

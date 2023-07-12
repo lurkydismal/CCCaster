@@ -1,11 +1,11 @@
 #pragma once
 
+#include <array>
+
 #include "Messages.hpp"
 #include "Protocol.hpp"
 #include "Socket.hpp"
 #include "Timer.hpp"
-
-#include <array>
 
 #define COMBINE_INPUT( DIRECTION, BUTTONS ) \
     uint16_t( ( DIRECTION ) | ( ( BUTTONS ) << 4 ) )

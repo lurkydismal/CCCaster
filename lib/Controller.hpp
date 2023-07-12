@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Algorithms.hpp"
-#include "Guid.hpp"
-#include "KeyboardManager.hpp"
-#include "Thread.hpp"
-
 #include <array>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "Algorithms.hpp"
+#include "Guid.hpp"
+#include "KeyboardManager.hpp"
+#include "Thread.hpp"
 
 #define LOG_CONTROLLER( CONTROLLER, FORMAT, ... )                           \
     LOG( "%s: controller=%08x; state=%08x; " FORMAT, CONTROLLER->getName(), \

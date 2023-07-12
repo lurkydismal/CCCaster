@@ -1,9 +1,9 @@
 #pragma once
 
+#include <string>
+
 #include "Socket.hpp"
 #include "Timer.hpp"
-
-#include <string>
 
 #define DEFAULT_GET_TIMEOUT ( 5000 )
 

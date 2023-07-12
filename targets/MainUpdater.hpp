@@ -1,11 +1,11 @@
 #pragma once
 
+#include <string>
+
 #include "Enum.hpp"
 #include "HttpDownload.hpp"
 #include "HttpGet.hpp"
 #include "Version.hpp"
-
-#include <string>
 
 class MainUpdater : private HttpDownload::Owner, private HttpGet::Owner {
    public:

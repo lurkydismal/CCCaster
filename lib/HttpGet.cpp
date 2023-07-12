@@ -1,8 +1,9 @@
 #include "HttpGet.hpp"
-#include "Exceptions.hpp"
-#include "TcpSocket.hpp"
 
 #include <sstream>
+
+#include "Exceptions.hpp"
+#include "TcpSocket.hpp"
 
 using namespace std;
 

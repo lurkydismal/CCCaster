@@ -1,4 +1,11 @@
 #include "MainUi.hpp"
+
+#include <mmsystem.h>
+#include <wininet.h>
+
+#include <algorithm>
+#include <iomanip>
+
 #include "CharacterSelect.hpp"
 #include "ConsoleUi.hpp"
 #include "ErrorStringsExt.hpp"
@@ -7,11 +14,6 @@
 #include "NetplayStates.hpp"
 #include "StringUtils.hpp"
 #include "Version.hpp"
-
-#include <mmsystem.h>
-#include <wininet.h>
-#include <algorithm>
-#include <iomanip>
 
 using namespace std;
 

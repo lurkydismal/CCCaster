@@ -1,10 +1,10 @@
 #pragma once
 
-#include "HttpGet.hpp"
-
 #include <fstream>
 #include <memory>
 #include <string>
+
+#include "HttpGet.hpp"
 
 class HttpDownload : private HttpGet::Owner {
    public:

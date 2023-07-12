@@ -1,11 +1,13 @@
 #include "SocketManager.hpp"
+
+#include <windows.h>
+
+#include <winsock2.h>
+
 #include "ErrorStrings.hpp"
 #include "Exceptions.hpp"
 #include "Socket.hpp"
 #include "TimerManager.hpp"
-
-#include <windows.h>
-#include <winsock2.h>
 
 using namespace std;
 

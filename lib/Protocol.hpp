@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Enum.hpp"
-
 #include <cereal/archives/binary.hpp>
 
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
+
+#include "Enum.hpp"
 
 #define EMPTY_MESSAGE_BOILERPLATE( NAME ) \
     NAME() {}                             \

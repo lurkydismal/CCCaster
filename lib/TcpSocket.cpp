@@ -1,14 +1,16 @@
 #include "TcpSocket.hpp"
-#include "ErrorStrings.hpp"
-#include "Exceptions.hpp"
-#include "Protocol.hpp"
-#include "SocketManager.hpp"
 
 #include <windows.h>
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
 #include <algorithm>
+
+#include "ErrorStrings.hpp"
+#include "Exceptions.hpp"
+#include "Protocol.hpp"
+#include "SocketManager.hpp"
 
 using namespace std;
 

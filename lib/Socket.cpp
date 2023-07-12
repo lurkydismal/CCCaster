@@ -1,19 +1,20 @@
 #include "Socket.hpp"
+
+#include <windows.h>
+
+#include <cereal/types/unordered_map.hpp>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#include <algorithm>
+#include <unordered_set>
+
 #include "ErrorStrings.hpp"
 #include "Exceptions.hpp"
 #include "SmartSocket.hpp"
 #include "SocketManager.hpp"
 #include "TcpSocket.hpp"
 #include "UdpSocket.hpp"
-
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-#include <cereal/types/unordered_map.hpp>
-
-#include <algorithm>
-#include <unordered_set>
 
 using namespace std;
 

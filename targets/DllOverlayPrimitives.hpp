@@ -1,12 +1,13 @@
 #pragma once
 
 #define M_PI 3.14159265358979323846
+#include <windows.h>
+
+#include <d3dx9.h>
+
 #include <array>
 #include <cmath>
 #include <string>
-
-#include <d3dx9.h>
-#include <windows.h>
 
 #define COLOR_BLACK D3DCOLOR_XRGB( 0, 0, 0 )
 #define COLOR_WHITE D3DCOLOR_XRGB( 255, 255, 255 )

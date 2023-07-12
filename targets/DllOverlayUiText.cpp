@@ -1,16 +1,18 @@
+#include <windows.h>
+
+#include <d3dx9.h>
+
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <vector>
+
 #include "DllHacks.hpp"
 #include "DllOverlayPrimitives.hpp"
 #include "DllOverlayUi.hpp"
 #include "DllTrialManager.hpp"
 #include "Enum.hpp"
 #include "ProcessManager.hpp"
-
-#include <d3dx9.h>
-#include <windows.h>
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <vector>
 
 using namespace std;
 using namespace DllOverlayUi;

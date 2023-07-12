@@ -1,12 +1,13 @@
 #include "DllControllerManager.hpp"
+
+#include <windows.h>
+
 #include "CharacterSelect.hpp"
 #include "DllAsmHacks.hpp"
 #include "DllHacks.hpp"
 #include "DllOverlayUi.hpp"
 #include "DllTrialManager.hpp"
 #include "KeyboardState.hpp"
-
-#include <windows.h>
 
 using namespace std;
 

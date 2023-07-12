@@ -1,13 +1,14 @@
 #include "Controller.hpp"
-#include "Constants.hpp"
-#include "ControllerManager.hpp"
-#include "ErrorStrings.hpp"
-#include "Exceptions.hpp"
 
 #include <windows.h>
 
 #include <cstdlib>
 #include <limits>
+
+#include "Constants.hpp"
+#include "ControllerManager.hpp"
+#include "ErrorStrings.hpp"
+#include "Exceptions.hpp"
 
 using namespace std;
 

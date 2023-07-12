@@ -1,11 +1,11 @@
 #pragma once
 
-#include "StringUtils.hpp"
-#include "Thread.hpp"
-
 #include <cstdio>
 #include <ctime>
 #include <string>
+
+#include "StringUtils.hpp"
+#include "Thread.hpp"
 
 #define LOG_GM_TIME ( 0x01 )     // Log the gmtime timestamp per message
 #define LOG_LOCAL_TIME ( 0x02 )  // Log the localtime timestamp per message

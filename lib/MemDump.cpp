@@ -1,12 +1,13 @@
 #include "MemDump.hpp"
-#include "Algorithms.hpp"
-#include "Compression.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <list>
 #include <sstream>
+
+#include "Algorithms.hpp"
+#include "Compression.hpp"
 
 using namespace std;
 using namespace cereal;

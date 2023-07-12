@@ -1,4 +1,5 @@
 #include "ControllerManager.hpp"
+
 #include "ErrorStrings.hpp"
 #include "Exceptions.hpp"
 
@@ -6,8 +7,9 @@
 #define DIRECTINPUT_VERSION 0x0800 // Need at least version 8
 #include <dinput.h>
 #define COBJMACROS
-#include <mmsystem.h>
 #include <windows.h>
+
+#include <mmsystem.h>
 
 #include <algorithm>
 #include <fstream>

@@ -1,11 +1,11 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "Enum.hpp"
 #include "GoBackN.hpp"
 #include "IpAddrPort.hpp"
-
-#include <memory>
-#include <vector>
 
 #define DEFAULT_CONNECT_TIMEOUT ( 5000 )
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Enum.hpp"
-#include "Protocol.hpp"
-
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "Enum.hpp"
+#include "Protocol.hpp"
 
 // Set of command line options
 ENUM( Options,

@@ -1,11 +1,11 @@
 #pragma once
 
+#include <climits>
+#include <vector>
+
 #include "InputsContainer.hpp"
 #include "Messages.hpp"
 #include "NetplayStates.hpp"
-
-#include <climits>
-#include <vector>
 
 // Class that manages netplay state and inputs
 class NetplayManager {

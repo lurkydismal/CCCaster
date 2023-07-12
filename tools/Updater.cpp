@@ -1,9 +1,10 @@
-#include "StringUtils.hpp"
+#include <windows.h>
+
+#include <psapi.h>
 
 #include <cstdlib>
 
-#include <psapi.h>
-#include <windows.h>
+#include "StringUtils.hpp"
 
 using namespace std;
 

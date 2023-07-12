@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include "Controller.hpp"
 #include "ControllerManager.hpp"
 #include "IpAddrPort.hpp"
@@ -8,9 +11,6 @@
 #include "MainUpdater.hpp"
 #include "MatchmakingManager.hpp"
 #include "Messages.hpp"
-
-#include <memory>
-#include <string>
 
 // The function to run the game with the provided options
 typedef void ( *RunFuncPtr )( const IpAddrPort& address,

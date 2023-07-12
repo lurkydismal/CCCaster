@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Constants.hpp"
-#include "Logger.hpp"
-
 #include <algorithm>
 #include <vector>
+
+#include "Constants.hpp"
+#include "Logger.hpp"
 
 template < typename T >
 class InputsContainer {

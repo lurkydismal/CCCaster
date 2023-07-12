@@ -1,12 +1,12 @@
 #ifndef RELEASE
 
-#include "GoBackN.hpp"
-#include "Test.Socket.hpp"
-#include "UdpSocket.hpp"
-
 #include <gtest/gtest.h>
 
 #include <vector>
+
+#include "GoBackN.hpp"
+#include "Test.Socket.hpp"
+#include "UdpSocket.hpp"
 
 using namespace std;
 

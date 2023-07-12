@@ -1,11 +1,11 @@
 #pragma once
 
-#include "StringUtils.hpp"
+#include <cereal/archives/binary.hpp>
 
 #include <string>
 #include <vector>
 
-#include <cereal/archives/binary.hpp>
+#include "StringUtils.hpp"
 
 // Enum type boilerplate code
 #define ENUM_BOILERPLATE( NAME, ... )                                 \

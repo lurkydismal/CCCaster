@@ -1,9 +1,10 @@
 #include "GoBackN.hpp"
-#include "Logger.hpp"
 
 #include <cereal/types/string.hpp>
 
 #include <string>
+
+#include "Logger.hpp"
 
 using namespace std;
 

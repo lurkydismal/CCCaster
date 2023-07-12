@@ -1,9 +1,10 @@
 #include "Guid.hpp"
-#include "Logger.hpp"
+
+#include <rpc.h>
 
 #include <algorithm>
 
-#include <rpc.h>
+#include "Logger.hpp"
 
 using namespace std;
 

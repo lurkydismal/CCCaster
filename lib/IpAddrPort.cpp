@@ -1,12 +1,14 @@
 #include "IpAddrPort.hpp"
-#include "ErrorStrings.hpp"
-#include "Exceptions.hpp"
 
 #include <windows.h>
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
 #include <cctype>
+
+#include "ErrorStrings.hpp"
+#include "Exceptions.hpp"
 
 using namespace std;
 
