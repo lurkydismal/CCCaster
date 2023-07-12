@@ -6,7 +6,7 @@
 class Timer;
 
 class TimerManager {
-   public:
+public:
     // Update current time
     void updateNow();
 
@@ -40,7 +40,7 @@ class TimerManager {
     // Get the singleton instance
     static TimerManager& get();
 
-   private:
+private:
     // Sets of active and allocated timer instances
     std::unordered_set< Timer* > _activeTimers, _allocatedTimers;
 

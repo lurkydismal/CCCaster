@@ -14,7 +14,7 @@
 #define BUTTON_DOWN( BEFORE, AFTER ) uint8_t( ~( ( ~AFTER ) | BEFORE ) )
 
 class ReplayCreator {
-   public:
+public:
     enum MOON { C, F, H };
 
     struct CharData {
@@ -144,7 +144,7 @@ class ReplayCreator {
                       MoveData* prior );
     void fixRng( ReplayFile* rf, char* fname );
 
-   private:
+private:
     int test;
 };
 

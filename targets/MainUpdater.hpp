@@ -8,7 +8,7 @@
 #include "Version.hpp"
 
 class MainUpdater : private HttpDownload::Owner, private HttpGet::Owner {
-   public:
+public:
     ENUM( Type, Version, ChangeLog, Archive );
 
     ENUM( Channel, Stable, Dev );
@@ -49,7 +49,7 @@ class MainUpdater : private HttpDownload::Owner, private HttpGet::Owner {
 
     const Version& getTargetVersion() const { return _targetVersion; }
 
-   private:
+private:
     Type _type;
 
     std::shared_ptr< HttpGet > _httpGet;

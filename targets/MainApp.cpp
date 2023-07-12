@@ -1315,7 +1315,7 @@ struct MainApp : public Main,
         externalIpAddress.owner = 0;
     }
 
-   private:
+private:
     // Get the current game mode as a string
     const char* getGameModeString() const {
         return netplayConfig.tournament

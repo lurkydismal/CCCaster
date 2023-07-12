@@ -33,7 +33,7 @@ struct __attribute__( ( packed ) ) RepRound {
 };
 
 class DllRollbackManager {
-   public:
+public:
     // Allocate / deallocate memory for saving game states
     void allocateStates();
     void deallocateStates();
@@ -48,7 +48,7 @@ class DllRollbackManager {
     // Finalize rollback sound effects
     void finishedRerunSounds();
 
-   private:
+private:
     struct GameState {
         // Each game state is uniquely identified by (netplayState,
         // startWorldTime, indexedFrame). They are chronologically ordered by

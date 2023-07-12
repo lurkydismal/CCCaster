@@ -76,7 +76,7 @@ struct OptionsMessage : public SerializableSequence {
 
     PROTOCOL_MESSAGE_BOILERPLATE( OptionsMessage, _options )
 
-   private:
+private:
     struct Opt {
         size_t count;
         std::string arg;

@@ -4,7 +4,7 @@
 #include <vector>
 
 class ChangeMonitor {
-   public:
+public:
     struct Interface {
         // To be implemented by derived types, should return true if changed
         virtual bool check() = 0;
@@ -49,7 +49,7 @@ class ChangeMonitor {
     // Get the singleton instance
     static ChangeMonitor& get();
 
-   private:
+private:
     // List of all the ChangeMonitor::Interface implementations
     std::vector< std::shared_ptr< ChangeMonitor::Interface > > _monitors;
 
@@ -64,7 +64,7 @@ typedef std::shared_ptr< ChangeMonitor::Interface > ChangeMonitorPtr;
 // This monitors for changes to a reference
 template < typename K, typename T >
 class RefChangeMonitor : public ChangeMonitor::Interface {
-   public:
+public:
     struct Owner {
         virtual void changedValue( K key, T previous, T current ) = 0;
     };
@@ -85,7 +85,7 @@ class RefChangeMonitor : public ChangeMonitor::Interface {
         return true;
     }
 
-   private:
+private:
     // The key that identifies the callback
     const K _key;
 
@@ -114,7 +114,7 @@ ChangeMonitor::Interface* ChangeMonitor::addRef( O* owner,
 // pointer)
 template < typename K, typename T >
 class PtrToRefChangeMonitor : public ChangeMonitor::Interface {
-   public:
+public:
     struct Owner {
         virtual void changedValue( K key, T previous, T current ) = 0;
     };
@@ -147,7 +147,7 @@ class PtrToRefChangeMonitor : public ChangeMonitor::Interface {
         return true;
     }
 
-   private:
+private:
     // The key that identifies the callback
     const K _key;
 

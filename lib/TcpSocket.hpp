@@ -4,7 +4,7 @@
 #include "Timer.hpp"
 
 class TcpSocket : public Socket, private Timer::Owner {
-   public:
+public:
     // Listen for connections on the given port
     static SocketPtr listen( Socket::Owner* owner,
                              uint16_t port,
@@ -39,14 +39,14 @@ class TcpSocket : public Socket, private Timer::Owner {
     bool send( const MsgPtr& message,
                const IpAddrPort& address = NullAddress ) override;
 
-   protected:
+protected:
     // Socket event callbacks
     void socketAccepted() override;
     void socketConnected() override;
     void socketDisconnected() override;
     void socketRead( const MsgPtr& msg, const IpAddrPort& address ) override;
 
-   private:
+private:
     // Timeout for initial connect
     TimerPtr _connectTimer;
 

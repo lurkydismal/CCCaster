@@ -17,7 +17,7 @@ struct Ping : public SerializableMessage {
 };
 
 class Pinger : private Timer::Owner {
-   public:
+public:
     struct Owner {
         virtual void pingerSendPing( Pinger* pinger, const MsgPtr& ping ) = 0;
 
@@ -50,7 +50,7 @@ class Pinger : private Timer::Owner {
 
     bool isPinging() const { return _pinging; }
 
-   private:
+private:
     TimerPtr _pingTimer;
 
     size_t _pingCount = 0;

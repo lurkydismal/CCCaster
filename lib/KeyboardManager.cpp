@@ -70,7 +70,7 @@ class KeyboardThread : public Thread {
     Mutex mutex;
     bool running = false;
 
-   public:
+public:
     ~KeyboardThread() {
         // Since ~Thread calls Thread::join(), which gets overridden,
         // and it's not safe to call virtual functions in the ctor / dtor,

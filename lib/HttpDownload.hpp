@@ -7,7 +7,7 @@
 #include "HttpGet.hpp"
 
 class HttpDownload : private HttpGet::Owner {
-   public:
+public:
     struct Owner {
         virtual void downloadComplete( HttpDownload* httpDownload ) = 0;
 
@@ -30,7 +30,7 @@ class HttpDownload : private HttpGet::Owner {
 
     void stop();
 
-   private:
+private:
     std::ofstream _outputFile;
 
     std::shared_ptr< HttpGet > _httpGet;

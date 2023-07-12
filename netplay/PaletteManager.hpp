@@ -25,7 +25,7 @@ class PaletteManager : public SerializableSequence
 class PaletteManager
 #endif
 {
-   public:
+public:
     static uint32_t computeHighlightColor( uint32_t color );
 
     void cache( const uint32_t** allPaletteData );
@@ -52,7 +52,7 @@ class PaletteManager
     PROTOCOL_MESSAGE_BOILERPLATE( PaletteManager, _palettes )
 #endif
 
-   private:
+private:
     std::map< uint32_t, std::map< uint32_t, uint32_t > > _palettes;
 
     std::array< std::array< uint32_t, 256 >, 36 > _originals;

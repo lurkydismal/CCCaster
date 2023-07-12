@@ -2099,7 +2099,7 @@ struct DllMain : public Main,
         // threading issues
     }
 
-   private:
+private:
     void saveMappings( const Controller* controller ) const override {
         if ( !controller )
             return;

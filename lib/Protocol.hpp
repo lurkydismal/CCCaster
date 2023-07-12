@@ -57,7 +57,7 @@ const MsgPtr NullMsg;
 
 // Contains protocol methods
 class Protocol {
-   public:
+public:
     // Encode a message to a series of bytes
     static std::string encode( const Serializable& message );
     static std::string encode( Serializable* message );
@@ -75,7 +75,7 @@ class Protocol {
 
 // Abstract base class for all serializable messages
 class Serializable {
-   public:
+public:
     // Basic constructor and destructor
     Serializable();
     virtual ~Serializable() {}
@@ -115,7 +115,7 @@ class Serializable {
     // Flag to indicate compression level
     mutable uint8_t compressionLevel;
 
-   private:
+private:
     typedef std::array< char, 16 > HashType;
 
     // Cached hash data
@@ -139,7 +139,7 @@ class Serializable {
 // Represents a regular message, should only be used when size constrained AND
 // reliability is not required
 class SerializableMessage : public Serializable {
-   public:
+public:
     BaseType getBaseType() const override {
         static const BaseType baseType = BaseType::SerializableMessage;
         return baseType;
@@ -149,7 +149,7 @@ class SerializableMessage : public Serializable {
 // Represents a sequential message, should be used for any message that's not
 // size constrained
 class SerializableSequence : public Serializable {
-   public:
+public:
     // Constructor
     SerializableSequence();
     SerializableSequence( uint32_t sequence );
@@ -163,7 +163,7 @@ class SerializableSequence : public Serializable {
     uint32_t getSequence() const { return _sequence; }
     void setSequence( uint32_t sequence ) const;
 
-   private:
+private:
     // Message sequence number
     mutable uint32_t _sequence = 0;
 

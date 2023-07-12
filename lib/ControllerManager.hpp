@@ -17,7 +17,7 @@ struct ControllerMappings : public SerializableSequence {
 };
 
 class ControllerManager {
-   public:
+public:
     struct Owner {
         virtual void joystickAttached( Controller* controller ) = 0;
 
@@ -103,7 +103,7 @@ class ControllerManager {
 
     friend class DllControllerManager;
 
-   private:
+private:
     // All controllers mappings
     ControllerMappings mappings;
 
@@ -122,7 +122,7 @@ class ControllerManager {
 
     // Thread that polls the controllers at a high frequency
     class PollingThread : public Thread {
-       public:
+    public:
         void run() override;
     };
 

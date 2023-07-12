@@ -24,7 +24,7 @@ const char* inet_ntop( int af, const void* src, char* dst, size_t size );
 
 // IP address with port
 class IpAddrPort : public SerializableSequence {
-   public:
+public:
     std::string addr;
     uint16_t port = 0;
     uint8_t isV4 = true;
@@ -81,7 +81,7 @@ class IpAddrPort : public SerializableSequence {
 
     PROTOCOL_MESSAGE_BOILERPLATE( IpAddrPort, addr, port, isV4 )
 
-   private:
+private:
     mutable std::shared_ptr< addrinfo > _addrInfo;
 };
 

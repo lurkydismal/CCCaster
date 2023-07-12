@@ -2,7 +2,7 @@
 
 template < typename T, size_t N >
 class RollingAverage {
-   public:
+public:
     RollingAverage() { reset(); }
 
     RollingAverage( T initial ) { reset( initial ); }
@@ -37,7 +37,7 @@ class RollingAverage {
 
     bool full() const { return ( _count == N ); }
 
-   private:
+private:
     T _values[ N ];
 
     T _sum, _average;

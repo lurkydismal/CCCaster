@@ -10,7 +10,7 @@
 #define DEFAULT_REPEAT_INTERVAL ( 3 )
 
 class KeyboardState {
-   public:
+public:
     static void* windowHandle;
 
     static void clear();
@@ -64,7 +64,7 @@ class KeyboardState {
 
     friend class KeyboardManager;
 
-   private:
+private:
     static std::unordered_map< uint32_t, bool > _state, _previous;
 
     static std::unordered_map< uint32_t, uint64_t > _pressedTimestamp;

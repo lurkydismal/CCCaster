@@ -10,7 +10,7 @@ struct JoysticksChanged : public SerializableMessage {
 // Class that detects joystick attach / detach events, and automatically updates
 // ControllerManager
 class JoystickDetector : private Socket::Owner {
-   public:
+public:
     // Start detecting joysticks
     void start();
 
@@ -20,7 +20,7 @@ class JoystickDetector : private Socket::Owner {
     // Get the singleton instance
     static JoystickDetector& get();
 
-   private:
+private:
     // Socket callbacks
     void socketAccepted( Socket* socket ) override {}
     void socketConnected( Socket* socket ) override {}

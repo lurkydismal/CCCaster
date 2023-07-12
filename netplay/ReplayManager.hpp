@@ -7,7 +7,7 @@
 #include "Protocol.hpp"
 
 class ReplayManager {
-   public:
+public:
     struct Inputs {
         IndexedFrame indexedFrame;
         uint16_t p1, p2;
@@ -33,7 +33,7 @@ class ReplayManager {
 
     MsgPtr getInitialStateBefore( uint32_t index ) const;
 
-   private:
+private:
     std::vector< uint32_t > _modes;
 
     std::vector< std::string > _states;

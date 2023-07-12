@@ -9,7 +9,7 @@
 
 // Template class to calculate stats with an online algorithm
 class Statistics : public SerializableSequence {
-   public:
+public:
     template < typename T >
     void addSample( T value ) {
         static_assert( std::numeric_limits< double >::is_iec559,
@@ -74,7 +74,7 @@ class Statistics : public SerializableSequence {
                                   _mean,
                                   _sumOfSquaredDeltas )
 
-   private:
+private:
     // Number of samples
     size_t _count = 0;
 

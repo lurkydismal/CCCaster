@@ -9,7 +9,7 @@
 // automatically falls back to using UDP tunnel if the initial protocol fails.
 // Queries a remote server for UDP tunnel data.
 class SmartSocket : public Socket, private Socket::Owner, private Timer::Owner {
-   public:
+public:
     // SmartSocket owner interface
     struct Owner : public Socket::Owner {
         virtual void smartSocketSwitchedToUDP( SmartSocket* smartSocket ) {}
@@ -56,7 +56,7 @@ class SmartSocket : public Socket, private Socket::Owner, private Timer::Owner {
     bool send( const MsgPtr& message,
                const IpAddrPort& address = NullAddress ) override;
 
-   private:
+private:
     // Child UDP socket enum type for choosing the right constructor
     enum ChildSocketEnum { ChildSocket };
 

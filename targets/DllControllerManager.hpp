@@ -25,7 +25,7 @@ class DllControllerManager : private KeyboardManager::Owner,
                              private ControllerManager::Owner,
                              private Controller::Owner,
                              protected DllControllerUtils {
-   public:
+public:
     // Local vs remote player numbers
     uint8_t localPlayer = 1, remotePlayer = 2;
 
@@ -62,7 +62,7 @@ class DllControllerManager : private KeyboardManager::Owner,
 
     bool framestepEnabled;
 
-   private:
+private:
     std::vector< Controller* > _allControllers;
 
     std::array< Controller*, 2 > _playerControllers = { { 0, 0 } };

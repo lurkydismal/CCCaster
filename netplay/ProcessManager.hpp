@@ -18,7 +18,7 @@ struct IpcConnected : public SerializableSequence {
 };
 
 class ProcessManager : private Socket::Owner, private Timer::Owner {
-   public:
+public:
     struct Owner {
         // IPC connected event
         virtual void ipcConnected() = 0;
@@ -94,7 +94,7 @@ class ProcessManager : private Socket::Owner, private Timer::Owner {
     MsgPtr getRngState( uint32_t index ) const;
     void setRngState( const RngState& rngState );
 
-   private:
+private:
     // Named pipe
     void* _pipe = 0;
 

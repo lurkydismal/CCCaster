@@ -169,7 +169,7 @@ struct JoystickInfo {
 };
 
 class Controller : public KeyboardManager::Owner {
-   public:
+public:
     struct Owner {
         virtual void controllerKeyMapped( Controller* controller,
                                           uint32_t key ) = 0;
@@ -251,7 +251,7 @@ class Controller : public KeyboardManager::Owner {
     friend class ControllerManager;
     friend class DllControllerManager;
 
-   private:
+private:
     // Enum type for keyboard controller
     enum KeyboardEnum { Keyboard };
 

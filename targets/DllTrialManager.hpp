@@ -120,7 +120,7 @@ extern int trialScale;
 } // namespace TrialManager
 
 class DllTrialManager {
-   public:
+public:
     void frameStepTrial();
     void loadTrialFile();
     void loadCombo( int comboId );
@@ -217,7 +217,7 @@ class DllTrialManager {
 
     bool initialized = false;
 
-   private:
+private:
     bool comboDrop = false;
     bool comboStart = false;
     int comboDropPos = -1;

@@ -10,7 +10,7 @@
 class MemDumpPtr;
 
 class MemDumpBase {
-   public:
+public:
     // Size of this memory dump
     const size_t size;
 
@@ -36,7 +36,7 @@ class MemDumpBase {
     // Serialization
     virtual void save( cereal::BinaryOutputArchive& ar ) const;
 
-   protected:
+protected:
     static std::vector< MemDumpPtr > setParents(
         const std::vector< MemDumpPtr >& ptrs,
         const MemDumpBase* parent );
@@ -49,7 +49,7 @@ class MemDumpBase {
 };
 
 class MemDumpPtr : public MemDumpBase {
-   public:
+public:
     // The parent memory dump
     const MemDumpBase* const parent = 0;
 
@@ -99,7 +99,7 @@ class MemDumpPtr : public MemDumpBase {
     // Serialization
     void save( cereal::BinaryOutputArchive& ar ) const override;
 
-   private:
+private:
     MemDumpPtr( const MemDumpBase* parent,
                 const std::vector< MemDumpPtr >& ptrs,
                 size_t src,
@@ -125,7 +125,7 @@ inline size_t MemDumpBase::getTotalSize() const {
 }
 
 class MemDump : public MemDumpBase {
-   public:
+public:
     // The starting address of the memory dump
     char* const addr;
 
@@ -172,7 +172,7 @@ class MemDump : public MemDumpBase {
 };
 
 class MemDumpList {
-   public:
+public:
     // Total size of memory dumps, only valid after calling update()
     size_t totalSize = 0;
 

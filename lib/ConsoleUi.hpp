@@ -32,10 +32,10 @@ inline std::ostream& operator<<( std::ostream& os, const COORD& a ) {
 }
 
 class ConsoleUi {
-   public:
+public:
     // Base UI element
     class Element {
-       public:
+    public:
         // Indicates this is an element that requires user interaction
         const bool requiresUser;
 
@@ -51,7 +51,7 @@ class ConsoleUi {
         // True if the element fills the height of the screen.
         bool expandHeight() const { return _expand.X; }
 
-       protected:
+    protected:
         // Basic constructor
         Element( bool requiresUser ) : requiresUser( requiresUser ) {}
 
@@ -80,22 +80,22 @@ class ConsoleUi {
 
     // Auto-wrapped text box
     class TextBox : public Element {
-       public:
+    public:
         const std::string text;
 
         TextBox( const std::string& text );
 
-       protected:
+    protected:
         void initialize() override;
         void show() override;
 
-       private:
+    private:
         std::vector< std::string > _lines;
     };
 
     // Scrollable menu
     class Menu : public Element {
-       public:
+    public:
         const std::string title;
 
         Menu( const std::string& title,
@@ -113,11 +113,11 @@ class ConsoleUi {
         void overlayCurrentPosition( const std::string& text,
                                      bool selected = false );
 
-       protected:
+    protected:
         void initialize();
         void show();
 
-       private:
+    private:
         std::vector< std::string > items;
 
         std::string lastItem;
@@ -129,7 +129,7 @@ class ConsoleUi {
 
     // Integer or string prompt
     class Prompt : public Element {
-       public:
+    public:
         const std::string title;
 
         const bool isIntegerPrompt = false;
@@ -147,14 +147,14 @@ class ConsoleUi {
         void setInitial( int initial );
         void setInitial( const std::string& initial );
 
-       protected:
+    protected:
         void initialize();
         void show();
     };
 
     // Progress bar
     class ProgressBar : public Element {
-       public:
+    public:
         const std::string title;
 
         const size_t length;
@@ -164,7 +164,7 @@ class ConsoleUi {
 
         void update( size_t progress ) const;
 
-       protected:
+    protected:
         void initialize() override;
         void show() override;
     };
@@ -230,7 +230,7 @@ class ConsoleUi {
     // Get console window handle
     static void* getConsoleWindow();
 
-   private:
+private:
     static const std::string Ellipsis; // "..."
 
     static const std::string MinText; // "A..."

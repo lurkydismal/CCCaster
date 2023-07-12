@@ -28,7 +28,7 @@ struct KeyboardEvent : public SerializableMessage {
 };
 
 class KeyboardManager : private Socket::Owner {
-   public:
+public:
     struct Owner {
         virtual void keyboardEvent( uint32_t vkCode,
                                     uint32_t scanCode,
@@ -61,7 +61,7 @@ class KeyboardManager : private Socket::Owner {
     // Get the singleton instance
     static KeyboardManager& get();
 
-   private:
+private:
     // If we're hooked
     bool _hooked = false;
 

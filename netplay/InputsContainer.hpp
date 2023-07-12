@@ -8,7 +8,7 @@
 
 template < typename T >
 class InputsContainer {
-   public:
+public:
     // Get a single input for the given index:frame, returns 0 if none.
     T get( uint32_t index, uint32_t frame ) const {
         if ( index >= _inputs.size() || _inputs[ index ].empty() )
@@ -139,7 +139,7 @@ class InputsContainer {
 
     void clearLastChangedFrame() { _lastChangedFrame = MaxIndexedFrame; }
 
-   private:
+private:
     // Mapping: index -> frame -> input
     std::vector< std::vector< T > > _inputs;
 

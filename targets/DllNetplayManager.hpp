@@ -9,7 +9,7 @@
 
 // Class that manages netplay state and inputs
 class NetplayManager {
-   public:
+public:
     // Netplay config
     NetplayConfig config;
 
@@ -144,7 +144,7 @@ class NetplayManager {
 
     friend class DllRollbackManager;
 
-   private:
+private:
     // Netplay state
     NetplayState _state;
 

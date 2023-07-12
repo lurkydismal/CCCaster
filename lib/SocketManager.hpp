@@ -6,7 +6,7 @@
 class Socket;
 
 class SocketManager {
-   public:
+public:
     // Check for socket events
     void check( uint64_t timeout );
 
@@ -28,7 +28,7 @@ class SocketManager {
     // Get the singleton instance
     static SocketManager& get();
 
-   private:
+private:
     // Sets of active and allocated socket instances
     std::unordered_set< Socket* > _activeSockets, _allocatedSockets;
 

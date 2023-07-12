@@ -17,7 +17,7 @@ inline timespec gettimeoffset( long milliseconds ) {
 }
 
 class Mutex {
-   public:
+public:
     Mutex() {
         pthread_mutexattr_t attr;
         pthread_mutexattr_init( &attr );
@@ -33,24 +33,24 @@ class Mutex {
 
     friend class CondVar;
 
-   private:
+private:
     pthread_mutex_t _mutex;
 };
 
 class Lock {
-   public:
+public:
     Lock( Mutex& mutex ) : _mutex( mutex ) { _mutex.lock(); }
 
     ~Lock() { _mutex.unlock(); }
 
-   private:
+private:
     Mutex& _mutex;
 };
 
 #define LOCK( MUTEX ) Lock lock##MUTEX( MUTEX )
 
 class CondVar {
-   public:
+public:
     CondVar() { pthread_cond_init( &_cond, 0 ); }
 
     ~CondVar() { pthread_cond_destroy( &_cond ); }
@@ -68,12 +68,12 @@ class CondVar {
 
     void broadcast() { pthread_cond_broadcast( &_cond ); }
 
-   private:
+private:
     pthread_cond_t _cond;
 };
 
 class Thread {
-   public:
+public:
     virtual ~Thread() { join(); }
 
     virtual void start();
@@ -89,7 +89,7 @@ class Thread {
 
     virtual void run() = 0;
 
-   private:
+private:
     bool _running = false;
 
     pthread_t _thread;
@@ -105,7 +105,7 @@ typedef std::shared_ptr< Thread > ThreadPtr;
     class NAME : public Thread {                         \
         CONTEXT& context;                                \
                                                          \
-       public:                                           \
+    public:                                              \
         NAME( CONTEXT& context ) : context( context ) {} \
         void run() override;                             \
     } //

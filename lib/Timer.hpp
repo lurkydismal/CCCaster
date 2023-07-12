@@ -4,7 +4,7 @@
 #include <memory>
 
 class Timer {
-   public:
+public:
     struct Owner {
         virtual void timerExpired( Timer* timer ) = 0;
     };
@@ -24,7 +24,7 @@ class Timer {
 
     friend class TimerManager;
 
-   private:
+private:
     uint64_t _delay = 0, _expiry = 0;
 };
 

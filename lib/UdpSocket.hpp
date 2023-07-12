@@ -16,7 +16,7 @@ struct UdpControl : public SerializableSequence {
 };
 
 class UdpSocket : public Socket, private GoBackN::Owner {
-   public:
+public:
     // UDP socket type enum
     ENUM( Type, ConnectionLess, Client, Server, Child );
 
@@ -111,7 +111,7 @@ class UdpSocket : public Socket, private GoBackN::Owner {
     // Reset the state of the GoBackN instance
     void resetGbnState();
 
-   private:
+private:
     // UDP child socket enum type for choosing the right constructor
     enum ChildSocketEnum { ChildSocket };
 

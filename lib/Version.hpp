@@ -7,7 +7,7 @@
 #include "Protocol.hpp"
 
 class Version : public SerializableSequence {
-   public:
+public:
     enum PartEnum { Major, Minor, Suffix };
 
     std::string code;
@@ -49,7 +49,7 @@ class Version : public SerializableSequence {
 
     PROTOCOL_MESSAGE_BOILERPLATE( Version, code, revision, buildTime )
 
-   private:
+private:
     std::string get( PartEnum part ) const;
 };
 

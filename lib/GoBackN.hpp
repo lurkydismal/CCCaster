@@ -45,7 +45,7 @@ struct SplitMessage : public SerializableSequence {
 };
 
 class GoBackN : public SerializableSequence, private Timer::Owner {
-   public:
+public:
     struct Owner {
         // Send a message via raw socket
         virtual void goBackNSendRaw( GoBackN* gbn, const MsgPtr& msg ) = 0;
@@ -103,7 +103,7 @@ class GoBackN : public SerializableSequence, private Timer::Owner {
 
     DECLARE_MESSAGE_BOILERPLATE( GoBackN )
 
-   private:
+private:
     // Last sent and received sequences
     uint32_t _sendSequence = 0, _recvSequence = 0;
 

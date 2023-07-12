@@ -6,7 +6,7 @@
 #include "HttpGet.hpp"
 
 class ExternalIpAddress : private HttpGet::Owner {
-   public:
+public:
     struct Owner {
         virtual void externalIpAddrFound( ExternalIpAddress* extIpAddr,
                                           const std::string& address ) = 0;
@@ -27,7 +27,7 @@ class ExternalIpAddress : private HttpGet::Owner {
 
     static const std::string Unknown;
 
-   private:
+private:
     std::shared_ptr< HttpGet > _httpGet;
 
     size_t _nextQueryIndex = 0;

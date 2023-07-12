@@ -19,7 +19,7 @@ enum LobbyMode {
 };
 
 class Lobby : Socket::Owner, Timer::Owner, public Thread {
-   public:
+public:
     struct Owner {
         virtual void connectionFailed( Lobby* lobby ) = 0;
         virtual void unlock( Lobby* lobby ) = 0;
@@ -64,7 +64,7 @@ class Lobby : Socket::Owner, Timer::Owner, public Thread {
     std::string lobbyError;
     std::string lobbyMsg;
 
-   private:
+private:
     SocketPtr _socket;
 
     TimerPtr _timer;

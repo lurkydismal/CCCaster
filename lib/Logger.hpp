@@ -16,7 +16,7 @@
 #define LOG_DEFAULT_OPTIONS ( LOG_GM_TIME | LOG_FILE_LINE | LOG_FUNC_NAME )
 
 class Logger {
-   public:
+public:
     // Session ID
     std::string sessionId;
 
@@ -43,7 +43,7 @@ class Logger {
     // Get the singleton instance
     static Logger& get();
 
-   private:
+private:
     // Log file path
     std::string _filePath;
 

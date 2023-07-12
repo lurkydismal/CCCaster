@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 class KeyValueStore {
-   public:
+public:
     bool hasString( const std::string& key ) const;
 
     std::string getString( const std::string& key ) const;
@@ -28,7 +28,7 @@ class KeyValueStore {
 
     bool load( const std::string& file );
 
-   private:
+private:
     enum class Type : uint8_t { String, Integer, Double };
 
     std::map< std::string, Type > _types;

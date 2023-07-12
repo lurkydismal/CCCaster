@@ -28,7 +28,7 @@ class MainUi : private Controller::Owner,
                private MainUpdater::Owner,
                private Lobby::Owner,
                private MatchmakingManager::Owner {
-   public:
+public:
     InitialConfig initialConfig;
 
     std::string sessionMessage;
@@ -70,7 +70,7 @@ class MainUi : private Controller::Owner,
     void hostReady();
     void sendConnected();
 
-   private:
+private:
     std::shared_ptr< ConsoleUi > _ui;
 
     std::shared_ptr< Lobby > _lobby;

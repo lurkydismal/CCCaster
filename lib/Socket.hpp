@@ -27,7 +27,7 @@ typedef std::shared_ptr< Socket > SocketPtr;
 
 // Generic socket base class
 class Socket {
-   public:
+public:
     // Socket owner interface
     struct Owner {
         // Accepted a socket from server socket
@@ -156,7 +156,7 @@ class Socket {
     friend class SocketManager;
     friend class SmartSocket;
 
-   protected:
+protected:
     // Socket read buffer
     std::string _readBuffer;
 

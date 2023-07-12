@@ -7,7 +7,7 @@
 
 template < typename T >
 class BlockingQueue {
-   public:
+public:
     void push( const T& t ) {
         LOCK( _mutex );
 
@@ -65,7 +65,7 @@ class BlockingQueue {
         _queue.clear();
     }
 
-   private:
+private:
     std::list< T > _queue;
 
     mutable Mutex _mutex;
@@ -75,7 +75,7 @@ class BlockingQueue {
 
 template < typename T >
 class BlockingSetQueue {
-   public:
+public:
     bool push( const T& t ) {
         LOCK( _mutex );
 
@@ -149,7 +149,7 @@ class BlockingSetQueue {
         _queue.clear();
     }
 
-   private:
+private:
     std::list< T > _queue;
 
     std::unordered_set< T > _set;
@@ -161,7 +161,7 @@ class BlockingSetQueue {
 
 template < typename T, size_t N >
 class StaticBlockingQueue {
-   public:
+public:
     void push( const T& t ) {
         LOCK( _mutex );
 
@@ -242,7 +242,7 @@ class StaticBlockingQueue {
         _count = _head = _tail = 0;
     }
 
-   private:
+private:
     T _elements[ N ];
 
     size_t _count = 0, _head = 0, _tail = 0;

@@ -8,7 +8,7 @@
 #define DEFAULT_GET_TIMEOUT ( 5000 )
 
 class HttpGet : private Socket::Owner, private Timer::Owner {
-   public:
+public:
     struct Owner {
         virtual void httpResponse( HttpGet* httpGet,
                                    int code,
@@ -43,7 +43,7 @@ class HttpGet : private Socket::Owner, private Timer::Owner {
 
     uint32_t getContentLength() const { return _contentLength; }
 
-   private:
+private:
     SocketPtr _socket;
 
     TimerPtr _timer;

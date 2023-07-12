@@ -10,7 +10,7 @@
 #define CHECK_CONTROLLERS 0x0004
 
 class EventManager {
-   public:
+public:
     // Add a thread to be joined on the reaper thread, aka garbage collected
     // when it finishes
     void addThread( const ThreadPtr& thread );
@@ -38,7 +38,7 @@ class EventManager {
     // Get the singleton instance
     static EventManager& get();
 
-   private:
+private:
     // Thread to join zombie thread
     struct ReaperThread : public Thread {
         // Finished threads to kill

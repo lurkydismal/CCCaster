@@ -1,7 +1,7 @@
 #pragma once
 
 class MouseManager {
-   public:
+public:
     struct Owner {
         virtual void mouseEvent( int x,
                                  int y,
@@ -14,6 +14,6 @@ class MouseManager {
 
     static MouseManager& get();
 
-   private:
+private:
     // TODO implement hooks when needed
 };

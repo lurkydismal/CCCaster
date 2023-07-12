@@ -12,7 +12,7 @@ class MatchmakingManager : Socket::Owner,
                            Timer::Owner,
                            public KeyboardManager::Owner,
                            public Thread {
-   public:
+public:
     struct Owner {
         virtual void connectionFailed( MatchmakingManager* lobby ) = 0;
         virtual void setAddr( MatchmakingManager* lobby, std::string addr ) = 0;
@@ -40,7 +40,7 @@ class MatchmakingManager : Socket::Owner,
     Mutex hostMutex;
     CondVar hostCondVar;
 
-   private:
+private:
     SocketPtr serversocket;
     TimerPtr _timer;
 

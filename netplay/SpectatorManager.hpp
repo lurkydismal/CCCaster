@@ -28,7 +28,7 @@ struct Spectator {
 };
 
 class SpectatorManager {
-   public:
+public:
     // Timeout for pending sockets, ie sockets that have been accepted but not
     // doing anything yet. Changing this value will only affect newly accepted
     // sockets; already accepted sockets are unaffected.
@@ -61,7 +61,7 @@ class SpectatorManager {
 
     void frameStepSpectators();
 
-   private:
+private:
     std::unordered_map< Socket*, SocketPtr > _pendingSockets;
 
     std::unordered_map< Socket*, TimerPtr > _pendingSocketTimers;
