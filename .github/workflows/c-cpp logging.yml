@@ -9,23 +9,35 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+permissions:
+  contents: read
+
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v2.4.1
+      with:
+        egress-policy: audit
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
       with:
         platform: x86
-    - name: Cache APT Packages
-      uses: awalsh128/cache-apt-pkgs-action@1850ee53f6e706525805321a3f2f863dcf73c962 # v1.3.0
-      with:
-        packages: wine
-        version: 1.0
+    - name: Get APT Package
+      run: sudo apt-get install -y wine
+      shell: bash
     - name: Checkout repository
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-    - name: make
-      run: make --help
+      with:
+        submodules: recursive
+#     - name: configure
+#       run: ./configure
+    - name: make logging
+      run: make logging
+#     - name: make check
+#       run: make check
+#     - name: make distcheck
+#       run: make distcheck
