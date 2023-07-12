@@ -60,11 +60,14 @@ jobs:
       uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
       with:
         platform: x86
-    - name: Cache APT Packages
-      uses: awalsh128/cache-apt-pkgs-action@1850ee53f6e706525805321a3f2f863dcf73c962 # v1.3.0
-      with:
-        packages: wine
-        version: 1.0
+
+    - name: Get APT Package Wine
+      run: |
+        sudo dpkg --add-architecture i386 &&
+        sudo apt-get update &&
+        sudo apt-get install -y wine &&
+        sudo apt-get install -y wine32
+      shell: bash
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -92,7 +95,7 @@ jobs:
     - name: Run, Build Application in release using script
       if: ${{ matrix.language == 'cpp' }}
       run: |
-          make release
+          make
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@cdcdbb579706841c47f7063dda365e292e5cad7a # v2.3.6
