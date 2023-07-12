@@ -127,9 +127,11 @@ void EndScene( IDirect3DDevice9* device ) {
         ImGui::Text( "Position: %f, %f", mousePositionRelative.x,
                      mousePositionRelative.y );
 
-        ImGui::Text( "h = %d %d", ImGui::IsKeyPressed( 'h' ),
+        ImGui::Text( "h = %d %d",
+                     ImGui::IsKeyPressed( static_cast< ImGuiKey >( 'h' ) ),
                      GetAsyncKeyState( 0x48 ) );
-        ImGui::Text( "h = %d %d", ImGui::IsKeyPressed( 'h' ),
+        ImGui::Text( "h = %d %d",
+                     ImGui::IsKeyPressed( static_cast< ImGuiKey >( 'h' ) ),
                      GetAsyncKeyState( VK_LBUTTON ) );
         ImGui::Text(
             "Mouse clicked: %s",
