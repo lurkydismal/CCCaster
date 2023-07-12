@@ -1,4 +1,4 @@
-name: C/C++ CI build debug
+name: C/C++ CI debug
 
 on:
   push:
