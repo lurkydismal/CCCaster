@@ -3,6 +3,9 @@
 
 #include <d3dx9.h>
 
+#include <cstdint>
+#include <vector>
+
 using namespace std;
 
 enum MovePosition {
