@@ -9,14 +9,12 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-permissions:
-  contents: read
-
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # This workflow contains a single job called "build"
   build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
@@ -29,11 +27,5 @@ jobs:
         version: 1.0
     - name: Checkout repository
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-#     - name: configure
-#       run: ./configure
-    - name: make logging
-      run: wine --help
-#     - name: make check
-#       run: make check
-#     - name: make distcheck
-#       run: make distcheck
+    - name: make
+      run: make --help
