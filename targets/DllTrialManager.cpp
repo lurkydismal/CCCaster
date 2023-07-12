@@ -16,7 +16,7 @@
 #include "DllTrialManager.hpp"
 #include "ProcessManager.hpp"
 #include "Sequences.hpp"
-#include "Shlwapi.h"
+// #include "Shlwapi.h"
 #include "StringUtils.hpp"
 
 using namespace std;
