@@ -2,6 +2,7 @@
 #include <d3dx9.h>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 using namespace std;
