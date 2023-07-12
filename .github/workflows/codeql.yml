@@ -86,10 +86,18 @@ jobs:
 
     #   If the Autobuild fails above, remove it and uncomment the following three lines.
     #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
-    - name: Run, Build Application using script
+    - name: Run, Build Application in debug using script
       if: ${{ matrix.language == 'cpp' }}
       run: |
-          make
+          make debug
+    - name: Run, Build Application in logging using script
+      if: ${{ matrix.language == 'cpp' }}
+      run: |
+          make logging
+    - name: Run, Build Application in release using script
+      if: ${{ matrix.language == 'cpp' }}
+      run: |
+          make release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@cdcdbb579706841c47f7063dda365e292e5cad7a # v2.3.6
