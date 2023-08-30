@@ -61,7 +61,3 @@ jobs:
 
 #     - name: make distcheck
 #       run: make distcheck
-
-    - run: ls -a ~/.
-
-    - run: find / -name "wine"
