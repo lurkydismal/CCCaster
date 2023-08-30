@@ -1,7 +1,6 @@
 ---
-Language:        Cpp
 # BasedOnStyle:  Chromium
-AccessModifierOffset: -1
+AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: None
 AlignConsecutiveAssignments:
@@ -101,30 +100,34 @@ ForEachMacros:
   - BOOST_FOREACH
 IfMacros:
   - KJ_IF_MAYBE
-IncludeBlocks:   Preserve
+IncludeBlocks:   Regroup
 IncludeCategories:
+  - Regex:           '^<windows.h>'
+    Priority:        1
+    SortPriority:    0
+    CaseSensitive:   false
   - Regex:           '^<ext/.*\.h>'
-    Priority:        2
+    Priority:        3
     SortPriority:    0
     CaseSensitive:   false
   - Regex:           '^<.*\.h>'
-    Priority:        1
+    Priority:        2
     SortPriority:    0
     CaseSensitive:   false
   - Regex:           '^<ext/.*\.hpp>'
-    Priority:        2
+    Priority:        3
     SortPriority:    0
     CaseSensitive:   false
   - Regex:           '^<.*\.hpp>'
-    Priority:        1
-    SortPriority:    0
-    CaseSensitive:   false
-  - Regex:           '^<.*'
     Priority:        2
     SortPriority:    0
     CaseSensitive:   false
-  - Regex:           '.*'
+  - Regex:           '^<.*'
     Priority:        3
+    SortPriority:    0
+    CaseSensitive:   false
+  - Regex:           '.*'
+    Priority:        4
     SortPriority:    0
     CaseSensitive:   false
 IncludeIsMainRegex: '([-_](test|unittest))?$'
