@@ -44,7 +44,7 @@ body:
       label: Logs
       description: |
         Include the full logs of the commands you are running between the lines
-        with the backticks below. If you are running any `CCCastwe` commands,
+        with the backticks below. If you are running any `CCCaster` commands,
         please include the output of running them with `--verbose`; for example,
         the output of running `CCCaster --verbose offline training`.
 
