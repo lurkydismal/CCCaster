@@ -17,7 +17,7 @@ TRAINING = 2
 DEFAULTTIMEOUT = 5
 
 SERVER = "ws://fierce-lowlands-57630.herokuapp.com/"
-CONCERTO = "https://concerto-mbaacc.herokuapp.com/l"
+CONCERTO = "https://concerto-mbaacc.shib.live/l"
 
 regions = ["NorthAmericaWest", "NorthAmericaEast","SouthAmerica","Europe","MiddleEast","Australia","Japan" ]
 regionMap = { "NA West":"NorthAmericaWest", "NA East":"NorthAmericaEast",
