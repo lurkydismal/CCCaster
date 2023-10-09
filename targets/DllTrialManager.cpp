@@ -7,7 +7,6 @@
 #include "ProcessManager.hpp"
 // #include "Shlwapi.h"
 #include "StringUtils.hpp"
-#include "Shlwapi.h"
 
 #include <fstream>
 #include <locale>
