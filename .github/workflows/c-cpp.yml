@@ -7,9 +7,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "v3.1.2" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "v3.1.2" ]
 
 permissions:
   contents: read
