@@ -26,6 +26,11 @@ on:
 permissions:
   contents: read
 
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   analyze:
     name: Analyze
@@ -53,16 +58,20 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      with:
+        submodules: recursive
 
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
       with:
         platform: x86
-    - name: Cache APT Packages
-      uses: awalsh128/cache-apt-pkgs-action@1850ee53f6e706525805321a3f2f863dcf73c962 # v1.3.0
-      with:
-        packages: wine
-        version: 1.0
+
+    - name: Get APT Package Wine
+      run: |
+        sudo dpkg --add-architecture i386 &&
+        sudo apt-get update &&
+        sudo apt-get install -y wine &&
+        sudo apt-get install -y wine32
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
