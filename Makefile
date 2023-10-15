@@ -16,7 +16,6 @@ PALETTES_FOLDER = palettes
 DLL = hook$(DOT_TAG).dll
 LAUNCHER = launcher.exe
 UPDATER = updater.exe
-DEBUGGER = debugger.exe
 GENERATOR = generator.exe
 PALETTES = palettes.exe
 MBAA_EXE = MBAA.exe
@@ -133,7 +132,6 @@ all: $(DEFAULT_TARGET)
 
 
 launcher: $(FOLDER)/$(LAUNCHER)
-debugger: tools/$(DEBUGGER)
 generator: tools/$(GENERATOR)
 palettes: $(PALETTES)
 
@@ -217,16 +215,6 @@ res/icon.res: res/icon.rc res/icon.ico
 
 
 LOGGING_PREFIX = build_logging_$(BRANCH)
-DEBUGGER_LIB_OBJECTS = \
-	$(addprefix $(LOGGING_PREFIX)/,$(filter-out lib/Version.o lib/LoggerLogVersion.o lib/ConsoleUi.o,$(LIB_OBJECTS)))
-
-tools/$(DEBUGGER): tools/Debugger.cpp $(DEBUGGER_LIB_OBJECTS)
-	$(CXX) -o $@ $(CC_FLAGS) $(LOGGING_FLAGS) -Wall -std=c++11 $^ $(LD_FLAGS) \
-	-I$(CURDIR)/3rdparty/distorm3/include -L$(CURDIR)/3rdparty/distorm3 -ldistorm3
-	@echo
-	$(STRIP) $@
-	$(CHMOD_X)
-	@echo
 
 
 GENERATOR_LIB_OBJECTS = \
