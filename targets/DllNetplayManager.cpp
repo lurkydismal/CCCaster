@@ -4,7 +4,6 @@
 #include "Exceptions.hpp"
 #include "CharacterSelect.hpp"
 #include "ReplayCreator.hpp"
-#include "DllTrialManager.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -125,61 +124,6 @@ uint16_t NetplayManager::getSkippableInput ( uint8_t player )
     return ( getRawInput ( player ) & COMBINE_INPUT ( 0, CC_BUTTON_CONFIRM | CC_BUTTON_CANCEL ) );
 }
 
-uint16_t NetplayManager::getDemoInput ( uint8_t player )
-{
-    if ( player == 2 ) {
-        return 0;
-    }
-    uint16_t playerInput = getRawInput( player );
-    if ( playerInput != COMBINE_INPUT( 0, 0 ) &&
-         playerInput != COMBINE_INPUT( 0, CC_PLAYER_FACING ) ) {
-        TrialManager::playDemo = false;
-        TrialManager::demoPosition = 0;
-        demoCountdown = 60;
-        exitCountdown = 0;
-        return playerInput;
-    }
-    LOG("demoinput");
-    Trial currentTrial = TrialManager::charaTrials[TrialManager::currentTrialIndex];
-    if ( exitCountdown > 0 ) {
-        exitCountdown--;
-        if ( exitCountdown == 20 ) {
-            * ( player == 1 ? CC_P1_X_POSITION_ADDR : CC_P2_X_POSITION_ADDR ) = currentTrial.startingPositions[0];
-            * ( player == 1 ? CC_P2_X_POSITION_ADDR : CC_P1_X_POSITION_ADDR ) = currentTrial.startingPositions[1];
-        }
-        if ( exitCountdown == 0 )
-            TrialManager::playDemo = false;
-        return 0;
-    }
-    if ( !currentTrial.demoInputs.size() ) {
-        LOG("nodemo");
-        TrialManager::playDemo = false;
-        return 0;
-    }
-    if ( TrialManager::demoPosition == 0 && demoCountdown > 0 ) {
-        LOG("democountdown@%d", demoCountdown);
-        uint16_t input = 0;
-        if ( demoCountdown == 55 ) {
-            input = COMBINE_INPUT ( 0, CC_BUTTON_FN2 );
-        } else if ( demoCountdown == 50) {
-            LOG( "%d, %d", currentTrial.startingPositions[0], currentTrial.startingPositions[1]);
-            * ( player == 1 ? CC_P1_X_POSITION_ADDR : CC_P2_X_POSITION_ADDR ) = currentTrial.startingPositions[0];
-            * ( player == 1 ? CC_P2_X_POSITION_ADDR : CC_P1_X_POSITION_ADDR ) = currentTrial.startingPositions[1];
-        }
-        demoCountdown--;
-        return input;
-    }
-    uint16_t input = currentTrial.demoInputs[TrialManager::demoPosition++];
-    LOG("input %d@%d", input, TrialManager::demoPosition );
-    if ( TrialManager::demoPosition >= (int) currentTrial.demoInputs.size() ) {
-        TrialManager::demoPosition = 0;
-        demoCountdown = 60;
-        exitCountdown = 30;
-        input = COMBINE_INPUT ( 0, CC_BUTTON_FN2 );
-    }
-    return input;
-}
-
 uint16_t NetplayManager::getInGameInput ( uint8_t player )
 {
     uint16_t input = getRawInput ( player );
@@ -198,7 +142,6 @@ uint16_t NetplayManager::getInGameInput ( uint8_t player )
     // If the pause menu is up
     if ( *CC_PAUSE_FLAG_ADDR )
     {
-        TrialManager::hideText = true;
         AsmHacks::menuConfirmState = 2;
 
         // Don't allow hitting Confirm until 3f after we have stopped moving the cursor. This is a work around
@@ -215,7 +158,6 @@ uint16_t NetplayManager::getInGameInput ( uint8_t player )
               && *CC_DUMMY_STATUS_ADDR != CC_DUMMY_STATUS_DUMMY
               && *CC_DUMMY_STATUS_ADDR != CC_DUMMY_STATUS_RECORD )
     {
-        TrialManager::hideText = false;
         // Training mode enhancements when not paused
         if ( _trainingResetState == -1 && ( input & COMBINE_INPUT ( 0, CC_BUTTON_FN2 ) ) )  // Initial reset input
         {
@@ -231,7 +173,6 @@ uint16_t NetplayManager::getInGameInput ( uint8_t player )
                 _trainingResetType = 0;
 
             input |= COMBINE_INPUT ( 0, CC_BUTTON_FN2 );
-            TrialManager::comboTrialPosition = 0;
             *CC_P1_COMBO_GUARD_ADDR = 50;
         }
         else if ( ( _trainingResetState == -2 || _trainingResetState >= 0 )
@@ -709,9 +650,6 @@ uint16_t NetplayManager::getInput ( uint8_t player )
             return getSkippableInput ( player );
 
         case NetplayState::InGame:
-            if ( TrialManager::playDemo ) {
-                return getDemoInput ( player );
-            }
             return getInGameInput ( player );
 
         case NetplayState::RetryMenu:

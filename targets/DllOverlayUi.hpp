@@ -36,11 +36,7 @@ std::array<bool, 2> getShouldDrawSelector();
 
 std::array<std::string, 2> getSelectorLine();
 
-bool isTrial();
-
 bool isMapping();
-
-void setTrial();
 
 void setMapping();
 

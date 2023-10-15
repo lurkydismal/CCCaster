@@ -16,7 +16,6 @@
 #include "DllFrameRate.hpp"
 #include "ReplayManager.hpp"
 #include "DllRollbackManager.hpp"
-#include "DllTrialManager.hpp"
 
 #include <windows.h>
 
@@ -106,9 +105,6 @@ struct DllMain
 
     // DllRollbackManager instance
     DllRollbackManager rollMan;
-
-    // DllTrialManager instance
-    DllTrialManager trialMan;
 
     // If remote has loaded up to character select
     bool remoteCharaSelectLoaded = false;
@@ -646,11 +642,6 @@ struct DllMain
             }
         }
 
-        // Handle Trial changes
-        if ( netMan.config.mode.isTrial() && netMan.isInGame() ) {
-            //trialMan.frameStepTrial();
-            TrialManager::frameStepTrial();
-        }
         // LOG_SYNC ( "SFX 0x%X: CC_SFX_ARRAY=%u; sfxFilterArray=%u; sfxMuteArray=%u", SFX_NUM,
         //            CC_SFX_ARRAY_ADDR[SFX_NUM], AsmHacks::sfxFilterArray[SFX_NUM], AsmHacks::sfxMuteArray[SFX_NUM] );
 
@@ -1022,12 +1013,6 @@ struct DllMain
         {
             if ( netMan.getRollback() )
                 rollMan.allocateStates();
-            if ( netMan.config.mode.isTrial() ) {
-                LOG("Load trial file");
-                trialMan.loadTrialFile();
-                TrialManager::loadTrialFolder();
-                trialMan.initialized = true;
-            }
         }
 
         // Leaving InGame
@@ -1035,10 +1020,6 @@ struct DllMain
         {
             if ( netMan.getRollback() )
                 rollMan.deallocateStates();
-            if ( netMan.config.mode.isTrial() ) {
-                trialMan.initialized = false;
-                trialMan.clear();
-            }
         }
 
         // Entering CharaSelect OR entering InGame
@@ -1674,11 +1655,6 @@ struct DllMain
                     WRITE_ASM_HACK ( hack );
                 if ( clientMode.isTraining() ) {
                     WRITE_ASM_HACK ( AsmHacks::forceGotoTraining );
-                    if ( clientMode.isTrial() ) {
-                        for ( const AsmHacks::Asm& hack : AsmHacks::disableHealthBars )
-                            WRITE_ASM_HACK ( hack );
-                        isTrial = true;
-                    }
                 } else if ( clientMode.isVersusCPU() )
                     WRITE_ASM_HACK ( AsmHacks::forceGotoVersusCPU );
                 else if ( clientMode.isReplay() )
@@ -1837,10 +1813,6 @@ struct DllMain
                     netMan.setRemotePlayer ( remotePlayer );
 
                     netplayStateChanged ( NetplayState::Initial );
-                    if ( netMan.config.mode.isTrial() ) {
-                        TrialManager::audioCueName = netMan.config.trialAudioCue;
-                        TrialManager::screenFlashColor = netMan.config.trialFlashColor;
-                    }
                 }
 
                 minRollbackSpacing = clamped<uint8_t> ( netMan.config.rollback, 2, 4 );
@@ -2186,11 +2158,6 @@ extern "C" void callback()
 
         *CC_ALIVE_FLAG_ADDR = 0;
     }
-}
-
-extern "C" void renderCallback()
-{
-    mainApp->trialMan.render();
 }
 
 } // namespace AsmHacks

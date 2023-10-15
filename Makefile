@@ -98,9 +98,6 @@ LD_FLAGS = -m32 -static -lws2_32 -lpsapi -lwinpthread -lwinmm -lole32 -ldinput -
 # DEFINES += -DLOGGER_MUTEXED
 # DEFINES += -DJLIB_MUTEXED
 
-# Install after make, set to 0 to disable install after make
-INSTALL = 1
-
 # Build type flags
 DEBUG_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
 ifeq ($(OS),Windows_NT)
@@ -137,7 +134,7 @@ palettes: $(PALETTES)
 
 
 $(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(FOLDER)/$(UPDATER)
-$(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/trials
+$(ARCHIVE): $(FOLDER)/$(README)
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
 	$(ZIP) $(ARCHIVE) $^
@@ -146,7 +143,6 @@ $(ARCHIVE): $(FOLDER)/$(README) $(FOLDER)/trials
 	$(ZIP) $(ARCHIVE) -j $(LOBBY_LIST)
 	cp -r res/GRP GRP
 	$(ZIP) $(ARCHIVE) -r GRP
-	$(ZIP) $(ARCHIVE) -r cccaster/trials
 	rm -rf GRP
 	$(GRANT)
 
@@ -178,9 +174,6 @@ $(FOLDER)/$(UPDATER): tools/Updater.cpp lib/StringUtils.cpp | $(FOLDER)
 	$(STRIP) $@
 	$(CHMOD_X)
 	@echo
-
-$(FOLDER)/trials: trials | $(FOLDER)
-	cp -r $^ $(FOLDER)/
 
 $(FOLDER)/$(README): $(README) | $(FOLDER)
 	cp -f $^ $(FOLDER)/
@@ -310,7 +303,6 @@ clean-lib:
 
 clean-common: clean-proto clean-res clean-lib
 	rm -rf tmp*
-	rm -rf $(FOLDER)/trials
 	rm -f .depend_$(BRANCH) .include_$(BRANCH) *.exe *.zip tools/*.exe \
 $(filter-out $(FOLDER)/$(TAG)config.ini $(wildcard $(FOLDER)/*.mappings $(FOLDER)/*.log),$(wildcard $(FOLDER)/*))
 
@@ -381,8 +373,6 @@ post-build: main-build
 	@echo
 	@echo ========== Post-build ==========
 	@echo
-	if [ $(INSTALL) = 1 ] && [ -s ./scripts/install ]; then ./scripts/install; fi;
-
 
 debug: post-build
 logging: post-build

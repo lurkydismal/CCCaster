@@ -3,7 +3,6 @@
 #include "DllNetplayManager.hpp"
 #include "CharacterSelect.hpp"
 #include "Logger.hpp"
-#include "DllTrialManager.hpp"
 
 #include <windows.h>
 #include <d3dx9.h>
@@ -180,11 +179,8 @@ extern "C" int CallDrawText ( int width, int height, int xAddr, int yAddr, char*
 extern "C" int CallDrawRect ( int screenXAddr, int screenYAddr, int width, int height, int A, int B, int C, int D, int layer );
 extern "C" int CallDrawSprite ( int spriteWidth, int dxdevice, int texAddr, int screenXAddr, int screenYAddr, int spriteHeight, int texXAddr, int texYAddr, int texXSize, int texYSize, int flags, int unk, int layer );
 
-extern "C" void renderCallback();
 // ARGB
 extern "C" void addExtraDrawCallsCb() {
-    renderCallback();
-
     //inputDisplay
     //*(int*) 0x5585f8 = 0x1;
     //drawInputHistory();
@@ -197,18 +193,18 @@ extern "C" int loadTextureFromMemory( char* imgbuf1, int img1size, char* imgbuf2
 
 extern "C" void addExtraTexturesCb() {
     //MessageBoxA(0, "a", "a", 0);
-    string filename = ".//GRP//arrows.png";
-    string filename3 = ".//GRP//inputs.png";
-    ifstream input( filename.c_str(), ios::binary );
-    vector<char> buffer( istreambuf_iterator<char>(input), {} );
-    int imgsize = buffer.size();
-    char* rawimg = &buffer[0];
-    ifstream input3( filename3.c_str(), ios::binary );
-    vector<char> buffer3( istreambuf_iterator<char>(input3), {} );
-    int imgsize3 = buffer3.size();
-    char* rawimg3 = &buffer3[0];
-    TrialManager::trialBGTextures = loadTextureFromMemory(rawimg, imgsize, 0, 0, 0);
-    TrialManager::trialInputTextures = loadTextureFromMemory(rawimg3, imgsize3, 0, 0, 0);
+    // string filename = ".//GRP//arrows.png";
+    // string filename3 = ".//GRP//inputs.png";
+    // ifstream input( filename.c_str(), ios::binary );
+    // vector<char> buffer( istreambuf_iterator<char>(input), {} );
+    // int imgsize = buffer.size();
+    // char* rawimg = &buffer[0];
+    // ifstream input3( filename3.c_str(), ios::binary );
+    // vector<char> buffer3( istreambuf_iterator<char>(input3), {} );
+    // int imgsize3 = buffer3.size();
+    // char* rawimg3 = &buffer3[0];
+    // TrialManager::trialBGTextures = loadTextureFromMemory(rawimg, imgsize, 0, 0, 0);
+    // TrialManager::trialInputTextures = loadTextureFromMemory(rawimg3, imgsize3, 0, 0, 0);
 }
 int Asm::write() const
 {
