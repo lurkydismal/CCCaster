@@ -19,7 +19,6 @@ UPDATER = updater.exe
 GENERATOR = generator.exe
 PALETTES = palettes.exe
 MBAA_EXE = MBAA.exe
-README = README.md
 CHANGELOG = ChangeLog.txt
 RELAY_LIST = relay_list.txt
 LOBBY_LIST = lobby_list.txt
@@ -137,7 +136,7 @@ palettes: $(PALETTES)
 
 
 $(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(FOLDER)/$(UPDATER)
-$(ARCHIVE): $(FOLDER)/$(README)
+$(ARCHIVE):
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
 	$(ZIP) $(ARCHIVE) $^
@@ -177,9 +176,6 @@ $(FOLDER)/$(UPDATER): tools/Updater.cpp lib/StringUtils.cpp | $(FOLDER)
 	$(STRIP) $@
 	$(CHMOD_X)
 	@echo
-
-$(FOLDER)/$(README): $(README) | $(FOLDER)
-	cp -f $^ $(FOLDER)/
 
 $(FOLDER)/$(CHANGELOG): $(CHANGELOG) | $(FOLDER)
 	cp -f $^ $(FOLDER)/
