@@ -177,9 +177,6 @@ $(FOLDER)/$(UPDATER): tools/Updater.cpp lib/StringUtils.cpp | $(FOLDER)
 	$(CHMOD_X)
 	@echo
 
-$(FOLDER)/$(CHANGELOG): $(CHANGELOG) | $(FOLDER)
-	cp -f $^ $(FOLDER)/
-
 $(FOLDER):
 	mkdir -p $@
 
