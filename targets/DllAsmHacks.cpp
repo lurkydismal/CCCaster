@@ -11,6 +11,8 @@
 #include <vector>
 #include <iterator>
 
+#include <cstring>
+
 using namespace std;
 
 
@@ -93,20 +95,30 @@ extern "C" void charaSelectColorCb()
     const bool hasTeam1 = ( team1 != teamOrders.end() );
     const bool hasTeam2 = ( team2 != teamOrders.end() );
 
+    myFile << to_string( (uint32_t)edi ) << "\n";
+
     if ( edi + 1 == ptr1 && *ptr1 )
     {
+        myFile << "1\n";
+
         colorLoadCallback ( 1, ( hasTeam1 ? team1->second.first : chara1 ), ( ( uint32_t * ) *ptr1 ) + 1 );
     }
     else if ( edi + 1 == ptr2 && *ptr2 )
     {
+        myFile << "2\n";
+
         colorLoadCallback ( 2, ( hasTeam2 ? team2->second.first : chara2 ), ( ( uint32_t * ) *ptr2 ) + 1 );
     }
     else if ( edi + 1 == partner1 && *partner1 )
     {
+        myFile << "11\n";
+
         colorLoadCallback ( 1, ( hasTeam1 ? team1->second.second : chara1 ), ( ( uint32_t * ) *partner1 ) + 1 );
     }
     else if ( edi + 1 == partner2 && *partner2 )
     {
+        myFile << "22\n";
+
         colorLoadCallback ( 2, ( hasTeam2 ? team2->second.second : chara2 ), ( ( uint32_t * ) *partner2 ) + 1 );
     }
 }
