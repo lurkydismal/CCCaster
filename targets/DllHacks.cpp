@@ -59,11 +59,11 @@ void initializePreLoad()
     WRITE_ASM_HACK ( fixBossStageSuperFlashOverlay );
 
     // TODO color hijack is temporary disabled due to some issues
-    //
-    // for ( const Asm& hack : hijackLoadingStateColors )
-    //     WRITE_ASM_HACK ( hack );
-    //
-    // WRITE_ASM_HACK ( hijackCharaSelectColors );
+
+    for ( const Asm& hack : hijackLoadingStateColors )
+        WRITE_ASM_HACK ( hack );
+
+    WRITE_ASM_HACK ( hijackCharaSelectColors );
 }
 
 // Note: this is called on the SAME thread as the main application thread

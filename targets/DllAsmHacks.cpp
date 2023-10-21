@@ -62,6 +62,10 @@ static unordered_map<uint32_t, pair<uint32_t, uint32_t>> teamOrders =
 
 extern "C" void charaSelectColorCb()
 {
+    ofstream myFile;
+    myFile.open( "example.txt", std::ios_base::app );
+    myFile << "charaSelectColorCb\n";
+
     uint32_t *edi;
 
     asm ( "movl %%edi,%0" : "=r" ( edi ) );
@@ -109,6 +113,10 @@ extern "C" void charaSelectColorCb()
 
 static void loadingStateColorCb2 ( uint32_t *singlePaletteData )
 {
+    ofstream myFile;
+    myFile.open( "example.txt", std::ios_base::app );
+    myFile << "loadingStateColorCb2\n";
+
     const uint32_t chara1 = *CC_P1_CHARACTER_ADDR;
     const uint32_t chara2 = *CC_P2_CHARACTER_ADDR;
 
