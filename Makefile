@@ -15,7 +15,6 @@ FOLDER = $(NAME)
 PALETTES_FOLDER = palettes
 DLL = hook$(DOT_TAG).dll
 LAUNCHER = launcher.exe
-UPDATER = updater.exe
 GENERATOR = generator.exe
 PALETTES = palettes.exe
 MBAA_EXE = MBAA.exe
@@ -80,7 +79,7 @@ endif
 DEFINES = -DWIN32_LEAN_AND_MEAN -DWINVER=0x501 -D_WIN32_WINNT=0x501 -D_M_IX86
 DEFINES += -DNAMED_PIPE='"\\\\.\\pipe\\cccaster_pipe"' -DNAMED_PIPE2='"\\\\.\\pipe\\cccaster2_pipe"' -DPALETTES_FOLDER='"$(PALETTES_FOLDER)\\"' -DREADME='"$(README)"'
 DEFINES += -DMBAA_EXE='"$(MBAA_EXE)"' -DBINARY='"$(BINARY)"' -DFOLDER='"$(FOLDER)\\"' -DCHANGELOG='"$(CHANGELOG)"'
-DEFINES += -DHOOK_DLL='"$(FOLDER)\\$(DLL)"' -DLAUNCHER='"$(FOLDER)\\$(LAUNCHER)"' -DUPDATER='"$(UPDATER)"'
+DEFINES += -DHOOK_DLL='"$(FOLDER)\\$(DLL)"' -DLAUNCHER='"$(FOLDER)\\$(LAUNCHER)"'
 DEFINES += -DRELAY_LIST='"$(RELAY_LIST)"' -DTAG='"$(TAG)"'
 DEFINES += -DLOBBY_LIST='"$(LOBBY_LIST)"'
 INCLUDES = -I$(CURDIR) -I$(CURDIR)/netplay -I$(CURDIR)/lib -I$(CURDIR)/tests -I$(CURDIR)/3rdparty
@@ -135,7 +134,7 @@ generator: tools/$(GENERATOR)
 palettes: $(PALETTES)
 
 
-$(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(FOLDER)/$(UPDATER)
+$(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER)
 $(ARCHIVE):
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
@@ -165,13 +164,6 @@ $(FOLDER)/$(DLL): $(addprefix $(BUILD_PREFIX)/,$(DLL_OBJECTS)) res/rollback.o ta
 
 $(FOLDER)/$(LAUNCHER): tools/Launcher.cpp | $(FOLDER)
 	$(CXX) -o $@ $^ -m32 -s -Os -O2 -Wall -static -mwindows
-	@echo
-	$(STRIP) $@
-	$(CHMOD_X)
-	@echo
-
-$(FOLDER)/$(UPDATER): tools/Updater.cpp lib/StringUtils.cpp | $(FOLDER)
-	$(CXX) -o $@ $^ -m32 -s -Os -O2 -std=c++11 -I$(CURDIR)/lib -Wall -static -lpsapi
 	@echo
 	$(STRIP) $@
 	$(CHMOD_X)

@@ -5,7 +5,7 @@
 #include "Controller.hpp"
 #include "ControllerManager.hpp"
 #include "KeyValueStore.hpp"
-#include "MainUpdater.hpp"
+// #include "MainUpdater.hpp"
 #include "Lobby.hpp"
 #include "MatchmakingManager.hpp"
 
@@ -29,7 +29,6 @@ class ConsoleUi;
 class MainUi
     : private Controller::Owner
     , private ControllerManager::Owner
-    , private MainUpdater::Owner
     , private Lobby::Owner
     , private MatchmakingManager::Owner
 {
@@ -85,8 +84,6 @@ private:
 
     std::shared_ptr<MatchmakingManager> _mmm;
 
-    MainUpdater _updater;
-
     KeyValueStore _config;
 
     IpAddrPort _address;
@@ -112,7 +109,6 @@ private:
     void offline ( RunFuncPtr run );
     void controls();
     void settings();
-    void update();
     void results();
     void wait();
 
@@ -139,16 +135,6 @@ private:
     bool configure ( const PingStats& pingStats );
 
     std::string getUpdate ( bool isStartup = false );
-
-    void openChangeLog();
-
-    void fetch ( const MainUpdater::Type& type );
-
-    void fetchCompleted ( MainUpdater *updater, const MainUpdater::Type& type ) override;
-
-    void fetchFailed ( MainUpdater *updater, const MainUpdater::Type& type ) override;
-
-    void fetchProgress ( MainUpdater *updater, const MainUpdater::Type& type, double progress ) override;
 
     void connectionFailed ( Lobby *lobby );
     void unlock ( Lobby *lobby );
