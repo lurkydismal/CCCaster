@@ -101,9 +101,6 @@ private:
     bool isMatchmaking = false;
 
     void netplay ( RunFuncPtr run );
-    void server ( RunFuncPtr run );
-    void lobby ( RunFuncPtr run );
-    void matchmaking ( RunFuncPtr run );
     void spectate ( RunFuncPtr run );
     void broadcast ( RunFuncPtr run );
     void offline ( RunFuncPtr run );

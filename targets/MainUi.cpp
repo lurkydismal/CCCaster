@@ -47,18 +47,6 @@ static Mutex uiMutex;
 
 static CondVar uiCondVar;
 
-static vector<IpAddrPort> loadServers() {
-    std::ifstream infile(LOBBY_LIST);
-    std::string str;
-    vector<IpAddrPort> servers;
-    while (std::getline(infile, str)) {
-        servers.push_back(str);
-    }
-    return servers;
-}
-
-static const vector<IpAddrPort> serverList = loadServers();
-
 MainUi::MainUi()
 {
 }
@@ -124,362 +112,12 @@ void MainUi::netplay ( RunFuncPtr run )
     _ui->pop();
 }
 
-void MainUi::server ( RunFuncPtr run )
-{
-    serverMode = true;
-    _ui->pushRight ( new ConsoleUi::Menu ( "Mode", { "Lobby", "Matchmaking" }, "Cancel" ) );
-    _ui->top<ConsoleUi::Menu>()->setPosition ( _config.getInteger ( "lastServerMenuPosition" ) - 1 );
-    try {
-        for ( ;; )
-        {
-            int mode = _ui->popUntilUserInput ( false )->resultInt;
-            LOG( "mode %d", mode );
-            if ( mode < 0 || mode >= 2 )
-                break;
-            _config.setInteger ( "lastServerMenuPosition", mode + 1 );
-            switch ( mode )
-            {
-            case 0:
-                lobby( run );
-                _lobby.reset();
-                if ( ! sessionError.empty() ) {
-                    _ui->pushBelow ( new ConsoleUi::TextBox ( sessionError ), { 1, 0 } ); // Expand width
-                    sessionError.clear();
-                }
-                break;
-            case 1:
-                matchmaking( run );
-                if ( ! sessionError.empty() ) {
-                    _ui->pushBelow ( new ConsoleUi::TextBox ( sessionError ), { 1, 0 } ); // Expand width
-                    sessionError.clear();
-                }
-                break;
-            default:
-                break;
-            }
-        }
-    } catch (std::exception& e) {
-        LOG("Exception");
-        LOG(e.what());
-    }
-    _ui->pop();
-    serverMode = false;
-}
-
 void MainUi::wait() {
     while ( uiCondVar.wait ( uiMutex, 2500 ) ) {
         if ( ! EventManager::get().isRunning() ) {
             break;
         }
     }
-}
-
-void MainUi::lobby( RunFuncPtr run )
-{
-    _lobby.reset( new Lobby( this ) );
-    ifstream infile;
-    _lobby->_address = *serverList.cbegin();
-    AutoManager _;
-
-    _lobby->start();
-
-    display ( "Connecting to server..." );
-    LOCK ( uiMutex );
-    wait();
-    _ui->pop();
-    if ( ! EventManager::get().isRunning() ) {
-        sessionError = "Failed to connect";
-        return;
-    }
-    lobbyText =_lobby->getMenu();
-    lobbyIps =_lobby->getIps();
-    ConsoleUi::Element* menu = new ConsoleUi::Menu ( "Lobby", { "Public Lobbies",
-                                                                "Create Lobby",
-                                                                "Enter Lobby Code"
-                                                              },
-        "Exit" );
-
-    _ui->pushInFront ( menu );
-    _ui->clearRight();
-    _ui->top<ConsoleUi::Menu>()->setTimeout ( 5 );
-    int numEntries;
-    bool addressSelected = false;
-    string lobbyBase = "Lobby";
-    string lobbyDisplay = lobbyBase;
-    string name = _config.getString ( "displayName" );
-    for ( ;; )
-    {
-        if ( ! _lobby->isRunning() || ! EventManager::get().isRunning() ) {
-            LOG( "Lobby stopped"  );
-            sessionError = "Disconnected!";
-            break;
-        }
-        // Update ui
-        LOG("Getting lobby mutex");
-        _lobby->entryMutex.lock();
-        lobbyText =_lobby->getMenu();
-        numEntries =_lobby->numEntries;
-        lobbyIps =_lobby->getIps();
-        lobbyIds =_lobby->getIds();
-        _lobby->entryMutex.unlock();
-        LOG("releasing lobby mutex");
-        int oldPos = _ui->top<ConsoleUi::Menu>()->getPosition();
-        _ui->pop();
-        _ui->pushInFront ( new ConsoleUi::Menu ( lobbyDisplay,
-                                                 lobbyText,
-                                                 "Exit"
-                                                 ) );
-        _ui->top<ConsoleUi::Menu>()->setPosition ( oldPos );
-        _ui->top<ConsoleUi::Menu>()->setTimeout ( 2 );
-        int mode = _ui->popUntilUserInput ( false )->resultInt;
-        if ( mode == MENUTIMEOUT ) {
-            LOG( "menutimeout" );
-            continue;
-        }
-
-        if ( _lobby->mode == MENU ) {
-            if ( mode < 0 || mode >= 4 ) {
-                break;
-            } else if ( mode == 0 ) {
-                _lobby->mode = CONCERTO_BROWSE;
-                display ( "Fetching public lobbies..." );
-                lobbyDisplay = "  | Room | Players";
-                _lobby->fetchPublicLobby();
-                wait();
-                _ui->pop();
-            } else if ( mode == 1 ) {
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Room Type",
-                                                         { "Public",
-                                                           "Private" },
-                                                         "Exit" ),
-                                   { 1, 0 }, true ); // Expand width and clear top
-                int mode = _ui->popUntilUserInput ( false )->resultInt;
-                _ui->pop();
-                if ( mode >= 0 && mode < 2 ) {
-                    display ( "Creating lobby..." );
-                    string result = mode ? "Private" : "Public";
-                    _lobby->create( name, result );
-                    wait();
-                    _ui->pop();
-                    if ( _lobby->mode != CONCERTO_LOBBY ) {
-                        lobbyDisplay = lobbyBase + " - Error creating lobby";
-                    } else {
-                        lobbyDisplay = "Room code: " + _lobby->lobbyMsg;
-                    }
-                }
-            } else if ( mode == 2 ) {
-                _ui->pushInFront ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String,
-                                                           "Enter lobby code:" ),
-                                   { 1, 0 }, true ); // Expand width and clear top
-                _ui->popUntilUserInput();
-                string result = _ui->top()->resultStr;
-                _ui->pop();
-                LOG( result);
-                if ( _lobby->checkLobbyCode( result ) ) {
-                    display ( "Joining lobby..." );
-                    _lobby->join( name, result );
-                    lobbyDisplay = "Room code: " + result;
-                    wait();
-                    _ui->pop();
-                    if ( _lobby->mode != CONCERTO_LOBBY )
-                        lobbyDisplay = lobbyBase + " - Invalid lobby code";
-                } else {
-                    lobbyDisplay = lobbyBase + " - Invalid lobby code";
-                }
-            } else if ( mode == 3 ) {
-                _lobby->mode = DEFAULT_LOBBY;
-            }
-        } else if ( _lobby->mode == CONCERTO_BROWSE ) {
-            if ( mode < 0 || mode >= numEntries ) {
-                break;
-            } else {
-                display ( "Joining lobby..." );
-                string code = _lobby->join( name, mode );
-                lobbyDisplay = "Room code: " + code;
-                wait();
-                _ui->pop();
-                if ( _lobby->mode != CONCERTO_LOBBY )
-                    lobbyDisplay = "  | Room | Players | Error: " + _lobby->lobbyError;
-            }
-        } else if ( _lobby->mode == CONCERTO_LOBBY ) {
-            if ( mode < 0 || mode >= numEntries ) {
-                break;
-            } else {
-                if ( lobbyIps[ mode ] == "None" ) {
-                    //Hosting
-                    LOG( "Hosting" );
-                    _address = "46318";
-                    try {
-                        _lobby->challenge( lobbyIds[mode], _address );
-                    } catch (std::exception& e) {
-                        LOG( e.what() );
-                    }
-                    wait();
-                    if ( _lobby->hostSuccess ) {
-                        initialConfig.mode.value = ClientMode::Host;
-                        addressSelected = true;
-                        LOG( "Lobby host Prerun");
-                        RUN ( _address, initialConfig );
-                        LOG( "Lobby host Postrun");
-                        _ui->popNonUserInput();
-                        LOG( "Lobby preunhost");
-                        _lobby->unhost();
-                        LOG( "Lobby postunhost");
-                        if ( ! sessionError.empty() ) {
-                            lobbyDisplay = lobbyBase + " - " + sessionError;
-                            sessionError.clear();
-                        }
-                    }
-                    try {
-                        _lobby->end();
-                    } catch (std::exception& e) {
-                        LOG( e.what() );
-                    }
-                } else {
-                    //Connecting
-                    LOG( "Lobby Connecting" );
-                    _lobby->preaccept( lobbyIds[mode] );
-                    initialConfig.mode.value = ClientMode::Client;
-                    _netplayConfig.clear();
-                    _address = lobbyIps[ mode ];
-                    addressSelected = true;
-                    LOG( "Lobby join Prerun");
-                    RUN ( _address, initialConfig );
-                    LOG( "Lobby join Postrun");
-                    _ui->popNonUserInput();
-                    if ( ! sessionError.empty() ) {
-                        lobbyDisplay = lobbyBase + " - " + sessionError;
-                        sessionError.clear();
-                    }
-                }
-            }
-        } else if ( _lobby->mode == DEFAULT_LOBBY ) {
-            if ( mode < 0 || mode >= 20 ) {
-                break;
-            } else if ( mode >= numEntries  ) {
-                //Hosting
-                LOG( "Hosting" );
-                _address = "46318";
-                try {
-                    _lobby->host( name, _address );
-                } catch (std::exception& e) {
-                    LOG( e.what() );
-                }
-                uiCondVar.wait ( uiMutex );
-                if ( _lobby->hostSuccess ) {
-                    initialConfig.mode.value = ClientMode::Host;
-                    addressSelected = true;
-                    LOG( "Lobby host Prerun");
-                    RUN ( _address, initialConfig );
-                    LOG( "Lobby host Postrun");
-                    _ui->popNonUserInput();
-                    LOG( "Lobby preunhost");
-                    _lobby->unhost();
-                    LOG( "Lobby postunhost");
-                    if ( ! sessionError.empty() ) {
-                        lobbyDisplay = lobbyBase + " - " + sessionError;
-                        sessionError.clear();
-                    }
-                } else {
-                    lobbyDisplay = lobbyBase + " - Lobby Full";
-                }
-            } else {
-                //Connecting
-                LOG( "Connecting" );
-                initialConfig.mode.value = ClientMode::Client;
-                _netplayConfig.clear();
-                _address = lobbyIps[ mode ];
-                addressSelected = true;
-                LOG( "Lobby join Prerun");
-                RUN ( _address, initialConfig );
-                LOG( "Lobby join Postrun");
-                _ui->popNonUserInput();
-                if ( ! sessionError.empty() ) {
-                    lobbyDisplay = lobbyBase + " - " + sessionError;
-                    sessionError.clear();
-                }
-            }
-        }
-    }
-    LOG( "Lobby Stopping EM");
-    EventManager::get().stop();
-    LOG( "Lobby after Stopping EM");
-    if ( !addressSelected ) {
-        display ( "Disconnecting from server..." );
-    }
-    //LOCK ( uiMutex );
-    LOG( "Lobby wait mutex");
-    //if ( lo)
-    uiCondVar.wait ( uiMutex );
-    LOG( "Lobby mutex signaled");
-    _ui->pop();
-    LOG( "Lobby clear ui");
-    if ( !addressSelected ) {
-        _ui->pop();
-    }
-    LOG( "Lobby reset pointer");
-    //_lobby.reset( new Lobby( this ) );
-    //_lobby.reset();
-    LOG( "Lobby exiting");
-}
-
-void MainUi::matchmaking( RunFuncPtr run )
-{
-    isMatchmaking = true;
-    ifstream infile;
-    string region = _config.getString ( "matchmakingRegion" );
-    _mmm.reset( new MatchmakingManager( this, *serverList.cbegin(), region ) );
-    AutoManager _ ( _mmm.get(), getConsoleWindow() );
-
-    _mmm->start();
-
-    display ( "Connecting to server..." );
-    LOCK ( uiMutex );
-    LOG( "lockConnectionMutex");
-    uiCondVar.wait ( uiMutex );
-    LOG( "unlockConnectionMutex");
-    _ui->pop();
-    if ( ! EventManager::get().isRunning() || !_mmm->isRunning() ) {
-        sessionError = "Failed to connect";
-        return;
-    }
-
-    display ( "Waiting for opponent..." );
-    LOG( "lockWaitingMutex");
-    uiCondVar.wait ( uiMutex );
-    LOG( "unlockWaitingMutex");
-    _ui->pop();
-    if ( ! EventManager::get().isRunning() ) {
-        sessionError = "Disconnected";
-        return;
-    }
-
-    if ( initialConfig.mode.value == ClientMode::Client ) {
-        _netplayConfig.clear();
-        _mmm->ignoreKb = true;
-        LOG( "MMM preRun");
-        RUN ( _address, initialConfig );
-        LOG( "MMM postRun");
-        _ui->popNonUserInput();
-    } else if ( initialConfig.mode.value == ClientMode::Host ) {
-        _netplayConfig.clear();
-        _address = "46318";
-        _mmm->ignoreKb = true;
-        LOG( "MMM preRun");
-        RUN ( _address, initialConfig );
-        LOG( "MMM postRun");
-        _ui->popNonUserInput();
-    } else {
-        sessionError = "Session Closed";
-    }
-
-    LOG( "MMM stopping EM");
-    EventManager::get().stop();
-    LOG( "MMM done" );
-    display ( "Disconnecting from server..." );
-    uiCondVar.wait ( uiMutex );
-    _ui->pop();
-    isMatchmaking = false;
 }
 
 void MainUi::spectate ( RunFuncPtr run )
@@ -964,7 +602,6 @@ void MainUi::settings()
         "Default rollback",
         "Held start button in versus",
         "Automatic Replay Save",
-        "Matchmaking Region",
         "Trial Input Guide Settings",
         "About",
     };
@@ -1253,38 +890,6 @@ void MainUi::settings()
             }
 
             case 10:
-            {
-                vector<string> regions = { "NA West", "NA East", "SA", "EU", "Middle East", "Asia", "OCE" };
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Set Matchmaking Region",
-                                                         regions, "Cancel" ),
-                                   { 0, 0 }, true ); // Don't expand but DO clear top
-
-                string configRegion = _config.getString ( "matchmakingRegion" );
-                bool found = false;
-                int regionPos = 0;
-                for ( string region : regions ) {
-                    if ( region == configRegion ) {
-                        found = true;
-                        break;
-                    }
-                    regionPos++;
-                }
-                if ( !found )
-                    regionPos = 0;
-                _ui->top<ConsoleUi::Menu>()->setPosition ( regionPos );
-                _ui->popUntilUserInput();
-
-                if ( _ui->top()->resultInt >= 0 && _ui->top()->resultInt < regions.size() )
-                {
-                    _config.setString ( "matchmakingRegion", regions[ _ui->top()->resultInt ] );
-                    saveConfig();
-                }
-
-                _ui->pop();
-                break;
-            }
-
-            case 11:
                 _ui->pushInFront ( new ConsoleUi::Menu ( "Trial Input Guide Options",
                                                          { "Trial Audio Cue", "Trial Screen Flash Color" }, "Cancel" ),
                                    { 0, 0 }, true ); // Don't expand but DO clear top
@@ -1342,7 +947,7 @@ void MainUi::settings()
                     }
                 }
                 break;
-            case 12:
+            case 11:
                 _ui->pushInFront ( new ConsoleUi::TextBox ( format ( "CCCaster %s%s\n\nRevision %s\n\nBuilt on %s\n\n"
                                    "Created by Madscientist\n\nPress any key to go back",
                                    LocalVersion.code,
@@ -1473,7 +1078,6 @@ void MainUi::initialize()
     _config.setInteger ( "defaultRollback", 4 );
     _config.setInteger ( "autoCheckUpdates", 1 );
     _config.setInteger ( "autoReplaySave", 1 );
-    _config.setString ( "matchmakingRegion", "NA West" );
     _config.setDouble ( "heldStartDuration", 1.5 );
     _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
 
@@ -1593,7 +1197,6 @@ void MainUi::main ( RunFuncPtr run )
             "Spectate",
             "Broadcast",
             "Offline",
-            "Server",
             "Controls",
             "Settings",
             "Update",
@@ -1672,18 +1275,14 @@ void MainUi::main ( RunFuncPtr run )
                 break;
 
             case 4:
-                server( run );
-                break;
-
-            case 5:
                 controls();
                 break;
 
-            case 6:
+            case 5:
                 settings();
                 break;
 
-            case 7:
+            case 6:
                 results();
                 break;
 
