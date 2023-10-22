@@ -19,7 +19,6 @@ GENERATOR = generator.exe
 PALETTES = palettes.exe
 MBAA_EXE = MBAA.exe
 RELAY_LIST = relay_list.txt
-LOBBY_LIST = lobby_list.txt
 
 # Library sources
 GTEST_CC_SRCS = 3rdparty/gtest/fused-src/gtest/gtest-all.cc
@@ -80,7 +79,6 @@ DEFINES += -DNAMED_PIPE='"\\\\.\\pipe\\cccaster_pipe"' -DNAMED_PIPE2='"\\\\.\\pi
 DEFINES += -DMBAA_EXE='"$(MBAA_EXE)"' -DBINARY='"$(BINARY)"' -DFOLDER='"$(FOLDER)\\"'
 DEFINES += -DHOOK_DLL='"$(FOLDER)\\$(DLL)"' -DLAUNCHER='"$(FOLDER)\\$(LAUNCHER)"'
 DEFINES += -DRELAY_LIST='"$(RELAY_LIST)"' -DTAG='"$(TAG)"'
-DEFINES += -DLOBBY_LIST='"$(LOBBY_LIST)"'
 INCLUDES = -I$(CURDIR) -I$(CURDIR)/netplay -I$(CURDIR)/lib -I$(CURDIR)/tests -I$(CURDIR)/3rdparty
 INCLUDES += -I$(CURDIR)/3rdparty/cereal/include -I$(CURDIR)/3rdparty/gtest/include -I$(CURDIR)/3rdparty/minhook/include
 INCLUDES += -I$(CURDIR)/3rdparty/d3dhook -I$(CURDIR)/3rdparty/framedisplay
@@ -140,7 +138,6 @@ $(ARCHIVE):
 	$(ZIP) $(ARCHIVE) $^
 	$(ZIP) $(ARCHIVE) -j scripts/Add_Handler_Protocol.bat
 	$(ZIP) $(ARCHIVE) -j $(RELAY_LIST)
-	$(ZIP) $(ARCHIVE) -j $(LOBBY_LIST)
 	cp -r res/GRP GRP
 	$(ZIP) $(ARCHIVE) -r GRP
 	rm -rf GRP
