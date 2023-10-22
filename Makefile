@@ -119,12 +119,6 @@ endif
 
 all: $(DEFAULT_TARGET)
 
-# target-profile: STRIP = $(TOUCH)
-# target-profile: DEFINES += -DNDEBUG -DRELEASE -DDISABLE_LOGGING -DDISABLE_ASSERTS
-# target-profile: CC_FLAGS += -O2 -fno-rtti -pg
-# target-profile: LD_FLAGS += -pg -lgmon
-# target-profile: $(ARCHIVE)
-
 
 launcher: $(FOLDER)/$(LAUNCHER)
 generator: tools/$(GENERATOR)
@@ -363,7 +357,6 @@ post-build: main-build
 debug: post-build
 logging: post-build
 release: post-build
-profile: post-build
 
 target-debug: $(ARCHIVE)
 target-logging: $(ARCHIVE)
@@ -378,17 +371,12 @@ ifneq (,$(findstring release,$(MAKECMDGOALS)))
 main-build: pre-build
 	@$(MAKE) --no-print-directory target-release BUILD_TYPE=build_release
 else
-ifneq (,$(findstring profile,$(MAKECMDGOALS)))
-main-build: pre-build
-	@$(MAKE) --no-print-directory target-profile BUILD_TYPE=build_debug STRIP=touch
-else
 ifeq ($(DEFAULT_TARGET),logging)
 main-build: pre-build
 	@$(MAKE) --no-print-directory target-logging BUILD_TYPE=build_logging
 else
 main-build: pre-build
 	@$(MAKE) --no-print-directory target-debug BUILD_TYPE=build_debug STRIP=touch
-endif
 endif
 endif
 endif
