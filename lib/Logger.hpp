@@ -70,14 +70,6 @@ private:
 };
 
 
-#ifdef DISABLE_LOGGING
-
-#define LOG_TO(...)
-#define LOG(...)
-#define LOG_LIST(...)
-
-#else
-
 #define LOG_TO(LOGGER, FORMAT, ...)                                                                                    \
     do {                                                                                                               \
         LOGGER.log ( __BASE_FILE__, __LINE__, __PRETTY_FUNCTION__, format ( FORMAT, ## __VA_ARGS__ ).c_str() );        \
@@ -97,8 +89,6 @@ private:
             list [ list.size() - 1 ] = ' ';                                                                            \
         LOG ( "this=%08x; "#LIST "=[%s]", this, list );                                                                \
     } while ( 0 )
-
-#endif // DISABLE_LOGGING
 
 
 #ifdef DISABLE_ASSERTS

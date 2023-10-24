@@ -4,12 +4,6 @@
 using namespace std;
 
 
-#ifdef DISABLE_LOGGING
-
-void Logger::logVersion() {}
-
-#else
-
 void Logger::logVersion()
 {
     fprintf ( _fd, "LogId '%s'\n", _logId.c_str() );
@@ -20,8 +14,6 @@ void Logger::logVersion()
 
 #if defined(DEBUG)
     fprintf ( _fd, "BuildType 'debug'\n" );
-#elif defined(LOGGING)
-    fprintf ( _fd, "BuildType 'logging'\n" );
 #elif defined(RELEASE)
     fprintf ( _fd, "BuildType 'release'\n" );
 #else
@@ -33,5 +25,3 @@ void Logger::logVersion()
 
     fflush ( _fd );
 }
-
-#endif

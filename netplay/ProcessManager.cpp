@@ -165,9 +165,7 @@ void ProcessManager::openGame ( bool highPriority, bool isTraining )
     if ( highPriority )
         stringArgs.push_back ( "--high" );
 
-#ifndef DISABLE_LOGGING
     stringArgs.push_back ( "--popup_errors" );
-#endif
 
     unique_ptr<const char *> argsPtr ( new const char *[stringArgs.size() + 1] );
     auto *args = argsPtr.get();
