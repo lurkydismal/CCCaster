@@ -5,15 +5,6 @@
 using namespace std;
 
 
-#ifdef DISABLE_LOGGING
-
-void Logger::initialize ( const string& filePath, uint32_t _options ) {}
-void Logger::deinitialize() {}
-void Logger::flush() {}
-void Logger::log ( const char *srcFile, int srcLine, const char *srcFunc, const char *logMessage ) {}
-
-#else
-
 void Logger::initialize ( const string& filePath, uint32_t _options )
 {
 #ifdef LOGGER_MUTEXED
@@ -136,8 +127,6 @@ void Logger::log ( const char *srcFile, int srcLine, const char *srcFunc, const 
     fprintf ( _fd, ( hasPrefix ? " %s\n" : "%s\n" ), logMessage );
     fflush ( _fd );
 }
-
-#endif // DISABLE_LOGGING
 
 Logger& Logger::get()
 {

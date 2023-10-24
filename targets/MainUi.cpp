@@ -953,8 +953,6 @@ void MainUi::settings()
                                    LocalVersion.code,
 #if defined(DEBUG)
                                    " (debug)",
-#elif defined(LOGGING)
-                                   " (logging)",
 #else
                                    "",
 #endif

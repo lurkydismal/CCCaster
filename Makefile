@@ -88,19 +88,13 @@ CC_FLAGS = -m32 -Wfatal-errors $(INCLUDES) $(DEFINES)
 LD_FLAGS = -m32 -static -lws2_32 -lpsapi -lwinpthread -lwinmm -lole32 -ldinput -lwininet
 
 # Build options
-# DEFINES += -DDISABLE_LOGGING
 # DEFINES += -DDISABLE_ASSERTS
 # DEFINES += -DLOGGER_MUTEXED
 # DEFINES += -DJLIB_MUTEXED
 
 # Build type flags
 DEBUG_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
-ifeq ($(OS),Windows_NT)
-	LOGGING_FLAGS = -s -Os -O2 -DLOGGING -DRELEASE
-else
-	LOGGING_FLAGS = -s -Os -O2 -DLOGGING
-endif
-RELEASE_FLAGS = -s -Os -Ofast -fno-rtti -DNDEBUG -DRELEASE -DDISABLE_LOGGING -DDISABLE_ASSERTS
+RELEASE_FLAGS = -s -Os -Ofast -fno-rtti -DNDEBUG -DRELEASE -DDISABLE_ASSERTS
 
 # Build type
 BUILD_TYPE = build_debug
@@ -178,14 +172,19 @@ res/icon.res: res/icon.rc res/icon.ico
 	@echo
 
 
-LOGGING_PREFIX = build_logging_$(BRANCH)
-
+GENERATOR_PREFIX = build_generator_$(BRANCH)
 
 GENERATOR_LIB_OBJECTS = \
-	$(addprefix $(LOGGING_PREFIX)/,$(filter-out lib/Version.o lib/LoggerLogVersion.o lib/ConsoleUi.o,$(LIB_OBJECTS)))
+	$(addprefix $(GENERATOR_PREFIX)/,$(filter-out lib/Version.o lib/LoggerLogVersion.o lib/ConsoleUi.o,$(LIB_OBJECTS)))
+
+ifeq ($(OS),Windows_NT)
+	GENERATOR_FLAGS = -s -Os -O2 -DRELEASE
+else
+	GENERATOR_FLAGS = -s -Os -O2
+endif
 
 tools/$(GENERATOR): tools/Generator.cpp $(GENERATOR_LIB_OBJECTS)
-	$(CXX) -o $@ $(CC_FLAGS) $(LOGGING_FLAGS) -Wall -std=c++11 $^ $(LD_FLAGS)
+	$(CXX) -o $@ $(CC_FLAGS) $(GENERATOR_FLAGS) -Wall -std=c++11 $^ $(LD_FLAGS)
 	@echo
 	$(STRIP) $@
 	$(CHMOD_X)
@@ -204,7 +203,7 @@ FRAMEDISPLAY_INCLUDES += -I"$(CURDIR)/3rdparty/AntTweakBar/include" -I$(OPENGL_H
 
 # FRAMEDISPLAY_CC_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
 FRAMEDISPLAY_CC_FLAGS = -s -Os -Ofast -fno-rtti
-FRAMEDISPLAY_CC_FLAGS += -DDISABLE_LOGGING -DDISABLE_SERIALIZATION -DPALETTES_FOLDER='"$(PALETTES_FOLDER)\\"'
+FRAMEDISPLAY_CC_FLAGS += -DDISABLE_SERIALIZATION -DPALETTES_FOLDER='"$(PALETTES_FOLDER)\\"'
 
 FRAMEDISPLAY_LD_FLAGS = -L$(CURDIR)/3rdparty/libpng -L$(CURDIR)/3rdparty/libz -L"$(CURDIR)/3rdparty/AntTweakBar/lib"
 FRAMEDISPLAY_LD_FLAGS += -L$(CURDIR)/3rdparty/glfw
@@ -280,15 +279,12 @@ $(filter-out $(FOLDER)/$(TAG)config.ini $(wildcard $(FOLDER)/*.mappings $(FOLDER
 clean-debug: clean-common
 	rm -rf build_debug_$(BRANCH)
 
-clean-logging: clean-common
-	rm -rf build_logging_$(BRANCH)
-
 clean-release: clean-common
 	rm -rf build_release_$(BRANCH)
 
-clean: clean-debug clean-logging clean-release
+clean: clean-debug clean-release
 
-clean-all: clean-debug clean-logging clean-release
+clean-all: clean-debug clean-release
 	rm -rf .include* .depend* build*
 
 
@@ -345,30 +341,18 @@ post-build: main-build
 
 
 debug: post-build
-logging: post-build
 release: post-build
 
 target-debug: $(ARCHIVE)
-target-logging: $(ARCHIVE)
 target-release: $(ARCHIVE)
 
 
-ifneq (,$(findstring logging,$(MAKECMDGOALS)))
-main-build: pre-build
-	@$(MAKE) --no-print-directory target-logging BUILD_TYPE=build_logging
-else
 ifneq (,$(findstring release,$(MAKECMDGOALS)))
 main-build: pre-build
 	@$(MAKE) --no-print-directory target-release BUILD_TYPE=build_release
 else
-ifeq ($(DEFAULT_TARGET),logging)
-main-build: pre-build
-	@$(MAKE) --no-print-directory target-logging BUILD_TYPE=build_logging
-else
 main-build: pre-build
 	@$(MAKE) --no-print-directory target-debug BUILD_TYPE=build_debug STRIP=touch
-endif
-endif
 endif
 
 
@@ -385,17 +369,17 @@ build_debug_$(BRANCH)/%.o: %.c | build_debug_$(BRANCH)
 	$(GCC) $(filter-out -fno-rtti,$(CC_FLAGS) $(DEBUG_FLAGS)) -Wno-attributes -o $@ -c $<
 
 
-build_logging_$(BRANCH):
+build_generator_$(BRANCH):
 	rsync -a -f"- .git/" -f"- build_*/" -f"+ */" -f"- *" --exclude=".*" . $@
 
-build_logging_$(BRANCH)/%.o: %.cpp | build_logging_$(BRANCH)
-	$(CXX) $(CC_FLAGS) $(LOGGING_FLAGS) -Wall -Wempty-body -std=c++11 -o $@ -c $<
+build_generator_$(BRANCH)/%.o: %.cpp | build_generator_$(BRANCH)
+	$(CXX) $(CC_FLAGS) $(GENERATOR_FLAGS) -Wall -Wempty-body -std=c++11 -o $@ -c $<
 
-build_logging_$(BRANCH)/%.o: %.cc | build_logging_$(BRANCH)
-	$(CXX) $(CC_FLAGS) $(LOGGING_FLAGS) -o $@ -c $<
+build_generator_$(BRANCH)/%.o: %.cc | build_generator_$(BRANCH)
+	$(CXX) $(CC_FLAGS) $(GENERATOR_FLAGS) -o $@ -c $<
 
-build_logging_$(BRANCH)/%.o: %.c | build_logging_$(BRANCH)
-	$(GCC) $(filter-out -fno-rtti,$(CC_FLAGS) $(LOGGING_FLAGS)) -Wno-attributes -o $@ -c $<
+build_generator_$(BRANCH)/%.o: %.c | build_generator_$(BRANCH)
+	$(GCC) $(filter-out -fno-rtti,$(CC_FLAGS) $(GENERATOR_FLAGS)) -Wno-attributes -o $@ -c $<
 
 
 build_release_$(BRANCH):

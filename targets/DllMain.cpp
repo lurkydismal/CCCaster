@@ -856,7 +856,6 @@ struct DllMain
         // Cleared last played and muted sound effects
         memset ( AsmHacks::sfxFilterArray, 0, CC_SFX_ARRAY_LEN );
         memset ( AsmHacks::sfxMuteArray, 0, CC_SFX_ARRAY_LEN );
-#ifndef DISABLE_LOGGING
         MsgPtr msgRngState = procMan.getRngState ( 0 );
         ASSERT ( msgRngState.get() != 0 );
 
@@ -885,7 +884,6 @@ struct DllMain
                        *CC_HIT_SPARKS_ADDR, *CC_CAMERA_X_ADDR, *CC_CAMERA_Y_ADDR );
             return;
         }
-#endif // NOT DISABLE_LOGGING
     }
 
     void frameStepRerun()

@@ -19,7 +19,7 @@ on:
       - tests/**
       - tools/**
       - Makefile
-    
+
   pull_request:
     branches:
       - main
@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: [debug, logging, release]
+        build_type: [debug, release]
 
     steps:
     - name: Harden Runner
