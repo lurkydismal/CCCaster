@@ -165,24 +165,24 @@ struct DllMain
     // The minimum number of frames that must run normally, before we're allowed to do another rollback
     uint8_t minRollbackSpacing = 2;
 
-#ifndef RELEASE
-    // Local and remote SyncHashes
-    list<MsgPtr> localSync, remoteSync;
+// #ifndef RELEASE
+//     // Local and remote SyncHashes
+//     list<MsgPtr> localSync, remoteSync;
 
-    // Debug testing flags
-    bool randomInputs = false;
-    bool randomDelay = false;
-    bool randomRollback = false;
-    uint32_t rollUpTo = 10;
+//     // Debug testing flags
+//     bool randomInputs = false;
+//     bool randomDelay = false;
+//     bool randomRollback = false;
+//     uint32_t rollUpTo = 10;
 
-    // ReplayManager instance
-    ReplayManager repMan;
-    bool replayInputs = false;
-    uint32_t replaySpeed = 2;
-    IndexedFrame replayStop = MaxIndexedFrame;
-    IndexedFrame replayCheck = MaxIndexedFrame;
-    string replayCheckRngHexStr;
-#endif // NOT RELEASE
+//     // ReplayManager instance
+//     ReplayManager repMan;
+//     bool replayInputs = false;
+//     uint32_t replaySpeed = 2;
+//     IndexedFrame replayStop = MaxIndexedFrame;
+//     IndexedFrame replayCheck = MaxIndexedFrame;
+//     string replayCheckRngHexStr;
+// #endif // NOT RELEASE
 
     void frameStepNormal()
     {
@@ -299,22 +299,22 @@ struct DllMain
                         }
                     }
 
-#ifndef RELEASE
-                    // Test random delay setting
-                    if ( KeyboardState::isPressed ( VK_F11 ) )
-                    {
-                        randomDelay = !randomDelay;
-                        DllOverlayUi::showMessage ( randomDelay ? "Enabled random delay" : "Disabled random delay" );
-                    }
+// #ifndef RELEASE
+//                     // Test random delay setting
+//                     if ( KeyboardState::isPressed ( VK_F11 ) )
+//                     {
+//                         randomDelay = !randomDelay;
+//                         DllOverlayUi::showMessage ( randomDelay ? "Enabled random delay" : "Disabled random delay" );
+//                     }
 
-                    if ( randomDelay && rand() % 30 == 0 )
-                    {
-                        shouldChangeDelayRollback = true;
-                        changeConfig.indexedFrame = netMan.getIndexedFrame();
-                        changeConfig.delay = rand() % 10;
-                        changeConfig.invalidate();
-                    }
-#endif // NOT RELEASE
+//                     if ( randomDelay && rand() % 30 == 0 )
+//                     {
+//                         shouldChangeDelayRollback = true;
+//                         changeConfig.indexedFrame = netMan.getIndexedFrame();
+//                         changeConfig.delay = rand() % 10;
+//                         changeConfig.invalidate();
+//                     }
+// #endif // NOT RELEASE
                 }
                 else if ( clientMode.isSpectate() )                                         // Spectator controls
                 {
@@ -327,123 +327,123 @@ struct DllMain
                     break;
                 }
 
-#ifndef RELEASE
-                DllOverlayUi::debugText = format ( "%+d [%s]", netMan.getRemoteFrameDelta(), netMan.getIndexedFrame() );
-                DllOverlayUi::debugTextAlign = 1;
+// #ifndef RELEASE
+//                 DllOverlayUi::debugText = format ( "%+d [%s]", netMan.getRemoteFrameDelta(), netMan.getIndexedFrame() );
+//                 DllOverlayUi::debugTextAlign = 1;
 
-                // Replay inputs and rollback
-                if ( replayInputs )
-                {
-                    if ( repMan.getGameMode ( netMan.getIndexedFrame() ) )
-                        ASSERT ( repMan.getGameMode ( netMan.getIndexedFrame() ) == *CC_GAME_MODE_ADDR );
+//                 // Replay inputs and rollback
+//                 if ( replayInputs )
+//                 {
+//                     if ( repMan.getGameMode ( netMan.getIndexedFrame() ) )
+//                         ASSERT ( repMan.getGameMode ( netMan.getIndexedFrame() ) == *CC_GAME_MODE_ADDR );
 
-                    if ( ! repMan.getStateStr ( netMan.getIndexedFrame() ).empty() )
-                        ASSERT ( repMan.getStateStr ( netMan.getIndexedFrame() ) == netMan.getState().str() );
+//                     if ( ! repMan.getStateStr ( netMan.getIndexedFrame() ).empty() )
+//                         ASSERT ( repMan.getStateStr ( netMan.getIndexedFrame() ) == netMan.getState().str() );
 
-                    // Inputs
-                    const auto& inputs = repMan.getInputs ( netMan.getIndexedFrame() );
-                    netMan.setInput ( 1, inputs.p1 );
-                    netMan.setInput ( 2, inputs.p2 );
+//                     // Inputs
+//                     const auto& inputs = repMan.getInputs ( netMan.getIndexedFrame() );
+//                     netMan.setInput ( 1, inputs.p1 );
+//                     netMan.setInput ( 2, inputs.p2 );
 
-                    const IndexedFrame target = repMan.getRollbackTarget ( netMan.getIndexedFrame() );
+//                     const IndexedFrame target = repMan.getRollbackTarget ( netMan.getIndexedFrame() );
 
-                    // Rollback
-                    if ( netMan.isInRollback() && target.value < netMan.getIndexedFrame().value )
-                    {
-                        // Reinputs
-                        const auto& reinputs = repMan.getReinputs ( netMan.getIndexedFrame() );
-                        for ( const auto& inputs : reinputs )
-                        {
-                            netMan.assignInput ( 1, inputs.p1, inputs.indexedFrame );
-                            netMan.assignInput ( 2, inputs.p2, inputs.indexedFrame );
-                        }
+//                     // Rollback
+//                     if ( netMan.isInRollback() && target.value < netMan.getIndexedFrame().value )
+//                     {
+//                         // Reinputs
+//                         const auto& reinputs = repMan.getReinputs ( netMan.getIndexedFrame() );
+//                         for ( const auto& inputs : reinputs )
+//                         {
+//                             netMan.assignInput ( 1, inputs.p1, inputs.indexedFrame );
+//                             netMan.assignInput ( 2, inputs.p2, inputs.indexedFrame );
+//                         }
 
-                        const string before = format ( "%s [%u] %s [%s]",
-                                                       gameModeStr ( *CC_GAME_MODE_ADDR ), *CC_GAME_MODE_ADDR,
-                                                       netMan.getState(), netMan.getIndexedFrame() );
+//                         const string before = format ( "%s [%u] %s [%s]",
+//                                                        gameModeStr ( *CC_GAME_MODE_ADDR ), *CC_GAME_MODE_ADDR,
+//                                                        netMan.getState(), netMan.getIndexedFrame() );
 
-                        // Indicate we're re-running to the current frame
-                        fastFwdStopFrame = netMan.getIndexedFrame();
+//                         // Indicate we're re-running to the current frame
+//                         fastFwdStopFrame = netMan.getIndexedFrame();
 
-                        // Reset the game state (this resets game state AND netMan state)
-                        if ( rollMan.loadState ( target, netMan ) )
-                        {
-                            // Start fast-forwarding now
-                            *CC_SKIP_FRAMES_ADDR = 1;
+//                         // Reset the game state (this resets game state AND netMan state)
+//                         if ( rollMan.loadState ( target, netMan ) )
+//                         {
+//                             // Start fast-forwarding now
+//                             *CC_SKIP_FRAMES_ADDR = 1;
 
-                            LOG_TO ( syncLog, "%s Rollback: target=[%s]; actual=[%s]",
-                                     before, target, netMan.getIndexedFrame() );
+//                             LOG_TO ( syncLog, "%s Rollback: target=[%s]; actual=[%s]",
+//                                      before, target, netMan.getIndexedFrame() );
 
-                            LOG_SYNC ( "Reinputs: 0x%04x 0x%04x", netMan.getRawInput ( 1 ), netMan.getRawInput ( 2 ) );
-                            return;
-                        }
+//                             LOG_SYNC ( "Reinputs: 0x%04x 0x%04x", netMan.getRawInput ( 1 ), netMan.getRawInput ( 2 ) );
+//                             return;
+//                         }
 
-                        LOG_TO ( syncLog, "%s Rollback to target=[%s] failed!", before, target );
+//                         LOG_TO ( syncLog, "%s Rollback to target=[%s] failed!", before, target );
 
-                        ASSERT_IMPOSSIBLE;
-                    }
+//                         ASSERT_IMPOSSIBLE;
+//                     }
 
-                    // RngState
-                    if ( netMan.getFrame() == 0 && ( netMan.getState() == NetplayState::CharaSelect
-                                                     || netMan.getState() == NetplayState::InGame ) )
-                    {
-                        MsgPtr msgRngState = repMan.getRngState ( netMan.getIndexedFrame() );
+//                     // RngState
+//                     if ( netMan.getFrame() == 0 && ( netMan.getState() == NetplayState::CharaSelect
+//                                                      || netMan.getState() == NetplayState::InGame ) )
+//                     {
+//                         MsgPtr msgRngState = repMan.getRngState ( netMan.getIndexedFrame() );
 
-                        if ( msgRngState )
-                            procMan.setRngState ( msgRngState->getAs<RngState>() );
-                    }
+//                         if ( msgRngState )
+//                             procMan.setRngState ( msgRngState->getAs<RngState>() );
+//                     }
 
-                    break;
-                }
+//                     break;
+//                 }
 
-                // Test random input
-                if ( KeyboardState::isPressed ( VK_F12 ) )
-                {
-                    randomInputs = !randomInputs;
-                    localInputs [ clientMode.isLocal() ? 1 : 0 ] = 0;
-                    DllOverlayUi::showMessage ( randomInputs ? "Enabled random inputs" : "Disabled random inputs" );
-                }
+//                 // Test random input
+//                 if ( KeyboardState::isPressed ( VK_F12 ) )
+//                 {
+//                     randomInputs = !randomInputs;
+//                     localInputs [ clientMode.isLocal() ? 1 : 0 ] = 0;
+//                     DllOverlayUi::showMessage ( randomInputs ? "Enabled random inputs" : "Disabled random inputs" );
+//                 }
 
-                if ( randomInputs )
-                {
-                    bool shouldRandomize = ( rand() % 2 );
-                    if ( netMan.isInRollback() )
-                        shouldRandomize &= ( netMan.getFrame() % 150 < 120 );
+//                 if ( randomInputs )
+//                 {
+//                     bool shouldRandomize = ( rand() % 2 );
+//                     if ( netMan.isInRollback() )
+//                         shouldRandomize &= ( netMan.getFrame() % 150 < 120 );
 
-                    if ( shouldRandomize )
-                    {
-                        uint16_t direction = ( rand() % 10 );
+//                     if ( shouldRandomize )
+//                     {
+//                         uint16_t direction = ( rand() % 10 );
 
-                        // Reduce the chances of moving the cursor at retry menu
-                        if ( netMan.getState() == NetplayState::RetryMenu && ( rand() % 2 ) )
-                            direction = 0;
+//                         // Reduce the chances of moving the cursor at retry menu
+//                         if ( netMan.getState() == NetplayState::RetryMenu && ( rand() % 2 ) )
+//                             direction = 0;
 
-                        uint16_t buttons = ( rand() % 0x1000 );
+//                         uint16_t buttons = ( rand() % 0x1000 );
 
-                        // Reduce the chances of hitting the D button
-                        if ( rand() % 100 < 98 )
-                            buttons &= ~ CC_BUTTON_D;
+//                         // Reduce the chances of hitting the D button
+//                         if ( rand() % 100 < 98 )
+//                             buttons &= ~ CC_BUTTON_D;
 
-                        // Prevent hitting some non-essential buttons
-                        buttons &= ~ ( CC_BUTTON_FN1 | CC_BUTTON_FN2 | CC_BUTTON_START );
+//                         // Prevent hitting some non-essential buttons
+//                         buttons &= ~ ( CC_BUTTON_FN1 | CC_BUTTON_FN2 | CC_BUTTON_START );
 
-                        // Prevent going back at character select
-                        if ( netMan.getState() == NetplayState::CharaSelect )
-                            buttons &= ~ ( CC_BUTTON_B | CC_BUTTON_CANCEL );
+//                         // Prevent going back at character select
+//                         if ( netMan.getState() == NetplayState::CharaSelect )
+//                             buttons &= ~ ( CC_BUTTON_B | CC_BUTTON_CANCEL );
 
-                        localInputs [ clientMode.isLocal() ? 1 : 0 ] = COMBINE_INPUT ( direction, buttons );
-                    }
-                }
-#endif // NOT RELEASE
+//                         localInputs [ clientMode.isLocal() ? 1 : 0 ] = COMBINE_INPUT ( direction, buttons );
+//                     }
+//                 }
+// #endif // NOT RELEASE
 
                 // Assign local player input
                 if ( ! clientMode.isSpectate() )
                 {
-#ifndef RELEASE
-                    if ( netMan.isInRollback() )
-                        netMan.assignInput ( localPlayer, localInputs[0], netMan.getFrame() + netMan.getDelay() );
-                    else
-#endif // NOT RELEASE
+// #ifndef RELEASE
+//                     if ( netMan.isInRollback() )
+//                         netMan.assignInput ( localPlayer, localInputs[0], netMan.getFrame() + netMan.getDelay() );
+//                     else
+// #endif // NOT RELEASE
                         netMan.setInput ( localPlayer, localInputs[0] );
                 }
 
@@ -654,204 +654,204 @@ struct DllMain
         // LOG_SYNC ( "SFX 0x%X: CC_SFX_ARRAY=%u; sfxFilterArray=%u; sfxMuteArray=%u", SFX_NUM,
         //            CC_SFX_ARRAY_ADDR[SFX_NUM], AsmHacks::sfxFilterArray[SFX_NUM], AsmHacks::sfxMuteArray[SFX_NUM] );
 
-#ifndef RELEASE
-        if ( ! replayInputs )
-        {
-            // Test one time rollback
-            if ( KeyboardState::isPressed ( VK_F9 ) && netMan.isInGame() )
-            {
-                IndexedFrame target = netMan.getIndexedFrame();
+// #ifndef RELEASE
+//         if ( ! replayInputs )
+//         {
+//             // Test one time rollback
+//             if ( KeyboardState::isPressed ( VK_F9 ) && netMan.isInGame() )
+//             {
+//                 IndexedFrame target = netMan.getIndexedFrame();
 
-                if ( target.parts.frame <= 30 )
-                    target.parts.frame = 0;
-                else
-                    target.parts.frame -= 30;
+//                 if ( target.parts.frame <= 30 )
+//                     target.parts.frame = 0;
+//                 else
+//                     target.parts.frame -= 30;
 
-                if ( KeyboardState::isDown ( VK_CONTROL ) )
-                {
-                    const string before = format ( "%s [%u] %s [%s]",
-                                                   gameModeStr ( *CC_GAME_MODE_ADDR ), *CC_GAME_MODE_ADDR,
-                                                   netMan.getState(), netMan.getIndexedFrame() );
+//                 if ( KeyboardState::isDown ( VK_CONTROL ) )
+//                 {
+//                     const string before = format ( "%s [%u] %s [%s]",
+//                                                    gameModeStr ( *CC_GAME_MODE_ADDR ), *CC_GAME_MODE_ADDR,
+//                                                    netMan.getState(), netMan.getIndexedFrame() );
 
-                    // Indicate we're re-running to the current frame
-                    fastFwdStopFrame = netMan.getIndexedFrame();
+//                     // Indicate we're re-running to the current frame
+//                     fastFwdStopFrame = netMan.getIndexedFrame();
 
-                    // Reset the game state (this resets game state AND netMan state)
-                    if ( rollMan.loadState ( target, netMan ) )
-                    {
-                        // Start fast-forwarding now
-                        *CC_SKIP_FRAMES_ADDR = 1;
+//                     // Reset the game state (this resets game state AND netMan state)
+//                     if ( rollMan.loadState ( target, netMan ) )
+//                     {
+//                         // Start fast-forwarding now
+//                         *CC_SKIP_FRAMES_ADDR = 1;
 
-                        LOG_TO ( syncLog, "%s Rollback: target=[%s]; actual=[%s]",
-                                 before, netMan.getLastChangedFrame(), netMan.getIndexedFrame() );
+//                         LOG_TO ( syncLog, "%s Rollback: target=[%s]; actual=[%s]",
+//                                  before, netMan.getLastChangedFrame(), netMan.getIndexedFrame() );
 
-                        LOG_SYNC ( "Reinputs: 0x%04x 0x%04x", netMan.getRawInput ( 1 ), netMan.getRawInput ( 2 ) );
-                        return;
-                    }
-                }
-                else
-                {
-                    rollMan.loadState ( target, netMan );
-                }
-            }
+//                         LOG_SYNC ( "Reinputs: 0x%04x 0x%04x", netMan.getRawInput ( 1 ), netMan.getRawInput ( 2 ) );
+//                         return;
+//                     }
+//                 }
+//                 else
+//                 {
+//                     rollMan.loadState ( target, netMan );
+//                 }
+//             }
 
-            // Test random rollback
-            if ( KeyboardState::isPressed ( VK_F10 ) )
-            {
-                randomRollback = !randomRollback;
-                DllOverlayUi::showMessage ( randomRollback ? "Enabled random rollback" : "Disabled random rollback" );
-            }
+//             // Test random rollback
+//             if ( KeyboardState::isPressed ( VK_F10 ) )
+//             {
+//                 randomRollback = !randomRollback;
+//                 DllOverlayUi::showMessage ( randomRollback ? "Enabled random rollback" : "Disabled random rollback" );
+//             }
 
-            if ( randomRollback
-                    && rollbackTimer == minRollbackSpacing
-                    && netMan.isInGame()
-                    && ( netMan.getFrame() % 150 < 100 ) )
-            {
-                const uint32_t distance = 1 + ( rand() % rollUpTo );
+//             if ( randomRollback
+//                     && rollbackTimer == minRollbackSpacing
+//                     && netMan.isInGame()
+//                     && ( netMan.getFrame() % 150 < 100 ) )
+//             {
+//                 const uint32_t distance = 1 + ( rand() % rollUpTo );
 
-                IndexedFrame target = netMan.getIndexedFrame();
+//                 IndexedFrame target = netMan.getIndexedFrame();
 
-                if ( target.parts.frame <= distance )
-                    target.parts.frame = 0;
-                else
-                    target.parts.frame -= distance;
+//                 if ( target.parts.frame <= distance )
+//                     target.parts.frame = 0;
+//                 else
+//                     target.parts.frame -= distance;
 
-                const string before = format ( "%s [%u] %s [%s]",
-                                               gameModeStr ( *CC_GAME_MODE_ADDR ), *CC_GAME_MODE_ADDR,
-                                               netMan.getState(), netMan.getIndexedFrame() );
+//                 const string before = format ( "%s [%u] %s [%s]",
+//                                                gameModeStr ( *CC_GAME_MODE_ADDR ), *CC_GAME_MODE_ADDR,
+//                                                netMan.getState(), netMan.getIndexedFrame() );
 
-                // Indicate we're re-running to the current frame
-                fastFwdStopFrame = netMan.getIndexedFrame();
+//                 // Indicate we're re-running to the current frame
+//                 fastFwdStopFrame = netMan.getIndexedFrame();
 
-                // Reset the game state (this resets game state AND netMan state)
-                if ( rollMan.loadState ( target, netMan ) )
-                {
-                    // Start fast-forwarding now
-                    *CC_SKIP_FRAMES_ADDR = 1;
+//                 // Reset the game state (this resets game state AND netMan state)
+//                 if ( rollMan.loadState ( target, netMan ) )
+//                 {
+//                     // Start fast-forwarding now
+//                     *CC_SKIP_FRAMES_ADDR = 1;
 
-                    LOG_TO ( syncLog, "%s Rollback: target=[%s]; actual=[%s]",
-                             before, target, netMan.getIndexedFrame() );
+//                     LOG_TO ( syncLog, "%s Rollback: target=[%s]; actual=[%s]",
+//                              before, target, netMan.getIndexedFrame() );
 
-                    LOG_SYNC ( "Reinputs: 0x%04x 0x%04x", netMan.getRawInput ( 1 ), netMan.getRawInput ( 2 ) );
+//                     LOG_SYNC ( "Reinputs: 0x%04x 0x%04x", netMan.getRawInput ( 1 ), netMan.getRawInput ( 2 ) );
 
-                    --rollbackTimer;
-                    return;
-                }
+//                     --rollbackTimer;
+//                     return;
+//                 }
 
-                LOG_TO ( syncLog, "%s Rollback to target=[%s] failed!", before, target );
-            }
-        }
+//                 LOG_TO ( syncLog, "%s Rollback to target=[%s] failed!", before, target );
+//             }
+//         }
 
-        if ( dataSocket && dataSocket->isConnected()
-                && ( ( netMan.getFrame() % ( 5 * 60 ) == 0 ) || ( netMan.getFrame() % 150 == 149 ) )
-                && netMan.getState().value >= NetplayState::CharaSelect && netMan.getState() != NetplayState::Loading
-             && netMan.getState() != NetplayState::CharaIntro
-             && netMan.getState() != NetplayState::Skippable && netMan.getState() != NetplayState::RetryMenu )
-        {
-            // Check for desyncs by periodically sending hashes
-            if ( !netMan.isInRollback()
-                    || ( netMan.getFrame() == 0 )
-                    || ( randomInputs && netMan.getFrame() % 150 == 149 ) )
-            {
-                MsgPtr msgSyncHash ( new SyncHash ( netMan.getIndexedFrame() ) );
-                dataSocket->send ( msgSyncHash );
-                localSync.push_back ( msgSyncHash );
-            }
-        }
+//         if ( dataSocket && dataSocket->isConnected()
+//                 && ( ( netMan.getFrame() % ( 5 * 60 ) == 0 ) || ( netMan.getFrame() % 150 == 149 ) )
+//                 && netMan.getState().value >= NetplayState::CharaSelect && netMan.getState() != NetplayState::Loading
+//              && netMan.getState() != NetplayState::CharaIntro
+//              && netMan.getState() != NetplayState::Skippable && netMan.getState() != NetplayState::RetryMenu )
+//         {
+//             // Check for desyncs by periodically sending hashes
+//             if ( !netMan.isInRollback()
+//                     || ( netMan.getFrame() == 0 )
+//                     || ( randomInputs && netMan.getFrame() % 150 == 149 ) )
+//             {
+//                 MsgPtr msgSyncHash ( new SyncHash ( netMan.getIndexedFrame() ) );
+//                 dataSocket->send ( msgSyncHash );
+//                 localSync.push_back ( msgSyncHash );
+//             }
+//         }
 
-        // Compare current lists of sync hashes
-        while ( !localSync.empty() && !remoteSync.empty() )
-        {
+//         // Compare current lists of sync hashes
+//         while ( !localSync.empty() && !remoteSync.empty() )
+//         {
 
-#define L localSync.front()->getAs<SyncHash>()
-#define R remoteSync.front()->getAs<SyncHash>()
+// #define L localSync.front()->getAs<SyncHash>()
+// #define R remoteSync.front()->getAs<SyncHash>()
 
-            while ( !remoteSync.empty() && L.indexedFrame.value > R.indexedFrame.value )
-                remoteSync.pop_front();
+//             while ( !remoteSync.empty() && L.indexedFrame.value > R.indexedFrame.value )
+//                 remoteSync.pop_front();
 
-            if ( remoteSync.empty() )
-                break;
+//             if ( remoteSync.empty() )
+//                 break;
 
-            while ( !localSync.empty() && R.indexedFrame.value > L.indexedFrame.value )
-                localSync.pop_front();
+//             while ( !localSync.empty() && R.indexedFrame.value > L.indexedFrame.value )
+//                 localSync.pop_front();
 
-            if ( localSync.empty() )
-                break;
+//             if ( localSync.empty() )
+//                 break;
 
-            if ( L == R )
-            {
-                localSync.pop_front();
-                remoteSync.pop_front();
-                continue;
-            }
+//             if ( L == R )
+//             {
+//                 localSync.pop_front();
+//                 remoteSync.pop_front();
+//                 continue;
+//             }
 
-            LOG_TO ( syncLog, "Desync:" );
-            LOG_TO ( syncLog, "< %s", L.dump() );
-            LOG_TO ( syncLog, "> %s", R.dump() );
+//             LOG_TO ( syncLog, "Desync:" );
+//             LOG_TO ( syncLog, "< %s", L.dump() );
+//             LOG_TO ( syncLog, "> %s", R.dump() );
 
-#undef L
-#undef R
+// #undef L
+// #undef R
 
-            syncLog.deinitialize();
-            delayedStop ( "Desync!" );
+//             syncLog.deinitialize();
+//             delayedStop ( "Desync!" );
 
-            randomInputs = false;
-            localInputs [ clientMode.isLocal() ? 1 : 0 ] = 0;
-            return;
-        }
+//             randomInputs = false;
+//             localInputs [ clientMode.isLocal() ? 1 : 0 ] = 0;
+//             return;
+//         }
 
-        if ( replayInputs && netMan.getIndex() >= repMan.getLastIndex() && netMan.getFrame() >= repMan.getLastFrame() )
-        {
-            replayInputs = false;
-            SetForegroundWindow ( ( HWND ) DllHacks::windowHandle );
-        }
+//         if ( replayInputs && netMan.getIndex() >= repMan.getLastIndex() && netMan.getFrame() >= repMan.getLastFrame() )
+//         {
+//             replayInputs = false;
+//             SetForegroundWindow ( ( HWND ) DllHacks::windowHandle );
+//         }
 
-        if ( netMan.getIndexedFrame().value == replayStop.value )
-            MessageBox ( 0, 0, 0, 0 );
+//         if ( netMan.getIndexedFrame().value == replayStop.value )
+//             MessageBox ( 0, 0, 0, 0 );
 
-        if ( netMan.getIndexedFrame().value == replayCheck.value )
-        {
-            MsgPtr msgRngState = procMan.getRngState ( 0 );
-            ASSERT ( msgRngState.get() != 0 );
+//         if ( netMan.getIndexedFrame().value == replayCheck.value )
+//         {
+//             MsgPtr msgRngState = procMan.getRngState ( 0 );
+//             ASSERT ( msgRngState.get() != 0 );
 
-            const string& dump = msgRngState->getAs<RngState>().dump();
+//             const string& dump = msgRngState->getAs<RngState>().dump();
 
-            if ( dump.find ( replayCheckRngHexStr ) != 0 )
-            {
-                LOG_SYNC ( "RngState: %s", msgRngState->getAs<RngState>().dump() );
-                LOG_TO ( syncLog, "Desync!" );
-                syncLog.deinitialize();
+//             if ( dump.find ( replayCheckRngHexStr ) != 0 )
+//             {
+//                 LOG_SYNC ( "RngState: %s", msgRngState->getAs<RngState>().dump() );
+//                 LOG_TO ( syncLog, "Desync!" );
+//                 syncLog.deinitialize();
 
-                delayedStop ( ERROR_INTERNAL );
-                return;
-            }
-            else
-            {
-                delayedStop ( ERROR_INTERNAL );
-                return;
-            }
-        }
+//                 delayedStop ( ERROR_INTERNAL );
+//                 return;
+//             }
+//             else
+//             {
+//                 delayedStop ( ERROR_INTERNAL );
+//                 return;
+//             }
+//         }
 
-        // if ( netMan.getIndex() == 1802 && netMan.getFrame() == 460 )
-        // {
-        //     if ( *CC_P1_HEALTH_ADDR != 11400 || *CC_P1_METER_ADDR != 0
-        //             || *CC_P2_HEALTH_ADDR != 10121 || *CC_P2_METER_ADDR != 10638 )
-        //     {
-        //         LOG_SYNC_CHARACTER ( 1 );
-        //         LOG_SYNC_CHARACTER ( 2 );
-        //         LOG_TO ( syncLog, "Desync!" );
-        //         syncLog.deinitialize();
+//         // if ( netMan.getIndex() == 1802 && netMan.getFrame() == 460 )
+//         // {
+//         //     if ( *CC_P1_HEALTH_ADDR != 11400 || *CC_P1_METER_ADDR != 0
+//         //             || *CC_P2_HEALTH_ADDR != 10121 || *CC_P2_METER_ADDR != 10638 )
+//         //     {
+//         //         LOG_SYNC_CHARACTER ( 1 );
+//         //         LOG_SYNC_CHARACTER ( 2 );
+//         //         LOG_TO ( syncLog, "Desync!" );
+//         //         syncLog.deinitialize();
 
-        //         MessageBox ( 0, 0, 0, 0 );
-        //         return;
-        //     }
-        //     else
-        //     {
-        //         delayedStop ( ERROR_INTERNAL );
-        //         return;
-        //     }
-        // }
-#endif // NOT RELEASE
+//         //         MessageBox ( 0, 0, 0, 0 );
+//         //         return;
+//         //     }
+//         //     else
+//         //     {
+//         //         delayedStop ( ERROR_INTERNAL );
+//         //         return;
+//         //     }
+//         // }
+// #endif // NOT RELEASE
 
         // Cleared last played and muted sound effects
         memset ( AsmHacks::sfxFilterArray, 0, CC_SFX_ARRAY_LEN );
@@ -956,12 +956,12 @@ struct DllMain
         procMan.writeGameInput ( localPlayer, netMan.getInput ( localPlayer ) );
         procMan.writeGameInput ( remotePlayer, netMan.getInput ( remotePlayer ) );
 
-#ifndef RELEASE
-        if ( replayInputs && ( replaySpeed == 1 || KeyboardState::isDown ( VK_SPACE ) ) )
-            DllFrameRate::desiredFps = numeric_limits<double>::max();
-        else if ( replayInputs && replaySpeed == 2 )
-            *CC_SKIP_FRAMES_ADDR = 1;
-#endif
+// #ifndef RELEASE
+//         if ( replayInputs && ( replaySpeed == 1 || KeyboardState::isDown ( VK_SPACE ) ) )
+//             DllFrameRate::desiredFps = numeric_limits<double>::max();
+//         else if ( replayInputs && replaySpeed == 2 )
+//             *CC_SKIP_FRAMES_ADDR = 1;
+// #endif
     }
 
     void netplayStateChanged ( NetplayState state )
@@ -986,10 +986,8 @@ struct DllMain
         // Leaving Initial or AutoCharaSelect
         if ( netMan.getState() == NetplayState::Initial || netMan.getState() == NetplayState::AutoCharaSelect )
         {
-#ifdef RELEASE
             // Try to focus the game window
             SetForegroundWindow ( ( HWND ) DllHacks::windowHandle );
-#endif // RELEASE
 
             // Enable controllers now
             if ( ! ProcessManager::isWine() )
@@ -1093,11 +1091,8 @@ struct DllMain
         }
 
         if ( netMan.getState() == NetplayState::Initial
-#ifdef RELEASE
                 && netMan.config.mode.isSpectate()
-#else
-                && ( netMan.config.mode.isSpectate() || replayInputs )
-#endif // RELEASE
+                // && ( netMan.config.mode.isSpectate() || replayInputs )
                 && netMan.initial.netplayState > NetplayState::CharaSelect )
         {
             // Spectate mode needs to auto select characters if starting after CharaSelect
@@ -1397,11 +1392,11 @@ struct DllMain
                 netMan.setRngState ( msg->getAs<RngState>() );
                 return;
 
-#ifndef RELEASE
-            case MsgType::SyncHash:
-                remoteSync.push_back ( msg );
-                return;
-#endif // NOT RELEASE
+// #ifndef RELEASE
+//             case MsgType::SyncHash:
+//                 remoteSync.push_back ( msg );
+//                 return;
+// #endif // NOT RELEASE
 
             default:
                 break;
@@ -1588,72 +1583,72 @@ struct DllMain
                     SendInput ( 4, inputs, sizeof ( INPUT ) );
                 }
 
-#ifndef RELEASE
-                if ( options[Options::Replay] )
-                {
-                    LOG ( "Replay: '%s'", options.arg ( Options::Replay ) );
+// #ifndef RELEASE
+//                 if ( options[Options::Replay] )
+//                 {
+//                     LOG ( "Replay: '%s'", options.arg ( Options::Replay ) );
 
-                    // Parse arguments
-                    const vector<string> args = split ( options.arg ( Options::Replay ), "," );
-                    ASSERT ( args.empty() == false );
+//                     // Parse arguments
+//                     const vector<string> args = split ( options.arg ( Options::Replay ), "," );
+//                     ASSERT ( args.empty() == false );
 
-                    const string replayFile = ProcessManager::appDir + args[0];
-                    const bool real = find ( args.begin(), args.end(), "real" ) != args.end();
+//                     const string replayFile = ProcessManager::appDir + args[0];
+//                     const bool real = find ( args.begin(), args.end(), "real" ) != args.end();
 
-                    // Parse replay speed
-                    auto it = find ( args.begin(), args.end(), "speed" );
-                    if ( it != args.end() )
-                        ++it;
-                    if ( it != args.end() )
-                        replaySpeed = lexical_cast<uint32_t> ( *it );
+//                     // Parse replay speed
+//                     auto it = find ( args.begin(), args.end(), "speed" );
+//                     if ( it != args.end() )
+//                         ++it;
+//                     if ( it != args.end() )
+//                         replaySpeed = lexical_cast<uint32_t> ( *it );
 
-                    // Parse stop index and frame
-                    it = find ( args.begin(), args.end(), "stop" );
-                    if ( it != args.end() )
-                        ++it;
-                    if ( it != args.end() && ( args.end() - it ) >= 2 )
-                    {
-                        replayStop.parts.index = lexical_cast<uint32_t> ( *it++ );
-                        replayStop.parts.frame = lexical_cast<uint32_t> ( *it++ );
-                    }
+//                     // Parse stop index and frame
+//                     it = find ( args.begin(), args.end(), "stop" );
+//                     if ( it != args.end() )
+//                         ++it;
+//                     if ( it != args.end() && ( args.end() - it ) >= 2 )
+//                     {
+//                         replayStop.parts.index = lexical_cast<uint32_t> ( *it++ );
+//                         replayStop.parts.frame = lexical_cast<uint32_t> ( *it++ );
+//                     }
 
-                    // Parse check RngState args
-                    it = find ( args.begin(), args.end(), "check" );
-                    if ( it != args.end() )
-                        ++it;
-                    if ( it != args.end() && ( args.end() - it ) >= 3 )
-                    {
-                        replayCheck.parts.index = lexical_cast<uint32_t> ( *it++ );
-                        replayCheck.parts.frame = lexical_cast<uint32_t> ( *it++ );
-                        replayCheckRngHexStr = ( *it++ );
-                    }
+//                     // Parse check RngState args
+//                     it = find ( args.begin(), args.end(), "check" );
+//                     if ( it != args.end() )
+//                         ++it;
+//                     if ( it != args.end() && ( args.end() - it ) >= 3 )
+//                     {
+//                         replayCheck.parts.index = lexical_cast<uint32_t> ( *it++ );
+//                         replayCheck.parts.frame = lexical_cast<uint32_t> ( *it++ );
+//                         replayCheckRngHexStr = ( *it++ );
+//                     }
 
-                    // Parse replay file
-                    const bool good = repMan.load ( replayFile, real );
-                    ASSERT ( good == true );
+//                     // Parse replay file
+//                     const bool good = repMan.load ( replayFile, real );
+//                     ASSERT ( good == true );
 
-                    // Parse start index
-                    it = find ( args.begin(), args.end(), "start" );
-                    if ( it != args.end() )
-                        ++it;
-                    if ( it != args.end() )
-                    {
-                        MsgPtr msgInitialState = repMan.getInitialStateBefore ( lexical_cast<int> ( *it ) );
+//                     // Parse start index
+//                     it = find ( args.begin(), args.end(), "start" );
+//                     if ( it != args.end() )
+//                         ++it;
+//                     if ( it != args.end() )
+//                     {
+//                         MsgPtr msgInitialState = repMan.getInitialStateBefore ( lexical_cast<int> ( *it ) );
 
-                        ASSERT ( msgInitialState.get() != 0 );
+//                         ASSERT ( msgInitialState.get() != 0 );
 
-                        netMan.initial = msgInitialState->getAs<InitialGameState>();
-                        netMan.initial.netplayState = 0xFF;
-                        netMan.initial.stage = 1;
-                    }
+//                         netMan.initial = msgInitialState->getAs<InitialGameState>();
+//                         netMan.initial.netplayState = 0xFF;
+//                         netMan.initial.stage = 1;
+//                     }
 
-                    replayInputs = true;
-                }
-                else
-                {
-                    randomInputs = options[Options::SyncTest];
-                }
-#endif // NOT RELEASE
+//                     replayInputs = true;
+//                 }
+//                 else
+//                 {
+//                     randomInputs = options[Options::SyncTest];
+//                 }
+// #endif // NOT RELEASE
                 break;
 
             case MsgType::ControllerMappings:
@@ -1963,13 +1958,13 @@ struct DllMain
         ChangeMonitor::get().addRef ( this, Variable ( Variable::GameState ), *CC_GAME_STATE_ADDR );
         netManPtr = &netMan;
 
-#ifndef RELEASE
-        ChangeMonitor::get().addRef ( this, Variable ( Variable::MenuConfirmState ), AsmHacks::menuConfirmState );
-        ChangeMonitor::get().addRef ( this, Variable ( Variable::CurrentMenuIndex ), AsmHacks::currentMenuIndex );
-        // ChangeMonitor::get().addRef ( this, Variable ( Variable::GameStateCounter ), *CC_MENU_STATE_COUNTER_ADDR );
-        // ChangeMonitor::get().addPtrToRef ( this, Variable ( Variable::AutoReplaySave ),
-        //                                    const_cast<const uint32_t *&> ( AsmHacks::autoReplaySaveStatePtr ), 0u );
-#endif // NOT RELEASE
+// #ifndef RELEASE
+//         ChangeMonitor::get().addRef ( this, Variable ( Variable::MenuConfirmState ), AsmHacks::menuConfirmState );
+//         ChangeMonitor::get().addRef ( this, Variable ( Variable::CurrentMenuIndex ), AsmHacks::currentMenuIndex );
+//         // ChangeMonitor::get().addRef ( this, Variable ( Variable::GameStateCounter ), *CC_MENU_STATE_COUNTER_ADDR );
+//         // ChangeMonitor::get().addPtrToRef ( this, Variable ( Variable::AutoReplaySave ),
+//         //                                    const_cast<const uint32_t *&> ( AsmHacks::autoReplaySaveStatePtr ), 0u );
+// #endif // NOT RELEASE
     }
 
     // Destructor
@@ -2074,7 +2069,6 @@ extern "C" BOOL APIENTRY DllMain ( HMODULE, DWORD reason, LPVOID )
             {
                 exit ( -1 );
             }
-#ifdef NDEBUG
             catch ( const std::exception& exc )
             {
                 exit ( -1 );
@@ -2083,7 +2077,6 @@ extern "C" BOOL APIENTRY DllMain ( HMODULE, DWORD reason, LPVOID )
             {
                 exit ( -1 );
             }
-#endif // NDEBUG
 
             if ( ! SetThreadExecutionState ( ES_CONTINUOUS
                                              | ES_DISPLAY_REQUIRED
@@ -2161,7 +2154,6 @@ extern "C" void callback()
         LOG ( "Stopping due to exception: %s", exc );
         stopDllMain ( exc.user );
     }
-#ifdef NDEBUG
     catch ( const std::exception& exc )
     {
         LOG ( "Stopping due to std::exception: %s", exc.what() );
@@ -2172,7 +2164,6 @@ extern "C" void callback()
         LOG ( "Stopping due to unknown exception!" );
         stopDllMain ( "Unknown error!" );
     }
-#endif // NDEBUG
 
     if ( appState == AppState::Stopping )
     {

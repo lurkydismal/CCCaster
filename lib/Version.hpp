@@ -34,11 +34,11 @@ public:
 
     bool isCustom() const;
 
-#ifdef RELEASE
+// #ifdef RELEASE
     bool isSimilar ( const Version& other, uint8_t level = 1 ) const;
-#else
-    bool isSimilar ( const Version& other, uint8_t level = 0xFF ) const;
-#endif
+// #else
+//     bool isSimilar ( const Version& other, uint8_t level = 0xFF ) const;
+// #endif
 
     void clear()
     {

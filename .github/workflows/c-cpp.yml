@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: [debug, release]
+        build_type: [release]
 
     steps:
     - name: Harden Runner

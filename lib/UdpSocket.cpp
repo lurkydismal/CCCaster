@@ -253,23 +253,23 @@ bool UdpSocket::send ( const MsgPtr& msg, const IpAddrPort& address )
 
 bool UdpSocket::sendRaw ( const MsgPtr& msg, const IpAddrPort& address )
 {
-#ifndef RELEASE
-    // Simulate hash fail
-    if ( _hashFailRate && msg )
-    {
-        if ( rand() % 100 < _hashFailRate )
-        {
-            LOG ( "Munging hash for '%s'", msg );
-            for ( char& byte : msg->_hash )
-                byte = ( rand() % 0x100 );
-            msg->_hashValid = false;
-        }
-        else
-        {
-            msg->_hashValid = true;
-        }
-    }
-#endif // NOT RELEASE
+// #ifndef RELEASE
+//     // Simulate hash fail
+//     if ( _hashFailRate && msg )
+//     {
+//         if ( rand() % 100 < _hashFailRate )
+//         {
+//             LOG ( "Munging hash for '%s'", msg );
+//             for ( char& byte : msg->_hash )
+//                 byte = ( rand() % 0x100 );
+//             msg->_hashValid = false;
+//         }
+//         else
+//         {
+//             msg->_hashValid = true;
+//         }
+//     }
+// #endif // NOT RELEASE
 
     const string buffer = ::Protocol::encode ( msg );
 

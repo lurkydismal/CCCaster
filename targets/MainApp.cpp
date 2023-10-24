@@ -176,7 +176,6 @@ struct MainApp
         {
             lastError = exc.user;
         }
-#ifdef NDEBUG
         catch ( const std::exception& exc )
         {
             lastError = format ( "Error: %s", exc.what() );
@@ -185,7 +184,6 @@ struct MainApp
         {
             lastError = "Unknown error!";
         }
-#endif // NDEBUG
 
         stop();
     }
@@ -1292,10 +1290,10 @@ struct MainApp
             options.set ( Options::Fullscreen, 1 );
         }
 
-#ifndef RELEASE
-        if ( ! options[Options::StrictVersion] )
-            options.set ( Options::StrictVersion, 3 );
-#endif
+// #ifndef RELEASE
+//         if ( ! options[Options::StrictVersion] )
+//             options.set ( Options::StrictVersion, 3 );
+// #endif
 
         if ( clientMode.isNetplay() )
         {

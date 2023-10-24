@@ -135,11 +135,8 @@ bool DllRollbackManager::loadState ( IndexedFrame indexedFrame, NetplayManager& 
 
     for ( auto it = _statesList.rbegin(); it != _statesList.rend(); ++it )
     {
-#ifdef RELEASE
         if ( ( it->indexedFrame.value <= indexedFrame.value ) || ( & ( *it ) == &_statesList.front() ) )
-#else
-        if ( it->indexedFrame.value <= indexedFrame.value )
-#endif
+        // if ( it->indexedFrame.value <= indexedFrame.value )
         {
             LOG ( "Loaded state: indexedFrame=%s", it->indexedFrame );
 

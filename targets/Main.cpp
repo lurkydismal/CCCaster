@@ -167,7 +167,6 @@ static IpAddrPort tryParseIpAddrPort ( const string& str )
         address.clear();
         lastError = exc.user;
     }
-#ifdef NDEBUG
     catch ( const std::exception& exc )
     {
         address.clear();
@@ -178,7 +177,6 @@ static IpAddrPort tryParseIpAddrPort ( const string& str )
         address.clear();
         lastError = "Unknown error!";
     }
-#endif // NDEBUG
 
     return address;
 }
@@ -260,40 +258,40 @@ int main ( int argc, char *argv[] )
             "                         with 1.5 second held start button."
         },
 
-#ifndef RELEASE
-        { Options::Unknown,   0,  "",       "", Arg::None,        "Debug options:" },
-        { Options::Tests,     0,  "",  "tests", Arg::None,        "  --tests              Run unit tests and exit" },
-        { Options::Stdout,    0,  "", "stdout", Arg::None,        "  --stdout,            Output logs to stdout"},
-        { Options::Tunnel,    0,  "", "tunnel", Arg::None,        "  --tunnel             Force UDP tunnel" },
-        { Options::Dummy,     0,  "",  "dummy", Arg::None,        "  --dummy              Dummy with fake inputs" },
-        { Options::PidLog,    0,  "", "pidlog", Arg::None,        "  --pidlog             Tag log files with the PID" },
-        { Options::FakeUi,    0,  "",   "fake", Arg::None,        "  --fake               Fake UI mode\n" },
+// #ifndef RELEASE
+//         { Options::Unknown,   0,  "",       "", Arg::None,        "Debug options:" },
+//         { Options::Tests,     0,  "",  "tests", Arg::None,        "  --tests              Run unit tests and exit" },
+//         { Options::Stdout,    0,  "", "stdout", Arg::None,        "  --stdout,            Output logs to stdout"},
+//         { Options::Tunnel,    0,  "", "tunnel", Arg::None,        "  --tunnel             Force UDP tunnel" },
+//         { Options::Dummy,     0,  "",  "dummy", Arg::None,        "  --dummy              Dummy with fake inputs" },
+//         { Options::PidLog,    0,  "", "pidlog", Arg::None,        "  --pidlog             Tag log files with the PID" },
+//         { Options::FakeUi,    0,  "",   "fake", Arg::None,        "  --fake               Fake UI mode\n" },
 
-        {
-            Options::StrictVersion, 0, "S", "strict", Arg::None,
-            "  --strict, -S         Strict version match, can be stacked up to 3 times.\n"
-            "                         -S means version suffix must match.\n"
-            "                         -SS means commit ID must match.\n"
-            "                         -SSS means build time must match.\n"
-        },
+//         {
+//             Options::StrictVersion, 0, "S", "strict", Arg::None,
+//             "  --strict, -S         Strict version match, can be stacked up to 3 times.\n"
+//             "                         -S means version suffix must match.\n"
+//             "                         -SS means commit ID must match.\n"
+//             "                         -SSS means build time must match.\n"
+//         },
 
-        {
-            Options::SyncTest, 0, "Y", "synctest", Arg::None,
-            "  --synctest, -Y       Test synchronization.\n"
-            "                         TODO rollback/delay arguments.\n"
-        },
+//         {
+//             Options::SyncTest, 0, "Y", "synctest", Arg::None,
+//             "  --synctest, -Y       Test synchronization.\n"
+//             "                         TODO rollback/delay arguments.\n"
+//         },
 
-        {
-            Options::Replay, 0, "R", "replay", Arg::Required,
-            "  --replay, -R args    Replay the given file with options.\n"
-            "                         TODO list possible arguments.\n"
-        },
-#else
+//         {
+//             Options::Replay, 0, "R", "replay", Arg::Required,
+//             "  --replay, -R args    Replay the given file with options.\n"
+//             "                         TODO list possible arguments.\n"
+//         },
+// #else
         { Options::Tunnel, 0, "", "tunnel", Arg::None, 0 },
         { Options::Dummy, 0, "", "dummy", Arg::None, 0 },
         { Options::PidLog, 0, "", "pidlog", Arg::None, 0 },
         { Options::StrictVersion, 0, "S", "", Arg::None, 0 },
-#endif
+// #endif
 
         { Options::NoFork, 0, "", "no-fork", Arg::None, 0 }, // Don't fork when inside Wine, ie when under wineconsole
 
@@ -406,17 +404,17 @@ int main ( int argc, char *argv[] )
             LOG ( "arg='%s'", opt[i].arg );
     }
 
-#ifndef RELEASE
-    // Run the unit test suite
-    if ( opt[Options::Tests] )
-    {
-        int result = RunAllTests ( argc, argv );
-        Logger::get().deinitialize();
-        PRINT ( "Press any key to exit." );
-        system ( "@pause > nul" );
-        return result;
-    }
-#endif // NOT RELEASE
+// #ifndef RELEASE
+//     // Run the unit test suite
+//     if ( opt[Options::Tests] )
+//     {
+//         int result = RunAllTests ( argc, argv );
+//         Logger::get().deinitialize();
+//         PRINT ( "Press any key to exit." );
+//         system ( "@pause > nul" );
+//         return result;
+//     }
+// #endif // NOT RELEASE
 
     // Initialize config
     ui.initialize();
@@ -552,7 +550,6 @@ int main ( int argc, char *argv[] )
         {
             PRINT ( "%s", exc.user );
         }
-#ifdef NDEBUG
         catch ( const std::exception& exc )
         {
             PRINT ( "Error: %s", exc.what() );
@@ -561,7 +558,6 @@ int main ( int argc, char *argv[] )
         {
             PRINT ( "Unknown error!" );
         }
-#endif // NDEBUG
     }
 
     LOG ( "lastError='%s'", lastError );

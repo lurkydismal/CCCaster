@@ -12,12 +12,8 @@ void Logger::logVersion()
     fprintf ( _fd, "Revision '%s' { isCustom=%d }\n", LocalVersion.revision.c_str(), LocalVersion.isCustom() );
     fprintf ( _fd, "BuildTime '%s'\n", LocalVersion.buildTime.c_str() );
 
-#if defined(DEBUG)
-    fprintf ( _fd, "BuildType 'debug'\n" );
-#elif defined(RELEASE)
-    fprintf ( _fd, "BuildType 'release'\n" );
-#else
-    fprintf ( _fd, "BuildType 'unknown'\n" );
+#if defined(BUILD_TYPE)
+    fprintf ( _fd, "BuildType '%s'\n", BUILD_TYPE );
 #endif
 
     if ( ! sessionId.empty() )

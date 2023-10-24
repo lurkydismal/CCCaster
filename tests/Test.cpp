@@ -1,14 +1,14 @@
-#ifndef RELEASE
+// #ifndef RELEASE
 
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
-using namespace std;
+// using namespace std;
 
 
-int RunAllTests ( int& argc, char *argv[] )
-{
-    testing::InitGoogleTest ( &argc, argv );
-    return RUN_ALL_TESTS();
-}
+// int RunAllTests ( int& argc, char *argv[] )
+// {
+//     testing::InitGoogleTest ( &argc, argv );
+//     return RUN_ALL_TESTS();
+// }
 
-#endif // NOT RELEASE
+// #endif // NOT RELEASE

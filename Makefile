@@ -93,11 +93,10 @@ LD_FLAGS = -m32 -static -lws2_32 -lpsapi -lwinpthread -lwinmm -lole32 -ldinput -
 # DEFINES += -DJLIB_MUTEXED
 
 # Build type flags
-DEBUG_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
+# DEBUG_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
 RELEASE_FLAGS = -s -Os -Ofast -fno-rtti -DNDEBUG -DRELEASE -DDISABLE_ASSERTS
 
 # Build type
-BUILD_TYPE = build_debug
 BUILD_PREFIX = $(BUILD_TYPE)_$(BRANCH)
 
 # Default build target
@@ -276,15 +275,12 @@ clean-common: clean-proto clean-res clean-lib
 	rm -f .depend_$(BRANCH) .include_$(BRANCH) *.exe *.zip tools/*.exe \
 $(filter-out $(FOLDER)/$(TAG)config.ini $(wildcard $(FOLDER)/*.mappings $(FOLDER)/*.log),$(wildcard $(FOLDER)/*))
 
-clean-debug: clean-common
-	rm -rf build_debug_$(BRANCH)
-
 clean-release: clean-common
 	rm -rf build_release_$(BRANCH)
 
-clean: clean-debug clean-release
+clean: clean-release
 
-clean-all: clean-debug clean-release
+clean-all: clean-release
 	rm -rf .include* .depend* build*
 
 
@@ -340,33 +336,13 @@ post-build: main-build
 	@echo
 
 
-debug: post-build
 release: post-build
 
-target-debug: $(ARCHIVE)
 target-release: $(ARCHIVE)
 
 
-ifneq (,$(findstring release,$(MAKECMDGOALS)))
 main-build: pre-build
 	@$(MAKE) --no-print-directory target-release BUILD_TYPE=build_release
-else
-main-build: pre-build
-	@$(MAKE) --no-print-directory target-debug BUILD_TYPE=build_debug STRIP=touch
-endif
-
-
-build_debug_$(BRANCH):
-	rsync -a -f"- .git/" -f"- build_*/" -f"+ */" -f"- *" --exclude=".*" . $@
-
-build_debug_$(BRANCH)/%.o: %.cpp | build_debug_$(BRANCH)
-	$(CXX) $(CC_FLAGS) $(DEBUG_FLAGS) -Wall -Wempty-body -std=c++11 -o $@ -c $<
-
-build_debug_$(BRANCH)/%.o: %.cc | build_debug_$(BRANCH)
-	$(CXX) $(CC_FLAGS) $(DEBUG_FLAGS) -o $@ -c $<
-
-build_debug_$(BRANCH)/%.o: %.c | build_debug_$(BRANCH)
-	$(GCC) $(filter-out -fno-rtti,$(CC_FLAGS) $(DEBUG_FLAGS)) -Wno-attributes -o $@ -c $<
 
 
 build_generator_$(BRANCH):

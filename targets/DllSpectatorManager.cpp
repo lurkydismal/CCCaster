@@ -216,19 +216,19 @@ const IpAddrPort& SpectatorManager::getRandomSpectatorAddress() const
 
     auto it = _spectatorMapPos;
 
-#ifndef RELEASE
-    if ( it->second.serverAddr.port == 0 )
-    {
-        do
-        {
-            ++it;
+// #ifndef RELEASE
+//     if ( it->second.serverAddr.port == 0 )
+//     {
+//         do
+//         {
+//             ++it;
 
-            if ( it == _spectatorMap.end() )
-                it = _spectatorMap.begin();
-        }
-        while ( it->second.serverAddr.port == 0 && it != _spectatorMapPos );
-    }
-#endif
+//             if ( it == _spectatorMap.end() )
+//                 it = _spectatorMap.begin();
+//         }
+//         while ( it->second.serverAddr.port == 0 && it != _spectatorMapPos );
+//     }
+// #endif
 
     LOG ( "'%s'", it->second.serverAddr );
     return it->second.serverAddr;

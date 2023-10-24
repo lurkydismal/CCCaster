@@ -409,14 +409,14 @@ void Socket::socketRead()
         return;
     }
 
-#ifndef RELEASE
-    // Simulated packet loss
-    if ( rand() % 100 < _packetLoss )
-    {
-        LOG ( "Discarding [ %u bytes ] from '%s'", bufferLen, address );
-        return;
-    }
-#endif
+// #ifndef RELEASE
+//     // Simulated packet loss
+//     if ( rand() % 100 < _packetLoss )
+//     {
+//         LOG ( "Discarding [ %u bytes ] from '%s'", bufferLen, address );
+//         return;
+//     }
+// #endif
 
     // Raw read mode
     if ( _isRaw )

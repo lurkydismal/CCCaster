@@ -60,12 +60,12 @@ void updateMessage();
 bool isShowingMessage();
 
 
-#ifndef RELEASE
+// #ifndef RELEASE
 
-extern std::string debugText;
+// extern std::string debugText;
 
-extern int debugTextAlign;
+// extern int debugTextAlign;
 
-#endif
+// #endif
 
 }
