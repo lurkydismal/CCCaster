@@ -258,8 +258,7 @@ depend: version proto
 	$(make_depend)
 
 
-clean-proto:
-	git checkout -- lib/ProtocolEnums.hpp
+clean-proto: reset-proto
 	rm -f $(AUTOGEN_HEADERS)
 
 clean-res:
