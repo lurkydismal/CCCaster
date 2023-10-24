@@ -93,9 +93,6 @@ LD_FLAGS = -m32 -static -lws2_32 -lpsapi -lwinpthread -lwinmm -lole32 -ldinput -
 # DEFINES += -DLOGGER_MUTEXED
 # DEFINES += -DJLIB_MUTEXED
 
-# Install after make, set to 0 to disable install after make
-INSTALL = 1
-
 # Build type flags
 DEBUG_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
 ifeq ($(OS),Windows_NT)
@@ -321,10 +318,8 @@ ifeq (,$(findstring check,$(MAKECMDGOALS)))
 ifeq (,$(findstring trim,$(MAKECMDGOALS)))
 ifeq (,$(findstring format,$(MAKECMDGOALS)))
 ifeq (,$(findstring count,$(MAKECMDGOALS)))
-ifeq (,$(findstring install,$(MAKECMDGOALS)))
 ifeq (,$(findstring palettes,$(MAKECMDGOALS)))
 -include .depend_$(BRANCH)
-endif
 endif
 endif
 endif
@@ -347,7 +342,6 @@ post-build: main-build
 	@echo
 	@echo ========== Post-build ==========
 	@echo
-	if [ $(INSTALL) = 1 ] && [ -s ./scripts/install ]; then ./scripts/install; fi;
 
 
 debug: post-build
