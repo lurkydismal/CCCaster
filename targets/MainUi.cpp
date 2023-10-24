@@ -1388,8 +1388,8 @@ bool MainUi::configure ( const PingStats& pingStats )
                 _netplayConfig.delay = menu->resultInt;
 
             _netplayConfig.winCount = _config.getInteger ( "versusWinCount" );
-            _netplayConfig.hostPlayer = 1 + ( rand() % 2 );
-            // _netplayConfig.hostPlayer = 1; // Host is always player 1 for easier debugging
+            // _netplayConfig.hostPlayer = 1 + ( rand() % 2 );
+            _netplayConfig.hostPlayer = 1; // Host is always player 1 for easier debugging
 
             ret = true;
             _ui->pop();
