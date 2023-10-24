@@ -2,7 +2,7 @@ VERSION = 3.1
 SUFFIX = .002
 NAME = cccaster
 TAG =
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+BRANCH := $(shell git branch --show-current)
 
 ifneq ($(TAG),)
 DOT_TAG = .$(TAG)
