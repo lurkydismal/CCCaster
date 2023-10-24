@@ -110,11 +110,7 @@ BUILD_TYPE = build_debug
 BUILD_PREFIX = $(BUILD_TYPE)_$(BRANCH)
 
 # Default build target
-ifeq ($(OS),Windows_NT)
-	DEFAULT_TARGET = debug
-else
-	DEFAULT_TARGET = logging
-endif
+DEFAULT_TARGET = release
 
 
 all: $(DEFAULT_TARGET)
