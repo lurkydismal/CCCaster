@@ -258,7 +258,7 @@ depend: version proto
 	$(make_depend)
 
 
-clean-proto: reset-proto
+clean-proto:
 	rm -f $(AUTOGEN_HEADERS)
 
 clean-res:
