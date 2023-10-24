@@ -312,13 +312,13 @@ bool isShowingMessage()
     return ( messageTimeout > 0 );
 }
 
-#ifndef RELEASE
+// #ifndef RELEASE
 
-string debugText;
+// string debugText;
 
-int debugTextAlign = 0;
+// int debugTextAlign = 0;
 
-#endif // NOT RELEASE
+// #endif // NOT RELEASE
 
 } // namespace DllOverlayUi
 
@@ -387,21 +387,21 @@ void invalidateOverlayText()
 
 void renderOverlayText ( IDirect3DDevice9 *device, const D3DVIEWPORT9& viewport )
 {
-#ifndef RELEASE
+// #ifndef RELEASE
 
-    if ( ! debugText.empty() )
-    {
-        RECT rect;
-        rect.top = rect.left = 0;
-        rect.right = viewport.Width;
-        rect.bottom = viewport.Height;
+//     if ( ! debugText.empty() )
+//     {
+//         RECT rect;
+//         rect.top = rect.left = 0;
+//         rect.right = viewport.Width;
+//         rect.bottom = viewport.Height;
 
-        DrawText ( font, debugText, rect, DT_WORDBREAK |
-                   ( debugTextAlign == 0 ? DT_CENTER : ( debugTextAlign < 0 ? DT_LEFT : DT_RIGHT ) ),
-                   OVERLAY_DEBUG_COLOR );
-    }
+//         DrawText ( font, debugText, rect, DT_WORDBREAK |
+//                    ( debugTextAlign == 0 ? DT_CENTER : ( debugTextAlign < 0 ? DT_LEFT : DT_RIGHT ) ),
+//                    OVERLAY_DEBUG_COLOR );
+//     }
 
-#endif // RELEASE
+// #endif // RELEASE
 
     if ( ! TrialManager::dtext.empty() && !TrialManager::hideText ) {
         int debugTextAlign = 1;

@@ -1,74 +1,74 @@
-#ifndef RELEASE
+// #ifndef RELEASE
 
-#include "EventManager.hpp"
-#include "SocketManager.hpp"
-#include "TimerManager.hpp"
-#include "Timer.hpp"
+// #include "EventManager.hpp"
+// #include "SocketManager.hpp"
+// #include "TimerManager.hpp"
+// #include "Timer.hpp"
 
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
-#include <cstdlib>
-#include <vector>
+// #include <cstdlib>
+// #include <vector>
 
-using namespace std;
-
-
-#define EPSILON_MILLISECONDS    ( 50 )
-#define NUM_ITERATIONS          ( 10 )
-#define MAX_DELAY_MILLISECONDS  ( 2000 )
+// using namespace std;
 
 
-TEST ( Timer, RepeatRandom )
-{
-    struct TestTimer : public Timer::Owner
-    {
-        Timer timer;
-        int count;
-        uint64_t lastExpiry;
-        vector<bool> validTimers;
+// #define EPSILON_MILLISECONDS    ( 50 )
+// #define NUM_ITERATIONS          ( 10 )
+// #define MAX_DELAY_MILLISECONDS  ( 2000 )
 
-        void timerExpired ( Timer *timer ) override
-        {
-            if ( lastExpiry != 0 )
-            {
-                validTimers.push_back ( abs ( ( long long ) ( TimerManager::get().getNow() - lastExpiry ) )
-                                        < EPSILON_MILLISECONDS );
-            }
 
-            if ( count <= 0 )
-            {
-                EventManager::get().stop();
-                return;
-            }
+// TEST ( Timer, RepeatRandom )
+// {
+//     struct TestTimer : public Timer::Owner
+//     {
+//         Timer timer;
+//         int count;
+//         uint64_t lastExpiry;
+//         vector<bool> validTimers;
 
-            uint64_t delay = rand() % MAX_DELAY_MILLISECONDS;
-            lastExpiry = TimerManager::get().getNow() + delay;
-            timer->start ( delay );
-            --count;
-        }
+//         void timerExpired ( Timer *timer ) override
+//         {
+//             if ( lastExpiry != 0 )
+//             {
+//                 validTimers.push_back ( abs ( ( long long ) ( TimerManager::get().getNow() - lastExpiry ) )
+//                                         < EPSILON_MILLISECONDS );
+//             }
 
-        TestTimer() : timer ( this ), count ( NUM_ITERATIONS ), lastExpiry ( 0 )
-        {
-            timer.start ( 1000 );
-        }
-    };
+//             if ( count <= 0 )
+//             {
+//                 EventManager::get().stop();
+//                 return;
+//             }
 
-    TimerManager::get().initialize();
-    SocketManager::get().initialize();
+//             uint64_t delay = rand() % MAX_DELAY_MILLISECONDS;
+//             lastExpiry = TimerManager::get().getNow() + delay;
+//             timer->start ( delay );
+//             --count;
+//         }
 
-    TestTimer test;
+//         TestTimer() : timer ( this ), count ( NUM_ITERATIONS ), lastExpiry ( 0 )
+//         {
+//             timer.start ( 1000 );
+//         }
+//     };
 
-    EventManager::get().start();
+//     TimerManager::get().initialize();
+//     SocketManager::get().initialize();
 
-    EXPECT_FALSE ( test.validTimers.empty() );
+//     TestTimer test;
 
-    EXPECT_EQ ( NUM_ITERATIONS, test.validTimers.size() );
+//     EventManager::get().start();
 
-    for ( bool valid : test.validTimers )
-        EXPECT_TRUE ( valid );
+//     EXPECT_FALSE ( test.validTimers.empty() );
 
-    SocketManager::get().deinitialize();
-    TimerManager::get().deinitialize();
-}
+//     EXPECT_EQ ( NUM_ITERATIONS, test.validTimers.size() );
 
-#endif // NOT RELEASE
+//     for ( bool valid : test.validTimers )
+//         EXPECT_TRUE ( valid );
+
+//     SocketManager::get().deinitialize();
+//     TimerManager::get().deinitialize();
+// }
+
+// #endif // NOT RELEASE

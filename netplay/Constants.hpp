@@ -13,11 +13,11 @@
 #define MAX_ROLLBACK                ( 15 )
 
 // Number of rollback states to allocate
-#ifdef RELEASE
+// #ifdef RELEASE
 #define NUM_ROLLBACK_STATES         ( 60 )
-#else
-#define NUM_ROLLBACK_STATES         ( 256 )
-#endif
+// #else
+// #define NUM_ROLLBACK_STATES         ( 256 )
+// #endif
 
 
 // Game constants and addresses are prefixed CC

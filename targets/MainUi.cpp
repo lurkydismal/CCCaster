@@ -951,11 +951,7 @@ void MainUi::settings()
                 _ui->pushInFront ( new ConsoleUi::TextBox ( format ( "CCCaster %s%s\n\nRevision %s\n\nBuilt on %s\n\n"
                                    "Created by Madscientist\n\nPress any key to go back",
                                    LocalVersion.code,
-#if defined(DEBUG)
-                                   " (debug)",
-#else
                                    "",
-#endif
                                    LocalVersion.revision, LocalVersion.buildTime ) ),
                 { 0, 0 }, true ); // Don't expand but DO clear top
                 system ( "@pause > nul" );
@@ -1392,11 +1388,8 @@ bool MainUi::configure ( const PingStats& pingStats )
                 _netplayConfig.delay = menu->resultInt;
 
             _netplayConfig.winCount = _config.getInteger ( "versusWinCount" );
-#ifdef RELEASE
             _netplayConfig.hostPlayer = 1 + ( rand() % 2 );
-#else
-            _netplayConfig.hostPlayer = 1; // Host is always player 1 for easier debugging
-#endif
+            // _netplayConfig.hostPlayer = 1; // Host is always player 1 for easier debugging
 
             ret = true;
             _ui->pop();
@@ -1509,20 +1502,16 @@ string MainUi::formatStats ( const PingStats& pingStats )
 {
     return format (
                "%-" INDENT_STATS "s Ping: %.2f ms"
-#ifndef NDEBUG
                "\n%-" INDENT_STATS "s Worst: %.2f ms"
                "\n%-" INDENT_STATS "s StdErr: %.2f ms"
                "\n%-" INDENT_STATS "s StdDev: %.2f ms"
                "\n%-" INDENT_STATS "s Packet Loss: %d%%"
-#endif
                , format ( "Network delay: %d", computeDelay ( pingStats.latency.getMean() ) )
                , pingStats.latency.getMean()
-#ifndef NDEBUG
                , "", pingStats.latency.getWorst()
                , "", pingStats.latency.getStdErr()
                , "", pingStats.latency.getStdDev()
                , "", pingStats.packetLoss
-#endif
            );
 }
 

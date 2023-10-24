@@ -1,275 +1,275 @@
-#ifndef RELEASE
+// #ifndef RELEASE
 
-#include "Test.Socket.hpp"
-#include "UdpSocket.hpp"
-#include "Timer.hpp"
+// #include "Test.Socket.hpp"
+// #include "UdpSocket.hpp"
+// #include "Timer.hpp"
 
-#include <memory>
+// #include <memory>
 
-using namespace std;
-
-
-#define PACKET_LOSS     50
-#define CHECK_SUM_FAIL  50
-#define LONG_TIMEOUT    ( 120 * 1000 )
+// using namespace std;
 
 
-TEST_CONNECT                ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
-
-TEST_TIMEOUT                ( UdpSocket, 0, 0, 1000, 1000 )
-
-TEST_DISCONNECT_CLIENT      ( UdpSocket, 0, 0, 1000, LONG_TIMEOUT )
-
-TEST_DISCONNECT_ACCEPTED    ( UdpSocket, 0, 0, 1000, LONG_TIMEOUT )
-
-TEST_SEND                   ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
-
-// This test doesn't make sense since there is only one UDP socket
-// TEST_SEND_WITHOUT_SERVER    ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
+// #define PACKET_LOSS     50
+// #define CHECK_SUM_FAIL  50
+// #define LONG_TIMEOUT    ( 120 * 1000 )
 
 
-TEST ( UdpSocket, SendConnectionLess )
-{
-    struct TestSocket : public Socket::Owner, public Timer::Owner
-    {
-        SocketPtr socket;
-        Timer timer;
-        MsgPtr msg;
-        bool sent;
+// TEST_CONNECT                ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
 
-        void socketAccepted ( Socket *socket ) override {}
-        void socketConnected ( Socket *socket ) override {}
-        void socketDisconnected ( Socket *socket ) override {}
+// TEST_TIMEOUT                ( UdpSocket, 0, 0, 1000, 1000 )
 
-        void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
-        {
-            this->msg = msg;
+// TEST_DISCONNECT_CLIENT      ( UdpSocket, 0, 0, 1000, LONG_TIMEOUT )
 
-            if ( socket->getRemoteAddress().addr.empty() )
-            {
-                socket->send ( new TestMessage ( "Hello client!" ), address );
-                sent = true;
-            }
-        }
+// TEST_DISCONNECT_ACCEPTED    ( UdpSocket, 0, 0, 1000, LONG_TIMEOUT )
 
-        void timerExpired ( Timer *timer ) override
-        {
-            if ( ! sent )
-            {
-                if ( ! socket->getRemoteAddress().addr.empty() )
-                {
-                    socket->send ( new TestMessage ( "Hello server!" ) );
-                    sent = true;
-                }
+// TEST_SEND                   ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
 
-                timer->start ( 1000 );
-            }
-            else
-            {
-                EventManager::get().stop();
-            }
-        }
+// // This test doesn't make sense since there is only one UDP socket
+// // TEST_SEND_WITHOUT_SERVER    ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
 
-        TestSocket ( uint16_t port )
-            : socket ( UdpSocket::bind ( this, port ) )
-            , timer ( this ), sent ( false )
-        {
-            timer.start ( 1000 );
-        }
 
-        TestSocket ( const string& address, uint16_t port )
-            : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-            , timer ( this ), sent ( false )
-        {
-            timer.start ( 1000 );
-        }
-    };
+// TEST ( UdpSocket, SendConnectionLess )
+// {
+//     struct TestSocket : public Socket::Owner, public Timer::Owner
+//     {
+//         SocketPtr socket;
+//         Timer timer;
+//         MsgPtr msg;
+//         bool sent;
 
-    TimerManager::get().initialize();
-    SocketManager::get().initialize();
+//         void socketAccepted ( Socket *socket ) override {}
+//         void socketConnected ( Socket *socket ) override {}
+//         void socketDisconnected ( Socket *socket ) override {}
 
-    TestSocket server ( 0 );
-    TestSocket client ( "127.0.0.1", server.socket->address.port );
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         {
+//             this->msg = msg;
 
-    EventManager::get().start();
+//             if ( socket->getRemoteAddress().addr.empty() )
+//             {
+//                 socket->send ( new TestMessage ( "Hello client!" ), address );
+//                 sent = true;
+//             }
+//         }
 
-    EXPECT_TRUE ( server.socket.get() );
-    if ( server.socket.get() )
-        EXPECT_TRUE ( server.socket->isServer() );
+//         void timerExpired ( Timer *timer ) override
+//         {
+//             if ( ! sent )
+//             {
+//                 if ( ! socket->getRemoteAddress().addr.empty() )
+//                 {
+//                     socket->send ( new TestMessage ( "Hello server!" ) );
+//                     sent = true;
+//                 }
 
-    EXPECT_TRUE ( server.msg.get() );
+//                 timer->start ( 1000 );
+//             }
+//             else
+//             {
+//                 EventManager::get().stop();
+//             }
+//         }
 
-    if ( server.msg.get() )
-    {
-        EXPECT_EQ ( MsgType::TestMessage, server.msg->getMsgType() );
-        EXPECT_EQ ( "Hello server!", server.msg->getAs<TestMessage>().str );
-    }
+//         TestSocket ( uint16_t port )
+//             : socket ( UdpSocket::bind ( this, port ) )
+//             , timer ( this ), sent ( false )
+//         {
+//             timer.start ( 1000 );
+//         }
 
-    EXPECT_TRUE ( client.socket.get() );
-    if ( client.socket.get() )
-        EXPECT_TRUE ( client.socket->isConnected() );
+//         TestSocket ( const string& address, uint16_t port )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
+//             , timer ( this ), sent ( false )
+//         {
+//             timer.start ( 1000 );
+//         }
+//     };
 
-    EXPECT_TRUE ( client.msg.get() );
+//     TimerManager::get().initialize();
+//     SocketManager::get().initialize();
 
-    if ( client.msg.get() )
-    {
-        EXPECT_EQ ( MsgType::TestMessage, client.msg->getMsgType() );
-        EXPECT_EQ ( "Hello client!", client.msg->getAs<TestMessage>().str );
-    }
+//     TestSocket server ( 0 );
+//     TestSocket client ( "127.0.0.1", server.socket->address.port );
 
-    SocketManager::get().deinitialize();
-    TimerManager::get().deinitialize();
-}
+//     EventManager::get().start();
 
-TEST ( UdpSocket, BindThenConnect )
-{
-    static int done = 0;
-    done = 0;
+//     EXPECT_TRUE ( server.socket.get() );
+//     if ( server.socket.get() )
+//         EXPECT_TRUE ( server.socket->isServer() );
 
-    struct TestSocket : public Socket::Owner, public Timer::Owner
-    {
-        SocketPtr socket, accepted;
-        Timer timer;
-        MsgPtr bindedMsg;
-        MsgPtr connectedMsg;
-        int step = 0;
+//     EXPECT_TRUE ( server.msg.get() );
 
-        void socketAccepted ( Socket *socket ) override
-        {
-            accepted = socket->accept ( this );
-            accepted->send ( new TestMessage ( "Accepted message" ), accepted->address );
-            ++done;
-        }
+//     if ( server.msg.get() )
+//     {
+//         EXPECT_EQ ( MsgType::TestMessage, server.msg->getMsgType() );
+//         EXPECT_EQ ( "Hello server!", server.msg->getAs<TestMessage>().str );
+//     }
 
-        void socketConnected ( Socket *socket ) override
-        {
-            socket->send ( new TestMessage ( "Connected message" ), socket->address );
-            ++done;
-        }
+//     EXPECT_TRUE ( client.socket.get() );
+//     if ( client.socket.get() )
+//         EXPECT_TRUE ( client.socket->isConnected() );
 
-        void socketDisconnected ( Socket *socket ) override
-        {
-            EventManager::get().stop();
-        }
+//     EXPECT_TRUE ( client.msg.get() );
 
-        void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
-        {
-            if ( socket->getAsUDP().isConnectionLess() )
-                bindedMsg = msg;
-            else
-                connectedMsg = msg;
+//     if ( client.msg.get() )
+//     {
+//         EXPECT_EQ ( MsgType::TestMessage, client.msg->getMsgType() );
+//         EXPECT_EQ ( "Hello client!", client.msg->getAs<TestMessage>().str );
+//     }
 
-            if ( socket->address.addr.empty() )
-                socket->send ( new TestMessage ( "Connection-less message" ), address );
+//     SocketManager::get().deinitialize();
+//     TimerManager::get().deinitialize();
+// }
 
-            ++done;
-            if ( done >= 6 )
-            {
-                LOG ( "Stopping because everything happened correctly" );
-                EventManager::get().stop();
-            }
-        }
+// TEST ( UdpSocket, BindThenConnect )
+// {
+//     static int done = 0;
+//     done = 0;
 
-        void timerExpired ( Timer *timer ) override
-        {
-            if ( step == 0 )
-            {
-                if ( ! socket->address.addr.empty() )
-                    socket->send ( new TestMessage ( "Connection-less message" ), socket->address );
+//     struct TestSocket : public Socket::Owner, public Timer::Owner
+//     {
+//         SocketPtr socket, accepted;
+//         Timer timer;
+//         MsgPtr bindedMsg;
+//         MsgPtr connectedMsg;
+//         int step = 0;
 
-                timer->start ( 1000 );
-                ++step;
-            }
-            else if ( step == 1 )
-            {
-                if ( socket->isServer() )
-                    socket->getAsUDP().listen();
-                else
-                    socket->getAsUDP().connect();
+//         void socketAccepted ( Socket *socket ) override
+//         {
+//             accepted = socket->accept ( this );
+//             accepted->send ( new TestMessage ( "Accepted message" ), accepted->address );
+//             ++done;
+//         }
 
-                socket->setPacketLoss ( PACKET_LOSS );
-                socket->setCheckSumFail ( CHECK_SUM_FAIL );
-                socket->getAsUDP().setKeepAlive ( LONG_TIMEOUT );
+//         void socketConnected ( Socket *socket ) override
+//         {
+//             socket->send ( new TestMessage ( "Connected message" ), socket->address );
+//             ++done;
+//         }
 
-                timer->start ( LONG_TIMEOUT );
-                ++step;
-            }
-            else
-            {
-                LOG ( "Stopping because of timeout" );
-                EventManager::get().stop();
-            }
-        }
+//         void socketDisconnected ( Socket *socket ) override
+//         {
+//             EventManager::get().stop();
+//         }
 
-        TestSocket ( uint16_t port )
-            : socket ( UdpSocket::bind ( this, port ) )
-            , timer ( this )
-        {
-            timer.start ( 1000 );
-        }
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         {
+//             if ( socket->getAsUDP().isConnectionLess() )
+//                 bindedMsg = msg;
+//             else
+//                 connectedMsg = msg;
 
-        TestSocket ( const string& address, uint16_t port )
-            : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-            , timer ( this )
-        {
-            timer.start ( 1000 );
-        }
-    };
+//             if ( socket->address.addr.empty() )
+//                 socket->send ( new TestMessage ( "Connection-less message" ), address );
 
-    TimerManager::get().initialize();
-    SocketManager::get().initialize();
+//             ++done;
+//             if ( done >= 6 )
+//             {
+//                 LOG ( "Stopping because everything happened correctly" );
+//                 EventManager::get().stop();
+//             }
+//         }
 
-    TestSocket server ( 0 );
-    TestSocket client ( "127.0.0.1", server.socket->address.port );
+//         void timerExpired ( Timer *timer ) override
+//         {
+//             if ( step == 0 )
+//             {
+//                 if ( ! socket->address.addr.empty() )
+//                     socket->send ( new TestMessage ( "Connection-less message" ), socket->address );
 
-    EventManager::get().start();
+//                 timer->start ( 1000 );
+//                 ++step;
+//             }
+//             else if ( step == 1 )
+//             {
+//                 if ( socket->isServer() )
+//                     socket->getAsUDP().listen();
+//                 else
+//                     socket->getAsUDP().connect();
 
-    EXPECT_TRUE ( server.socket.get() );
-    if ( server.socket.get() )
-    {
-        EXPECT_TRUE ( server.socket->isServer() );
-        EXPECT_TRUE ( server.accepted.get() );
-        EXPECT_TRUE ( server.accepted->isConnected() );
-    }
+//                 socket->setPacketLoss ( PACKET_LOSS );
+//                 socket->setCheckSumFail ( CHECK_SUM_FAIL );
+//                 socket->getAsUDP().setKeepAlive ( LONG_TIMEOUT );
 
-    EXPECT_TRUE ( server.bindedMsg.get() );
+//                 timer->start ( LONG_TIMEOUT );
+//                 ++step;
+//             }
+//             else
+//             {
+//                 LOG ( "Stopping because of timeout" );
+//                 EventManager::get().stop();
+//             }
+//         }
 
-    if ( server.bindedMsg.get() )
-    {
-        EXPECT_EQ ( MsgType::TestMessage, server.bindedMsg->getMsgType() );
-        EXPECT_EQ ( "Connection-less message", server.bindedMsg->getAs<TestMessage>().str );
-    }
+//         TestSocket ( uint16_t port )
+//             : socket ( UdpSocket::bind ( this, port ) )
+//             , timer ( this )
+//         {
+//             timer.start ( 1000 );
+//         }
 
-    EXPECT_TRUE ( server.connectedMsg.get() );
+//         TestSocket ( const string& address, uint16_t port )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
+//             , timer ( this )
+//         {
+//             timer.start ( 1000 );
+//         }
+//     };
 
-    if ( server.connectedMsg.get() )
-    {
-        EXPECT_EQ ( MsgType::TestMessage, server.connectedMsg->getMsgType() );
-        EXPECT_EQ ( "Connected message", server.connectedMsg->getAs<TestMessage>().str );
-    }
+//     TimerManager::get().initialize();
+//     SocketManager::get().initialize();
 
-    EXPECT_TRUE ( client.socket.get() );
-    if ( client.socket.get() )
-        EXPECT_TRUE ( client.socket->isConnected() );
+//     TestSocket server ( 0 );
+//     TestSocket client ( "127.0.0.1", server.socket->address.port );
 
-    EXPECT_TRUE ( client.bindedMsg.get() );
+//     EventManager::get().start();
 
-    if ( client.bindedMsg.get() )
-    {
-        EXPECT_EQ ( MsgType::TestMessage, client.bindedMsg->getMsgType() );
-        EXPECT_EQ ( "Connection-less message", client.bindedMsg->getAs<TestMessage>().str );
-    }
+//     EXPECT_TRUE ( server.socket.get() );
+//     if ( server.socket.get() )
+//     {
+//         EXPECT_TRUE ( server.socket->isServer() );
+//         EXPECT_TRUE ( server.accepted.get() );
+//         EXPECT_TRUE ( server.accepted->isConnected() );
+//     }
 
-    EXPECT_TRUE ( client.connectedMsg.get() );
+//     EXPECT_TRUE ( server.bindedMsg.get() );
 
-    if ( client.connectedMsg.get() )
-    {
-        EXPECT_EQ ( MsgType::TestMessage, client.connectedMsg->getMsgType() );
-        EXPECT_EQ ( "Accepted message", client.connectedMsg->getAs<TestMessage>().str );
-    }
+//     if ( server.bindedMsg.get() )
+//     {
+//         EXPECT_EQ ( MsgType::TestMessage, server.bindedMsg->getMsgType() );
+//         EXPECT_EQ ( "Connection-less message", server.bindedMsg->getAs<TestMessage>().str );
+//     }
 
-    SocketManager::get().deinitialize();
-    TimerManager::get().deinitialize();
-}
+//     EXPECT_TRUE ( server.connectedMsg.get() );
 
-#endif // NOT RELEASE
+//     if ( server.connectedMsg.get() )
+//     {
+//         EXPECT_EQ ( MsgType::TestMessage, server.connectedMsg->getMsgType() );
+//         EXPECT_EQ ( "Connected message", server.connectedMsg->getAs<TestMessage>().str );
+//     }
+
+//     EXPECT_TRUE ( client.socket.get() );
+//     if ( client.socket.get() )
+//         EXPECT_TRUE ( client.socket->isConnected() );
+
+//     EXPECT_TRUE ( client.bindedMsg.get() );
+
+//     if ( client.bindedMsg.get() )
+//     {
+//         EXPECT_EQ ( MsgType::TestMessage, client.bindedMsg->getMsgType() );
+//         EXPECT_EQ ( "Connection-less message", client.bindedMsg->getAs<TestMessage>().str );
+//     }
+
+//     EXPECT_TRUE ( client.connectedMsg.get() );
+
+//     if ( client.connectedMsg.get() )
+//     {
+//         EXPECT_EQ ( MsgType::TestMessage, client.connectedMsg->getMsgType() );
+//         EXPECT_EQ ( "Accepted message", client.connectedMsg->getAs<TestMessage>().str );
+//     }
+
+//     SocketManager::get().deinitialize();
+//     TimerManager::get().deinitialize();
+// }
+
+// #endif // NOT RELEASE

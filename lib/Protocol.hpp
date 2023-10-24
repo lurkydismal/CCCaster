@@ -128,10 +128,10 @@ private:
     friend struct SerializableMessage;
     friend struct SerializableSequence;
 
-#ifndef RELEASE
-    // Allow UdpSocket access to munge the hash for testing purposes
-    friend class UdpSocket;
-#endif
+// #ifndef RELEASE
+//     // Allow UdpSocket access to munge the hash for testing purposes
+//     friend class UdpSocket;
+// #endif
 };
 
 

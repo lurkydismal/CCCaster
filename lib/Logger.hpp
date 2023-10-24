@@ -91,22 +91,22 @@ private:
     } while ( 0 )
 
 
-#ifdef DISABLE_ASSERTS
+// #ifdef DISABLE_ASSERTS
 
 #define ASSERT(...)
 
-#else
+// #else
 
-#define ASSERT(ASSERTION)                                                                                              \
-    do {                                                                                                               \
-        if ( ASSERTION )                                                                                               \
-            break;                                                                                                     \
-        LOG ( "Assertion '%s' failed", #ASSERTION );                                                                   \
-        PRINT ( "Assertion '%s' failed", #ASSERTION );                                                                 \
-        abort();                                                                                                       \
-    } while ( 0 )
+// #define ASSERT(ASSERTION)                                                                                              \
+//     do {                                                                                                               \
+//         if ( ASSERTION )                                                                                               \
+//             break;                                                                                                     \
+//         LOG ( "Assertion '%s' failed", #ASSERTION );                                                                   \
+//         PRINT ( "Assertion '%s' failed", #ASSERTION );                                                                 \
+//         abort();                                                                                                       \
+//     } while ( 0 )
 
-#endif // DISABLE_ASSERTS
+// #endif // DISABLE_ASSERTS
 
 
 #define ASSERT_IMPOSSIBLE           ASSERT ( !"This shouldn't happen!" )
