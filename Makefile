@@ -1,7 +1,7 @@
 VERSION = 3.1
 SUFFIX = .002
 NAME = cccaster
-TAG =
+TAG = debug
 BRANCH := $(shell git branch --show-current)
 
 ifneq ($(TAG),)
@@ -21,23 +21,22 @@ MBAA_EXE = MBAA.exe
 RELAY_LIST = relay_list.txt
 
 # Library sources
-GTEST_CC_SRCS = 3rdparty/gtest/fused-src/gtest/gtest-all.cc
 JLIB_CC_SRCS = $(wildcard 3rdparty/JLib/*.cc)
 HOOK_CC_SRCS = $(wildcard 3rdparty/minhook/src/*.cc 3rdparty/d3dhook/*.cc)
 HOOK_C_SRCS = $(wildcard 3rdparty/minhook/src/hde32/*.c)
-CONTRIB_CC_SRCS = $(GTEST_CC_SRCS) $(JLIB_CC_SRCS)
+CONTRIB_CC_SRCS = $(JLIB_CC_SRCS)
 CONTRIB_C_SRCS = $(wildcard 3rdparty/*.c)
 
 # Main program sources
 LIB_CPP_SRCS = $(wildcard lib/*.cpp)
 BASE_CPP_SRCS = $(wildcard netplay/*.cpp) $(LIB_CPP_SRCS)
-MAIN_CPP_SRCS = $(wildcard targets/Main*.cpp tests/*.cpp) $(BASE_CPP_SRCS)
+MAIN_CPP_SRCS = $(wildcard targets/Main*.cpp) $(BASE_CPP_SRCS)
 DLL_CPP_SRCS = $(wildcard targets/Dll*.cpp) $(filter-out lib/ConsoleUi.cpp,$(BASE_CPP_SRCS))
 
 NON_GEN_SRCS = \
-	$(wildcard netplay/*.cpp tools/*.cpp targets/*.cpp lib/*.cpp tests/*.cpp)
+	$(wildcard netplay/*.cpp tools/*.cpp targets/*.cpp lib/*.cpp)
 NON_GEN_HEADERS = \
-	$(filter-out lib/Version.%.hpp lib/Protocol.%.hpp,$(wildcard netplay/*.hpp targets/*.hpp lib/*.hpp tests/*.hpp))
+	$(filter-out lib/Version.%.hpp lib/Protocol.%.hpp,$(wildcard netplay/*.hpp targets/*.hpp lib/*.hpp))
 AUTOGEN_HEADERS = $(wildcard lib/Version.*.hpp lib/Protocol.*.hpp)
 
 # Main program objects
@@ -75,12 +74,12 @@ endif
 
 # Build flags
 DEFINES = -DWIN32_LEAN_AND_MEAN -DWINVER=0x501 -D_WIN32_WINNT=0x501 -D_M_IX86
-DEFINES += -DNAMED_PIPE='"\\\\.\\pipe\\cccaster_pipe"' -DNAMED_PIPE2='"\\\\.\\pipe\\cccaster2_pipe"' -DPALETTES_FOLDER='"$(PALETTES_FOLDER)\\"' -DREADME='"$(README)"'
-DEFINES += -DMBAA_EXE='"$(MBAA_EXE)"' -DBINARY='"$(BINARY)"' -DFOLDER='"$(FOLDER)\\"'
-DEFINES += -DHOOK_DLL='"$(FOLDER)\\$(DLL)"' -DLAUNCHER='"$(FOLDER)\\$(LAUNCHER)"'
+DEFINES += -DNAMED_PIPE='"//./pipe/cccaster_pipe"' -DNAMED_PIPE2='"//./pipe/cccaster2_pipe"' -DPALETTES_FOLDER='"$(PALETTES_FOLDER)/"'
+DEFINES += -DMBAA_EXE='"$(MBAA_EXE)"' -DBINARY='"$(BINARY)"' -DFOLDER='"$(FOLDER)/"'
+DEFINES += -DHOOK_DLL='"$(FOLDER)/$(DLL)"' -DLAUNCHER='"$(FOLDER)/$(LAUNCHER)"'
 DEFINES += -DRELAY_LIST='"$(RELAY_LIST)"' -DTAG='"$(TAG)"'
-INCLUDES = -I$(CURDIR) -I$(CURDIR)/netplay -I$(CURDIR)/lib -I$(CURDIR)/tests -I$(CURDIR)/3rdparty
-INCLUDES += -I$(CURDIR)/3rdparty/cereal/include -I$(CURDIR)/3rdparty/gtest/include -I$(CURDIR)/3rdparty/minhook/include
+INCLUDES = -I$(CURDIR) -I$(CURDIR)/netplay -I$(CURDIR)/lib -I$(CURDIR)/3rdparty
+INCLUDES += -I$(CURDIR)/3rdparty/cereal/include -I$(CURDIR)/3rdparty/minhook/include
 INCLUDES += -I$(CURDIR)/3rdparty/d3dhook -I$(CURDIR)/3rdparty/framedisplay
 CC_FLAGS = -m32 -Wfatal-errors $(INCLUDES) $(DEFINES)
 
@@ -111,7 +110,7 @@ generator: tools/$(GENERATOR)
 palettes: $(PALETTES)
 
 
-$(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER)
+$(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(PALETTES)
 $(ARCHIVE):
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
@@ -139,7 +138,7 @@ $(FOLDER)/$(DLL): $(addprefix $(BUILD_PREFIX)/,$(DLL_OBJECTS)) res/rollback.o ta
 	@echo
 
 $(FOLDER)/$(LAUNCHER): tools/Launcher.cpp | $(FOLDER)
-	$(CXX) -o $@ $^ -m32 -s -Os -O2 -Wall -static -mwindows
+	$(CXX) -o $@ $^ -m32 -s -Os -O2  -Wall -static -mwindows
 	@echo
 	$(STRIP) $@
 	$(CHMOD_X)
@@ -202,7 +201,7 @@ FRAMEDISPLAY_INCLUDES += -I"$(CURDIR)/3rdparty/AntTweakBar/include" -I$(OPENGL_H
 
 # FRAMEDISPLAY_CC_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
 FRAMEDISPLAY_CC_FLAGS = -s -Os -Ofast -fno-rtti
-FRAMEDISPLAY_CC_FLAGS += -DDISABLE_SERIALIZATION -DPALETTES_FOLDER='"$(PALETTES_FOLDER)\\"'
+FRAMEDISPLAY_CC_FLAGS += -DDISABLE_SERIALIZATION -DPALETTES_FOLDER='"$(PALETTES_FOLDER)/"'
 
 FRAMEDISPLAY_LD_FLAGS = -L$(CURDIR)/3rdparty/libpng -L$(CURDIR)/3rdparty/libz -L"$(CURDIR)/3rdparty/AntTweakBar/lib"
 FRAMEDISPLAY_LD_FLAGS += -L$(CURDIR)/3rdparty/glfw
