@@ -20,7 +20,6 @@ cccaster*
 tmp*
 build*
 gmon.out
-profile*.txt
 rollback.*
 GRP
 palettes*
