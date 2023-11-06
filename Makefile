@@ -53,24 +53,15 @@ WINDRES = windres
 STRIP = strip
 TOUCH = touch
 ZIP = zip
-UNAME := $(shell uname)
-$(info VAR=$(UNAME))
 
 # OS specific tools / settings
-ifeq ($(OS),Windows_NT)
-	CHMOD_X = icacls $@ /grant Everyone:F
-	GRANT = icacls $@ /grant Everyone:F
-	FORMAT_TOOL = clang-format.exe
-	OPENGL_HEADERS = /usr/mingw/i686-w64-mingw32/include/GL
-else
-	WINDRES = $(PREFIX)windres
-	STRIP = $(PREFIX)strip
-	CHMOD_X = chmod +x $@
-	GRANT =
-	FORMAT_TOOL = clang-format-15
-	TOUCH = $(STRIP)
-	OPENGL_HEADERS = /usr/i686-w64-mingw32/include/GL
-endif
+WINDRES = $(PREFIX)windres
+STRIP = $(PREFIX)strip
+CHMOD_X = chmod +x $@
+GRANT =
+FORMAT_TOOL = clang-format-15
+TOUCH = $(STRIP)
+OPENGL_HEADERS = /usr/i686-w64-mingw32/include/GL
 
 
 # Build flags
@@ -149,21 +140,11 @@ $(FOLDER):
 	mkdir -p $@
 
 res/rollback.bin: tools/$(GENERATOR)
-ifeq ($(UNAME),Darwin)
 	wine tools/$(GENERATOR) $@
-else ifeq ($(UNAME),Linux)
-	wine tools/$(GENERATOR) $@
-else
-	tools/$(GENERATOR) $@
-endif
 	@echo
 
 res/rollback.o: res/rollback.bin
-ifeq ($(UNAME),Darwin)
-	$(PREFIX)objcopy -I binary -O elf32-i386 -B i386 $< $@
-else
 	objcopy -I binary -O elf32-i386 -B i386 $< $@
-endif
 	@echo
 
 res/icon.res: res/icon.rc res/icon.ico
@@ -176,11 +157,7 @@ GENERATOR_PREFIX = build_generator_$(BRANCH)
 GENERATOR_LIB_OBJECTS = \
 	$(addprefix $(GENERATOR_PREFIX)/,$(filter-out lib/Version.o lib/LoggerLogVersion.o lib/ConsoleUi.o,$(LIB_OBJECTS)))
 
-ifeq ($(OS),Windows_NT)
-	GENERATOR_FLAGS = -s -Os -O2 -DRELEASE
-else
-	GENERATOR_FLAGS = -s -Os -O2
-endif
+GENERATOR_FLAGS = -s -Os -O2
 
 tools/$(GENERATOR): tools/Generator.cpp $(GENERATOR_LIB_OBJECTS)
 	$(CXX) -o $@ $(CC_FLAGS) $(GENERATOR_FLAGS) -Wall -std=c++11 $^ $(LD_FLAGS)
