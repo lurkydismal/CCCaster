@@ -211,10 +211,6 @@ define make_protocol
 @scripts/make_protocol $(NON_GEN_HEADERS)
 endef
 
-define make_depend
-@scripts/make_depend "$(CXX)" "-m32 $(INCLUDES)"
-endef
-
 
 version:
 	$(make_version)
@@ -226,13 +222,9 @@ reset-proto:
 	rm -f lib/ProtocolEnums.hpp
 	@$(MAKE) proto
 
-depend: version proto
-	$(make_depend)
-
 .depend_$(BRANCH): $(NON_GEN_SRCS) $(NON_GEN_HEADERS)
 	$(make_version)
 	$(make_protocol)
-	$(make_depend)
 
 
 clean-proto:
@@ -257,7 +249,7 @@ clean-release: clean-common
 clean: clean-release
 
 clean-all: clean-release
-	rm -rf .include* .depend* build*
+	rm -rf build*
 
 
 check:
@@ -280,7 +272,6 @@ count:
 
 ifeq (,$(findstring version,$(MAKECMDGOALS)))
 ifeq (,$(findstring proto,$(MAKECMDGOALS)))
-ifeq (,$(findstring depend,$(MAKECMDGOALS)))
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 ifeq (,$(findstring check,$(MAKECMDGOALS)))
 ifeq (,$(findstring trim,$(MAKECMDGOALS)))
@@ -288,7 +279,6 @@ ifeq (,$(findstring format,$(MAKECMDGOALS)))
 ifeq (,$(findstring count,$(MAKECMDGOALS)))
 ifeq (,$(findstring palettes,$(MAKECMDGOALS)))
 -include .depend_$(BRANCH)
-endif
 endif
 endif
 endif
