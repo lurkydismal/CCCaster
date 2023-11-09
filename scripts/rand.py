@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import struct
 
@@ -49,7 +49,7 @@ def unrand ( randStr, applyCount=1 ):
 
 
     eax = ( rand0 & 0xFFFFFFFF )
-    print "rand0 is ", rand0, hex(rand0)
+    print( "rand0 is ", rand0, hex(rand0))
 
     rand1 -= 1
 
@@ -61,25 +61,25 @@ def unrand ( randStr, applyCount=1 ):
         edx = ecx - 0x22
 
     westeax = eax - 0x7FFFFFFF
-    print "weteax is", westeax, hex(westeax)
+    print( "weteax is", westeax, hex(westeax))
     eax += rand3[ edx - 1]
-    print "rand3[edx] is ", rand3[edx-1], hex(rand3[edx-1])
-    print "eax is", eax, hex(eax)
+    print( "rand3[edx] is ", rand3[edx-1], hex(rand3[edx-1]))
+    print( "eax is", eax, hex(eax))
     testeax = eax - 0x7FFFFFFF
-    print "teteax is", testeax, hex(testeax)
+    print( "teteax is", testeax, hex(testeax))
     if eax > 0x7FFFFFFF:
-        print "using minus"
+        print( "using minus")
         eax -= 0x7FFFFFFF
     rand3 [ ecx - 1 ] = ( eax & 0xFFFFFFFF )
 
-    print "ecx is", ecx
-    print "rand3[ecx] is ", rand3[ecx-1], hex(rand3[ecx-1])
+    print( "ecx is", ecx)
+    print( "rand3[ecx] is ", rand3[ecx-1], hex(rand3[ecx-1]))
     ecx -= 1
     if ecx < 1:
         ecx = 0x37
     rand0 = rand3 [ ecx - 1 ]
     rand2 = ecx
-    print "rand0 is ", rand0, hex(rand0)
+    print( "rand0 is ", rand0, hex(rand0))
     """
     --ecx = rand2
 
