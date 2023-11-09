@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys, socket, select, struct, traceback
 
@@ -77,9 +77,9 @@ def reset():
         hosts = {}
 
     except:
-        print '=' * 60
+        print( '=' * 60 )
         traceback.print_exc ( file=sys.stdout )
-        print '=' * 60
+        print( '=' * 60 )
 
         close()
 
@@ -92,7 +92,7 @@ while True:
         readable, writable, exceptional = select.select ( inputSockets, outputSockets, inputSockets )
 
         if len ( exceptional ) != 0:
-            print len ( exceptional ), 'exceptional sockets'
+            print( len ( exceptional ), 'exceptional sockets' )
 
             reset()
             continue
@@ -106,12 +106,12 @@ while True:
 
                 addresses[tcpSocket] = address[0];
 
-                print 'accepted', address[0]
+                print( 'accepted', address[0] )
 
             elif s is udpServerSocket:
                 data, address = s.recvfrom ( BUFFER_SIZE )
 
-                print 'UDP data', repr ( data ), 'address', address
+                print( 'UDP data', repr ( data ), 'address', address )
 
                 try:
                     index, matchId = struct.unpack ( '<BI', data )
@@ -127,7 +127,7 @@ while True:
                         # remove the match once both have been sent
                         if ( not matches[matchId][0] ) and ( not matches[matchId][1] ):
                             del matches[matchId]
-                            print 'matches', matches.keys()
+                            print( 'matches', matches.keys() )
 
                     continue
                 except:
@@ -139,13 +139,13 @@ while True:
                 except:
                     continue
 
-                print 'TCP data', repr ( data )
+                print( 'TCP data', repr ( data ) )
 
                 if data:
                     if len ( data ) == 3:
                         socketType, port = struct.unpack ( '<cH', data )
 
-                        print 'type', [ 'TCP', 'UDP' ][socketType == 'UDP'], 'port', port
+                        print( 'type', [ 'TCP', 'UDP' ][socketType == 'UDP'], 'port', port )
 
                         # port must be non-zero
                         if socketType and port:
@@ -154,7 +154,7 @@ while True:
                             hosts[address] = s
                             addresses[s] = address
 
-                            print 'hosts', hosts.keys()
+                            print( 'hosts', hosts.keys() )
                             continue
 
                     elif 10 <= len ( data ) <= 22: # min data "T1.1.1.1:0", max data "T255.255.255.255:65535"
@@ -169,21 +169,21 @@ while True:
 
                             matches[matchId] = [ s, hosts[data] ]
 
-                            print 'matched', data
-                            print 'matches', matches.keys()
+                            print( 'matched', data )
+                            print( 'matches', matches.keys() )
                             continue
 
                 # otherwise disconnect the client
                 if s in addresses:
                     if addresses[s] in hosts:
                         del hosts[addresses[s]]
-                        print 'hosts', hosts.keys()
+                        print( 'hosts', hosts.keys() )
                     del addresses[s]
 
                 for matchId, pair in matches.items():
                     if ( s == pair[0] ) or ( s == pair[1] ):
                         del matches[matchId]
-                        print 'matches', matches.keys()
+                        print( 'matches', matches.keys() )
 
                 inputSockets.remove ( s )
                 s.close()
@@ -192,9 +192,9 @@ while True:
         close()
 
     except:
-        print '=' * 60
+        print( '=' * 60 )
         traceback.print_exc ( file=sys.stdout )
-        print '=' * 60
+        print( '=' * 60 )
 
         reset()
         continue
