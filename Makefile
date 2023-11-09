@@ -107,7 +107,6 @@ $(ARCHIVE):
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
 	$(ZIP) $(ARCHIVE) $^
-	$(ZIP) $(ARCHIVE) -j scripts/Add_Handler_Protocol.bat
 	$(ZIP) $(ARCHIVE) -j $(RELAY_LIST)
 	cp -r res/GRP GRP
 	$(ZIP) $(ARCHIVE) -r GRP
