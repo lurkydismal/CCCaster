@@ -262,8 +262,9 @@ format:
 	$(FORMAT_TOOL)  \
     --style=file    \
 	-i				\
-$(filter-out lib/ProtocolEnums.hpp tools/Generator.cpp netplay/CharacterSelect.cpp lib/KeyboardVKeyNames.hpp targets/DllAsmHacks.hpp,\
-$(NON_GEN_SRCS) $(NON_GEN_HEADERS))
+	$(wildcard src/*.cpp)
+# $(filter-out lib/ProtocolEnums.hpp tools/Generator.cpp netplay/CharacterSelect.cpp lib/KeyboardVKeyNames.hpp targets/DllAsmHacks.hpp,\
+# $(NON_GEN_SRCS) $(NON_GEN_HEADERS))
 
 count:
 	@wc -l $(NON_GEN_SRCS) $(NON_GEN_HEADERS) | sort -nr | head -n 10 && echo '    ...'
