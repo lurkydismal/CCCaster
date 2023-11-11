@@ -38,7 +38,7 @@ NON_GEN_SRCS = \
 	$(wildcard netplay/*.cpp tools/*.cpp targets/*.cpp lib/*.cpp tests/*.cpp)
 NON_GEN_HEADERS = \
 	$(filter-out lib/Version.%.hpp lib/Protocol.%.hpp,$(wildcard netplay/*.hpp targets/*.hpp lib/*.hpp tests/*.hpp))
-AUTOGEN_HEADERS = $(wildcard lib/Version.*.hpp lib/Protocol.*.hpp)
+AUTOGEN_HEADERS = $(wildcard lib/Protocol.*.hpp)
 
 # Main program objects
 LIB_OBJECTS = $(LIB_CPP_SRCS:.cpp=.o) $(CONTRIB_C_SRCS:.c=.o)
@@ -222,7 +222,6 @@ reset-proto:
 	@$(MAKE) proto
 
 .depend_$(BRANCH): $(NON_GEN_SRCS) $(NON_GEN_HEADERS)
-	$(make_version)
 	$(make_protocol)
 
 
@@ -290,7 +289,6 @@ endif
 
 
 pre-build:
-	$(make_version)
 	$(make_protocol)
 	@echo
 	@echo ========== Main-build ==========
