@@ -13,7 +13,6 @@
 .svn
 .directory
 .unison*
-.include*
 Thumbs.db
 cccaster*
 tmp*
