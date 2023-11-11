@@ -102,7 +102,7 @@ generator: tools/$(GENERATOR)
 palettes: $(PALETTES)
 
 
-$(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER)
+$(ARCHIVE): $(BINARY) $(FOLDER)/$(DLL) $(FOLDER)/$(LAUNCHER) $(PALETTES)
 $(ARCHIVE):
 	@echo
 	rm -f $(wildcard $(NAME)*.zip)
