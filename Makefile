@@ -221,9 +221,6 @@ reset-proto:
 	rm -f lib/ProtocolEnums.hpp
 	@$(MAKE) proto
 
-.depend_$(BRANCH): $(NON_GEN_SRCS) $(NON_GEN_HEADERS)
-	$(make_protocol)
-
 
 clean-proto:
 	rm -f $(AUTOGEN_HEADERS)
@@ -238,7 +235,7 @@ clean-lib:
 
 clean-common: clean-proto clean-res clean-lib
 	rm -rf tmp*
-	rm -f .depend_$(BRANCH) .include_$(BRANCH) *.exe *.zip tools/*.exe \
+	rm -f .include_$(BRANCH) *.exe *.zip tools/*.exe \
 $(filter-out $(FOLDER)/$(TAG)config.ini $(wildcard $(FOLDER)/*.mappings $(FOLDER)/*.log),$(wildcard $(FOLDER)/*))
 
 clean-release: clean-common
@@ -266,25 +263,6 @@ $(NON_GEN_SRCS) $(NON_GEN_HEADERS))
 
 count:
 	@wc -l $(NON_GEN_SRCS) $(NON_GEN_HEADERS) | sort -nr | head -n 10 && echo '    ...'
-
-
-ifeq (,$(findstring version,$(MAKECMDGOALS)))
-ifeq (,$(findstring proto,$(MAKECMDGOALS)))
-ifeq (,$(findstring clean,$(MAKECMDGOALS)))
-ifeq (,$(findstring check,$(MAKECMDGOALS)))
-ifeq (,$(findstring trim,$(MAKECMDGOALS)))
-ifeq (,$(findstring format,$(MAKECMDGOALS)))
-ifeq (,$(findstring count,$(MAKECMDGOALS)))
-ifeq (,$(findstring palettes,$(MAKECMDGOALS)))
--include .depend_$(BRANCH)
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-endif
 
 
 pre-build:
