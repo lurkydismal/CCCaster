@@ -235,7 +235,7 @@ clean-lib:
 
 clean-common: clean-proto clean-res clean-lib
 	rm -rf tmp*
-	rm -f .include_$(BRANCH) *.exe *.zip tools/*.exe \
+	rm -f *.exe *.zip tools/*.exe \
 $(filter-out $(FOLDER)/$(TAG)config.ini $(wildcard $(FOLDER)/*.mappings $(FOLDER)/*.log),$(wildcard $(FOLDER)/*))
 
 clean-release: clean-common
