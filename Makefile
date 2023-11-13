@@ -1,7 +1,7 @@
 VERSION = 3.1
 SUFFIX = .002
 NAME = cccaster
-TAG =
+TAG = debug
 BRANCH := $(shell git branch --show-current)
 
 ifneq ($(TAG),)

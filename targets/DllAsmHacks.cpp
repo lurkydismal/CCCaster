@@ -3,7 +3,7 @@
 #include "DllNetplayManager.hpp"
 #include "CharacterSelect.hpp"
 #include "Logger.hpp"
-#include "DllTrialManager.hpp"
+// #include "DllTrialManager.hpp"
 
 #include <windows.h>
 #include <d3dx9.h>
@@ -207,8 +207,8 @@ extern "C" void addExtraTexturesCb() {
     vector<char> buffer3( istreambuf_iterator<char>(input3), {} );
     int imgsize3 = buffer3.size();
     char* rawimg3 = &buffer3[0];
-    TrialManager::trialBGTextures = loadTextureFromMemory(rawimg, imgsize, 0, 0, 0);
-    TrialManager::trialInputTextures = loadTextureFromMemory(rawimg3, imgsize3, 0, 0, 0);
+    // TrialManager::trialBGTextures = loadTextureFromMemory(rawimg, imgsize, 0, 0, 0);
+    // TrialManager::trialInputTextures = loadTextureFromMemory(rawimg3, imgsize3, 0, 0, 0);
 }
 int Asm::write() const
 {

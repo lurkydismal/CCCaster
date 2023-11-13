@@ -25,7 +25,7 @@ public:
     bool isSinglePlayer = false;
 
     // In trial mode
-    bool isTrial = false;
+    // bool isTrial = false;
 
     // Initialize all controllers with the given mappings
     void initControllers ( const ControllerMappings& mappings );
@@ -58,18 +58,18 @@ private:
     std::array<Controller *, 2> _playerControllers = {{ 0, 0 }};
 
     std::array<size_t, 2> _overlayPositions = {{ 0, 0 }};
-    std::array<size_t, 3> _trialOverlayPositions = {{ 0, 0, 0 }};
-    uint8_t _trialMenuIndex = 0;
-    uint8_t _trialMenuSelection = 0;
-    uint8_t _trialSubMenuSelection = 0;
-    uint8_t _trialScrollSelect = 0;
+    // std::array<size_t, 3> _trialOverlayPositions = {{ 0, 0, 0 }};
+    // uint8_t _trialMenuIndex = 0;
+    // uint8_t _trialMenuSelection = 0;
+    // uint8_t _trialSubMenuSelection = 0;
+    // uint8_t _trialScrollSelect = 0;
 
     std::array<bool, 2> _finishedMapping = {{ false, false }};
 
     bool _controllerAttached = false;
 
-    void handleTrialMenuOverlay();
+    // void handleTrialMenuOverlay();
     void handleMappingOverlay();
-    void disableTrialMenuOverlay();
+    // void disableTrialMenuOverlay();
 
 };

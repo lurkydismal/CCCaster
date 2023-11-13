@@ -239,8 +239,8 @@ void MainUi::offline ( RunFuncPtr run )
     _netplayConfig.delay = 0;
     _netplayConfig.hostPlayer = 1; // TODO make this configurable
     _netplayConfig.tournament = tournament;
-    _netplayConfig.trialAudioCue = _config.getString ( "trialAudioCueFile" );
-    _netplayConfig.trialFlashColor = _config.getInteger ( "trialScreenFlashColor" );
+    // _netplayConfig.trialAudioCue = _config.getString ( "trialAudioCueFile" );
+    // _netplayConfig.trialFlashColor = _config.getInteger ( "trialScreenFlashColor" );
     RUN ( "", _netplayConfig );
 
     _ui->popNonUserInput();
@@ -281,7 +281,7 @@ bool MainUi::gameMode ( bool below )
 
 bool MainUi::offlineGameMode()
 {
-    _ui->pushRight ( new ConsoleUi::Menu ( "Mode", { "Training", "Versus", "Versus CPU", "Tournament", "Replay", "Trial" }, "Cancel" ) );
+    _ui->pushRight ( new ConsoleUi::Menu ( "Mode", { "Training", "Versus", "Versus CPU", "Tournament", "Replay" }, "Cancel" ) );
     _ui->top<ConsoleUi::Menu>()->setPosition ( _config.getInteger ( "lastOfflineMenuPosition" ) - 1 );
 
     int mode = _ui->popUntilUserInput ( true )->resultInt; // Clear other messages since we're starting the game now
@@ -304,8 +304,8 @@ bool MainUi::offlineGameMode()
         _netplayConfig.tournament = true;
     else if ( mode == 4 )
       initialConfig.mode.flags = ClientMode::Replay;
-    else if ( mode == 5 )
-      initialConfig.mode.flags = ClientMode::Training | ClientMode::Trial;
+    // else if ( mode == 5 )
+    //   initialConfig.mode.flags = ClientMode::Training | ClientMode::Trial;
     else
         return false;
 
@@ -602,7 +602,7 @@ void MainUi::settings()
         "Default rollback",
         "Held start button in versus",
         "Automatic Replay Save",
-        "Trial Input Guide Settings",
+        // "Trial Input Guide Settings",
         "About",
     };
 
@@ -889,64 +889,64 @@ void MainUi::settings()
                 break;
             }
 
-            case 10:
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Trial Input Guide Options",
-                                                         { "Trial Audio Cue", "Trial Screen Flash Color" }, "Cancel" ),
-                                   { 0, 0 }, true ); // Don't expand but DO clear top
-                while ( true ) {
-                    _ui->popUntilUserInput();
-                    int trialSetting = _ui->top()->resultInt;
-                    if ( trialSetting == 0 ) {
-                        _ui->pushInFront ( new ConsoleUi::TextBox (
-                                                                   "Enter/paste/drag a .wav file here:\n"
-                                                                   "(Leave blank to use SystemDefault)" ),
-                                           { 1, 0 }, true ); // Expand width and clear top
+            // case 10:
+            //     _ui->pushInFront ( new ConsoleUi::Menu ( "Trial Input Guide Options",
+            //                                              { "Trial Audio Cue", "Trial Screen Flash Color" }, "Cancel" ),
+            //                        { 0, 0 }, true ); // Don't expand but DO clear top
+            //     while ( true ) {
+            //         _ui->popUntilUserInput();
+            //         int trialSetting = _ui->top()->resultInt;
+            //         if ( trialSetting == 0 ) {
+            //             _ui->pushInFront ( new ConsoleUi::TextBox (
+            //                                                        "Enter/paste/drag a .wav file here:\n"
+            //                                                        "(Leave blank to use SystemDefault)" ),
+            //                                { 1, 0 }, true ); // Expand width and clear top
 
-                        _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
-                        _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getString ( "trialAudioCueFile" ) );
-                        _ui->popUntilUserInput();
-                        if ( _ui->top()->resultInt == 0 )
-                        {
-                            if ( _ui->top()->resultStr.empty() )
-                                _config.setString ( "trialAudioCueFile", "SystemDefault" );
-                            else
-                                _config.setString ( "trialAudioCueFile", _ui->top()->resultStr );
-                            saveConfig();
-                        }
-                        _ui->pop();
-                        _ui->pop();
-                    } else if ( trialSetting == 1 ) {
-                        _ui->pushInFront ( new ConsoleUi::TextBox (
-                                                                   "Enter screen flash color hex code" ),
-                                           { 1, 0 }, true ); // Expand width and clear top
+            //             _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
+            //             _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getString ( "trialAudioCueFile" ) );
+            //             _ui->popUntilUserInput();
+            //             if ( _ui->top()->resultInt == 0 )
+            //             {
+            //                 if ( _ui->top()->resultStr.empty() )
+            //                     _config.setString ( "trialAudioCueFile", "SystemDefault" );
+            //                 else
+            //                     _config.setString ( "trialAudioCueFile", _ui->top()->resultStr );
+            //                 saveConfig();
+            //             }
+            //             _ui->pop();
+            //             _ui->pop();
+            //         } else if ( trialSetting == 1 ) {
+            //             _ui->pushInFront ( new ConsoleUi::TextBox (
+            //                                                        "Enter screen flash color hex code" ),
+            //                                { 1, 0 }, true ); // Expand width and clear top
 
-                        _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
-                        stringstream stream;
-                        stream << "0x" << setfill('0') << setw(8) << hex << _config.getInteger ( "trialScreenFlashColor" );
-                        string color = stream.str();
-                        _ui->top<ConsoleUi::Prompt>()->setInitial ( color );
-                        _ui->popUntilUserInput();
-                        if ( _ui->top()->resultInt == 0 )
-                        {
-                            if ( _ui->top()->resultStr.empty() )
-                                _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
-                            else {
-                                string resStr = _ui->top()->resultStr;
-                                LOG( resStr );
-                                uint32_t resInt = strtoul(resStr.c_str(), NULL, 16);
-                                LOG( resInt );
-                                _config.setInteger ( "trialScreenFlashColor", resInt );
-                            }
-                            saveConfig();
-                        }
-                        _ui->pop();
-                        _ui->pop();
-                    } else {
-                        _ui->pop();
-                        break;
-                    }
-                }
-                break;
+            //             _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
+            //             stringstream stream;
+            //             stream << "0x" << setfill('0') << setw(8) << hex << _config.getInteger ( "trialScreenFlashColor" );
+            //             string color = stream.str();
+            //             _ui->top<ConsoleUi::Prompt>()->setInitial ( color );
+            //             _ui->popUntilUserInput();
+            //             if ( _ui->top()->resultInt == 0 )
+            //             {
+            //                 if ( _ui->top()->resultStr.empty() )
+            //                     _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
+            //                 else {
+            //                     string resStr = _ui->top()->resultStr;
+            //                     LOG( resStr );
+            //                     uint32_t resInt = strtoul(resStr.c_str(), NULL, 16);
+            //                     LOG( resInt );
+            //                     _config.setInteger ( "trialScreenFlashColor", resInt );
+            //                 }
+            //                 saveConfig();
+            //             }
+            //             _ui->pop();
+            //             _ui->pop();
+            //         } else {
+            //             _ui->pop();
+            //             break;
+            //         }
+            //     }
+            //     break;
             case 11:
                 _ui->pushInFront ( new ConsoleUi::TextBox ( format ( "CCCaster %s%s\n\nRevision %s\n\nBuilt on %s\n\n"
                                    "Created by Madscientist\n\nPress any key to go back",
@@ -1063,7 +1063,7 @@ void MainUi::initialize()
     // Configurable settings (defaults)
     _config.setInteger ( "alertOnConnect", 3 );
     _config.setString ( "alertWavFile", "SystemDefault" );
-    _config.setString ( "trialAudioCueFile", "SystemDefault" );
+    // _config.setString ( "trialAudioCueFile", "SystemDefault" );
     _config.setString ( "displayName", ProcessManager::fetchGameUserName() );
     _config.setInteger ( "fullCharacterName", 0 );
     _config.setInteger ( "highCpuPriority", 1 );
@@ -1073,7 +1073,7 @@ void MainUi::initialize()
     _config.setInteger ( "autoCheckUpdates", 1 );
     _config.setInteger ( "autoReplaySave", 1 );
     _config.setDouble ( "heldStartDuration", 1.5 );
-    _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
+    // _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
 
     // Cached UI state (defaults)
     _config.setInteger ( "lastUsedPort", -1 );
@@ -1089,8 +1089,8 @@ void MainUi::initialize()
     initialConfig.clear();
     initialConfig.localName = _config.getString ( "displayName" );
     initialConfig.winCount = _config.getInteger ( "versusWinCount" );
-    initialConfig.trialAudioCue = _config.getString ( "trialAudioCueFile" );
-    initialConfig.trialFlashColor = _config.getInteger ( "trialScreenFlashColor" );
+    // initialConfig.trialAudioCue = _config.getString ( "trialAudioCueFile" );
+    // initialConfig.trialFlashColor = _config.getInteger ( "trialScreenFlashColor" );
 
     // Initialize controllers
     ControllerManager::get().initialize ( this );

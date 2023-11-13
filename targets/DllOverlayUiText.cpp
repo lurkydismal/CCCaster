@@ -1,7 +1,7 @@
 #include "DllOverlayUi.hpp"
 #include "DllOverlayPrimitives.hpp"
 #include "DllHacks.hpp"
-#include "DllTrialManager.hpp"
+// #include "DllTrialManager.hpp"
 #include "ProcessManager.hpp"
 #include "Enum.hpp"
 
@@ -55,7 +55,7 @@ ENUM ( State, Disabled, Disabling, Enabled, Enabling );
 
 static State state = State::Disabled;
 
-ENUM ( Mode, None, Trial, Mapping );
+ENUM ( Mode, None, Mapping );
 
 static Mode mode = Mode::None;
 
@@ -110,14 +110,14 @@ array<bool, 2> getShouldDrawSelector()
 
 void enable()
 {
-    TrialManager::showCombo = false;
+    // TrialManager::showCombo = false;
     if ( state != State::Enabled )
         state = State::Enabling;
 }
 
 void disable()
 {
-    TrialManager::showCombo = true;
+    // TrialManager::showCombo = true;
     if ( state != State::Disabled )
         state = State::Disabling;
 }
@@ -214,20 +214,20 @@ bool isToggling()
     return ( state == State::Enabling || state == State::Disabling );
 }
 
-bool isTrial()
-{
-    return mode == Mode::Trial;
-}
+// bool isTrial()
+// {
+//     return mode == Mode::Trial;
+// }
 
 bool isMapping()
 {
     return mode == Mode::Mapping;
 }
 
-void setTrial()
-{
-    mode = Mode::Trial;
-}
+// void setTrial()
+// {
+//     mode = Mode::Trial;
+// }
 
 void setMapping()
 {
@@ -403,72 +403,72 @@ void renderOverlayText ( IDirect3DDevice9 *device, const D3DVIEWPORT9& viewport 
 
 // #endif // RELEASE
 
-    if ( ! TrialManager::dtext.empty() && !TrialManager::hideText ) {
-        int debugTextAlign = 1;
-        RECT rect2;
-        rect2.top = rect2.left = 0;
-        rect2.right = viewport.Width;
-        rect2.bottom = viewport.Height;
-        DrawText ( font, TrialManager::dtext, rect2, DT_WORDBREAK |
-                   ( debugTextAlign == 0 ? DT_CENTER : ( debugTextAlign < 0 ? DT_LEFT : DT_RIGHT ) ),
-                   OVERLAY_DEBUG_COLOR );
-    }
-    if ( ! TrialManager::comboTrialText.empty() && !TrialManager::hideText )
-    {
-        /*
-        if ( TrialManager::trialTextures == NULL ) {
-            char* filename = "arrow.png";
-            char* filename2 = "tutorial00.bmp";
-            ifstream input( filename, ios::binary );
-            vector<char> buffer( istreambuf_iterator<char>(input), {} );
-            int imgsize = buffer.size();
-            char* rawimg = &buffer[0];
-            int (*loadTextureFromMemory) (int, char*, int, int) = (int(*)(int, char*, int, int)) 0x4bd2d0;
-            D3DXCreateTextureFromFile( device, filename, &TrialManager::trialTextures );
-            TrialManager::trialTextures2 = loadTextureFromMemory(0, rawimg, imgsize, 0);
-        }
-        */
-        RECT rect;
-        rect.top = 70;
-        rect.left = 20;
-        rect.right = viewport.Width - 20;
-        rect.bottom = viewport.Height - 20;
-        wstring w = TrialManager::fullStrings[TrialManager::currentTrialIndex];
-        TextCalcRectW( font, w, rect, DT_CENTER | DT_WORDBREAK, 0);
-        rect.left = 20;
-        rect.right = viewport.Width - 20;
-        DrawRectangle ( device, INLINE_RECT ( rect ), OVERLAY_COMBO_BG_COLOR );
-        uint32_t i = 0;
-        rect.left = 30;
-        for ( wstring text : TrialManager::comboTrialText ) {
-            TextCalcRectW( font, text, rect, DT_LEFT, 0);
-            D3DCOLOR color = ( TrialManager::comboTrialPosition > i ) ? OVERLAY_BUTTON_DONE_COLOR :
-              ( TrialManager::comboTrialPosition == i ) ? OVERLAY_DEBUG_COLOR : OVERLAY_BUTTON_COLOR;
-            DrawTextW ( font, text, rect, DT_WORDBREAK |
-                   ( TrialManager::comboTrialTextAlign == 0 ? DT_CENTER : ( TrialManager::comboTrialTextAlign < 0 ? DT_LEFT : DT_RIGHT ) ),
-                       color );
-            rect.left = rect.right;
-            long int newlineBreakpoint = viewport.Width - 70;
-            if ( rect.left > newlineBreakpoint ) {
-                rect.left = 29;
-                rect.top = rect.bottom;
-            }
-        ++i;
-        }
+    // if ( ! TrialManager::dtext.empty() && !TrialManager::hideText ) {
+    //     int debugTextAlign = 1;
+    //     RECT rect2;
+    //     rect2.top = rect2.left = 0;
+    //     rect2.right = viewport.Width;
+    //     rect2.bottom = viewport.Height;
+    //     DrawText ( font, TrialManager::dtext, rect2, DT_WORDBREAK |
+    //                ( debugTextAlign == 0 ? DT_CENTER : ( debugTextAlign < 0 ? DT_LEFT : DT_RIGHT ) ),
+    //                OVERLAY_DEBUG_COLOR );
+    // }
+    // if ( ! TrialManager::comboTrialText.empty() && !TrialManager::hideText )
+    // {
+    //     /*
+    //     if ( TrialManager::trialTextures == NULL ) {
+    //         char* filename = "arrow.png";
+    //         char* filename2 = "tutorial00.bmp";
+    //         ifstream input( filename, ios::binary );
+    //         vector<char> buffer( istreambuf_iterator<char>(input), {} );
+    //         int imgsize = buffer.size();
+    //         char* rawimg = &buffer[0];
+    //         int (*loadTextureFromMemory) (int, char*, int, int) = (int(*)(int, char*, int, int)) 0x4bd2d0;
+    //         D3DXCreateTextureFromFile( device, filename, &TrialManager::trialTextures );
+    //         TrialManager::trialTextures2 = loadTextureFromMemory(0, rawimg, imgsize, 0);
+    //     }
+    //     */
+    //     RECT rect;
+    //     rect.top = 70;
+    //     rect.left = 20;
+    //     rect.right = viewport.Width - 20;
+    //     rect.bottom = viewport.Height - 20;
+    //     wstring w = TrialManager::fullStrings[TrialManager::currentTrialIndex];
+    //     TextCalcRectW( font, w, rect, DT_CENTER | DT_WORDBREAK, 0);
+    //     rect.left = 20;
+    //     rect.right = viewport.Width - 20;
+    //     DrawRectangle ( device, INLINE_RECT ( rect ), OVERLAY_COMBO_BG_COLOR );
+    //     uint32_t i = 0;
+    //     rect.left = 30;
+    //     for ( wstring text : TrialManager::comboTrialText ) {
+    //         TextCalcRectW( font, text, rect, DT_LEFT, 0);
+    //         D3DCOLOR color = ( TrialManager::comboTrialPosition > i ) ? OVERLAY_BUTTON_DONE_COLOR :
+    //           ( TrialManager::comboTrialPosition == i ) ? OVERLAY_DEBUG_COLOR : OVERLAY_BUTTON_COLOR;
+    //         DrawTextW ( font, text, rect, DT_WORDBREAK |
+    //                ( TrialManager::comboTrialTextAlign == 0 ? DT_CENTER : ( TrialManager::comboTrialTextAlign < 0 ? DT_LEFT : DT_RIGHT ) ),
+    //                    color );
+    //         rect.left = rect.right;
+    //         long int newlineBreakpoint = viewport.Width - 70;
+    //         if ( rect.left > newlineBreakpoint ) {
+    //             rect.left = 29;
+    //             rect.top = rect.bottom;
+    //         }
+    //     ++i;
+    //     }
 
-        RECT rect3;
-        rect3.top = 50;
-        rect3.left = 30;
-        rect3.right = viewport.Width;
-        rect3.bottom= viewport.Height;
+    //     RECT rect3;
+    //     rect3.top = 50;
+    //     rect3.left = 30;
+    //     rect3.right = viewport.Width;
+    //     rect3.bottom= viewport.Height;
 
-        TextCalcRectW( font, TrialManager::comboName, rect3, DT_LEFT | DT_WORDBREAK, 0);
-        rect3.left = 20;
-        rect3.right = viewport.Width - 20;
-        DrawRectangle ( device, INLINE_RECT ( rect3 ), OVERLAY_COMBO_BG_COLOR );
-        DrawTextW ( font, TrialManager::comboName, rect3, DT_WORDBREAK | DT_LEFT,
-                    OVERLAY_DEBUG_COLOR );
-    }
+    //     TextCalcRectW( font, TrialManager::comboName, rect3, DT_LEFT | DT_WORDBREAK, 0);
+    //     rect3.left = 20;
+    //     rect3.right = viewport.Width - 20;
+    //     DrawRectangle ( device, INLINE_RECT ( rect3 ), OVERLAY_COMBO_BG_COLOR );
+    //     DrawTextW ( font, TrialManager::comboName, rect3, DT_WORDBREAK | DT_LEFT,
+    //                 OVERLAY_DEBUG_COLOR );
+    // }
     if ( state == State::Disabled )
         return;
 

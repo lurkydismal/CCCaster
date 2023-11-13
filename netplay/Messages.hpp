@@ -33,7 +33,7 @@ struct ClientMode : public SerializableSequence
 {
     ENUM_BOILERPLATE ( ClientMode, Host, Client, SpectateNetplay, SpectateBroadcast, Broadcast, Offline )
 
-    enum { Training = 0x01, GameStarted = 0x02, UdpTunnel = 0x04, IsWine = 0x08, VersusCPU = 0x10, Replay = 0x20, Trial = 0x40 };
+    enum { Training = 0x01, GameStarted = 0x02, UdpTunnel = 0x04, IsWine = 0x08, VersusCPU = 0x10, Replay = 0x20 }; // Trial = 0x40
 
     uint8_t flags = 0;
 
@@ -59,7 +59,7 @@ struct ClientMode : public SerializableSequence
     bool isVersusCPU() const { return ( flags & VersusCPU ) && !isTraining(); }
     bool isTraining() const { return ( flags & Training ); }
     bool isReplay() const { return ( flags & Replay ); }
-    bool isTrial() const { return ( flags & Trial ); }
+    // bool isTrial() const { return ( flags & Trial ); }
     bool isGameStarted() const { return ( flags & GameStarted ); }
     bool isUdpTunnel() const { return ( flags & UdpTunnel ); }
     bool isWine() const { return ( flags & IsWine ); }
@@ -137,8 +137,8 @@ struct InitialConfig : public SerializableSequence
     uint8_t winCount = 2;
 
     // Offline only not serialized
-    std::string trialAudioCue;
-    uint32_t trialFlashColor;
+    // std::string trialAudioCue;
+    // uint32_t trialFlashColor;
 
     void clear()
     {
@@ -147,8 +147,8 @@ struct InitialConfig : public SerializableSequence
         localName.clear();
         remoteName.clear();
         winCount = 2;
-        trialAudioCue.clear();
-        trialFlashColor = 0;
+        // trialAudioCue.clear();
+        // trialFlashColor = 0;
     }
 
     PROTOCOL_MESSAGE_BOILERPLATE ( InitialConfig, mode, dataPort, localName, remoteName, winCount )
@@ -169,8 +169,8 @@ struct NetplayConfig : public SerializableSequence
     // Session ID
     std::string sessionId;
 
-    std::string trialAudioCue;
-    uint32_t trialFlashColor;
+    // std::string trialAudioCue;
+    // uint32_t trialFlashColor;
 
     // Offline only tournament mode flag (DO NOT SERIALIZE)
     bool tournament = false;
@@ -202,12 +202,12 @@ struct NetplayConfig : public SerializableSequence
         names[1].clear();
         sessionId.clear();
         tournament = false;
-        trialAudioCue.clear();
-        trialFlashColor = 0;
+        // trialAudioCue.clear();
+        // trialFlashColor = 0;
     }
 
     PROTOCOL_MESSAGE_BOILERPLATE ( NetplayConfig, mode, delay, rollback, rollbackDelay,
-                                   winCount, hostPlayer, broadcastPort, names, sessionId, trialAudioCue, trialFlashColor )
+                                   winCount, hostPlayer, broadcastPort, names, sessionId ) // trialAudioCue, trialFlashColor
 };
 
 
