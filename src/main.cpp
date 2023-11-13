@@ -2,55 +2,172 @@
 #include <fmt/core.h>
 #include <icecream.hpp>
 #include <nlohmann/json.hpp>
+#include <sys/stat.h>
 
+#include <bitset>
 #include <fstream>
+
+#define VERSION_MAJOR 4
+#define VERSION_MINOR 0
+#define VERSION_PATCH 0
+
+#define PROGRAM_NAME "cccaster"
+#define FOLDER_NAME PROGRAM_NAME
+#define FOLDER_PERMISSIONS S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
 
 using json = nlohmann::json;
 
 int main( const int _argumentCount, const char** _argumentCVector ) {
-    std::ofstream l_logFile( "log.txt" );
-    icecream::ic.output( l_logFile );
+    std::ofstream l_logFile;
 
-    IC0();
+    {
+        const std::string l_folderName = FOLDER_NAME;
+        const mode_t l_folderPermissions = FOLDER_PERMISSIONS;
 
-    std::vector< std::string > l_argumentVector(
-        _argumentCVector, _argumentCVector + _argumentCount );
-    IC( _argumentCount, l_argumentVector );
+        int l_returnCode = mkdir( l_folderName.c_str(), l_folderPermissions );
 
-    cxxopts::Options options( "MyProgram",
-                              "One line description of MyProgram" );
+        l_logFile.open( fmt::format( "{}/log.txt", l_folderName ) );
+        icecream::ic.output( l_logFile );
 
-    options.add_options(
-        "", { { "d,debug", "Enable debugging" },
-              { "i,integer", "Int param", cxxopts::value< int >() },
-              { "f,file", "File name", cxxopts::value< std::string >() },
-              { "v,verbose", "Verbose output",
-                cxxopts::value< bool >()->default_value( "false" ) } } );
+        IC0();
+        std::vector< std::string > l_argumentVector(
+            _argumentCVector, _argumentCVector + _argumentCount );
+        IC( _argumentCount, l_argumentVector );
 
-    auto l_result = options.parse( _argumentCount, _argumentCVector );
-
-    if ( l_result.count( "verbose" ) ) {
-        fmt::print( "{}\n", l_result[ "verbose" ].as< bool >() );
+        std::bitset< 8 > l_folderPermissionsBinary( l_folderPermissions );
+        IC( l_folderName, l_folderPermissionsBinary, l_returnCode );
     }
 
-    if ( l_result.count( "file" ) ) {
-        std::ifstream l_jsonFile( l_result[ "file" ].as< std::string >() );
-        json l_data = json::parse( l_jsonFile );
+    {
+        cxxopts::Options options( std::string( PROGRAM_NAME ),
+                                  "Gameplay enhances for MBAACC" );
 
-        uint32_t l_integer;
+        options.add_options(
+            "",
+            { { "r,rollback", "Set default rollback", cxxopts::value< int >() },
+              { "p,practice", "Launch practice mode" },
+              { "s,spectate", "Launch spectate mode" },
+              { "t,tournament", "Launch tournament mode" },
+              { "c,cpu", "Launch versus CPU mode" },
+              { "v,verbose", "Verbose output" },
+              { "d,debug", "Enable debugging" },
+              { "h,help", "Display this information." } } );
 
-        if ( l_result.count( "integer" ) ) {
-            l_integer = l_result[ "integer" ].as< int >();
+        auto l_result = options.parse( _argumentCount, _argumentCVector );
+
+        if ( l_result.count( "help" ) ) {
+            IC( l_result.count( "help" ) );
+
+            std::cout << options.help() << std::endl;
+
+            return ( 0 );
+        }
+
+        if ( l_result.count( "verbose" ) ) {
+            IC( l_result.count( "verbose" ) );
+
+            fmt::print( "{}\n", l_result[ "verbose" ].as< bool >() );
+        }
+
+        std::ifstream l_jsonFileIn;
+        std::string l_fileName;
+
+        if ( l_result.count( "file" ) ) {
+            l_fileName =
+                "cccaster/" + l_result[ "file" ].as< std::string >() + ".json";
+            l_jsonFileIn.open( l_fileName );
 
         } else {
-            if ( l_data.contains( "integer" ) ) {
-                l_integer = l_data[ "integer" ];
+            l_fileName = fmt::format( "cccaster/v{}.{}.json", VERSION_MAJOR,
+                                      VERSION_MINOR );
+            l_jsonFileIn.open( l_fileName );
+        }
+
+        IC( l_result.count( "file" ), l_fileName, l_jsonFileIn.is_open() );
+
+        json l_data;
+
+        {
+            std::ofstream l_jsonFileOut;
+
+            if ( !( l_jsonFileIn.good() ) ) {
+                IC( !( l_jsonFileIn.good() ), l_data.empty() );
+
+                l_data[ "integer" ] = 42;
+
+                IC( l_data.dump( 4 ), l_fileName );
+
+                l_jsonFileOut.open( l_fileName );
+
+                if ( l_jsonFileOut.good() ) {
+                    l_jsonFileOut << std::setw( 4 ) << l_data << std::endl;
+
+                } else {
+                    try {
+                        l_jsonFileOut.exceptions( l_jsonFileOut.failbit );
+
+                    } catch (
+                        const std::ios_base::failure& _jsonFileOutFailure ) {
+                        IC( _jsonFileOutFailure.code(),
+                            _jsonFileOutFailure.what() );
+                    }
+                }
+            }
+
+            if ( l_result.count( "integer" ) ) {
+                IC( l_result.count( "integer" ) );
+
+                uint32_t l_integer = l_result[ "integer" ].as< int >();
+
+                IC( l_integer, l_data.empty() );
+
+                l_data[ "integer" ] = l_integer;
+
+                IC( l_data.dump( 4 ), l_fileName );
+
+                l_jsonFileOut.open( l_fileName );
+
+                if ( l_jsonFileOut.good() ) {
+                    l_jsonFileOut << std::setw( 4 ) << l_data << std::endl;
+
+                } else {
+                    try {
+                        l_jsonFileOut.exceptions( l_jsonFileOut.failbit );
+
+                    } catch (
+                        const std::ios_base::failure& _jsonFileOutFailure ) {
+                        IC( _jsonFileOutFailure.code(),
+                            _jsonFileOutFailure.what() );
+                    }
+                }
+
+            } else if ( l_jsonFileIn.good() ) {
+                IC( l_jsonFileIn.good() );
+
+                l_data = json::parse( l_jsonFileIn );
+
+                uint32_t l_integer;
+
+                if ( l_data.contains( "integer" ) ) {
+                    IC( l_data.contains( "integer" ) );
+
+                    l_integer = l_data[ "integer" ];
+
+                } else {
+                    l_integer = -1;
+                }
+
+                IC( l_integer );
             }
         }
 
-        fmt::print( "{}\n", l_integer );
+        IC( static_cast< uint32_t >( l_data[ "integer" ] ) );
+
+        fmt::print( "{}\n", static_cast< uint32_t >( l_data[ "integer" ] ) );
 
         if ( l_result.count( "debug" ) ) {
+            IC( l_result.count( "debug" ) );
+
             const std::string l_dataDump = l_data.dump();
 
             IC( l_dataDump );
