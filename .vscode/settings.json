@@ -3,7 +3,14 @@
 {
     "html.format.enable": false,
     "githubPullRequests.ignoredPullRequestBranches": [
-        "main"
+        "main",
+        "master"
     ],
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "cSpell.words": [
+        "cxxopts",
+        "gamemode",
+        "icecream",
+        "MBAACC"
+    ]
 }

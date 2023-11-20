@@ -12,21 +12,68 @@
 #define VERSION_PATCH 0
 
 #define PROGRAM_NAME "cccaster"
+
 #define FOLDER_NAME PROGRAM_NAME
 #define FOLDER_PERMISSIONS S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
 
+#define LOG_FILE_NAME_POSTFIX "log"
+#define LOG_FILE_EXTENSION "txt"
+
+#define PREFERENCES_FILE_NAME_POSTFIX "preferences"
+#define PREFERENCES_FILE_EXTENSION "json"
+
 using json = nlohmann::json;
 
-int main( const int _argumentCount, const char** _argumentCVector ) {
+const uint8_t g_versionMajor = VERSION_MAJOR;
+const uint8_t g_versionMinor = VERSION_MINOR;
+const uint8_t g_versionPatch = VERSION_PATCH;
+
+enum gamemode_t { ONLINE, SPECTATE, TOURNAMENT, PRACTICE, CPU };
+
+struct preferences_t {
+    int rollback = 3;
+    int delay = 0;
+    gamemode_t gamemode = PRACTICE;
+    bool verbose = true;
+    bool debug = false;
+
+    friend void to_json( json& _json, const preferences_t& _preferences ) {
+        _json = json{ { "rollback", _preferences.rollback },
+                      { "delay", _preferences.delay },
+                      { "gamemode", _preferences.gamemode },
+                      { "verbose", _preferences.verbose },
+                      { "debug", _preferences.debug } };
+    }
+
+    friend void from_json( const json& _json, preferences_t& _preferences ) {
+        _json.at( "rollback" ).get_to( _preferences.rollback );
+        _json.at( "delay" ).get_to( _preferences.delay );
+        _json.at( "gamemode" ).get_to( _preferences.gamemode );
+        _json.at( "verbose" ).get_to( _preferences.verbose );
+        _json.at( "debug" ).get_to( _preferences.debug );
+    }
+} const g_preferencesDefault;
+
+bool g_isVerbose = false;
+bool g_isDebug = false;
+
+int main( const int _argumentCount, const char* const* _argumentCVector ) {
     std::ofstream l_logFile;
 
+    // Banana banana
     {
         const std::string l_folderName = FOLDER_NAME;
         const mode_t l_folderPermissions = FOLDER_PERMISSIONS;
 
         int l_returnCode = mkdir( l_folderName.c_str(), l_folderPermissions );
 
-        l_logFile.open( fmt::format( "{}/log.txt", l_folderName ) );
+        const std::string l_logFileNamePostfix = LOG_FILE_NAME_POSTFIX;
+        const std::string l_logFileName =
+            fmt::format( "v{}.{}.{}_{}", g_versionMajor, g_versionMinor,
+                         g_versionPatch, l_logFileNamePostfix );
+
+        l_logFile.open( fmt::format( "{}/{}.{}", l_folderName, l_logFileName,
+                                     LOG_FILE_EXTENSION ) );
         icecream::ic.output( l_logFile );
 
         IC0();
@@ -35,142 +82,187 @@ int main( const int _argumentCount, const char** _argumentCVector ) {
         IC( _argumentCount, l_argumentVector );
 
         std::bitset< 8 > l_folderPermissionsBinary( l_folderPermissions );
-        IC( l_folderName, l_folderPermissionsBinary, l_returnCode );
+        IC( l_folderName, l_folderPermissionsBinary, l_returnCode,
+            l_logFileName );
     }
 
+    // Parse options
     {
         cxxopts::Options options( std::string( PROGRAM_NAME ),
                                   "Gameplay enhances for MBAACC" );
 
         options.add_options(
-            "",
-            { { "r,rollback", "Set default rollback", cxxopts::value< int >() },
-              { "p,practice", "Launch practice mode" },
-              { "s,spectate", "Launch spectate mode" },
-              { "t,tournament", "Launch tournament mode" },
-              { "c,cpu", "Launch versus CPU mode" },
-              { "v,verbose", "Verbose output" },
-              { "d,debug", "Enable debugging" },
-              { "h,help", "Display this information." } } );
+            "", { { "o,online", "launch online" },
+                  { "s,spectate", "Launch spectate" },
+                  { "t,tournament", "Launch tournament" },
+                  { "p,practice", "Launch practice" },
+                  { "c,cpu", "Launch versus CPU" },
+                  { "verbose", "Verbose output",
+                    cxxopts::value< bool >()->default_value( "true" ) },
+                  { "debug", "Enable debugging",
+                    cxxopts::value< bool >()->default_value( "false" ) },
+                  { "h,help", "Display this information." } } );
 
-        auto l_result = options.parse( _argumentCount, _argumentCVector );
+        try {
+            auto l_result = options.parse( _argumentCount, _argumentCVector );
 
-        if ( l_result.count( "help" ) ) {
-            IC( l_result.count( "help" ) );
+            const auto _resultHas = [ l_result ]( std::string _key ) {
+                IC( _key, l_result.count( _key ) );
 
-            std::cout << options.help() << std::endl;
+                bool l_returnValue = false;
 
-            return ( 0 );
-        }
+                if ( l_result.count( _key ) ) {
+                    l_returnValue = true;
+                }
 
-        if ( l_result.count( "verbose" ) ) {
-            IC( l_result.count( "verbose" ) );
+                return ( l_returnValue );
+            };
 
-            fmt::print( "{}\n", l_result[ "verbose" ].as< bool >() );
-        }
+            // Help
+            {
+                if ( _resultHas( "help" ) ) {
+                    IC( options.help() );
 
-        std::ifstream l_jsonFileIn;
-        std::string l_fileName;
+                    fmt::print( "{}\n", options.help() );
 
-        if ( l_result.count( "file" ) ) {
-            l_fileName =
-                "cccaster/" + l_result[ "file" ].as< std::string >() + ".json";
-            l_jsonFileIn.open( l_fileName );
-
-        } else {
-            l_fileName = fmt::format( "cccaster/v{}.{}.json", VERSION_MAJOR,
-                                      VERSION_MINOR );
-            l_jsonFileIn.open( l_fileName );
-        }
-
-        IC( l_result.count( "file" ), l_fileName, l_jsonFileIn.is_open() );
-
-        json l_data;
-
-        {
-            std::ofstream l_jsonFileOut;
-
-            if ( !( l_jsonFileIn.good() ) ) {
-                IC( !( l_jsonFileIn.good() ), l_data.empty() );
-
-                l_data[ "integer" ] = 42;
-
-                IC( l_data.dump( 4 ), l_fileName );
-
-                l_jsonFileOut.open( l_fileName );
-
-                if ( l_jsonFileOut.good() ) {
-                    l_jsonFileOut << std::setw( 4 ) << l_data << std::endl;
-
-                } else {
-                    try {
-                        l_jsonFileOut.exceptions( l_jsonFileOut.failbit );
-
-                    } catch (
-                        const std::ios_base::failure& _jsonFileOutFailure ) {
-                        IC( _jsonFileOutFailure.code(),
-                            _jsonFileOutFailure.what() );
-                    }
+                    return ( 0 );
                 }
             }
 
-            if ( l_result.count( "integer" ) ) {
-                IC( l_result.count( "integer" ) );
+            // Global flags
+            {
+                const auto _resultGetFlag = [ &_resultHas, l_result ](
+                                                std::string _key,
+                                                bool _defaultValue ) -> bool {
+                    IC( _key, _defaultValue );
 
-                uint32_t l_integer = l_result[ "integer" ].as< int >();
+                    bool l_returnValue = _defaultValue;
 
-                IC( l_integer, l_data.empty() );
+                    if ( _resultHas( _key ) ) {
+                        IC( l_result[ _key ].as< bool >() );
 
-                l_data[ "integer" ] = l_integer;
+                        l_returnValue = l_result[ _key ].as< bool >();
+                    }
 
-                IC( l_data.dump( 4 ), l_fileName );
+                    return ( l_returnValue );
+                };
 
-                l_jsonFileOut.open( l_fileName );
+                g_isVerbose = _resultGetFlag( "verbose", g_isVerbose );
 
-                if ( l_jsonFileOut.good() ) {
-                    l_jsonFileOut << std::setw( 4 ) << l_data << std::endl;
+                IC( g_isVerbose );
 
-                } else {
-                    try {
-                        l_jsonFileOut.exceptions( l_jsonFileOut.failbit );
+                g_isDebug = _resultGetFlag( "verbose", g_isDebug );
 
-                    } catch (
-                        const std::ios_base::failure& _jsonFileOutFailure ) {
-                        IC( _jsonFileOutFailure.code(),
-                            _jsonFileOutFailure.what() );
+                IC( g_isDebug );
+            }
+
+            // Parse JSON files
+            {
+                json l_jsonPreferences;
+
+                // Preferences file
+                {
+                    const std::string l_folderName = FOLDER_NAME;
+                    const std::string l_preferencesFileNamePostfix =
+                        PREFERENCES_FILE_NAME_POSTFIX;
+                    const std::string l_preferencesFileName =
+                        fmt::format( "v{}_{}", g_versionMajor,
+                                     l_preferencesFileNamePostfix );
+                    const std::string l_preferencesFileExtension =
+                        PREFERENCES_FILE_EXTENSION;
+                    const std::string l_preferencesFilePath = fmt::format(
+                        "{}/{}.{}", l_folderName, l_preferencesFileName,
+                        l_preferencesFileExtension );
+
+                    IC( l_preferencesFilePath );
+
+                    // Parse preferences file
+                    {
+                        IC( l_jsonPreferences.empty() );
+
+                        // Parse preferences file
+                        {
+                            std::ifstream l_jsonFileIn( l_preferencesFilePath );
+
+                            // Is preferences file found
+                            IC( l_jsonFileIn.good() );
+
+                            if ( l_jsonFileIn.good() ) {
+                                l_jsonPreferences = json::parse( l_jsonFileIn );
+
+                            } else {
+                                l_jsonPreferences = g_preferencesDefault;
+                            }
+                        }
+
+                        // Set launch gamemode
+                        {
+                            const auto _trySetGamemode =
+                                [ &_resultHas, l_result, &l_jsonPreferences ](
+                                    std::string _gamemodeName,
+                                    gamemode_t _gamemode ) {
+                                    IC( _gamemodeName, _gamemode );
+
+                                    if ( _resultHas( _gamemodeName ) ) {
+                                        IC( l_jsonPreferences.dump( 4 ) );
+
+                                        l_jsonPreferences[ "gamemode" ] =
+                                            _gamemode;
+                                    }
+                                };
+
+                            _trySetGamemode( "online", ONLINE );
+                            _trySetGamemode( "spectate", SPECTATE );
+                            _trySetGamemode( "tournament", TOURNAMENT );
+                            _trySetGamemode( "practice", PRACTICE );
+                            _trySetGamemode( "cpu", CPU );
+                        }
+
+                        IC( l_jsonPreferences.dump( 4 ) );
+                    }
+
+                    // Overwrite preferences file
+                    {
+                        std::ofstream l_jsonFileOut;
+
+                        IC( l_preferencesFilePath );
+
+                        l_jsonFileOut.open( l_preferencesFilePath );
+
+                        if ( l_jsonFileOut.good() ) {
+                            l_jsonFileOut << std::setw( 4 ) << l_jsonPreferences
+                                          << std::endl;
+
+                        } else {
+                            try {
+                                l_jsonFileOut.exceptions(
+                                    l_jsonFileOut.failbit );
+
+                            } catch ( const std::ios_base::failure&
+                                          _jsonFileOutFailure ) {
+                                const std::error_code l_errorCode =
+                                    _jsonFileOutFailure.code();
+                                const std::string l_what =
+                                    _jsonFileOutFailure.what();
+
+                                IC( l_errorCode.value(), l_what );
+                                fmt::print( stderr, "{}: {}\n",
+                                            l_errorCode.value(), l_what );
+                            }
+                        }
                     }
                 }
 
-            } else if ( l_jsonFileIn.good() ) {
-                IC( l_jsonFileIn.good() );
-
-                l_data = json::parse( l_jsonFileIn );
-
-                uint32_t l_integer;
-
-                if ( l_data.contains( "integer" ) ) {
-                    IC( l_data.contains( "integer" ) );
-
-                    l_integer = l_data[ "integer" ];
-
-                } else {
-                    l_integer = -1;
-                }
-
-                IC( l_integer );
+                // Use preferences
+                {}
             }
-        }
 
-        IC( static_cast< uint32_t >( l_data[ "integer" ] ) );
+        } catch ( const cxxopts::exceptions::missing_argument&
+                      _parserMissingArgument ) {
+            const std::string l_what = _parserMissingArgument.what();
 
-        fmt::print( "{}\n", static_cast< uint32_t >( l_data[ "integer" ] ) );
-
-        if ( l_result.count( "debug" ) ) {
-            IC( l_result.count( "debug" ) );
-
-            const std::string l_dataDump = l_data.dump();
-
-            IC( l_dataDump );
+            IC( l_what );
+            fmt::print( stderr, "{}\n", l_what );
         }
     }
 
