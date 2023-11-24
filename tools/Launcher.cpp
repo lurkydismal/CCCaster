@@ -1,6 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <vector>
+#include <iostream>
 #include <string>
 #include <tr1/unordered_set>
 
@@ -185,11 +187,18 @@ bool hook ( const string& exe_path, const string& dll_path, bool high_priority, 
 
 int main ( int argc, char *argv[] )
 {
+    std::vector< std::string > l_argumentVector(
+            argv, argv + argc );
+
+    for ( const std::string _argument : l_argumentVector ) {
+        MessageBox ( 0, _argument.c_str(), "launcher error", MB_OK );
+    }
+
     unordered_set<string> options;
     for ( int i = 3; i < argc; ++i )
         options.insert ( string ( argv[i] ) );
 
-    popup_errors = ( options.find ( "--popup_errors" ) != options.end() );
+    // popup_errors = ( options.find ( "--popup_errors" ) != options.end() );
 
     // Create process and hook library.
     if ( argc > 2 && hook ( argv[1], argv[2], options.find ( "--high" ) != options.end(), options.find ( "--framestep" ) != options.end(), argv[3] ) )

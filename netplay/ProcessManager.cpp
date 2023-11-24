@@ -173,6 +173,9 @@ void ProcessManager::openGame ( bool highPriority, bool isTraining )
         args[i] = stringArgs[i].c_str();
     args[stringArgs.size()] = NULL;
 
+    LOG( "ttt=%s", path.c_str() );
+    LOG( "tttttt=%s", args );
+
     intptr_t returnCode = _spawnv ( _P_DETACH, path.c_str(), args );
     if ( returnCode < 0 )
         THROW_EXCEPTION ( "errno=%d", ERROR_PIPE_START, errno );
