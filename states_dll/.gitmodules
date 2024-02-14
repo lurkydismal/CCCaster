@@ -1,0 +1,6 @@
+[submodule "include/mingw-std-threads"]
+	path = include/mingw-std-threads
+	url = https://github.com/meganz/mingw-std-threads.git
+[submodule "Detours"]
+	path = Detours
+	url = https://github.com/microsoft/Detours.git
