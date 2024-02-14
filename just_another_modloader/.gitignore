@@ -1,0 +1,9 @@
+.vscode/
+*.code-workspace
+deprecated/
+build/
+*.bak
+*.txt
+*.dll
+/target
+/Cargo.lock

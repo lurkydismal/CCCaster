@@ -1,0 +1,17 @@
+{
+    name: Overlay
+    description: Overlay
+    update: reserved
+    version: v0.1.0
+    source: reserved
+    main: overlay.dll
+    events: {
+        extraDraw: extraDrawCallback
+        mainLoop$getLocalInput: mainLoop$getLocalInput
+        IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
+        IDirect3DDevice9Ex$EndScene: IDirect3DDevice9Ex$EndScene
+        IDirect3DDevice9Ex$PreReset: IDirect3DDevice9Ex$PreReset
+        IDirect3DDevice9Ex$PostReset: IDirect3DDevice9Ex$PostReset
+        CustomWindowProcedure: CustomWindowProcedure
+    }
+}

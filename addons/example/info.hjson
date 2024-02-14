@@ -1,0 +1,13 @@
+{
+    name: example_addon
+    description: example
+    update: reserved
+    version: v1.0.0
+    source: reserved
+    main: example.dll
+    events: {
+        onGameStarted: onGameStarted
+        onHosted: onHosted
+        onConnection: onConnection
+    }
+}
