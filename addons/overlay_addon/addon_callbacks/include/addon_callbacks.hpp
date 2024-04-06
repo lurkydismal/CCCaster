@@ -4,10 +4,6 @@
 
 enum AVAILABLE_FLAGS { SHOW_OVERLAY = 0b1 };
 
-extern bool g_imGuiInitialized;
-extern bool g_isDraw;
-extern uint32_t g_activeFlags;
-
 extern "C" {
 
 uint16_t __declspec( dllexport )
@@ -29,4 +25,6 @@ uint16_t __declspec( dllexport ) extraDrawCallback( void** _callbackArguments );
 
 uint16_t __declspec( dllexport )
     mainLoop$getLocalInput( void** _callbackArguments );
+
+uint16_t __declspec( dllexport ) overlay$Toggle( void );
 }

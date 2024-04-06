@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -6,40 +8,6 @@ typedef uint16_t addonCallbackFunction_t( void** );
 
 std::map< std::string, std::vector< addonCallbackFunction_t* > >
     g_callbackFunctionAddresses;
-
-static bool _addCallback( std::string const& _callbackName,
-                          uintptr_t _functionAddress,
-                          const bool _overwrite = false ) {
-    bool l_returnValue = true;
-
-    const auto l_result = g_callbackFunctionAddresses.emplace(
-        _callbackName,
-        std::vector< addonCallbackFunction_t* >( _functionAddress ) );
-
-    l_returnValue = l_result.second;
-
-    if ( ( _overwrite ) && ( !l_returnValue ) ) {
-        g_callbackFunctionAddresses[ _callbackName ] =
-            std::vector< addonCallbackFunction_t* >( _functionAddress );
-
-        l_returnValue = true;
-    }
-
-    return ( l_returnValue );
-}
-
-extern "C" bool __declspec( dllexport )
-    addCallback( const char* _callbackName,
-                 uintptr_t _functionAddress,
-                 const bool _overwrite = false ) {
-    bool l_returnValue = true;
-    std::string l_callbackName( _callbackName );
-
-    l_returnValue =
-        _addCallback( l_callbackName, _functionAddress, _overwrite );
-
-    return ( l_returnValue );
-}
 
 static bool _addCallbacks( std::string const& _callbackName,
                            size_t _functionCount,
@@ -95,7 +63,7 @@ static uint16_t _useCallback( std::string const& _callbackName,
         for ( const auto _callback : l_callbacks->second ) {
             const uint16_t l_result = _callback( _callbackArguments );
 
-            if ( !l_result ) {
+            if ( l_result ) {
                 l_returnValue = l_result;
             }
         }

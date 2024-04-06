@@ -1,0 +1,17 @@
+{
+    name: netplay
+    description: netplay
+    update: reserved
+    version: v0.1.0
+    source: reserved
+    main: netplay.dll
+    events: {
+        gameMode$opening: gameMode$opening
+        gameMode$characterSelect: gameMode$characterSelect
+        gameMode$loading: gameMode$loading
+        gameMode$inMatch: gameMode$inMatch
+        keyboard$getLocalInput$end: keyboard$getLocalInput$end
+        overlay$beforeDraw$ImGui: overlay$beforeDraw$ImGui
+        mainLoop$getLocalInput: mainLoop$getLocalInput
+    }
+}

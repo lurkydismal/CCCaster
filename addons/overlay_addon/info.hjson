@@ -7,11 +7,25 @@
     main: overlay.dll
     events: {
         extraDraw: extraDrawCallback
-        mainLoop$getLocalInput: mainLoop$getLocalInput
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
         IDirect3DDevice9Ex$EndScene: IDirect3DDevice9Ex$EndScene
         IDirect3DDevice9Ex$PreReset: IDirect3DDevice9Ex$PreReset
         IDirect3DDevice9Ex$PostReset: IDirect3DDevice9Ex$PostReset
         CustomWindowProcedure: CustomWindowProcedure
+        overlay$Toggle: overlay$Toggle
+        ImGui$Button: ImGui$Button
+        ImGui$InputText: ImGui$InputText
+        ImGui$Selectable: ImGui$Selectable
+        ImGui$Indent: ImGui$Indent
+        ImGui$SameLine: ImGui$SameLine
+        ImGui$BeginGroup: ImGui$BeginGroup
+        ImGui$EndGroup: ImGui$EndGroup
+        ImGui$BeginChild: ImGui$BeginChild
+        ImGui$EndChild: ImGui$EndChild
+        drawNative: drawNative
+        native$drawRectangle: native$drawRectangle
+        native$drawText: native$drawText
+        native$drawSprite: native$drawSprite
+        native$loadTextureFromMemory: native$loadTextureFromMemory
     }
 }

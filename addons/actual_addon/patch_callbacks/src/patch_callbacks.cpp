@@ -8,9 +8,10 @@
 #include "_useCallback.hpp"
 #include "a.h"
 #include "addon_callbacks.hpp"
+#include "applyInput.hpp"
 #include "button_input.h"
 #include "direction_input.h"
-#include "gameMode.h"
+#include "game_mode.h"
 #include "patch_t.hpp"
 #include "player_t.h"
 
@@ -23,41 +24,6 @@ uint32_t g_roundStartCounter = 0;
 uint8_t g_SFXMute[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
-
-static void applyInput( button_t _buttons,
-                        uint32_t _direction = 0,
-                        uint32_t _player = 1 ) {
-    char* const l_inputsStructureAddress =
-        *( reinterpret_cast< char** >( 0x76E6AC ) );
-    const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
-    const uintptr_t l_firstPlayerButtonsOffset = 0x24;    // 36
-    const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44
-    const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
-
-    switch ( _player ) {
-        case 1: {
-            *( reinterpret_cast< uint16_t* >( l_inputsStructureAddress +
-                                              l_firstPlayerDirectionOffset ) ) =
-                _direction;
-            *( reinterpret_cast< uint16_t* >( l_inputsStructureAddress +
-                                              l_firstPlayerButtonsOffset ) ) =
-                _buttons;
-
-            break;
-        }
-
-        case 2: {
-            *( reinterpret_cast< uint16_t* >(
-                l_inputsStructureAddress + l_secondPlayerDirectionOffset ) ) =
-                _direction;
-            *( reinterpret_cast< uint16_t* >( l_inputsStructureAddress +
-                                              l_secondPlayerButtonsOffset ) ) =
-                _buttons;
-
-            break;
-        }
-    }
-}
 
 void extraTexturesCallBack( void ) {
     uint16_t l_result = _useCallback( "extraTextures" );
@@ -94,6 +60,11 @@ void gameMainLoopCallback( void ) {
 #undef CC_WORLD_TIMER_ADDR
 
     if ( l_isNewFrame ) {
+        {
+            // New frame callback
+            uint16_t l_result = _useCallback( "mainLoop$bewFrame" );
+        }
+
         static uint32_t l_roundStartCounter = g_roundStartCounter;
         bool l_isNewRound = false;
 
@@ -104,7 +75,6 @@ void gameMainLoopCallback( void ) {
         }
 
         static gameMode_t l_currentGameMode = STARTUP;
-        static bool l_disableMenu = false;
 
         if ( l_currentGameMode !=
              *( reinterpret_cast< gameMode_t* >( CC_GAME_MODE_ADDR ) ) ) {
@@ -118,6 +88,12 @@ void gameMainLoopCallback( void ) {
         }
 
         switch ( l_currentGameMode ) {
+            case STARTUP: {
+                uint16_t l_result = _useCallback( "gameMode$startup" );
+
+                break;
+            }
+
             case OPENING: {
                 *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
@@ -136,37 +112,58 @@ void gameMainLoopCallback( void ) {
                 return;
             }
 
-            case MAIN: {
-                *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
+                // case MAIN: {
+                //     *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) )
+                //     = 1;
 
-                // Force the game to go to a certain mode
-                // jmp 0042B4B6
-                // static patch_t forceGotoVersus{ 0x42B475, { 0xEB, 0x3F } };
-                // l_disableMenu = true;
+                //     {
+                //         static patch_t forceGotoGameModePatch;
 
-                // jmp 0042B4D3
-                // static patch_t forceGotoVersusCPU{ 0x42B475, { 0xEB, 0x5C }
-                // };
+                //         if ( !forceGotoGameModePatch ) {
+                //             // Force the game to go to a certain mode
+                //             // jmp 0042B4B6
+                //             forceGotoGameModePatch.apply( 0x42B475,
+                //                                           { 0xEB, 0x3F } );
+                //             uint16_t l_result = _useCallback(
+                //             "gameMode$versus" );
 
-                // jmp 0042B499
-                static patch_t forceGotoTraining{ 0x42B475, { 0xEB, 0x22 } };
+                //             // jmp 0042B4D3
+                //             // static patch_t forceGotoVersusCPU{ 0x42B475, {
+                //             0xEB,
+                //             // 0x5C
+                //             // }
+                //             // };
+                //             // uint16_t l_result = _useCallback(
+                //             // "gameMode$versusCPU" );
 
-                // jmp 0042B541
-                // static patch_t forceGotoReplay{
-                //     0x42B475, { 0xE9, 0xC7, 0x00, 0x00, 0x00 } };
+                //             // jmp 0042B499
+                //             // static patch_t forceGotoTraining{ 0x42B475, {
+                //             0xEB,
+                //             // 0x22 } }; uint16_t l_result = _useCallback(
+                //             // "gameMode$training" );
 
-                if ( l_framesPassed % 2 ) {
-                    applyInput( static_cast< button_t >( A | CONFIRM ) );
-                }
+                //             // jmp 0042B541
+                //             // static patch_t forceGotoReplay{
+                //             //     0x42B475, { 0xE9, 0xC7, 0x00, 0x00, 0x00 }
+                //             };
+                //             // uint16_t l_result = _useCallback(
+                //             "gameMode$replay"
+                //             // );
+                //         }
+                //     }
 
-                uint16_t l_result = _useCallback( "gameMode$main" );
+                //     if ( l_framesPassed % 2 ) {
+                //         applyInput( static_cast< button_t >( A | CONFIRM ) );
+                //     }
 
-                if ( l_framesPassed % 2 ) {
-                    return;
-                }
+                //     uint16_t l_result = _useCallback( "gameMode$main" );
 
-                break;
-            }
+                //     if ( l_framesPassed % 2 ) {
+                //         return;
+                //     }
+
+                //     break;
+                // }
 
             case CHARACTER_SELECT: {
                 uint16_t l_result = _useCallback( "gameMode$characterSelect" );
@@ -211,56 +208,10 @@ void gameMainLoopCallback( void ) {
             uint16_t l_result =
                 _useCallback( "mainLoop$getLocalInput", 3, l_localPlayer,
                               &l_direction, &l_buttons );
-
-#if defined( CLIENT ) || defined( SERVER )
-
-            printf( "1 %d %d %d\n", l_buttons, l_direction, l_localPlayer );
-
-#endif // CLIENT || SERVER
-        }
-
-        if ( l_disableMenu ) {
-            l_buttons = static_cast< button_t >(
-                static_cast< uint16_t >( l_buttons ) &
-                ~( static_cast< uint16_t >( START ) ) );
         }
 
         applyInput( l_buttons, l_direction, l_localPlayer );
-
-#if defined( CLIENT ) || defined( SERVER )
-
-        char l_allocatedMemory[ HEAP_MEMORY_SIZE ];
-
-        char* l_secondPlayerInput = &( l_allocatedMemory[ 0 ] );
-
-        *( reinterpret_cast< uint16_t* >( l_secondPlayerInput ) ) =
-            COMBINE_INPUT( l_buttons, l_direction );
-
-        printf( "%d\n", COMBINE_INPUT( l_buttons, l_direction ) );
-
-        send( g_connectSocket, l_secondPlayerInput, sizeof( uint16_t ), 0 );
-
-        recv( g_connectSocket, l_secondPlayerInput, sizeof( uint16_t ), 0 );
-
-#if defined( CLIENT )
-
-        player_t l_remotePlayer = FIRST;
-
-#elif defined( SERVER )
-
-        player_t l_remotePlayer = SECOND;
-
-#endif // CLIENT
-
-        printf( "3 %d %d %d\n",
-                INLINE_INPUT(
-                    *( reinterpret_cast< uint16_t* >( l_secondPlayerInput ) ) ),
-                l_remotePlayer );
-
-        applyInput( INLINE_INPUT( *( reinterpret_cast< uint16_t* >(
-                        l_secondPlayerInput ) ) ),
-                    l_remotePlayer );
-
-#endif // CLIENT || SERVER
     }
+
+    uint16_t l_result = _useCallback( "mainLoop$end" );
 }

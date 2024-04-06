@@ -1,6 +1,6 @@
-#include <cstdarg>
-
 #include "_useCallback.hpp"
+
+#include <cstdarg>
 
 uint16_t _useCallback( std::string const& _callbackName,
                        const size_t _callbackArgumentsCount,

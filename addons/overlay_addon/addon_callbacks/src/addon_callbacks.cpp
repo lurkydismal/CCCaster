@@ -1,6 +1,8 @@
 #include "addon_callbacks.hpp"
 
-#include "button_mappings.hpp"
+#include <vector>
+
+#include "_useCallback.hpp"
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "imgui.h"
@@ -12,9 +14,10 @@
 #pragma comment( lib, "gdi32.lib" )
 #pragma comment( lib, "dwmapi.lib" )
 
-bool g_isDraw = false;
-
 uint32_t g_activeFlags = 0;
+useCallbackFunction_t g_useCallback = NULL;
+bool g_isDraw = false;
+extern bool g_imGuiInitialized;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd,
                                                               UINT msg,
@@ -23,6 +26,19 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd,
 
 extern "C" uint16_t __declspec( dllexport )
     IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
+    HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+
+    if ( !l_statesDll ) {
+        exit( 1 );
+    }
+
+    g_useCallback =
+        ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback" );
+
+    if ( !g_useCallback ) {
+        exit( 1 );
+    }
+
     HWND _hFocusWindow = ( HWND )_callbackArguments[ 2 ];
     IDirect3DDevice9** _ppReturnedDeviceInterface =
         ( IDirect3DDevice9** )_callbackArguments[ 5 ];
@@ -39,15 +55,8 @@ extern "C" uint16_t __declspec( dllexport )
 extern "C" uint16_t __declspec( dllexport )
     IDirect3DDevice9Ex$EndScene( void** _callbackArguments ) {
     if ( ( g_activeFlags & SHOW_OVERLAY ) && ( g_isDraw ) ) {
-        // Start the Dear ImGui frame
-        ImGui_ImplDX9_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-
-        ImGui::NewFrame();
-
-        ImGui::Begin( "Another Window" );
-
-        ImGui::Text( "Hello from another window!" );
+        uint16_t l_result =
+            _useCallback( "overlay$beforeDraw$ImGui", 1, &ImGui::Text );
 
         ImGui::End();
 
@@ -103,32 +112,32 @@ extern "C" uint16_t __declspec( dllexport )
     LPARAM _lAdditionalMessage = ( LPARAM )_callbackArguments[ 3 ];
     // int idx = ( int )_callbackArguments[ 4 ];
 
-    return ( !ImGui_ImplWin32_WndProcHandler( _windowHandle, _message,
-                                              _wideAdditionalMessage,
-                                              _lAdditionalMessage ) );
+    return ( ImGui_ImplWin32_WndProcHandler( _windowHandle, _message,
+                                             _wideAdditionalMessage,
+                                             _lAdditionalMessage ) );
 }
 
 extern "C" uint16_t __declspec( dllexport )
     extraDrawCallback( void** _callbackArguments ) {
-    g_isDraw = true;
+    if ( !g_isDraw ) {
+        // Start the Dear ImGui frame
+        ImGui_ImplDX9_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+
+        ImGui::NewFrame();
+
+        ImGui::Begin( "Another Window" );
+
+        g_isDraw = true;
+    }
 
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    mainLoop$getLocalInput( void** _callbackArguments ) {
-    static uint32_t l_framesPassed = 0;
+extern "C" uint16_t __declspec( dllexport ) overlay$Toggle( void ) {
+    uint16_t l_returnValue = 0;
 
-    if ( l_framesPassed >= 10 ) {
-        l_framesPassed = 0;
+    g_activeFlags ^= SHOW_OVERLAY;
 
-        if ( GetAsyncKeyState( g_buttonMappings.at( "ToggleOverlay" ) ) ) {
-            g_activeFlags ^= SHOW_OVERLAY;
-        }
-
-    } else {
-        l_framesPassed++;
-    }
-
-    return ( 0 );
+    return ( g_activeFlags & SHOW_OVERLAY );
 }

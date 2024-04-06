@@ -12,15 +12,6 @@
 #pragma comment( lib, "ws2_32.lib" )
 #pragma comment( lib, "mswsock.lib" )
 
-#if defined( CLIENT ) || defined( SERVER )
-
-WSADATA g_wsaData;
-struct addrinfo g_hints;
-struct addrinfo* g_result;
-SOCKET g_connectSocket;
-
-#endif // CLIENT || SERVER
-
 /* unused */
 
 ///////////////
@@ -538,110 +529,10 @@ BOOL WINAPI DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved ) {
         case DLL_PROCESS_ATTACH: {
             init();
 
-#if defined( CLIENT ) || defined( SERVER )
-
-            WSAStartup( MAKEWORD( 2, 2 ), &g_wsaData );
-
-            ZeroMemory( &g_hints, sizeof( g_hints ) );
-
-#if defined( CLIENT )
-
-            g_hints.ai_family = AF_UNSPEC;
-            g_hints.ai_socktype = SOCK_STREAM;
-            g_hints.ai_protocol = IPPROTO_TCP;
-
-#elif defined( SERVER ) // CLIENT
-
-            g_hints.ai_family = AF_INET;
-            g_hints.ai_socktype = SOCK_STREAM;
-            g_hints.ai_protocol = IPPROTO_TCP;
-            g_hints.ai_flags = AI_PASSIVE;
-
-#endif // CLIENT
-
-#if defined( CLIENT )
-
-            getaddrinfo( "127.0.0.1", "10800", &g_hints, &g_result );
-
-#elif defined( SERVER ) // CLIENT
-
-            getaddrinfo( NULL, "10800", &g_hints, &g_result );
-
-#endif // CLIENT
-
-#if defined( CLIENT )
-
-            // Attempt to connect to an address until one succeeds
-            for ( struct addrinfo* _currentAddressInformation = g_result;
-                  _currentAddressInformation != NULL;
-                  _currentAddressInformation =
-                      _currentAddressInformation->ai_next ) {
-                g_connectSocket =
-                    socket( _currentAddressInformation->ai_family,
-                            _currentAddressInformation->ai_socktype,
-                            _currentAddressInformation->ai_protocol );
-
-                if ( g_connectSocket == INVALID_SOCKET ) {
-                    WSACleanup();
-
-                    return ( 1 );
-                }
-
-                // Connect to server
-                if ( connect( g_connectSocket,
-                              _currentAddressInformation->ai_addr,
-                              ( int )_currentAddressInformation->ai_addrlen ) ==
-                     SOCKET_ERROR ) {
-                    closesocket( g_connectSocket );
-
-                    g_connectSocket = INVALID_SOCKET;
-
-                    continue;
-                }
-
-                break;
-            }
-
-#elif defined( SERVER ) // CLIENT
-
-            g_connectSocket =
-                socket( g_result->ai_family, g_result->ai_socktype,
-                        g_result->ai_protocol );
-
-            bind( g_connectSocket, g_result->ai_addr,
-                  ( int )g_result->ai_addrlen );
-
-#endif // CLIENT
-
-            freeaddrinfo( g_result );
-
-#if defined( SERVER )
-
-            listen( g_connectSocket, SOMAXCONN );
-
-            SOCKET l_buffer = accept( g_connectSocket, NULL, NULL );
-
-            closesocket( g_connectSocket );
-
-            g_connectSocket = l_buffer;
-
-#endif // SERVER
-
-#endif // CLIENT || SERVER
-
             break;
         }
 
         case DLL_PROCESS_DETACH: {
-#if defined( CLIENT ) || defined( SERVER )
-
-            // Cleanup
-            shutdown( g_connectSocket, SD_SEND );
-            closesocket( g_connectSocket );
-            WSACleanup();
-
-#endif // CLIENT || SERVER
-
             break;
         }
     }
