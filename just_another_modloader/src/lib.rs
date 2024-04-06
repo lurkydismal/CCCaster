@@ -245,11 +245,6 @@ unsafe fn load_addons_directory() {
     // Load event handling DLL into the game process.
     let states_h_module = LoadLibraryA(format!("states.dll\0",).as_ptr() as LPCSTR) as HMODULE;
 
-    let states_function_add_callback = v_address_to_function!(
-        GetProcAddress(states_h_module, ("addCallback\0").as_ptr() as LPCSTR) as FARPROC,
-        extern "C" fn(LPCSTR, usize)
-    );
-
     let states_function_add_callbacks = v_address_to_function!(
         GetProcAddress(states_h_module, ("addCallbacks\0").as_ptr() as LPCSTR) as FARPROC,
         extern "C" fn(LPCSTR, usize, *const usize)

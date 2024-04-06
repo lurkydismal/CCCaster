@@ -2,5 +2,8 @@
 
 #include <cstdint>
 
-extern "C" uint16_t __declspec( dllexport )
-    mainLoop$getLocalInput( void** _callbackArguments );
+enum AVAILABLE_FLAGS_KEYBOARD {
+    SHOW_OVERLAY_KEY_CONFIG = 0b1,
+    SHOW_OVERLAY_KEY_CONFIG_ACTION = 0b1 << 1,
+    SHOW_OVERLAY_KEY_CONFIG_NATIVE = 0b1 << 2
+};

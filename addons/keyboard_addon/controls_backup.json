@@ -13,6 +13,8 @@
         "FN1": 221,
         "FN2": 82,
         "START": 84,
-        "ToggleOverlay": 115
+        "ToggleOverlay_KeyConfig_Native": 115,
+        "ToggleOverlay_Netplay": 114,
+        "ToggleOverlay_KeyConfig": 113
     }
 }
