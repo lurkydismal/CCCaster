@@ -12,52 +12,52 @@ namespace {
       |         |
       C --------D
 */
-extern "C" int32_t drawRectangle( int32_t _x,
-                                  int32_t _y,
-                                  int32_t _width,
-                                  int32_t _height,
-                                  int32_t _a,
-                                  int32_t _b,
-                                  int32_t _c,
-                                  int32_t _d,
-                                  int32_t _layerIndex = 0x2ff );
+extern "C" uint32_t drawRectangle( uint32_t _x,
+                                   uint32_t _y,
+                                   uint32_t _width,
+                                   uint32_t _height,
+                                   uint32_t _a,
+                                   uint32_t _b,
+                                   uint32_t _c,
+                                   uint32_t _d,
+                                   uint32_t _layerIndex = 0x2ff );
 
-extern "C" int32_t drawText( int32_t _width,
-                             int32_t _height,
-                             int32_t _x,
-                             int32_t _y,
-                             const char* _text,
-                             int32_t _alpha = 0xff,
-                             int32_t _shade = 0xff,
-                             int32_t _shade2 = 0x1f0,
-                             void* _fontAddress = ( void* )FONT2,
-                             int32_t _letterSpacing = 0,
-                             int32_t _layerIndex = 0,
-                             char* out = 0 );
+extern "C" uint32_t drawText( uint32_t _width,
+                              uint32_t _height,
+                              uint32_t _x,
+                              uint32_t _y,
+                              const char* _text,
+                              uint32_t _alpha = 0xff,
+                              uint32_t _shade = 0xff,
+                              uint32_t _shade2 = 0x1f0,
+                              void* _fontAddress = ( void* )FONT2,
+                              uint32_t _letterSpacing = 0,
+                              uint32_t _layerIndex = 0,
+                              char* _out = 0 );
 
-extern "C" int32_t drawSprite( int32_t spriteWidth,
-                               int32_t dxdevice,
-                               int32_t texAddr,
-                               int32_t screenXAddr,
-                               int32_t screenYAddr,
-                               int32_t spriteHeight,
-                               int32_t texXAddr,
-                               int32_t texYAddr,
-                               int32_t texXSize,
-                               int32_t texYSize,
-                               int32_t flags,
-                               int32_t unk,
-                               int32_t _layerIndex );
+extern "C" uint32_t drawSprite( uint32_t spriteWidth,
+                                uint32_t dxdevice,
+                                uint32_t texAddr,
+                                uint32_t screenXAddr,
+                                uint32_t screenYAddr,
+                                uint32_t spriteHeight,
+                                uint32_t texXAddr,
+                                uint32_t texYAddr,
+                                uint32_t texXSize,
+                                uint32_t texYSize,
+                                uint32_t flags,
+                                uint32_t unk,
+                                uint32_t _layerIndex );
 
-extern "C" int32_t loadTextureFromMemory( char* _textureBuffer,
-                                          uint32_t _textureBufferLength,
-                                          char* _textureBuffer2 = 0,
-                                          uint32_t _textureBuffer2Length = 0,
-                                          uint32_t _unknownFlags = 0 );
+extern "C" uint32_t loadTextureFromMemory( char* _textureBuffer,
+                                           uint32_t _textureBufferLength,
+                                           char* _textureBuffer2 = 0,
+                                           uint32_t _textureBuffer2Length = 0,
+                                           uint32_t _unknownFlags = 0 );
 
 } // namespace
 
-inline uint32_t getRectangleColor( uint8_t _alpha,
+inline uint32_t getColorRectangle( uint8_t _alpha,
                                    uint8_t _red,
                                    uint8_t _green,
                                    uint8_t _blue ) {
@@ -78,13 +78,18 @@ extern "C" uint16_t __declspec( dllexport )
     uint32_t* l_d = ( uint32_t* )_callbackArguments[ 7 ];
     uint16_t* l_layerIndex = ( uint16_t* )_callbackArguments[ 8 ];
 
-    if ( !l_layerIndex ) {
-        drawRectangle( *l_x, *l_y, *l_width, *l_height, *l_a, *l_b, *l_c,
-                       *l_d );
+    switch ( l_layerIndex == NULL ) {
+        case 0: {
+            drawRectangle( *l_x, *l_y, *l_width, *l_height, *l_a, *l_b, *l_c,
+                           *l_d, *l_layerIndex );
 
-    } else {
-        drawRectangle( *l_x, *l_y, *l_width, *l_height, *l_a, *l_b, *l_c, *l_d,
-                       *l_layerIndex );
+            break;
+        }
+
+        default: {
+            drawRectangle( *l_x, *l_y, *l_width, *l_height, *l_a, *l_b, *l_c,
+                           *l_d );
+        }
     }
 
     return ( l_returnValue );
@@ -111,6 +116,83 @@ extern "C" uint16_t __declspec( dllexport )
 extern "C" uint16_t __declspec( dllexport )
     native$drawText( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
+
+    uint32_t* l_width = ( uint32_t* )_callbackArguments[ 0 ];
+    uint32_t* l_height = ( uint32_t* )_callbackArguments[ 1 ];
+    uint32_t* l_x = ( uint32_t* )_callbackArguments[ 2 ];
+    uint32_t* l_y = ( uint32_t* )_callbackArguments[ 3 ];
+    const char** l_text = ( const char** )_callbackArguments[ 4 ];
+    uint32_t* l_alpha = ( uint32_t* )_callbackArguments[ 5 ];
+    uint32_t* l_shade = ( uint32_t* )_callbackArguments[ 6 ];
+    uint32_t* l_shade2 = ( uint32_t* )_callbackArguments[ 7 ];
+    void** l_fontAddress = ( void** )_callbackArguments[ 8 ];
+    uint32_t* l_letterSpacing = ( uint32_t* )_callbackArguments[ 9 ];
+    uint32_t* l_layerIndex = ( uint32_t* )_callbackArguments[ 10 ];
+    char** l_out = ( char** )_callbackArguments[ 11 ];
+
+    switch ( ( l_width == NULL ) && ( l_height == NULL ) && ( l_x == NULL ) && ( l_y == NULL ) && ( l_text == NULL ) && ( l_alpha == NULL ) + ( l_shade == NULL ) + ( l_shade2 == NULL ) +
+             ( l_fontAddress == NULL ) + ( l_letterSpacing == NULL ) +
+             ( l_layerIndex == NULL ) + ( l_out == NULL ) ) {
+        case 0: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha,
+                      *l_shade, *l_shade2, *l_fontAddress, *l_letterSpacing,
+                      *l_layerIndex, *l_out );
+
+            break;
+        }
+
+        case 1: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha,
+                      *l_shade, *l_shade2, *l_fontAddress, *l_letterSpacing,
+                      *l_layerIndex );
+
+            break;
+        }
+
+        case 2: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha,
+                      *l_shade, *l_shade2, *l_fontAddress, *l_letterSpacing );
+
+            break;
+        }
+
+        case 3: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha,
+                      *l_shade, *l_shade2, *l_fontAddress );
+
+            break;
+        }
+
+        case 4: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha,
+                      *l_shade, *l_shade2 );
+
+            break;
+        }
+
+        case 5: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha,
+                      *l_shade );
+
+            break;
+        }
+
+        case 6: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text, *l_alpha );
+
+            break;
+        }
+
+        case 7: {
+            drawText( *l_width, *l_height, *l_x, *l_y, *l_text );
+
+            break;
+        }
+
+        default: {
+            l_returnValue = ( 1 );
+        }
+    }
 
     return ( l_returnValue );
 }
@@ -155,7 +237,7 @@ extern "C" uint16_t __declspec( dllexport )
 
 extern "C" uint16_t __declspec( dllexport )
     drawNative( void** _callbackArguments ) {
-    const uint32_t l_color = getRectangleColor( 0xff, 30, 30, 0xff );
+    const uint32_t l_color = getColorRectangle( 0xff, 30, 30, 0xff );
 
     // drawRectangle( 640 - 200 - 10, 50, 200 + 5, 300 - 50, l_color, l_color,
     //                l_color, l_color, 0x2ff );
@@ -171,20 +253,38 @@ extern "C" uint16_t __declspec( dllexport )
 
     // coordinates_t l_coordinates = { l_x, l_y };
     // struct size l_size = { l_width, l_height };
-    // colorsRectangle_t l_colorsRectangle = { l_color, l_color, l_color, l_color };
+    // colorsRectangle_t l_colorsRectangle = { l_color, l_color, l_color,
+    // l_color };
 
     // _useCallback( "_native$drawRectangle", 9, &l_coordinates, &l_size,
     //               &l_colorsRectangle );
 
-    //     std::string l_test = "ttt";
+    std::string l_test = "ttt";
 
-    //     drawText( 24, 24, 200 - 1, 50, const_cast< char* >( l_test.data() ),
-    //               0xff, // alpha
-    //               0xff, // shade
-    //               0x1f0, ( void* )FONT2, 0, 0, 0 );
+    drawText( 24, 24, 200 - 1, 50, l_test.data(),
+              0xff, // alpha
+              0xff, // shade
+              0x1f0, ( void* )FONT2, 0, 0, 0 );
 
-    //     drawSprite( 25, 0, *( int* )BUTTON_SPRITE_TEX, 200, 150, 25, 0x19 *
-    //     6, 0,
+    uint32_t l_width2 = 24;
+    uint32_t l_height2 = 24;
+    uint32_t l_x2 = ( 200 - 1 );
+    uint32_t l_y2 = 50;
+    const char* l_text = l_test.data();
+    uint32_t l_alpha = 0xff;
+    uint32_t l_shade = 0xff;
+    uint32_t l_shade2 = 0x1f0;
+    void* l_fontAddress = ( void* )FONT2;
+    uint32_t l_letterSpacing = 0;
+    uint32_t l_layerIndex2 = 0;
+    char* l_out = 0;
+
+    _useCallback( "native$drawText", 12, &l_width2, &l_height2, &l_x2, &l_y2,
+                  &l_test, &l_alpha, &l_shade, &l_shade2, &l_fontAddress,
+                  &l_letterSpacing, &l_layerIndex2, &l_out );
+
+    //     drawSprite( 25, 0, *( uint32_t* )BUTTON_SPRITE_TEX, 200, 150, 25,
+    //     0x19 * 6, 0,
     //                 0x19, 0x19, 0xFFFFFFFF, 0, 0x2cc );
 
     return ( 0 );
