@@ -205,7 +205,9 @@ extern "C" uint16_t __declspec( dllexport )
 
             } else if ( GetAsyncKeyState( g_hotkeyMappings.at(
                             "ToggleOverlay_KeyConfig_Native" ) ) ) {
-                g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
+                if ( _useCallback( "overlay$Toggle" ) ) {
+                    g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
+                }
             }
 
         } else {
@@ -332,8 +334,9 @@ extern "C" uint16_t __declspec( dllexport )
 }
 
 extern "C" uint16_t __declspec( dllexport ) overlay$Toggle( void ) {
-    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG_ACTION;
     g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG;
+    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG_ACTION;
+    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG_NATIVE;
 
     return ( 0 );
 }
