@@ -13,19 +13,19 @@
 // Addresses for sprite textures
 #define BUTTON_SPRITE_TEX ( 0x74d5e8 )
 
-typedef struct {
-    uint32_t x;
-    uint32_t y;
-} coordinates_t;
+// typedef struct {
+//     uint32_t x;
+//     uint32_t y;
+// } coordinates_t;
 
-struct size {
-    uint32_t width;
-    uint32_t height;
-};
+// struct size {
+//     uint32_t width;
+//     uint32_t height;
+// };
 
-typedef struct {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-} colorsRectangle_t;
+// typedef struct {
+//     uint32_t a;
+//     uint32_t b;
+//     uint32_t c;
+//     uint32_t d;
+// } colorsRectangle_t;

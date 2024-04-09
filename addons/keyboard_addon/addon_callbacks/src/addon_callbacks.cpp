@@ -15,6 +15,7 @@
 #include "direction_mappings.hpp"
 #include "hotkey_mappings.hpp"
 #include "imgui.hpp"
+#include "native.hpp"
 
 #pragma comment( lib, "user32.lib" )
 
@@ -205,9 +206,9 @@ extern "C" uint16_t __declspec( dllexport )
 
             } else if ( GetAsyncKeyState( g_hotkeyMappings.at(
                             "ToggleOverlay_KeyConfig_Native" ) ) ) {
-                if ( _useCallback( "overlay$Toggle" ) ) {
-                    g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
-                }
+                // if ( _useCallback( "overlay$Toggle" ) ) {
+                g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
+                // }
             }
 
         } else {
@@ -344,7 +345,62 @@ extern "C" uint16_t __declspec( dllexport ) overlay$Toggle( void ) {
 extern "C" uint16_t __declspec( dllexport )
     extraDrawCallback( void** _callbackArguments ) {
     if ( g_activeFlagsKeyboard & SHOW_OVERLAY_KEY_CONFIG_NATIVE ) {
-        _useCallback( "drawNative" );
+        const uint8_t l_alpha = 0xff;
+        const uint8_t l_red = 30;
+        const uint8_t l_green = 30;
+        const uint8_t l_blue = 0xff;
+        uint32_t l_color = 0;
+
+        _useCallback( "native$getColorForRectangle", 5, &l_alpha, &l_red,
+                      &l_green, &l_blue, &l_color );
+
+        uint32_t l_x = ( 640 - 600 - 10 );
+        uint32_t l_y = 50;
+        uint32_t l_width = ( 200 + 5 );
+        uint32_t l_height = ( 300 - 50 );
+        uint32_t l_layerIndex = 0x2ff;
+
+        _useCallback( "native$drawRectangle", 9, &l_x, &l_y, &l_width,
+                      &l_height, &l_color, &l_color, &l_color, &l_color,
+                      &l_layerIndex );
+
+        std::string l_test = "ttt";
+
+        uint32_t l_width2 = 24;
+        uint32_t l_height2 = 24;
+        uint32_t l_x2 = ( 300 - 1 );
+        uint32_t l_y2 = 50;
+        const char* l_text = l_test.data();
+        uint32_t l_alpha2 = 0xff;
+        uint32_t l_shade = 0xff;
+        uint32_t l_shade2 = 0x1f0;
+        uintptr_t* l_fontAddress = ( uintptr_t* )FONT2;
+        uint32_t l_letterSpacing = 0;
+        uint32_t l_layerIndex2 = 0;
+        char* l_out = 0;
+
+        _useCallback( "native$drawText", 12, &l_width2, &l_height2, &l_x2,
+                      &l_y2, &l_text, &l_alpha2, &l_shade, &l_shade2,
+                      l_fontAddress, &l_letterSpacing, &l_layerIndex2, &l_out );
+
+        uint32_t l_width3 = 25;
+        uint32_t l_directXDevice = 0;
+        uintptr_t* l_textureAddress = ( uintptr_t* )BUTTON_SPRITE_TEX;
+        uint32_t l_x3 = 500;
+        uint32_t l_y3 = 250;
+        uint32_t l_height3 = 25;
+        uint32_t l_textureX = ( 0x19 * 6 );
+        uint32_t l_textureY = 0;
+        uint32_t l_textureWidth = 0x19;
+        uint32_t l_textureHeight = 0x19;
+        uint32_t l_flags = 0xFFFFFFFF;
+        uint32_t l_unknown = 0;
+        uint32_t l_layerIndex3 = 0x2cc;
+
+        _useCallback( "native$drawSprite", 13, &l_width3, &l_directXDevice,
+                      &*l_textureAddress, &l_x3, &l_y3, &l_height3, &l_textureX,
+                      &l_textureY, &l_textureWidth, &l_textureHeight, &l_flags,
+                      &l_unknown, &l_layerIndex3 );
     }
 
     return ( 0 );
