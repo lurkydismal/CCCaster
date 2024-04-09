@@ -22,10 +22,10 @@
         ImGui$EndGroup: ImGui$EndGroup
         ImGui$BeginChild: ImGui$BeginChild
         ImGui$EndChild: ImGui$EndChild
-        drawNative: drawNative
+        native$getColorForRectangle: native$getColorForRectangle
         native$drawRectangle: native$drawRectangle
         native$drawText: native$drawText
-        native$drawSprite: native$drawSprite
         native$loadTextureFromMemory: native$loadTextureFromMemory
+        native$drawSprite: native$drawSprite
     }
 }
