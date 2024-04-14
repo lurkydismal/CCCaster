@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include <stdint.h>
+#include <string.h>
 
 #ifdef __cplusplus
 namespace Iat_hook {
@@ -28,14 +29,19 @@ void** find_iat_func( const char* function,
                            .DataDirectory[ IMAGE_DIRECTORY_ENTRY_IMPORT ]
                            .VirtualAddress );
 
-    __try {
+    try {
         while ( pImports->Name != 0 ) {
             auto mod_name = reinterpret_cast< const char* >(
                 ( size_t* )( pImports->Name + ( size_t )hModule ) );
 
-            if ( _stricmp( reinterpret_cast< const char* >( instance +
-                                                            pImports->Name ),
-                           mod_name ) == 0 ) {
+            std::string l_temp( reinterpret_cast< const char* >( instance + pImports->Name ) );
+            std::transform( l_temp.begin(), l_temp.end(), l_temp.begin(),
+                        []( unsigned char _character ){ return std::tolower( _character ); } );
+            std::string l_modName( mod_name );
+            std::transform( l_modName.begin(), l_modName.end(), l_modName.begin(),
+    []( unsigned char _character ){ return std::tolower( _character ); } );
+
+            if ( l_temp == l_modName ) {
                 if ( pImports->OriginalFirstThunk != 0 ) {
                     const PIMAGE_THUNK_DATA pThunk =
                         reinterpret_cast< PIMAGE_THUNK_DATA >(
@@ -78,12 +84,10 @@ void** find_iat_func( const char* function,
             pImports++;
         }
 
-    } __except ( ( GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION )
-                     ? EXCEPTION_EXECUTE_HANDLER
-                     : EXCEPTION_CONTINUE_SEARCH ) {
+    } catch ( const std::exception& _exception ) {
     }
 
-    __try {
+    try {
         for ( IMAGE_IMPORT_DESCRIPTOR* iid = pImports; iid->Name != 0; iid++ ) {
             if ( chModule != NULL ) {
                 char* mod_name =
@@ -123,9 +127,7 @@ void** find_iat_func( const char* function,
             }
         }
 
-    } __except ( ( GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION )
-                     ? EXCEPTION_EXECUTE_HANDLER
-                     : EXCEPTION_CONTINUE_SEARCH ) {
+    } catch ( const std::exception& _exception ) {
     }
 
     return ( 0 );

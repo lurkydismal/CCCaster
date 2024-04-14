@@ -1,6 +1,10 @@
 #pragma once
 
+#undef min
+#undef max
+
 #include <algorithm>
+#include <type_traits>
 #include <unordered_map>
 
 constexpr UINT MaxIndex = 16;
@@ -19,83 +23,128 @@ public:
         }
     }
 
-    template < typename T >
+    template < class T, class Enable = void >
     struct AddressCacheIndex {
         static constexpr UINT CacheIndex = 0;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3D9Ex > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3D9Ex >::value >::type > {
         static constexpr UINT CacheIndex = 1;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DDevice9Ex > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DDevice9Ex >::value >::type > {
         static constexpr UINT CacheIndex = 2;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DCubeTexture9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DCubeTexture9 >::value >::type > {
         static constexpr UINT CacheIndex = 3;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DIndexBuffer9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DIndexBuffer9 >::value >::type > {
         static constexpr UINT CacheIndex = 4;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DPixelShader9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DPixelShader9 >::value >::type > {
         static constexpr UINT CacheIndex = 5;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DQuery9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DQuery9 >::value >::type > {
         static constexpr UINT CacheIndex = 6;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DStateBlock9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DStateBlock9 >::value >::type > {
         static constexpr UINT CacheIndex = 7;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DSurface9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DSurface9 >::value >::type > {
         static constexpr UINT CacheIndex = 8;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DSwapChain9Ex > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DSwapChain9Ex >::value >::type > {
         static constexpr UINT CacheIndex = 9;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DTexture9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DTexture9 >::value >::type > {
         static constexpr UINT CacheIndex = 10;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DVertexBuffer9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DVertexBuffer9 >::value >::type > {
         static constexpr UINT CacheIndex = 11;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DVertexDeclaration9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DVertexDeclaration9 >::value >::type > {
         static constexpr UINT CacheIndex = 12;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DVertexShader9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DVertexShader9 >::value >::type > {
         static constexpr UINT CacheIndex = 13;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DVolume9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DVolume9 >::value >::type > {
         static constexpr UINT CacheIndex = 14;
     };
 
-    template <>
-    struct AddressCacheIndex< m_IDirect3DVolumeTexture9 > {
+    template < class T >
+    struct AddressCacheIndex<
+        T,
+        typename std::enable_if<
+            std::is_same< T, m_IDirect3DVolumeTexture9 >::value >::type > {
         static constexpr UINT CacheIndex = 15;
     };
 
