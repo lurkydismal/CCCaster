@@ -16,8 +16,8 @@
 #include "helpers.h"
 #include "iathook.h"
 
-/* winemaker: Added -ld3dx9 to the libraries */
-/* winemaker: Added -luser32 to the libraries */
+#pragma comment( lib, "d3dx9.lib" )
+#pragma comment( lib, "user32.lib" )
 
 Direct3DShaderValidatorCreate9Proc m_pDirect3DShaderValidatorCreate9;
 PSGPErrorProc m_pPSGPError;
