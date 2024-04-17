@@ -16,8 +16,8 @@
 #include "helpers.h"
 #include "iathook.h"
 
-/* winemaker: Added -ld3dx9 to the libraries */
-/* winemaker: Added -luser32 to the libraries */
+#pragma comment( lib, "d3dx9.lib" )
+#pragma comment( lib, "user32.lib" )
 
 Direct3DShaderValidatorCreate9Proc m_pDirect3DShaderValidatorCreate9;
 PSGPErrorProc m_pPSGPError;
@@ -590,7 +590,20 @@ BOOL HookModule( HMODULE _moduleHandle ) {
 
     if ( GetModuleFileNameA( _moduleHandle, l_modulePath, MAX_PATH ) ) {
         // Skip system modules
-        if ( !_strnicmp( l_modulePath, WinDir, strlen( WinDir ) ) ) {
+
+        std::string l_temp1( l_modulePath );
+
+        std::transform(l_temp1.begin(), l_temp1.end(), l_temp1.begin(),
+            [](unsigned char c){ return std::tolower(c); });
+
+        std::string l_temp2( WinDir );
+
+        std::transform(l_temp2.begin(), l_temp2.end(), l_temp2.begin(),
+            [](unsigned char c){ return std::tolower(c); });
+
+        if ( !strncmp( l_modulePath, WinDir,
+                       strlen( WinDir ) ) ) {
+        MessageBoxA( 0, l_temp1.data(), "test", 0 );
             l_returnValue = false;
 
             goto EXIT;
@@ -686,8 +699,9 @@ static BOOL loadDll( std::string _DLLName, HMODULE& _moduleHandle ) {
     return ( l_returnValue );
 }
 
-extern "C" BOOL WINAPI __declspec( dllexport )
-    DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved ) {
+extern "C" BOOL WINAPI DllMain( HMODULE hModule,
+                                DWORD dwReason,
+                                LPVOID lpReserved ) {
     switch ( dwReason ) {
         case DLL_PROCESS_ATTACH: {
             g_hWrapperModule = hModule;
@@ -829,8 +843,7 @@ extern "C" BOOL WINAPI __declspec( dllexport )
     return ( true );
 }
 
-extern "C" HRESULT WINAPI __declspec( dllexport )
-    Direct3DShaderValidatorCreate9( void ) {
+extern "C" HRESULT WINAPI Direct3DShaderValidatorCreate9( void ) {
     if ( !m_pDirect3DShaderValidatorCreate9 ) {
         return ( E_FAIL );
     }
@@ -838,7 +851,7 @@ extern "C" HRESULT WINAPI __declspec( dllexport )
     return ( m_pDirect3DShaderValidatorCreate9() );
 }
 
-extern "C" HRESULT WINAPI __declspec( dllexport ) PSGPError( void ) {
+extern "C" HRESULT WINAPI PSGPError( void ) {
     if ( !m_pPSGPError ) {
         return ( E_FAIL );
     }
@@ -846,7 +859,7 @@ extern "C" HRESULT WINAPI __declspec( dllexport ) PSGPError( void ) {
     return ( m_pPSGPError() );
 }
 
-extern "C" HRESULT WINAPI __declspec( dllexport ) PSGPSampleTexture( void ) {
+extern "C" HRESULT WINAPI PSGPSampleTexture( void ) {
     if ( !m_pPSGPSampleTexture ) {
         return ( E_FAIL );
     }
@@ -854,8 +867,7 @@ extern "C" HRESULT WINAPI __declspec( dllexport ) PSGPSampleTexture( void ) {
     return ( m_pPSGPSampleTexture() );
 }
 
-extern "C" int WINAPI __declspec( dllexport )
-    D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName ) {
+extern "C" int WINAPI D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName ) {
     if ( !m_pD3DPERF_BeginEvent ) {
         return ( 0 );
     }
@@ -863,7 +875,7 @@ extern "C" int WINAPI __declspec( dllexport )
     return ( m_pD3DPERF_BeginEvent( col, wszName ) );
 }
 
-extern "C" int WINAPI __declspec( dllexport ) D3DPERF_EndEvent( void ) {
+extern "C" int WINAPI D3DPERF_EndEvent( void ) {
     if ( !m_pD3DPERF_EndEvent ) {
         return ( 0 );
     }
@@ -871,7 +883,7 @@ extern "C" int WINAPI __declspec( dllexport ) D3DPERF_EndEvent( void ) {
     return ( m_pD3DPERF_EndEvent() );
 }
 
-extern "C" DWORD WINAPI __declspec( dllexport ) D3DPERF_GetStatus( void ) {
+extern "C" DWORD WINAPI D3DPERF_GetStatus( void ) {
     if ( !m_pD3DPERF_GetStatus ) {
         return ( 0 );
     }
@@ -879,8 +891,7 @@ extern "C" DWORD WINAPI __declspec( dllexport ) D3DPERF_GetStatus( void ) {
     return ( m_pD3DPERF_GetStatus() );
 }
 
-extern "C" BOOL WINAPI __declspec( dllexport )
-    D3DPERF_QueryRepeatFrame( void ) {
+extern "C" BOOL WINAPI D3DPERF_QueryRepeatFrame( void ) {
     if ( !m_pD3DPERF_QueryRepeatFrame ) {
         return ( false );
     }
@@ -888,28 +899,25 @@ extern "C" BOOL WINAPI __declspec( dllexport )
     return ( m_pD3DPERF_QueryRepeatFrame() );
 }
 
-extern "C" void WINAPI __declspec( dllexport )
-    D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName ) {
+extern "C" void WINAPI D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName ) {
     if ( m_pD3DPERF_SetMarker ) {
         return ( m_pD3DPERF_SetMarker( col, wszName ) );
     }
 }
 
-extern "C" void WINAPI __declspec( dllexport )
-    D3DPERF_SetOptions( DWORD dwOptions ) {
+extern "C" void WINAPI D3DPERF_SetOptions( DWORD dwOptions ) {
     if ( m_pD3DPERF_SetOptions ) {
         return ( m_pD3DPERF_SetOptions( dwOptions ) );
     }
 }
 
-extern "C" void WINAPI __declspec( dllexport )
-    D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName ) {
+extern "C" void WINAPI D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName ) {
     if ( m_pD3DPERF_SetRegion ) {
         return ( m_pD3DPERF_SetRegion( col, wszName ) );
     }
 }
 
-extern "C" HRESULT WINAPI __declspec( dllexport ) DebugSetLevel( DWORD dw1 ) {
+extern "C" HRESULT WINAPI DebugSetLevel( DWORD dw1 ) {
     if ( !m_pDebugSetLevel ) {
         return ( E_FAIL );
     }
@@ -917,14 +925,13 @@ extern "C" HRESULT WINAPI __declspec( dllexport ) DebugSetLevel( DWORD dw1 ) {
     return ( m_pDebugSetLevel( dw1 ) );
 }
 
-extern "C" void WINAPI __declspec( dllexport ) DebugSetMute( void ) {
+extern "C" void WINAPI DebugSetMute( void ) {
     if ( m_pDebugSetMute ) {
         return ( m_pDebugSetMute() );
     }
 }
 
-extern "C" int WINAPI __declspec( dllexport )
-    Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
+extern "C" int WINAPI Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
     if ( !m_pDirect3D9EnableMaximizedWindowedModeShim ) {
         return ( 0 );
     }
@@ -932,8 +939,7 @@ extern "C" int WINAPI __declspec( dllexport )
     return ( m_pDirect3D9EnableMaximizedWindowedModeShim( mEnable ) );
 }
 
-extern "C" IDirect3D9* WINAPI __declspec( dllexport )
-    Direct3DCreate9( UINT SDKVersion ) {
+extern "C" IDirect3D9* WINAPI Direct3DCreate9( UINT SDKVersion ) {
     if ( !m_pDirect3DCreate9 ) {
         return ( nullptr );
     }
@@ -947,8 +953,8 @@ extern "C" IDirect3D9* WINAPI __declspec( dllexport )
     return ( nullptr );
 }
 
-extern "C" HRESULT WINAPI __declspec( dllexport )
-    Direct3DCreate9Ex( UINT SDKVersion, IDirect3D9Ex** ppD3D ) {
+extern "C" HRESULT WINAPI Direct3DCreate9Ex( UINT SDKVersion,
+                                             IDirect3D9Ex** ppD3D ) {
     if ( !m_pDirect3DCreate9Ex ) {
         return ( E_FAIL );
     }

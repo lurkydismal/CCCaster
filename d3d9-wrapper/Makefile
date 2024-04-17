@@ -8,9 +8,9 @@ EXES                  =
 
 ### Common settings
 
-CEXTRA                = -mno-cygwin \
-			-m32
+CEXTRA                = -m32
 CXXEXTRA              = -Wfatal-errors \
+			-fvisibility=hidden \
 			-m32
 RCEXTRA               =
 DEFINES               =
@@ -42,11 +42,11 @@ d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 			src/IDirect3DVolume9.cpp \
 			src/IDirect3DVolumeTexture9.cpp \
 			src/InterfaceQuery.cpp \
-			src/main.cpp
+			src/main.cpp \
+			../states_dll/_useCallback/src/_useCallback.cpp
 d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \
 			$(d3d9_dll_MODULE:.dll=.def) \
-			-mno-cygwin \
 			-m32
 d3d9_dll_ARFLAGS=
 d3d9_dll_DLL_PATH=
@@ -75,8 +75,8 @@ RC_SRCS               = $(d3d9_dll_RC_SRCS)
 
 ### Tools
 
-CC = winegcc
-CXX = wineg++
+CC = ccache i686-w64-mingw32-gcc-win32
+CXX = ccache i686-w64-mingw32-g++-win32
 RC = wrc
 AR = ar
 
