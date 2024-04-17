@@ -5,7 +5,6 @@
 #include <windows.h>
 
 #include <stdint.h>
-#include <string.h>
 
 #ifdef __cplusplus
 namespace Iat_hook {
@@ -34,18 +33,26 @@ void** find_iat_func( const char* function,
             auto mod_name = reinterpret_cast< const char* >(
                 ( size_t* )( pImports->Name + ( size_t )hModule ) );
 
-            std::string l_temp( reinterpret_cast< const char* >( instance + pImports->Name ) );
-            std::transform( l_temp.begin(), l_temp.end(), l_temp.begin(),
-                        []( unsigned char _character ){ return std::tolower( _character ); } );
-            std::string l_modName( mod_name );
-            std::transform( l_modName.begin(), l_modName.end(), l_modName.begin(),
-    []( unsigned char _character ){ return std::tolower( _character ); } );
+            std::string l_temp1( reinterpret_cast< const char* >( instance + pImports->Name ) );
 
-            if ( l_temp == l_modName ) {
+            std::transform(l_temp1.begin(), l_temp1.end(), l_temp1.begin(),
+                [](unsigned char c){ return std::tolower(c); });
+
+            std::string l_temp2( mod_name );
+
+            std::transform(l_temp2.begin(), l_temp2.end(), l_temp2.begin(),
+                [](unsigned char c){ return std::tolower(c); });
+
+            if ( strcmp( l_temp1.data(),
+                         l_temp2.data() ) == 0 ) {
+            MessageBoxA( 0, "1\n", "test", 0 );
+
                 if ( pImports->OriginalFirstThunk != 0 ) {
+            MessageBoxA( 0, "2\n", "test", 0 );
                     const PIMAGE_THUNK_DATA pThunk =
                         reinterpret_cast< PIMAGE_THUNK_DATA >(
                             instance + pImports->OriginalFirstThunk );
+                    MessageBoxA( 0, function, "test", 0 );
 
                     for ( ptrdiff_t j = 0; pThunk[ j ].u1.AddressOfData != 0;
                           j++ ) {
@@ -54,6 +61,7 @@ void** find_iat_func( const char* function,
                                      instance + pThunk[ j ].u1.AddressOfData )
                                      ->Name,
                                  function ) == 0 ) {
+            MessageBoxA( 0, "3\n", "test", 0 );
                             void** pAddress =
                                 reinterpret_cast< void** >(
                                     instance + pImports->FirstThunk ) +
@@ -66,6 +74,7 @@ void** find_iat_func( const char* function,
                     }
 
                 } else {
+            MessageBoxA( 0, "4\n", "test", 0 );
                     void** pFunctions = reinterpret_cast< void** >(
                         instance + pImports->FirstThunk );
 
@@ -73,6 +82,7 @@ void** find_iat_func( const char* function,
                         if ( pFunctions[ j ] ==
                              GetProcAddress( GetModuleHandle( mod_name ),
                                              function ) ) {
+            MessageBoxA( 0, "5\n", "test", 0 );
                             pImports++;
 
                             return ( &pFunctions[ j ] );
@@ -85,15 +95,18 @@ void** find_iat_func( const char* function,
         }
 
     } catch ( const std::exception& _exception ) {
+            MessageBoxA( 0, "6\n", "test", 0 );
     }
 
     try {
         for ( IMAGE_IMPORT_DESCRIPTOR* iid = pImports; iid->Name != 0; iid++ ) {
             if ( chModule != NULL ) {
+            MessageBoxA( 0, "7\n", "test", 0 );
                 char* mod_name =
                     ( char* )( ( size_t* )( iid->Name + ( size_t )hModule ) );
 
                 if ( lstrcmpiA( chModule, mod_name ) ) {
+            MessageBoxA( 0, "7\n", "test", 1 );
                     continue;
                 }
             }
@@ -107,19 +120,23 @@ void** find_iat_func( const char* function,
                                             ( size_t )hModule ) ) );
 
                 if ( IMAGE_SNAP_BY_ORDINAL( mod_func_ptr_ord ) ) {
+            MessageBoxA( 0, "8\n", "test", 1 );
                     if ( chModule != NULL && ordinal != 0 &&
+            MessageBoxA( 0, "9\n", "test", 1 );
                          ( ordinal == IMAGE_ORDINAL( mod_func_ptr_ord ) ) ) {
                         return ( func_idx + ( void** )( iid->FirstThunk +
                                                         ( size_t )hModule ) );
                     }
 
                 } else if ( function != NULL && function[ 0 ] != 0 ) {
+            MessageBoxA( 0, "10\n", "test", 1 );
                     char* mod_func_name =
                         ( char* )( mod_func_ptr_ord + ( size_t )hModule + 2 );
                     const intptr_t nmod_func_name = ( intptr_t )mod_func_name;
 
                     if ( nmod_func_name >= 0 &&
                          !lstrcmpA( function, mod_func_name ) ) {
+            MessageBoxA( 0, "11\n", "test", 1 );
                         return ( func_idx + ( void** )( iid->FirstThunk +
                                                         ( size_t )hModule ) );
                     }
@@ -128,6 +145,7 @@ void** find_iat_func( const char* function,
         }
 
     } catch ( const std::exception& _exception ) {
+            MessageBoxA( 0, "12\n", "test", 1 );
     }
 
     return ( 0 );
