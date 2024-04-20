@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <minhook.h>
 #include <tlhelp32.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -14,7 +15,6 @@
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "helpers.h"
-#include "iathook.h"
 
 #pragma comment( lib, "d3dx9.lib" )
 #pragma comment( lib, "user32.lib" )
@@ -593,31 +593,31 @@ BOOL HookModule( HMODULE _moduleHandle ) {
 
         std::string l_temp1( l_modulePath );
 
-        std::transform(l_temp1.begin(), l_temp1.end(), l_temp1.begin(),
-            [](unsigned char c){ return std::tolower(c); });
+        std::transform( l_temp1.begin(), l_temp1.end(), l_temp1.begin(),
+                        []( unsigned char c ) { return std::tolower( c ); } );
 
         std::string l_temp2( WinDir );
 
-        std::transform(l_temp2.begin(), l_temp2.end(), l_temp2.begin(),
-            [](unsigned char c){ return std::tolower(c); });
+        std::transform( l_temp2.begin(), l_temp2.end(), l_temp2.begin(),
+                        []( unsigned char c ) { return std::tolower( c ); } );
 
-        if ( !strncmp( l_modulePath, WinDir,
-                       strlen( WinDir ) ) ) {
-        MessageBoxA( 0, l_temp1.data(), "test", 0 );
+        if ( !strncmp( l_modulePath, WinDir, strlen( WinDir ) ) ) {
             l_returnValue = false;
 
             goto EXIT;
         }
     }
 
-#define DETOUR_HOOK( _functionName )                                           \
-    if ( o##_functionName == NULL ) {                                          \
-        o##_functionName = ( _functionName##_fn )Iat_hook::detour_iat_ptr(     \
-            #_functionName, ( void* )hk_##_functionName, _moduleHandle );      \
-                                                                               \
-    } else {                                                                   \
-        Iat_hook::detour_iat_ptr( #_functionName, ( void* )hk_##_functionName, \
-                                  _moduleHandle );                             \
+#define DETOUR_HOOK( _functionName )                                    \
+    if ( o##_functionName == NULL ) {                                   \
+        MH_CreateHook(                                                  \
+            ( void* )GetProcAddress( _moduleHandle, #_functionName ),   \
+            ( void* )hk_##_functionName, ( void** )&o##_functionName ); \
+                                                                        \
+    } else {                                                            \
+        MH_CreateHook(                                                  \
+            ( void* )GetProcAddress( _moduleHandle, #_functionName ),   \
+            ( void* )hk_##_functionName, NULL );                        \
     }
 
     DETOUR_HOOK( RegisterClassA )
@@ -637,6 +637,8 @@ BOOL HookModule( HMODULE _moduleHandle ) {
 #undef DETOUR_HOOK
 
 EXIT:
+    MH_EnableHook( MH_ALL_HOOKS );
+
     return ( l_returnValue );
 }
 
@@ -734,9 +736,13 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 
                     GetSystemWindowsDirectoryA( WinDir, MAX_PATH );
 
-#define DETOUR_HOOK( _functionName )                                   \
-    o##_functionName = ( _functionName##_fn )Iat_hook::detour_iat_ptr( \
-        #_functionName, ( void* )hk_##_functionName );
+                    if ( MH_Initialize() != MH_OK ) {
+                        exit( 1 );
+                    }
+
+#define DETOUR_HOOK( _functionName )                                          \
+    MH_CreateHookApi( L"user3.", #_functionName, ( void* )hk_##_functionName, \
+                      ( void** )&o##_functionName );
 
                     DETOUR_HOOK( RegisterClassA )
                     DETOUR_HOOK( RegisterClassW )
@@ -754,32 +760,33 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 
 #undef DETOUR_HOOK
 
-                    Iat_hook::detour_iat_ptr( "GetProcAddress",
-                                              ( void* )hk_GetProcAddress,
-                                              g_d3d9dll );
+                    MH_CreateHook(
+                        ( void* )GetProcAddress( g_d3d9dll, "GetProcAddress" ),
+                        ( void* )hk_GetProcAddress, NULL );
 
                     if ( oGetForegroundWindow == NULL ) {
-                        oGetForegroundWindow =
-                            ( GetForegroundWindow_fn )Iat_hook::detour_iat_ptr(
-                                "GetForegroundWindow",
-                                ( void* )hk_GetForegroundWindow, g_d3d9dll );
+                        MH_CreateHook( ( void* )GetProcAddress(
+                                           g_d3d9dll, "GetForegroundWindow" ),
+                                       ( void* )hk_GetForegroundWindow,
+                                       ( void** )&oGetForegroundWindow );
 
                     } else {
-                        Iat_hook::detour_iat_ptr(
-                            "GetForegroundWindow",
-                            ( void* )hk_GetForegroundWindow, g_d3d9dll );
+                        MH_CreateHook( ( void* )GetProcAddress(
+                                           g_d3d9dll, "GetForegroundWindow" ),
+                                       ( void* )hk_GetForegroundWindow, NULL );
                     }
 
                     HMODULE ole32 = GetModuleHandleA( "ole32.dll" );
 
                     if ( ole32 ) {
-#define DETOUR_HOOK( _functionName )                                           \
-    if ( o##_functionName == NULL ) {                                          \
-        o##_functionName = ( _functionName##_fn )Iat_hook::detour_iat_ptr(     \
-            #_functionName, ( void* )hk_##_functionName, ole32 );              \
-    } else {                                                                   \
-        Iat_hook::detour_iat_ptr( #_functionName, ( void* )hk_##_functionName, \
-                                  ole32 );                                     \
+#define DETOUR_HOOK( _functionName )                                     \
+    if ( o##_functionName == NULL ) {                                    \
+        MH_CreateHook( ( void* )GetProcAddress( ole32, #_functionName ), \
+                       ( void* )hk_##_functionName,                      \
+                       ( void** )&o##_functionName );                    \
+    } else {                                                             \
+        MH_CreateHook( ( void* )GetProcAddress( ole32, #_functionName ), \
+                       ( void* )hk_##_functionName, NULL );              \
     }
 
                         DETOUR_HOOK( RegisterClassA )
@@ -790,6 +797,8 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 
 #undef DETOUR_HOOK
                     }
+
+                    MH_EnableHook( MH_ALL_HOOKS );
 
                     HookImportedModules();
                 }
@@ -829,6 +838,8 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 
         case DLL_PROCESS_DETACH: {
             if ( g_d3d9dll ) {
+                MH_Uninitialize();
+
                 FreeLibrary( g_d3d9dll );
             }
 

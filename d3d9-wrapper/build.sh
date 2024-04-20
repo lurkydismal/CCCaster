@@ -14,7 +14,8 @@ clear && \
     make clean &&
     make -j 11 &&
     mv -f d3d9.dll.so \
-    ../../MBAACC\ -\ Community\ Edition/MBAACC/. && \
+    ../../MBAACC\ -\ Community\ Edition/MBAACC/d3d9.dll && \
     clang-format-15 --style=file \
     -i \
-    src/*.cpp src/*.h
+    src/*.cpp src/*.h \
+    ../minhook/include/*.h
