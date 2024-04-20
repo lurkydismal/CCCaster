@@ -8,14 +8,15 @@ EXES                  =
 
 ### Common settings
 
-CEXTRA                = -m32
+CEXTRA                = -std=c11 \
+			-m32
 CXXEXTRA              = -Wfatal-errors \
 			-fvisibility=hidden \
+			-std=c++11 \
 			-m32
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
-			-I ../dxsdk \
 			-I ../minhook/include
 DLL_PATH              =
 DLL_IMPORTS           =

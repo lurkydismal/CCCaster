@@ -12,6 +12,13 @@
 
 constexpr UINT MaxIndex = 16;
 
+class AddressLookupTableObject {
+public:
+    virtual ~AddressLookupTableObject() {}
+
+    void DeleteMe( void ) { delete this; }
+};
+
 template < typename D >
 class AddressLookupTable {
 public:
@@ -202,7 +209,9 @@ public:
 
         auto it = std::find_if(
             g_map[ CacheIndex ].begin(), g_map[ CacheIndex ].end(),
-            [ = ]( auto Map ) -> BOOL { return ( Map.second == Wrapper ); } );
+            [ = ]( std::unordered_map< void*, T > Map ) -> BOOL {
+                return ( Map.second == Wrapper );
+            } );
 
         if ( it != std::end( g_map[ CacheIndex ] ) ) {
             it = g_map[ CacheIndex ].erase( it );
@@ -212,13 +221,5 @@ public:
 private:
     BOOL ConstructorFlag = false;
     D* const pDevice;
-    std::unordered_map< void*, class AddressLookupTableObject* >
-        g_map[ MaxIndex ];
-};
-
-class AddressLookupTableObject {
-public:
-    virtual ~AddressLookupTableObject() {}
-
-    void DeleteMe( void ) { delete this; }
+    std::unordered_map< void*, AddressLookupTableObject* > g_map[ MaxIndex ];
 };
