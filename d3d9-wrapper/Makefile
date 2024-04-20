@@ -15,11 +15,12 @@ CXXEXTRA              = -Wfatal-errors \
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
-			-I ../dxsdk
+			-I ../dxsdk \
+			-I ../minhook/include
 DLL_PATH              =
 DLL_IMPORTS           =
-LIBRARY_PATH          =
-LIBRARIES             =
+LIBRARY_PATH          = -L ../minhook
+LIBRARIES             = -lminhook
 
 
 ### d3d9.dll sources and settings
