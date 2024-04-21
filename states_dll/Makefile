@@ -8,8 +8,7 @@ EXES                  =
 
 ### Common settings
 
-CEXTRA                = -mno-cygwin \
-			-Ofast \
+CEXTRA                = -Ofast \
 			-m32
 CXXEXTRA              = -std=c++11 \
 			-Ofast \
@@ -30,8 +29,7 @@ states_dll_C_SRCS =
 states_dll_CXX_SRCS= src/main.cpp
 states_dll_RC_SRCS=
 states_dll_LDFLAGS= -shared \
-			$(states_dll_MODULE:.dll=.spec) \
-			-mno-cygwin \
+			$(states_dll_MODULE:.dll=.def) \
 			-m32
 states_dll_ARFLAGS=
 states_dll_DLL_PATH=
@@ -54,10 +52,10 @@ RC_SRCS               = $(states_dll_RC_SRCS)
 
 ### Tools
 
-CC = winegcc
-CXX = wineg++
+CC = ccache i686-w64-mingw32-gcc-win32 
+CXX = ccache i686-w64-mingw32-g++-win32 
 RC = wrc
-AR = ar
+AR = i686-w64-mingw32-ar
 
 
 ### Generic targets
@@ -106,6 +104,5 @@ $(EXTRASUBDIRS:%=%/__clean__): dummy
 ### Target specific build rules
 DEFLIB = $(LIBRARY_PATH) $(LIBRARIES) $(DLL_PATH) $(DLL_IMPORTS:%=-l%)
 
-$(states_dll_MODULE).so: $(states_dll_OBJS) $(states_dll_MODULE:.dll=.spec)
+$(states_dll_MODULE).so: $(states_dll_OBJS) $(states_dll_MODULE:.dll=.def)
 	$(CXX) $(states_dll_LDFLAGS) -o $@ $(states_dll_OBJS) $(states_dll_LIBRARY_PATH) $(states_dll_DLL_PATH) $(DEFLIB) $(states_dll_DLLS:%=-l%) $(states_dll_LIBRARIES:%=-l%)
-
