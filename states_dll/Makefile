@@ -8,7 +8,8 @@ EXES                  =
 
 ### Common settings
 
-CEXTRA                = -Ofast \
+CEXTRA                = -std=c11 \
+			-Ofast \
 			-m32
 CXXEXTRA              = -std=c++11 \
 			-Ofast \
@@ -30,7 +31,8 @@ states_dll_CXX_SRCS= src/main.cpp
 states_dll_RC_SRCS=
 states_dll_LDFLAGS= -shared \
 			$(states_dll_MODULE:.dll=.def) \
-			-m32
+			-m32 \
+			-s
 states_dll_ARFLAGS=
 states_dll_DLL_PATH=
 states_dll_DLLS   =
