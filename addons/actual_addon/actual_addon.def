@@ -1,6 +1,5 @@
 
-LIBRARY states
+LIBRARY actual_addon
 EXPORTS
 
-addCallbacks @1
-useCallback @2
+IDirect3D9Ex$CreateDevice @1

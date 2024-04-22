@@ -1,12 +1,12 @@
 #!/bin/bash
 # -static-libgcc -static-libstdc++
 clear && \
-    make clean &&
-    make -j 11 &&
-    mv -f caster.dll \
-    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/caster/. && \
+    make clean && \
+    make -j $(( `nproc` - 1 )) && \
+    mv -f actual_addon.dll.so \
+    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/actual_addon/actual_addon.dll.so && \
     cp -f info.hjson \
-    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/caster/. && \
+    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/actual_addon/. && \
     clang-format-15 --style=file \
     -i \
     src/*.cpp \
