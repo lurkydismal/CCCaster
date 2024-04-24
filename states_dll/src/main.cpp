@@ -1,3 +1,6 @@
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <stdio.h>
 
 #include <map>
@@ -77,7 +80,17 @@ extern "C" uint16_t __declspec( dllexport )
     uint16_t l_returnValue = 0;
     std::string l_callbackName( _callbackName );
 
+    if ( ( l_callbackName != "IDirect3DDevice9Ex$EndScene" ) &&
+         ( l_callbackName != "IDirect3DDevice9Ex$Present" ) ) {
+        MessageBoxA( 0, _callbackName, "test", 0 );
+    }
+
     l_returnValue = _useCallback( l_callbackName, _callbackArguments );
+
+    if ( ( l_callbackName != "IDirect3DDevice9Ex$EndScene" ) &&
+         ( l_callbackName != "IDirect3DDevice9Ex$Present" ) ) {
+        MessageBoxA( 0, _callbackName, "test", 0 );
+    }
 
     return ( l_returnValue );
 }

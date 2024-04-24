@@ -527,6 +527,7 @@ static void init( void ) {
 BOOL WINAPI DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved ) {
     switch ( dwReason ) {
         case DLL_PROCESS_ATTACH: {
+            MessageBoxA( 0, "1", "test", 0 );
             init();
 
             break;

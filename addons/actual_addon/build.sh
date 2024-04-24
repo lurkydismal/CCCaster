@@ -1,10 +1,11 @@
 #!/bin/bash
 # -static-libgcc -static-libstdc++
 clear && \
+mkdir -p ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/actual_addon && \
     make clean && \
     make -j $(( `nproc` - 1 )) && \
     mv -f actual_addon.dll.so \
-    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/actual_addon/actual_addon.dll.so && \
+    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/actual_addon/actual_addon.dll && \
     cp -f info.hjson \
     ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/actual_addon/. && \
     clang-format-15 --style=file \
