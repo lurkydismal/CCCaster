@@ -57,21 +57,28 @@ extern "C" bool __declspec( dllexport )
 static uint16_t _useCallback( std::string const& _callbackName,
                               void** _callbackArguments = NULL ) {
     uint16_t l_returnValue = 0;
+    MessageBoxA( 0, "1", "test", 0 );
     const auto l_callbacks = g_callbackFunctionAddresses.find( _callbackName );
 
     if ( l_callbacks == g_callbackFunctionAddresses.end() ) {
+        MessageBoxA( 0, "2", "test", 0 );
         l_returnValue = ENODATA;
 
     } else {
+        MessageBoxA( 0, "3", "test", 0 );
         for ( const auto _callback : l_callbacks->second ) {
-            const uint16_t l_result = _callback( _callbackArguments );
+            MessageBoxA( 0, "6", "test", 0 );
+            const uint16_t l_result = _callback( NULL );
+            MessageBoxA( 0, "7", "test", 0 );
 
             if ( l_result ) {
+                MessageBoxA( 0, "4", "test", 0 );
                 l_returnValue = l_result;
             }
         }
     }
 
+    MessageBoxA( 0, "5", "test", 0 );
     return ( l_returnValue );
 }
 
