@@ -11,25 +11,28 @@ extern "C" {
 
 uint16_t __declspec( dllexport )
     IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
-    HWND _hFocusWindow = ( HWND )_callbackArguments[ 2 ];
-    D3DPRESENT_PARAMETERS* _pPresentationParameters =
-        ( D3DPRESENT_PARAMETERS* )_callbackArguments[ 4 ];
+    MessageBoxA( 0, "dll", "test", 0 );
+    //  HWND _hFocusWindow = ( HWND )_callbackArguments[ 2 ];
+    //  D3DPRESENT_PARAMETERS* _pPresentationParameters =
+    //      ( D3DPRESENT_PARAMETERS* )_callbackArguments[ 4 ];
 
-    g_hFocusWindow =
-        _hFocusWindow ? _hFocusWindow : _pPresentationParameters->hDeviceWindow;
+    //  g_hFocusWindow =
+    //      _hFocusWindow ? _hFocusWindow :
+    //      _pPresentationParameters->hDeviceWindow;
 
-    HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+    //  HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
-    if ( !l_statesDll ) {
-        exit( 1 );
-    }
+    //  if ( !l_statesDll ) {
+    //      exit( 1 );
+    //  }
 
-    g_useCallback =
-        ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback" );
+    //  g_useCallback =
+    //      ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback"
+    //      );
 
-    if ( !g_useCallback ) {
-        exit( 1 );
-    }
+    //  if ( !g_useCallback ) {
+    //      exit( 1 );
+    //  }
 
     return ( 0 );
 }
