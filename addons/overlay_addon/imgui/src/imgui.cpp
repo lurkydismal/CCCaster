@@ -2,8 +2,8 @@
 
 #include "imgui_stdlib.h"
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$Button( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$Button(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     const char** _buttonLabel =
         reinterpret_cast< const char** >( _callbackArguments[ 0 ] );
@@ -17,8 +17,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$InputText( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$InputText(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     const char** _inputTextLabel =
         reinterpret_cast< const char** >( _callbackArguments[ 0 ] );
@@ -32,8 +32,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$Selectable( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$Selectable(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     const char** _selectableLabel =
         reinterpret_cast< const char** >( _callbackArguments[ 0 ] );
@@ -51,8 +51,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$SameLine( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$SameLine(
+    void** _callbackArguments ) {
     float* _offsetFromStartX =
         reinterpret_cast< float* >( _callbackArguments[ 0 ] );
     float* _spacingBefore =
@@ -63,8 +63,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$Indent( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$Indent(
+    void** _callbackArguments ) {
     float* _indentWidth = reinterpret_cast< float* >( _callbackArguments[ 0 ] );
 
     ImGui::Indent( *_indentWidth );
@@ -72,22 +72,22 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$BeginGroup( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$BeginGroup(
+    void** _callbackArguments ) {
     ImGui::BeginGroup();
 
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$EndGroup( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$EndGroup(
+    void** _callbackArguments ) {
     ImGui::EndGroup();
 
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$BeginChild( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$BeginChild(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     ImGuiID* _childId = reinterpret_cast< ImGuiID* >( _callbackArguments[ 0 ] );
     const ImVec2* _childSize =
@@ -105,8 +105,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    ImGui$EndChild( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) ImGui$EndChild(
+    void** _callbackArguments ) {
     ImGui::EndChild();
 
     return ( 0 );

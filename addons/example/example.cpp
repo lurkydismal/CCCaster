@@ -10,8 +10,8 @@
 
 #include <cstdint>
 
-extern "C" int16_t __declspec( dllexport )
-    onGameStarted( void** _callbackArguments ) {
+extern "C" int16_t __declspec( dllexport ) onGameStarted(
+    void** _callbackArguments ) {
     MessageBoxA( NULL,
                  "GameStarted", // box text
                  "on",          // box name
@@ -20,8 +20,8 @@ extern "C" int16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" int16_t __declspec( dllexport )
-    onHosted( void** _callbackArguments ) {
+extern "C" int16_t __declspec( dllexport ) onHosted(
+    void** _callbackArguments ) {
     MessageBoxA( NULL,
                  "Hosted", // box text
                  "on",     // box name
@@ -30,8 +30,8 @@ extern "C" int16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" int16_t __declspec( dllexport )
-    onConnection( void** _callbackArguments ) {
+extern "C" int16_t __declspec( dllexport ) onConnection(
+    void** _callbackArguments ) {
     MessageBoxA( NULL,
                  "Connection", // box text
                  "on",         // box name

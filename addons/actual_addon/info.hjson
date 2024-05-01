@@ -1,10 +1,10 @@
 {
-    name: caster
-    description: CCCaster
+    name: actual_addon
+    description: Core patches
     update: reserved
     version: v0.1.0
     source: reserved
-    main: caster.dll
+    main: actual_addon.dll
     events: {
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
     }

@@ -1,6 +1,6 @@
 LIBRARY example
 EXPORTS
 
-onGameStarted @1
-onHosted      @2
-onConnection  @3
+onGameStarted
+onHosted
+onConnection

@@ -24,8 +24,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd,
                                                               WPARAM wParam,
                                                               LPARAM lParam );
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+    void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
     if ( !l_statesDll ) {
@@ -52,8 +52,12 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3DDevice9Ex$EndScene( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3DDevice9Ex$EndScene(
+    void** _callbackArguments ) {
+    if ( !g_imGuiInitialized ) {
+        return ( 0 );
+    }
+
     if ( ( g_activeFlags & SHOW_OVERLAY ) && ( g_isDraw ) ) {
         uint16_t l_result =
             _useCallback( "overlay$beforeDraw$ImGui", 1, &ImGui::Text );
@@ -80,8 +84,12 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3DDevice9Ex$PreReset( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3DDevice9Ex$PreReset(
+    void** _callbackArguments ) {
+    if ( !g_imGuiInitialized ) {
+        return ( 0 );
+    }
+
     MessageBoxA( NULL,
                  "IDirect3DDevice9Ex$PreReset", // box text
                  "name",                        // box name
@@ -92,8 +100,12 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3DDevice9Ex$PostReset( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3DDevice9Ex$PostReset(
+    void** _callbackArguments ) {
+    if ( !g_imGuiInitialized ) {
+        return ( 0 );
+    }
+
     MessageBoxA( NULL,
                  "IDirect3DDevice9Ex$PostReset", // box text
                  "name",                         // box name
@@ -104,8 +116,12 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    CustomWindowProcedure( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) CustomWindowProcedure(
+    void** _callbackArguments ) {
+    if ( !g_imGuiInitialized ) {
+        return ( 0 );
+    }
+
     HWND _windowHandle = ( HWND )_callbackArguments[ 0 ];
     UINT _message = ( UINT )_callbackArguments[ 1 ];
     WPARAM _wideAdditionalMessage = ( WPARAM )_callbackArguments[ 2 ];
@@ -117,8 +133,12 @@ extern "C" uint16_t __declspec( dllexport )
                                              _lAdditionalMessage ) );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    extraDrawCallback( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
+    void** _callbackArguments ) {
+    if ( !g_imGuiInitialized ) {
+        return ( 0 );
+    }
+
     if ( !g_isDraw ) {
         // Start the Dear ImGui frame
         ImGui_ImplDX9_NewFrame();
@@ -134,7 +154,12 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) overlay$Toggle( void ) {
+extern "C" uint16_t __declspec( dllexport ) overlay$Toggle(
+    void** _callbackArguments ) {
+    if ( !g_imGuiInitialized ) {
+        return ( 0 );
+    }
+
     uint16_t l_returnValue = 0;
 
     g_activeFlags ^= SHOW_OVERLAY;

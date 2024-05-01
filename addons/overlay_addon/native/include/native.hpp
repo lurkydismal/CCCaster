@@ -2,8 +2,7 @@
 
 #include <cstdint>
 
-#define SCREEN_WIDTH \
-    ( 0x54D048 ) // The actual width of the main viewport
+#define SCREEN_WIDTH ( 0x54D048 ) // The actual width of the main viewport
 
 // Addresses for drawText fonts
 #define FONT0 ( 0x55D680 )

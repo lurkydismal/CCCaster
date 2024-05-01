@@ -1,13 +1,14 @@
 #!/bin/bash
 # -static-libgcc -static-libstdc++
+source ../../config.sh && \
 clear && \
-mkdir -p ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/example && \
+mkdir -p "${ADDONS_DIR}/example" && \
     make clean && \
     make -j $( ( `nproc` - 1 )) && \
     mv -f example.dll.so \
-    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/example/example.dll && \
+    "${ADDONS_DIR}/example/example.dll" && \
     cp -f info.hjson \
-    ../../../MBAACC\ -\ Community\ Edition/MBAACC/addons/example/. && \
-    clang-format-15 --style=file \
+    "${ADDONS_DIR}/example/." && \
+    clang-format-18 --style=file \
     -i \
     example.cpp

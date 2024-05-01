@@ -26,19 +26,19 @@ uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
 
 void extraTexturesCallBack( void ) {
-    uint16_t l_result = _useCallback( "extraTextures" );
+    //  uint16_t l_result = _useCallback( "extraTextures" );
 }
 
 void characterSelectColorsCallback( void ) {
-    uint16_t l_result = _useCallback( "characterSelectColors" );
+    //  uint16_t l_result = _useCallback( "characterSelectColors" );
 }
 
 void loadingColorsCallback( void ) {
-    uint16_t l_result = _useCallback( "loadingColors" );
+    //  uint16_t l_result = _useCallback( "loadingColors" );
 }
 
 void extraDrawCallback( void ) {
-    uint16_t l_result = _useCallback( "extraDraw" );
+    //  uint16_t l_result = _useCallback( "extraDraw" );
 }
 
 void gameMainLoopCallback( void ) {

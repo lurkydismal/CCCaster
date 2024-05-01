@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -40,11 +41,11 @@ static bool _addCallbacks( std::string const& _callbackName,
     return ( l_returnValue );
 }
 
-extern "C" bool __declspec( dllexport )
-    addCallbacks( const char* _callbackName,
-                  size_t _functionCount,
-                  uintptr_t* _functionAddresses,
-                  const bool _overwrite = false ) {
+extern "C" bool __declspec( dllexport ) addCallbacks(
+    const char* _callbackName,
+    size_t _functionCount,
+    uintptr_t* _functionAddresses,
+    const bool _overwrite = false ) {
     bool l_returnValue = true;
     std::string l_callbackName( _callbackName );
 
@@ -57,47 +58,31 @@ extern "C" bool __declspec( dllexport )
 static uint16_t _useCallback( std::string const& _callbackName,
                               void** _callbackArguments = NULL ) {
     uint16_t l_returnValue = 0;
-    MessageBoxA( 0, "1", "test", 0 );
     const auto l_callbacks = g_callbackFunctionAddresses.find( _callbackName );
 
     if ( l_callbacks == g_callbackFunctionAddresses.end() ) {
-        MessageBoxA( 0, "2", "test", 0 );
         l_returnValue = ENODATA;
 
     } else {
-        MessageBoxA( 0, "3", "test", 0 );
         for ( const auto _callback : l_callbacks->second ) {
-            MessageBoxA( 0, "6", "test", 0 );
             const uint16_t l_result = _callback( NULL );
-            MessageBoxA( 0, "7", "test", 0 );
 
             if ( l_result ) {
-                MessageBoxA( 0, "4", "test", 0 );
                 l_returnValue = l_result;
             }
         }
     }
 
-    MessageBoxA( 0, "5", "test", 0 );
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    useCallback( const char* _callbackName, void** _callbackArguments = NULL ) {
+extern "C" uint16_t __declspec( dllexport ) useCallback(
+    const char* _callbackName,
+    void** _callbackArguments = NULL ) {
     uint16_t l_returnValue = 0;
     std::string l_callbackName( _callbackName );
 
-    if ( ( l_callbackName != "IDirect3DDevice9Ex$EndScene" ) &&
-         ( l_callbackName != "IDirect3DDevice9Ex$Present" ) ) {
-        MessageBoxA( 0, _callbackName, "test", 0 );
-    }
-
     l_returnValue = _useCallback( l_callbackName, _callbackArguments );
-
-    if ( ( l_callbackName != "IDirect3DDevice9Ex$EndScene" ) &&
-         ( l_callbackName != "IDirect3DDevice9Ex$Present" ) ) {
-        MessageBoxA( 0, _callbackName, "test", 0 );
-    }
 
     return ( l_returnValue );
 }
