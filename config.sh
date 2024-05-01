@@ -1,0 +1,2 @@
+MBAA_DIR=
+ADONS_DIR=
