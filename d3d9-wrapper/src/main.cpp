@@ -41,7 +41,7 @@ HMODULE g_hWrapperModule = NULL;
 
 HMODULE g_statesDll = NULL;
 HMODULE g_d3d9dll = NULL;
-HMODULE g_addonLoaderDll = NULL;
+HMODULE g_justAnotherModloaderDll = NULL;
 
 useCallbackFunction_t g_useCallback = NULL;
 
@@ -815,7 +815,8 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
                     SetThreadExecutionState( l_executionThreadStateFlags );
                 }
 
-                g_addonLoaderDll = LoadLibraryA( "addon_loader.dll" );
+                g_justAnotherModloaderDll =
+                    LoadLibraryA( "just_another_modloader.dll" );
                 g_statesDll = GetModuleHandleA( "states.dll" );
 
                 if ( !g_statesDll ) {
@@ -843,8 +844,8 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
                 FreeLibrary( g_d3d9dll );
             }
 
-            if ( g_addonLoaderDll ) {
-                FreeLibrary( g_addonLoaderDll );
+            if ( g_justAnotherModloaderDll ) {
+                FreeLibrary( g_justAnotherModloaderDll );
             }
 
             break;

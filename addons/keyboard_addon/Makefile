@@ -1,6 +1,6 @@
 SRCDIR                = .
 SUBDIRS               =
-DLLS                  = actual_addon.dll
+DLLS                  = keyboard.dll
 LIBS                  =
 EXES                  =
 
@@ -10,61 +10,68 @@ EXES                  =
 
 CEXTRA                = -Ofast \
 			-m32 \
-			-std=c11
+			-std=c11 \
+			-fpermissive
 CXXEXTRA              = -Ofast \
 			-m32 \
-			-std=c++11
+			-std=c++11 \
+			-fpermissive
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I ../../dxsdk \
+INCLUDE_PATH          = -I ../../json_file/include \
 			-I ../../states_dll/_useCallback/include \
+			-I ../overlay_addon/imgui/include \
+			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
-			-I applyInput/include \
-			-I patch_callbacks/include \
-			-I patch_t/include \
-			-I ../
+			-I button_mappings/include \
+			-I controls_parse/include \
+			-I direction_mappings/include \
+			-I hotkey_mappings/include \
+			-I ../ \
+			-I ../../
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
 LIBRARIES             =
 
 
-### actual_addon.dll sources and settings
+### keyboard.dll sources and settings
 
-actual_addon_dll_MODULE= actual_addon.dll
-actual_addon_dll_C_SRCS=
-actual_addon_dll_CXX_SRCS= src/main.cpp \
-			   addon_callbacks/src/addon_callbacks.cpp \
-			   applyInput/src/applyInput.cpp \
-			   patch_callbacks/src/patch_callbacks.cpp \
-			   patch_t/src/patch_t.cpp \
-			   ../../states_dll/_useCallback/src/_useCallback.cpp
-actual_addon_dll_RC_SRCS=
-actual_addon_dll_LDFLAGS= -shared \
-			$(actual_addon_dll_MODULE:.dll=.def) \
+keyboard_dll_MODULE= keyboard.dll
+keyboard_dll_C_SRCS=
+keyboard_dll_CXX_SRCS= src/main.cpp \
+			     addon_callbacks/src/addon_callbacks.cpp \
+			     button_mappings/src/button_mappings.cpp \
+			     direction_mappings/src/direction_mappings.cpp \
+			     hotkey_mappings/src/hotkey_mappings.cpp \
+			     ../../json_file/src/json_file.cpp \
+			     ../../states_dll/_useCallback/src/_useCallback.cpp
+keyboard_dll_RC_SRCS=
+keyboard_dll_LDFLAGS= -shared \
+			$(keyboard_dll_MODULE:.dll=.def) \
 			-m32 \
 			-s
-actual_addon_dll_ARFLAGS=
-actual_addon_dll_DLL_PATH=
-actual_addon_dll_DLLS = odbc32 \
+keyboard_dll_ARFLAGS=
+keyboard_dll_DLL_PATH=
+keyboard_dll_DLLS= odbc32 \
 			ole32 \
 			oleaut32 \
 			winspool \
 			odbccp32
-actual_addon_dll_LIBRARY_PATH=
-actual_addon_dll_LIBRARIES= uuid
+keyboard_dll_LIBRARY_PATH=
+keyboard_dll_LIBRARIES= uuid
 
-actual_addon_dll_OBJS = $(actual_addon_dll_C_SRCS:.c=.o) \
-			$(actual_addon_dll_CXX_SRCS:.cpp=.o) \
-			$(actual_addon_dll_RC_SRCS:.rc=.res)
+keyboard_dll_OBJS= $(keyboard_dll_C_SRCS:.c=.o) \
+			$(keyboard_dll_CXX_SRCS:.cpp=.o) \
+			$(keyboard_dll_RC_SRCS:.rc=.res)
 
 
 
 ### Global source lists
 
-C_SRCS                = $(actual_addon_dll_C_SRCS)
-CXX_SRCS              = $(actual_addon_dll_CXX_SRCS)
-RC_SRCS               = $(actual_addon_dll_RC_SRCS)
+C_SRCS                = $(keyboard_dll_C_SRCS)
+CXX_SRCS              = $(keyboard_dll_CXX_SRCS)
+RC_SRCS               = $(keyboard_dll_RC_SRCS)
 
 
 ### Tools
@@ -118,10 +125,10 @@ $(SUBDIRS:%=%/__clean__): dummy
 $(EXTRASUBDIRS:%=%/__clean__): dummy
 	-cd `dirname $@` && $(RM) $(CLEAN_FILES)
 
-### Target.defific build rules
+### Target specific build rules
 DEFLIB = $(LIBRARY_PATH) $(LIBRARIES) $(DLL_PATH) $(DLL_IMPORTS:%=-l%)
 
-$(actual_addon_dll_MODULE).so: $(actual_addon_dll_OBJS) $(actual_addon_dll_MODULE:.dll=.def)
-	$(CXX) $(actual_addon_dll_LDFLAGS) -o $@ $(actual_addon_dll_OBJS) $(actual_addon_dll_LIBRARY_PATH) $(actual_addon_dll_DLL_PATH) $(DEFLIB) $(actual_addon_dll_DLLS:%=-l%) $(actual_addon_dll_LIBRARIES:%=-l%)
+$(keyboard_dll_MODULE).so: $(keyboard_dll_OBJS) $(keyboard_dll_MODULE:.dll=.def)
+	$(CXX) $(keyboard_dll_LDFLAGS) -o $@ $(keyboard_dll_OBJS) $(keyboard_dll_LIBRARY_PATH) $(keyboard_dll_DLL_PATH) $(DEFLIB) $(keyboard_dll_DLLS:%=-l%) $(keyboard_dll_LIBRARIES:%=-l%)
 
 

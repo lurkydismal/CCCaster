@@ -8,12 +8,12 @@ EXES                  =
 
 ### Common settings
 
-CEXTRA                = -std=c11 \
-			-Ofast \
-			-m32
-CXXEXTRA              = -std=c++11 \
-			-Ofast \
-			-m32
+CEXTRA                = -Ofast \
+			-m32 \
+			-std=c11
+CXXEXTRA              = -Ofast \
+			-m32 \
+			-std=c++11
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          =

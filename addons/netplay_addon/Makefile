@@ -1,6 +1,6 @@
 SRCDIR                = .
 SUBDIRS               =
-DLLS                  = actual_addon.dll
+DLLS                  = netplay.dll
 LIBS                  =
 EXES                  =
 
@@ -10,61 +10,65 @@ EXES                  =
 
 CEXTRA                = -Ofast \
 			-m32 \
-			-std=c11
+			-std=c11 \
+			-fpermissive
 CXXEXTRA              = -Ofast \
 			-m32 \
-			-std=c++11
+			-std=c++11 \
+			-fpermissive
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I ../../dxsdk \
+INCLUDE_PATH          = -I ../../json_file/include \
 			-I ../../states_dll/_useCallback/include \
+			-I ../overlay_addon/imgui/include \
+			-I ../actual_addon/applyInput/include \
 			-I addon_callbacks/include \
-			-I applyInput/include \
-			-I patch_callbacks/include \
-			-I patch_t/include \
-			-I ../
+			-I hotkey_mappings/include \
+			-I ../ \
+			-I ../../
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
 LIBRARIES             =
 
 
-### actual_addon.dll sources and settings
+### netplay.dll sources and settings
 
-actual_addon_dll_MODULE= actual_addon.dll
-actual_addon_dll_C_SRCS=
-actual_addon_dll_CXX_SRCS= src/main.cpp \
-			   addon_callbacks/src/addon_callbacks.cpp \
-			   applyInput/src/applyInput.cpp \
-			   patch_callbacks/src/patch_callbacks.cpp \
-			   patch_t/src/patch_t.cpp \
-			   ../../states_dll/_useCallback/src/_useCallback.cpp
-actual_addon_dll_RC_SRCS=
-actual_addon_dll_LDFLAGS= -shared \
-			$(actual_addon_dll_MODULE:.dll=.def) \
+netplay_dll_MODULE= netplay.dll
+netplay_dll_C_SRCS=
+netplay_dll_CXX_SRCS= src/main.cpp \
+			    addon_callbacks/src/addon_callbacks.cpp \
+			    hotkey_mappings/src/hotkey_mappings.cpp \
+			    ../actual_addon/applyInput/src/applyInput.cpp \
+			    ../../states_dll/_useCallback/src/_useCallback.cpp
+netplay_dll_RC_SRCS=
+netplay_dll_LDFLAGS= -shared \
+			$(netplay_dll_MODULE:.dll=.def) \
 			-m32 \
 			-s
-actual_addon_dll_ARFLAGS=
-actual_addon_dll_DLL_PATH=
-actual_addon_dll_DLLS = odbc32 \
+netplay_dll_ARFLAGS=
+netplay_dll_DLL_PATH=
+netplay_dll_DLLS= odbc32 \
 			ole32 \
 			oleaut32 \
 			winspool \
 			odbccp32
-actual_addon_dll_LIBRARY_PATH=
-actual_addon_dll_LIBRARIES= uuid
+netplay_dll_LIBRARY_PATH=
+netplay_dll_LIBRARIES= uuid \
+			     ws2_32 \
+			     mswsock
 
-actual_addon_dll_OBJS = $(actual_addon_dll_C_SRCS:.c=.o) \
-			$(actual_addon_dll_CXX_SRCS:.cpp=.o) \
-			$(actual_addon_dll_RC_SRCS:.rc=.res)
+netplay_dll_OBJS= $(netplay_dll_C_SRCS:.c=.o) \
+			$(netplay_dll_CXX_SRCS:.cpp=.o) \
+			$(netplay_dll_RC_SRCS:.rc=.res)
 
 
 
 ### Global source lists
 
-C_SRCS                = $(actual_addon_dll_C_SRCS)
-CXX_SRCS              = $(actual_addon_dll_CXX_SRCS)
-RC_SRCS               = $(actual_addon_dll_RC_SRCS)
+C_SRCS                = $(netplay_dll_C_SRCS)
+CXX_SRCS              = $(netplay_dll_CXX_SRCS)
+RC_SRCS               = $(netplay_dll_RC_SRCS)
 
 
 ### Tools
@@ -118,10 +122,10 @@ $(SUBDIRS:%=%/__clean__): dummy
 $(EXTRASUBDIRS:%=%/__clean__): dummy
 	-cd `dirname $@` && $(RM) $(CLEAN_FILES)
 
-### Target.defific build rules
+### Target specific build rules
 DEFLIB = $(LIBRARY_PATH) $(LIBRARIES) $(DLL_PATH) $(DLL_IMPORTS:%=-l%)
 
-$(actual_addon_dll_MODULE).so: $(actual_addon_dll_OBJS) $(actual_addon_dll_MODULE:.dll=.def)
-	$(CXX) $(actual_addon_dll_LDFLAGS) -o $@ $(actual_addon_dll_OBJS) $(actual_addon_dll_LIBRARY_PATH) $(actual_addon_dll_DLL_PATH) $(DEFLIB) $(actual_addon_dll_DLLS:%=-l%) $(actual_addon_dll_LIBRARIES:%=-l%)
+$(netplay_dll_MODULE).so: $(netplay_dll_OBJS) $(netplay_dll_MODULE:.dll=.def)
+	$(CXX) $(netplay_dll_LDFLAGS) -o $@ $(netplay_dll_OBJS) $(netplay_dll_LIBRARY_PATH) $(netplay_dll_DLL_PATH) $(DEFLIB) $(netplay_dll_DLLS:%=-l%) $(netplay_dll_LIBRARIES:%=-l%)
 
 

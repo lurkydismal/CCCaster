@@ -1,0 +1,10 @@
+LIBRARY netplay
+EXPORTS
+
+gameMode$opening
+gameMode$characterSelect
+gameMode$loading
+gameMode$inMatch
+keyboard$getLocalInput$end
+overlay$beforeDraw$ImGui
+mainLoop$getLocalInput

@@ -8,12 +8,13 @@ EXES                  =
 
 ### Common settings
 
-CEXTRA                = -std=c11 \
-			-m32
-CXXEXTRA              = -Wfatal-errors \
-			-fvisibility=hidden \
+CEXTRA                = -Ofast \
+			-m32 \
+			-std=c11
+CXXEXTRA              = -Ofast \
+			-m32 \
 			-std=c++11 \
-			-m32
+			-fvisibility=hidden
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
@@ -29,27 +30,28 @@ LIBRARIES             = -lminhook
 d3d9_dll_MODULE= d3d9.dll
 d3d9_dll_C_SRCS=
 d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
-			src/IDirect3DCubeTexture9.cpp \
-			src/IDirect3DDevice9Ex.cpp \
-			src/IDirect3DIndexBuffer9.cpp \
-			src/IDirect3DPixelShader9.cpp \
-			src/IDirect3DQuery9.cpp \
-			src/IDirect3DStateBlock9.cpp \
-			src/IDirect3DSurface9.cpp \
-			src/IDirect3DSwapChain9Ex.cpp \
-			src/IDirect3DTexture9.cpp \
-			src/IDirect3DVertexBuffer9.cpp \
-			src/IDirect3DVertexDeclaration9.cpp \
-			src/IDirect3DVertexShader9.cpp \
-			src/IDirect3DVolume9.cpp \
-			src/IDirect3DVolumeTexture9.cpp \
-			src/InterfaceQuery.cpp \
-			src/main.cpp \
-			../states_dll/_useCallback/src/_useCallback.cpp
+		   src/IDirect3DCubeTexture9.cpp \
+		   src/IDirect3DDevice9Ex.cpp \
+		   src/IDirect3DIndexBuffer9.cpp \
+		   src/IDirect3DPixelShader9.cpp \
+		   src/IDirect3DQuery9.cpp \
+		   src/IDirect3DStateBlock9.cpp \
+		   src/IDirect3DSurface9.cpp \
+		   src/IDirect3DSwapChain9Ex.cpp \
+		   src/IDirect3DTexture9.cpp \
+		   src/IDirect3DVertexBuffer9.cpp \
+		   src/IDirect3DVertexDeclaration9.cpp \
+		   src/IDirect3DVertexShader9.cpp \
+		   src/IDirect3DVolume9.cpp \
+		   src/IDirect3DVolumeTexture9.cpp \
+		   src/InterfaceQuery.cpp \
+		   src/main.cpp \
+		   ../states_dll/_useCallback/src/_useCallback.cpp
 d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \
 			$(d3d9_dll_MODULE:.dll=.def) \
-			-m32
+			-m32 \
+			-s
 d3d9_dll_ARFLAGS=
 d3d9_dll_DLL_PATH=
 d3d9_dll_DLLS = odbc32 \

@@ -2,4 +2,4 @@
 LIBRARY actual_addon
 EXPORTS
 
-IDirect3D9Ex$CreateDevice @1
+IDirect3D9Ex$CreateDevice

@@ -518,6 +518,7 @@ static void init( void ) {
     // Fix Ryougi stage music looping
     static patch_t l_ryougiStageMusicLoopingPatch1{
         0x7695F6, { 0x35, 0x00, 0x00, 0x00 } };
+
     static patch_t l_ryougiStageMusicLoopingPatch2{
         0x7695EC, { 0xAA, 0xCC, 0x1E, 0x40 } };
 
@@ -527,7 +528,6 @@ static void init( void ) {
 BOOL WINAPI DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved ) {
     switch ( dwReason ) {
         case DLL_PROCESS_ATTACH: {
-            MessageBoxA( 0, "1", "test", 0 );
             init();
 
             break;

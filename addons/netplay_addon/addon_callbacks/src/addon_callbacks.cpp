@@ -46,8 +46,8 @@ uint32_t g_activeFlagsNetplay = 0;
 
 } // namespace
 
-extern "C" uint16_t __declspec( dllexport )
-    gameMode$opening( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) gameMode$opening(
+    void** _callbackArguments ) {
     if ( !g_useCallback ) {
         HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
@@ -66,8 +66,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    gameMode$characterSelect( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) gameMode$characterSelect(
+    void** _callbackArguments ) {
     // 2P input
 #if defined( CLIENT ) || defined( SERVER )
 
@@ -86,8 +86,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    gameMode$loading( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) gameMode$loading(
+    void** _callbackArguments ) {
     // 2P input
 #if defined( CLIENT ) || defined( SERVER )
 
@@ -106,8 +106,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    gameMode$inMatch( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) gameMode$inMatch(
+    void** _callbackArguments ) {
     // 2P input
 #if defined( CLIENT ) || defined( SERVER )
 
@@ -126,8 +126,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    keyboard$getLocalInput$end( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) keyboard$getLocalInput$end(
+    void** _callbackArguments ) {
 #if defined( CLIENT ) || defined( SERVER )
     direction_t* l_direction = ( direction_t* )_callbackArguments[ 0 ];
     button_t* l_buttons = ( button_t* )_callbackArguments[ 1 ];
@@ -146,8 +146,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    mainLoop$getLocalInput( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) mainLoop$getLocalInput(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     // player_t l_localPlayer = ( player_t )_callbackArguments[ 0 ];
     direction_t* l_direction = ( direction_t* )_callbackArguments[ 1 ];
@@ -173,8 +173,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    overlay$beforeDraw$ImGui( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) overlay$beforeDraw$ImGui(
+    void** _callbackArguments ) {
     if ( g_activeFlagsNetplay & SHOW_OVERLAY_NETPLAY ) {
         ImGui_Text_t l_Text =
             reinterpret_cast< ImGui_Text_t >( _callbackArguments[ 0 ] );
