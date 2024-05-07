@@ -65,7 +65,7 @@ static uint16_t _useCallback( std::string const& _callbackName,
 
     } else {
         for ( const auto _callback : l_callbacks->second ) {
-            const uint16_t l_result = _callback( NULL );
+            const uint16_t l_result = _callback( _callbackArguments );
 
             if ( l_result ) {
                 l_returnValue = l_result;

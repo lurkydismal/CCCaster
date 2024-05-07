@@ -9,7 +9,7 @@ mkdir -p "${ADDONS_DIR}/actual_addon" && \
     "${ADDONS_DIR}/actual_addon/actual_addon.dll" && \
     cp -f info.hjson \
     "${ADDONS_DIR}/actual_addon/." && \
-    clang-format-18 --style=file \
+    clang-format --style=file \
     -i \
     src/*.cpp \
     addon_callbacks/src/*.cpp addon_callbacks/include/*.hpp \

@@ -1,5 +1,5 @@
 #!/bin/bash
 clear && \
-clang-format-15 --style=file \
+clang-format --style=file \
     -i \
     *.h

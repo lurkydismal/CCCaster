@@ -11,7 +11,7 @@ mkdir -p "${ADDONS_DIR}/keyboard" && \
     "${ADDONS_DIR}/keyboard/." && \
     cp -f controls_backup.json \
     "${MBAA_DIR}/." && \
-    clang-format-18 --style=file \
+    clang-format --style=file \
     -i \
     src/*.cpp \
     addon_callbacks/include/*.hpp addon_callbacks/src/*.cpp \

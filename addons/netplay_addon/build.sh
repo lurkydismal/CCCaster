@@ -9,7 +9,7 @@ mkdir -p "${ADDONS_DIR}/netplay" && \
     "${ADDONS_DIR}/netplay/netplay.dll" && \
     cp -f info.hjson \
     "${ADDONS_DIR}/netplay/." && \
-    clang-format-18 --style=file \
+    clang-format --style=file \
     -i \
     src/*.cpp \
     addon_callbacks/src/*.cpp addon_callbacks/include/*.hpp \
