@@ -9,6 +9,6 @@ mkdir -p "${ADDONS_DIR}/example" && \
     "${ADDONS_DIR}/example/example.dll" && \
     cp -f info.hjson \
     "${ADDONS_DIR}/example/." && \
-    clang-format-18 --style=file \
+    clang-format --style=file \
     -i \
     example.cpp

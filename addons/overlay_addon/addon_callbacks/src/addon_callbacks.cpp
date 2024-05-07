@@ -39,13 +39,13 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
         exit( 1 );
     }
 
-    HWND _hFocusWindow = ( HWND )_callbackArguments[ 2 ];
-    IDirect3DDevice9** _ppReturnedDeviceInterface =
-        ( IDirect3DDevice9** )_callbackArguments[ 5 ];
+    HWND* _hFocusWindow = ( HWND* )_callbackArguments[ 2 ];
+    IDirect3DDevice9*** _ppReturnedDeviceInterface =
+        ( IDirect3DDevice9*** )_callbackArguments[ 5 ];
 
     // Setup Platform/Renderer backends
-    ImGui_ImplWin32_Init( _hFocusWindow );
-    ImGui_ImplDX9_Init( *_ppReturnedDeviceInterface );
+    ImGui_ImplWin32_Init( *_hFocusWindow );
+    ImGui_ImplDX9_Init( **_ppReturnedDeviceInterface );
 
     g_imGuiInitialized = true;
 

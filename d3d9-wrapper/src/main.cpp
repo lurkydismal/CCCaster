@@ -116,7 +116,9 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
             IID_IDirect3DDevice9 );
     }
 
-    uint16_t l_result = _useCallback( "IDirect3D9Ex$CreateDevice" );
+    uint16_t l_result = _useCallback(
+        "IDirect3D9Ex$CreateDevice", 6, &Adapter, &DeviceType, &hFocusWindow,
+        &BehaviorFlags, &pPresentationParameters, &ppReturnedDeviceInterface );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );

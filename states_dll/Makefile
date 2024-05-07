@@ -54,8 +54,8 @@ RC_SRCS               = $(states_dll_RC_SRCS)
 
 ### Tools
 
-CC = ccache i686-w64-mingw32-gcc-win32 
-CXX = ccache i686-w64-mingw32-g++-win32 
+CC = ccache i686-w64-mingw32-gcc 
+CXX = ccache i686-w64-mingw32-g++ 
 RC = wrc
 AR = i686-w64-mingw32-ar
 
