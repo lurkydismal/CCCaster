@@ -116,9 +116,7 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
             IID_IDirect3DDevice9 );
     }
 
-    uint16_t l_result = _useCallback(
-        "IDirect3D9Ex$CreateDevice", 6, Adapter, DeviceType, hFocusWindow,
-        BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface );
+    uint16_t l_result = _useCallback( "IDirect3D9Ex$CreateDevice" );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -817,6 +815,11 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 
                 g_justAnotherModloaderDll =
                     LoadLibraryA( "just_another_modloader.dll" );
+
+                if ( !g_justAnotherModloaderDll ) {
+                    exit( 1 );
+                }
+
                 g_statesDll = GetModuleHandleA( "states.dll" );
 
                 if ( !g_statesDll ) {
