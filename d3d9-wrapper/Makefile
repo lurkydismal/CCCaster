@@ -79,8 +79,8 @@ RC_SRCS               = $(d3d9_dll_RC_SRCS)
 
 ### Tools
 
-CC = ccache i686-w64-mingw32-gcc-win32
-CXX = ccache i686-w64-mingw32-g++-win32
+CC = ccache i686-w64-mingw32-gc
+CXX = ccache i686-w64-mingw32-g++
 RC = wrc
 AR = ar
 
