@@ -1,5 +1,8 @@
 #include "json_file.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include "nlohmann/json.hpp"
 // #include <fmt/core.h>
 // #include <icecream/icecream.hpp>
@@ -29,17 +32,22 @@ JSONFile::JSONFile( std::string const& _fileName,
     // IC( this->_json.empty() );
 
     // Parse JSON file
-    {
+            MessageBoxA( 0, "test3", "test", 0 );
+    try {
         ;
+            MessageBoxA( 0, ( this->_filePath ).c_str(), "test", 0 );
         std::ifstream l_jsonFileIn( this->_filePath );
+            MessageBoxA( 0, ( this->_filePath ).c_str(), "test", 0 );
 
         // Is controls preferences file found
         // IC( this->_json.good() );
 
         if ( l_jsonFileIn.good() ) {
+            MessageBoxA( 0, "test", "test", 0 );
             this->_json = json::parse( l_jsonFileIn );
 
         } else {
+            MessageBoxA( 0, "test2", "test", 0 );
             // const std::string
             // l_preferencesBackupFilePath =
             // fmt::format(
@@ -54,6 +62,8 @@ JSONFile::JSONFile( std::string const& _fileName,
 
             this->_json = json::parse( l_jsonBackupFileIn );
         }
+    } catch (std::exception& e) {
+        MessageBoxA( 0, "fail", "test", 0 );
     }
 
     // IC( this->_json.dump( 4 ) );

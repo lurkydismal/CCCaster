@@ -128,8 +128,8 @@ const std::vector< std::vector< keyLayout_t > > l_keyboardLayout = {
 
 useCallbackFunction_t g_useCallback = NULL;
 
-extern "C" uint16_t __declspec( dllexport ) mainLoop$getLocalInput(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    mainLoop$getLocalInput( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     // player_t l_localPlayer = ( player_t )_callbackArguments[ 0 ];
     direction_t* l_direction = ( direction_t* )_callbackArguments[ 1 ];
@@ -222,15 +222,15 @@ extern "C" uint16_t __declspec( dllexport ) mainLoop$getLocalInput(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) gameMode$versus(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    gameMode$versus( void** _callbackArguments ) {
     g_disableMenu = true;
 
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
     if ( !l_statesDll ) {
@@ -247,8 +247,8 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) overlay$beforeDraw$ImGui(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    overlay$beforeDraw$ImGui( void** _callbackArguments ) {
     static uint8_t l_mapping;
 
     if ( g_activeFlagsKeyboard & SHOW_OVERLAY_KEY_CONFIG ) {
@@ -342,8 +342,8 @@ extern "C" uint16_t __declspec( dllexport ) overlay$Toggle( void ) {
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    extraDrawCallback( void** _callbackArguments ) {
     if ( g_activeFlagsKeyboard & SHOW_OVERLAY_KEY_CONFIG_NATIVE ) {
         struct background {
             colorsForRectangle_t colorsForRectangle;

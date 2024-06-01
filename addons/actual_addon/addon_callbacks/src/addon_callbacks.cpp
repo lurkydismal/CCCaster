@@ -7,8 +7,8 @@
 HWND g_hFocusWindow = NULL;
 useCallbackFunction_t g_useCallback = NULL;
 
-extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
     HWND* _hFocusWindow = ( HWND* )_callbackArguments[ 2 ];
     D3DPRESENT_PARAMETERS** _pPresentationParameters =
         ( D3DPRESENT_PARAMETERS** )_callbackArguments[ 4 ];
