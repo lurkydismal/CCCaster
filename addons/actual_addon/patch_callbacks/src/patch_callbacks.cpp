@@ -210,6 +210,8 @@ void gameMainLoopCallback( void ) {
                               &l_direction, &l_buttons );
         }
 
+        
+
         applyInput( l_buttons, l_direction, l_localPlayer );
     }
 

@@ -57,8 +57,8 @@ extern "C" uint32_t loadTextureFromMemory( char* _textureBuffer,
 
 } // namespace
 
-extern "C" uint16_t __declspec( dllexport ) native$getColorForRectangle(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    native$getColorForRectangle( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     uint8_t* l_alpha = ( uint8_t* )_callbackArguments[ 0 ];
@@ -73,8 +73,8 @@ extern "C" uint16_t __declspec( dllexport ) native$getColorForRectangle(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) native$drawRectangle(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    native$drawRectangle( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     uint32_t* l_x = ( uint32_t* )_callbackArguments[ 0 ];
@@ -93,8 +93,8 @@ extern "C" uint16_t __declspec( dllexport ) native$drawRectangle(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) native$drawText(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    native$drawText( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     uint32_t* l_width = ( uint32_t* )_callbackArguments[ 0 ];
@@ -117,8 +117,8 @@ extern "C" uint16_t __declspec( dllexport ) native$drawText(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) native$drawSprite(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    native$drawSprite( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     uint32_t* l_width = ( uint32_t* )_callbackArguments[ 0 ];
@@ -142,8 +142,8 @@ extern "C" uint16_t __declspec( dllexport ) native$drawSprite(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) native$loadTextureFromMemory(
-    void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport )
+    native$loadTextureFromMemory( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     char** l_textureBuffer = ( char** )_callbackArguments[ 0 ];

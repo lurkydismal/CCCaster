@@ -2,14 +2,14 @@
 .classpath
 .project
 .settings/
-.vscode/*
+.vscode/
 !.vscode/settings.json
 
 # Vim related
-*~
-*.swp
-*.swo
+**/*~
+**/*.swp
+**/*.swo
 
 # I dont know
-*.obj
-*.o
+**/*.obj
+**/*.o
