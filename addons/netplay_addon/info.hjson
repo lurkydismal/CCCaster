@@ -10,8 +10,7 @@
         gameMode$characterSelect: gameMode$characterSelect
         gameMode$loading: gameMode$loading
         gameMode$inMatch: gameMode$inMatch
-        keyboard$getLocalInput$end: keyboard$getLocalInput$end
+        keyboard$getInput$end: keyboard$getInput$end
         overlay$beforeDraw$ImGui: overlay$beforeDraw$ImGui
-        mainLoop$getLocalInput: mainLoop$getLocalInput
     }
 }

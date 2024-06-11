@@ -5,6 +5,5 @@ gameMode$opening
 gameMode$characterSelect
 gameMode$loading
 gameMode$inMatch
-keyboard$getLocalInput$end
+keyboard$getInput$end
 overlay$beforeDraw$ImGui
-mainLoop$getLocalInput

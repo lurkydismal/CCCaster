@@ -6,5 +6,12 @@
     source: reserved
     main: keyboard.dll
     events: {
+        mainLoop$newFrame: mainLoop$newFrame
+        keyboard$applyInput: keyboard$applyInput
+        gameMode$versus: gameMode$versus
+        IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
+        overlay$beforeDraw$ImGui: overlay$beforeDraw$ImGui
+        overlay$Toggle: overlay$Toggle
+        extraDraw: extraDrawCallback
     }
 }

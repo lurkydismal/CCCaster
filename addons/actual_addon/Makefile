@@ -16,10 +16,8 @@ CXXEXTRA              = -Ofast \
 			-std=c++11
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I ../../dxsdk \
-			-I ../../states_dll/_useCallback/include \
+INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I addon_callbacks/include \
-			-I applyInput/include \
 			-I patch_callbacks/include \
 			-I patch_t/include \
 			-I ../
@@ -35,7 +33,6 @@ actual_addon_dll_MODULE= actual_addon.dll
 actual_addon_dll_C_SRCS=
 actual_addon_dll_CXX_SRCS= src/main.cpp \
 			   addon_callbacks/src/addon_callbacks.cpp \
-			   applyInput/src/applyInput.cpp \
 			   patch_callbacks/src/patch_callbacks.cpp \
 			   patch_t/src/patch_t.cpp \
 			   ../../states_dll/_useCallback/src/_useCallback.cpp

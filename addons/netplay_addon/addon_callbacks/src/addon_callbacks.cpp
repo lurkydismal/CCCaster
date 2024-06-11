@@ -10,7 +10,6 @@
 
 #include "_useCallback.hpp"
 #include "applyInput.hpp"
-#include "hotkey_mappings.hpp"
 #include "imgui.hpp"
 
 #pragma comment( lib, "user32.lib" )
@@ -127,7 +126,7 @@ extern "C" uint16_t __declspec( dllexport )
 }
 
 extern "C" uint16_t __declspec( dllexport )
-    keyboard$getLocalInput$end( void** _callbackArguments ) {
+    keyboard$getInput$end( void** _callbackArguments ) {
 #if defined( CLIENT ) || defined( SERVER )
     direction_t* l_direction = ( direction_t* )_callbackArguments[ 0 ];
     button_t* l_buttons = ( button_t* )_callbackArguments[ 1 ];
@@ -144,33 +143,6 @@ extern "C" uint16_t __declspec( dllexport )
 #endif // CLIENT || SERVER
 
     return ( 0 );
-}
-
-extern "C" uint16_t __declspec( dllexport )
-    mainLoop$getLocalInput( void** _callbackArguments ) {
-    uint16_t l_returnValue = 0;
-    // player_t l_localPlayer = ( player_t )_callbackArguments[ 0 ];
-    direction_t* l_direction = ( direction_t* )_callbackArguments[ 1 ];
-    button_t* l_buttons = ( button_t* )_callbackArguments[ 2 ];
-
-    {
-        static uint32_t l_framesPassed = 0;
-
-        if ( l_framesPassed >= 10 ) {
-            l_framesPassed = 0;
-
-            if ( GetAsyncKeyState(
-                     g_hotkeyMappings.at( "ToggleOverlay_Netplay" ) ) ) {
-                g_activeFlagsNetplay =
-                    ( SHOW_OVERLAY_NETPLAY * _useCallback( "overlay$Toggle" ) );
-            }
-
-        } else {
-            l_framesPassed++;
-        }
-    }
-
-    return ( l_returnValue );
 }
 
 extern "C" uint16_t __declspec( dllexport )

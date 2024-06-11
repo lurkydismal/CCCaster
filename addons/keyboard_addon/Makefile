@@ -23,10 +23,7 @@ INCLUDE_PATH          = -I ../../json_file/include \
 			-I ../overlay_addon/imgui/include \
 			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
-			-I button_mappings/include \
 			-I controls_parse/include \
-			-I direction_mappings/include \
-			-I hotkey_mappings/include \
 			-I ../ \
 			-I ../../
 DLL_PATH              =
@@ -41,9 +38,6 @@ keyboard_dll_MODULE= keyboard.dll
 keyboard_dll_C_SRCS=
 keyboard_dll_CXX_SRCS= src/main.cpp \
 			     addon_callbacks/src/addon_callbacks.cpp \
-			     button_mappings/src/button_mappings.cpp \
-			     direction_mappings/src/direction_mappings.cpp \
-			     hotkey_mappings/src/hotkey_mappings.cpp \
 			     ../../json_file/src/json_file.cpp \
 			     ../../states_dll/_useCallback/src/_useCallback.cpp
 keyboard_dll_RC_SRCS=

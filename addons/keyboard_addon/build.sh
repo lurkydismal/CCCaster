@@ -15,7 +15,4 @@ mkdir -p "${ADDONS_DIR}/keyboard" && \
     -i \
     src/*.cpp \
     addon_callbacks/include/*.hpp addon_callbacks/src/*.cpp \
-    button_mappings/include/*.hpp button_mappings/src/*.cpp \
     controls_parse/include/*.hpp \
-    direction_mappings/include/*.hpp direction_mappings/src/*.cpp \
-    hotkey_mappings/src/*.cpp hotkey_mappings/include/*.hpp

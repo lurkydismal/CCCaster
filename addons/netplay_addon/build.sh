@@ -11,6 +11,4 @@ mkdir -p "${ADDONS_DIR}/netplay" && \
     "${ADDONS_DIR}/netplay/." && \
     clang-format --style=file \
     -i \
-    src/*.cpp \
     addon_callbacks/src/*.cpp addon_callbacks/include/*.hpp \
-    hotkey_mappings/src/*.cpp hotkey_mappings/include/*.hpp
