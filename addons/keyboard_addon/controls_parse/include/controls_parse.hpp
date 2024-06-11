@@ -1,5 +1,7 @@
 #pragma once
 
-#include "json_file.hpp"
+#include "nlohmann/json.hpp"
 
-extern JSONFile g_jsonControlsKeyboard;
+using json = nlohmann::json;
+
+extern json g_jsonControlsKeyboard;

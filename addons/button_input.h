@@ -1,19 +1,6 @@
 #if !defined( BUTTON_INPUT_H )
 #define BUTTON_INPUT_H
 
-#include <cstdint>
-
-#if !defined( COMBINE_INPUT )
-#define COMBINE_INPUT( BUTTONS, DIRECTION ) \
-    ( uint16_t( ( ( uint16_t )DIRECTION ) | ( ( ( uint16_t )BUTTONS ) << 4 ) ) )
-#endif
-
-#if !defined( INLINE_INPUT )
-#define INLINE_INPUT( INPUT )                                 \
-    ( uint16_t( ( ( ( uint16_t )INPUT ) & 0xFFF0u ) >> 4 ) ), \
-        ( uint16_t( ( ( uint16_t )INPUT ) & 0x000Fu ) )
-#endif
-
 enum button_t {
     NEUTRAL_BUTTON = 0x0,
     A = 0x0010,

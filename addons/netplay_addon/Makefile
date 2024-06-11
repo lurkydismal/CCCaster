@@ -18,12 +18,10 @@ CXXEXTRA              = -Ofast \
 			-fpermissive
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I ../../json_file/include \
-			-I ../../states_dll/_useCallback/include \
-			-I ../overlay_addon/imgui/include \
+INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I ../actual_addon/applyInput/include \
+			-I ../overlay_addon/imgui/include \
 			-I addon_callbacks/include \
-			-I hotkey_mappings/include \
 			-I ../ \
 			-I ../../
 DLL_PATH              =
@@ -36,9 +34,7 @@ LIBRARIES             =
 
 netplay_dll_MODULE= netplay.dll
 netplay_dll_C_SRCS=
-netplay_dll_CXX_SRCS= src/main.cpp \
-			    addon_callbacks/src/addon_callbacks.cpp \
-			    hotkey_mappings/src/hotkey_mappings.cpp \
+netplay_dll_CXX_SRCS= addon_callbacks/src/addon_callbacks.cpp \
 			    ../actual_addon/applyInput/src/applyInput.cpp \
 			    ../../states_dll/_useCallback/src/_useCallback.cpp
 netplay_dll_RC_SRCS=

@@ -1,7 +1,7 @@
 LIBRARY keyboard
 EXPORTS
 
-mainLoop$getLocalInput
+mainLoop$newFrame
 gameMode$versus
 IDirect3D9Ex$CreateDevice
 overlay$beforeDraw$ImGui
