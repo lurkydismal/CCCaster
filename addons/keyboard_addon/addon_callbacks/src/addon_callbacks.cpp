@@ -132,20 +132,6 @@ HWND g_hFocusWindow = NULL;
 
 useCallbackFunction_t g_useCallback = NULL;
 
-struct playerInputs_t {
-    int64_t _beginOffset1;
-    int64_t _beginOffset2;
-    int64_t _beginOffset3;
-    direction_t firstPlayerDirection;
-    int32_t _firstPlayerDirectionOffset1;
-    int32_t _firstPlayerDirectionOffset2;
-    button_t firstPlayerButtons;
-    int32_t firstPlayerButtonsOffset1;
-    direction_t secondPlayerDirection;
-    int32_t secondPlayerDirectionOffset1;
-    button_t secondPlayerButtons;
-};
-
 void applyInput( button_t _buttons, direction_t _direction, player_t _player ) {
     char* const l_inputsStructureAddress =
         *( reinterpret_cast< char** >( 0x76E6AC ) );
@@ -154,32 +140,20 @@ void applyInput( button_t _buttons, direction_t _direction, player_t _player ) {
     // const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44
     // const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
 
-    playerInputs_t* l_playersInputs =
-        ( playerInputs_t* )l_inputsStructureAddress;
-
-    switch ( _player ) {
-        case FIRST: {
-            l_playersInputs->firstPlayerDirection = _direction;
-            l_playersInputs->firstPlayerButtons = _buttons;
-
-            break;
-        }
-
-        case SECOND: {
-            l_playersInputs->secondPlayerDirection = _direction;
-            l_playersInputs->secondPlayerButtons = _buttons;
-
-            break;
-        }
-    }
+    *( uint16_t* )( l_inputsStructureAddress + 16 +
+                    ( 20 * ( ( uint8_t )_player ) ) ) =
+        ( uint16_t )( _buttons );
+    *( uint16_t* )( l_inputsStructureAddress + 4 +
+                    ( 20 * ( ( uint8_t )_player ) ) ) =
+        ( uint16_t )( _direction );
 }
 
 extern "C" uint16_t __declspec( dllexport )
     mainLoop$newFrame( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-    if ( ( GetActiveWindow() == g_hFocusWindow ) &&
-         ( g_hFocusWindow != NULL ) ) {
+    if ( ( GetActiveWindow() != g_hFocusWindow ) ||
+         ( g_hFocusWindow == NULL ) ) {
         return ( l_returnValue );
     }
 
@@ -188,11 +162,13 @@ extern "C" uint16_t __declspec( dllexport )
 
 #define KEYS_TOTAL ( 0xFE + 1 )
 
-    for ( uint8_t _index = 1; _index < KEYS_TOTAL; _index++ ) {
-        if ( GetAsyncKeyState( _index ) & 0x8000 ) {
-            if ( g_jsonControlsKeyboard.at( _index ).is_number_integer() ) {
+    for ( uint8_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
+        if ( GetKeyState( _index ) & 0x8000 ) {
+            const std::string l_indexAsString = std::to_string( _index );
+
+            if ( g_jsonControlsKeyboard.contains( l_indexAsString ) ) {
                 l_activeMappedKeys.insert(
-                    g_jsonControlsKeyboard.at( _index ) );
+                    g_jsonControlsKeyboard.at( l_indexAsString ) );
 
             } else {
                 l_activeKeys.insert( _index );
@@ -204,8 +180,8 @@ extern "C" uint16_t __declspec( dllexport )
 
     l_returnValue = _useCallback( "keyboard$getInput$end", 2,
                                   &l_activeMappedKeys, &l_activeKeys );
-    l_returnValue = _useCallback( "keyboard$applyInput", 2, &l_activeMappedKeys,
-                                  &l_activeKeys );
+    l_returnValue =
+        _useCallback( "keyboard$applyInput", 1, &l_activeMappedKeys );
 
     return ( l_returnValue );
 }
@@ -215,41 +191,32 @@ extern "C" uint16_t __declspec( dllexport )
     uint16_t l_returnValue = 0;
     std::set< std::string > _activeMappedKeys =
         *( std::set< std::string >* )_callbackArguments[ 0 ];
-    std::set< uint8_t > _activeKeys =
-        *( std::set< uint8_t >* )_callbackArguments[ 1 ];
     direction_t l_direction = NEUTRAL_DIRECTION;
     button_t l_buttons = NEUTRAL_BUTTON;
 
-    if ( _activeMappedKeys.find( "6" ) != _activeMappedKeys.end() ) {
-        if ( GetAsyncKeyState( g_jsonControlsKeyboard[ "8" ] ) & 0x8000 ) {
-            l_direction = UP;
-        }
+    l_returnValue =
+        _useCallback( "keyboard$applyInput$begin", 1, _activeMappedKeys );
+
+    if ( _activeMappedKeys.find( "8" ) != _activeMappedKeys.end() ) {
+        l_direction = UP;
     }
 
     if ( _activeMappedKeys.find( "2" ) != _activeMappedKeys.end() ) {
-        if ( GetAsyncKeyState( g_jsonControlsKeyboard[ "2" ] ) & 0x8000 ) {
-            l_direction = DOWN;
-        }
+        l_direction = DOWN;
     }
 
     if ( _activeMappedKeys.find( "4" ) != _activeMappedKeys.end() ) {
-        if ( GetAsyncKeyState( g_jsonControlsKeyboard[ "4" ] ) & 0x8000 ) {
-            l_direction =
-                ( l_direction )
-                    ? static_cast< direction_t >(
-                          --*reinterpret_cast< uint8_t* >( l_direction ) )
-                    : LEFT;
-        }
+        l_direction = ( l_direction )
+                          ? static_cast< direction_t >(
+                                --*reinterpret_cast< uint8_t* >( l_direction ) )
+                          : LEFT;
     }
 
     if ( _activeMappedKeys.find( "6" ) != _activeMappedKeys.end() ) {
-        if ( GetAsyncKeyState( g_jsonControlsKeyboard[ "6" ] ) & 0x8000 ) {
-            l_direction =
-                ( l_direction )
-                    ? static_cast< direction_t >(
-                          ++*reinterpret_cast< uint8_t* >( l_direction ) )
-                    : RIGHT;
-        }
+        l_direction = ( l_direction )
+                          ? static_cast< direction_t >(
+                                ++*reinterpret_cast< uint8_t* >( l_direction ) )
+                          : RIGHT;
     }
 
     const std::set< std::pair< std::string, button_t > > l_temp = {
@@ -295,45 +262,39 @@ extern "C" uint16_t __declspec( dllexport )
         }
     }
 
-    {
+    /*  {
         static uint32_t l_framesPassed = 0;
 
         if ( l_framesPassed >= 10 ) {
-            l_framesPassed = 0;
+        l_framesPassed = 0;
 
-            if ( GetAsyncKeyState(
-                     g_jsonControlsKeyboard[ "ToggleOverlay_KeyConfig" ] ) ) {
-                if ( _useCallback( "overlay$Toggle" ) ) {
-                    g_activeFlagsKeyboard |= SHOW_OVERLAY_KEY_CONFIG;
-                }
-
-            } else if ( GetAsyncKeyState(
-                            g_jsonControlsKeyboard
-                                [ "ToggleOverlay_KeyConfig_Native" ] ) ) {
-                // if ( _useCallback( "overlay$Toggle" ) ) {
-                g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
-                // }
-            }
-
-        } else {
-            l_framesPassed++;
+        if ( GetKeyState(
+        g_jsonControlsKeyboard[ "ToggleOverlay_KeyConfig" ] ) )
+        { if ( _useCallback( "overlay$Toggle" ) ) { g_activeFlagsKeyboard |=
+        SHOW_OVERLAY_KEY_CONFIG;
         }
+
+        } else if ( GetKeyState(
+        g_jsonControlsKeyboard
+        [ "ToggleOverlay_KeyConfig_Native" ] ) ) {
+    // if ( _useCallback( "overlay$Toggle" ) ) {
+    g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
+    // }
     }
 
-    uint16_t l_result =
-        _useCallback( "keyboard$getInput$end", 2, l_direction, l_buttons );
-
-    l_result =
-        _useCallback( "keyboard$applyInput$begin", 2, l_direction, l_buttons );
-
+    } else {
+    l_framesPassed++;
+    }
+    }
+    */
     {
         player_t l_localPlayer = FIRST;
 
         applyInput( l_buttons, l_direction, l_localPlayer );
     }
 
-    l_result =
-        _useCallback( "keyboard$applyInput$end", 2, l_direction, l_buttons );
+    l_returnValue =
+        _useCallback( "keyboard$applyInput$end", 1, _activeMappedKeys );
 
     return ( l_returnValue );
 }

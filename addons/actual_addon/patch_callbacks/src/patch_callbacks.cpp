@@ -102,69 +102,76 @@ void gameMainLoopCallback( void ) {
             }
 
             case TITLE: {
-                *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
+                //  *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) =
+                //  1;
 
                 std::set< std::string > l_activeMappedKeys = { "A" };
-                std::set< std::string > l_activeKeys = {};
 
-                _useCallback( "keyboard$applyInput", 2, l_activeMappedKeys,
-                              l_activeKeys );
+                // _useCallback( "keyboard$applyInput", 1, l_activeMappedKeys );
 
                 uint16_t l_result = _useCallback( "gameMode$title" );
             }
 
             case MAIN: {
-                *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
+                //  *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) =
+                //  1;
 
-                {
-                    static patch_t forceGotoGameModePatch;
+                /*              {
+                                    static patch_t forceGotoGameModePatch;
 
-                    if ( !forceGotoGameModePatch ) {
-                        // Force the game to go to a certain mode
-                        // jmp 0042B4B6
-                        forceGotoGameModePatch.apply( 0x42B475,
-                                                      { 0xEB, 0x3F } );
-                        uint16_t l_result = _useCallback( "gameMode$versus" );
+                                    if ( !forceGotoGameModePatch ) {
+                                        // Force the game to go to a certain
+                   mode
+                                        // jmp 0042B4B6
+                                        forceGotoGameModePatch.apply( 0x42B475,
+                                                                      { 0xEB,
+                   0x3F } ); uint16_t l_result = _useCallback( "gameMode$versus"
+                   );
 
-                        // jmp 0042B4D3
-                        // static patch_t forceGotoVersusCPU{ 0x42B475, {
-                        //  0xEB,
-                        // 0x5C
-                        // }
-                        // };
-                        // uint16_t l_result = _useCallback(
-                        // "gameMode$versusCPU" );
+                                        // jmp 0042B4D3
+                                        // static patch_t forceGotoVersusCPU{
+                   0x42B475, {
+                                        //  0xEB,
+                                        // 0x5C
+                                        // }
+                                        // };
+                                        // uint16_t l_result = _useCallback(
+                                        // "gameMode$versusCPU" );
 
-                        // jmp 0042B499
-                        // static patch_t forceGotoTraining{ 0x42B475, {
-                        // 0xEB,
-                        // 0x22 } }; uint16_t l_result = _useCallback(
-                        // "gameMode$training" );
+                                        // jmp 0042B499
+                                        // static patch_t forceGotoTraining{
+                   0x42B475, {
+                                        // 0xEB,
+                                        // 0x22 } }; uint16_t l_result =
+                   _useCallback(
+                                        // "gameMode$training" );
 
-                        // jmp 0042B541
-                        // static patch_t forceGotoReplay{
-                        //     0x42B475, { 0xE9, 0xC7, 0x00, 0x00, 0x00 }
-                        //   };
-                        // uint16_t l_result = _useCallback(
-                        // "gameMode$replay"
-                        // );
-                    }
-                }
+                                        // jmp 0042B541
+                                        // static patch_t forceGotoReplay{
+                                        //     0x42B475, { 0xE9, 0xC7, 0x00,
+                   0x00, 0x00 }
+                                        //   };
+                                        // uint16_t l_result = _useCallback(
+                                        // "gameMode$replay"
+                                        // );
+                                    }
+                                }
 
-                if ( l_framesPassed % 2 ) {
-                    std::set< std::string > l_activeMappedKeys = { "A" };
-                    std::set< std::string > l_activeKeys = {};
+                                if ( l_framesPassed % 2 ) {
+                                    std::set< std::string > l_activeMappedKeys =
+                   { "A" }; std::set< std::string > l_activeKeys = {};
 
-                    _useCallback( "keyboard$applyInput", 2, l_activeMappedKeys,
-                                  l_activeKeys );
-                }
+                                    _useCallback( "keyboard$applyInput", 2,
+                   l_activeMappedKeys, l_activeKeys );
+                                }
 
-                uint16_t l_result = _useCallback( "gameMode$main" );
+                                uint16_t l_result = _useCallback(
+                   "gameMode$main" );
 
-                if ( l_framesPassed % 2 ) {
-                    return;
-                }
-
+                                if ( l_framesPassed % 2 ) {
+                                    return;
+                                }
+                */
                 break;
             }
 
