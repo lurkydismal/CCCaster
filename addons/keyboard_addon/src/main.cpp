@@ -32,22 +32,22 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
                 // Use controls preferences
                 {
                     g_jsonControlsKeyboard = {
-                        { 38, "8" },
-                        { 39, "6" },
-                        { 40, "2" },
-                        { 37, "4" },
-                        { 90, "A" },
-                        { 88, "B" },
-                        { 67, "C" },
-                        { 86, "D" },
-                        { 68, "E" },
-                        { 83, "AB" },
-                        { 221, "FN1" },
-                        { 82, "FN2" },
-                        { 84, "START" },
-                        { 115, "ToggleOverlay_KeyConfig_Native" },
-                        { 114, "ToggleOverlay_Netplay" },
-                        { 113, "ToggleOverlay_KeyConfig" },
+                        { "38", "8" },
+                        { "39", "6" },
+                        { "40", "2" },
+                        { "37", "4" },
+                        { "90", "A" },
+                        { "88", "B" },
+                        { "67", "C" },
+                        { "86", "D" },
+                        { "68", "E" },
+                        { "83", "AB" },
+                        { "221", "FN1" },
+                        { "82", "FN2" },
+                        { "84", "START" },
+                        { "115", "ToggleOverlay_KeyConfig_Native" },
+                        { "114", "ToggleOverlay_Netplay" },
+                        { "113", "ToggleOverlay_KeyConfig" },
                     };
                 }
             }
