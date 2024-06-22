@@ -10,7 +10,7 @@
 #define FONT2 ( 0x55DAA0 )
 
 // Addresses for sprite textures
-#define BUTTON_SPRITE_TEX ( 0x74d5e8 )
+#define BUTTON_TEXTURE ( 0x74d5e8 )
 
 typedef struct {
     uint32_t a;
@@ -20,8 +20,8 @@ typedef struct {
 } colorsForRectangle_t;
 
 typedef struct {
-    uint32_t x;
-    uint32_t y;
+    int32_t x;
+    int32_t y;
 } coordinates_t;
 
 struct size {

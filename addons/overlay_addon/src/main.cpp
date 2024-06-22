@@ -33,13 +33,13 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
                 l_io.ConfigFlags |=
                     ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad
                                                        // Controls
-                l_io.ConfigFlags |=
-                    ImGuiConfigFlags_DockingEnable; // Enable Docking
-                l_io.ConfigFlags |=
-                    ImGuiConfigFlags_ViewportsEnable; // Enable
-                                                      // Multi-Viewport
-                                                      // / Platform
-                                                      // Windows
+                                                       // l_io.ConfigFlags |=
+                //     ImGuiConfigFlags_DockingEnable; // Enable Docking
+                // l_io.ConfigFlags |=
+                //     ImGuiConfigFlags_ViewportsEnable; // Enable
+                // Multi-Viewport
+                // / Platform
+                // Windows
 
                 // Setup Dear ImGui style
                 ImGui::StyleColorsDark();

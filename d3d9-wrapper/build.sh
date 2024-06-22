@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # -static-libgcc -static-libstdc++
 source ../config.sh && \
 clear && \
