@@ -8,12 +8,9 @@
 #include "button_input.h"
 #include "controls_parse.hpp"
 #include "direction_input.h"
-#include "json_file.hpp"
 
 #define CONTROLS_PREFERENCES_FILE_NAME "controls"
 #define CONTROLS_PREFERENCES_FILE_EXTENSION "json"
-
-using json = nlohmann::json;
 
 json g_jsonControlsKeyboard;
 
@@ -46,8 +43,6 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
                         { "82", "FN2" },
                         { "84", "START" },
                         { "115", "ToggleOverlay_KeyConfig_Native" },
-                        { "114", "ToggleOverlay_Netplay" },
-                        { "113", "ToggleOverlay_KeyConfig" },
                     };
                 }
             }

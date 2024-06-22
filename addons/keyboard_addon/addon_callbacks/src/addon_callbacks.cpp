@@ -15,7 +15,6 @@
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "direction_input.h"
-#include "imgui.hpp"
 #include "native.hpp"
 #include "player_t.h"
 
@@ -23,110 +22,95 @@
 
 namespace {
 
-typedef struct {
-    std::string label;
-    uint32_t virtualKeyCode;
-    uint32_t offset;
-    uint32_t width;
-} keyLayout_t;
-
 uint32_t g_activeFlagsKeyboard = 0;
 bool g_disableMenu = false;
-const std::vector< std::vector< keyLayout_t > > l_keyboardLayout = {
-    {
-        { "Esc", VK_ESCAPE, 18, 0 },
-        { "F1", VK_F1, 18, 0 },
-        { "F2", VK_F2, 0, 0 },
-        { "F3", VK_F3, 0, 0 },
-        { "F4", VK_F4, 0, 0 },
-        { "F5", VK_F5, 24, 0 },
-        { "F6", VK_F6, 0, 0 },
-        { "F7", VK_F7, 0, 0 },
-        { "F8", VK_F8, 0, 0 },
-        { "F9", VK_F9, 24, 0 },
-        { "F10", VK_F10, 0, 0 },
-        { "F11", VK_F11, 0, 0 },
-        { "F12", VK_F12, 0, 0 },
-        { "Pause", VK_PAUSE, 120, 0 },
-    },
-    {
-        { "~", VK_OEM_3, 0, 0 },
-        { "1", 0x31, 0, 0 },
-        { "2", 0x32, 0, 0 },
-        { "3", 0x33, 0, 0 },
-        { "4", 0x34, 0, 0 },
-        { "5", 0x35, 0, 0 },
-        { "6", 0x36, 0, 0 },
-        { "7", 0x37, 0, 0 },
-        { "8", 0x38, 0, 0 },
-        { "9", 0x39, 0, 0 },
-        { "0", 0x30, 0, 0 },
-        { "-", VK_OEM_MINUS, 0, 0 },
-        { "+", VK_OEM_PLUS, 0, 0 },
-        { "Backspace", VK_BACK, 0, 80 },
-        { "Insert", VK_INSERT, 24, 0 },
-        { "Home", VK_HOME, 0, 0 },
-        { "PgUp", VK_PRIOR, 0, 0 },
-    },
-    {
-        { "Tab", VK_TAB, 0, 60 },
-        { "Q", 0x51, 0, 0 },
-        { "W", 0x57, 0, 0 },
-        { "E", 0x45, 0, 0 },
-        { "R", 0x52, 0, 0 },
-        { "T", 0x54, 0, 0 },
-        { "Y", 0x59, 0, 0 },
-        { "U", 0x55, 0, 0 },
-        { "I", 0x49, 0, 0 },
-        { "O", 0x4F, 0, 0 },
-        { "P", 0x50, 0, 0 },
-        { "[", VK_OEM_4, 0, 0 },
-        { "]", VK_OEM_6, 0, 0 },
-        { "|", VK_OEM_5, 0, 60 },
-        { "Del", VK_DELETE, 24, 0 },
-        { "End", VK_END, 0, 0 },
-        { "PgDn", VK_NEXT, 0, 0 },
-    },
-    {
-        { "Caps Lock", VK_CAPITAL, 0, 80 },
-        { "A", 0x41, 0, 0 },
-        { "S", 0x53, 0, 0 },
-        { "D", 0x44, 0, 0 },
-        { "F", 0x46, 0, 0 },
-        { "G", 0x47, 0, 0 },
-        { "H", 0x48, 0, 0 },
-        { "J", 0x4A, 0, 0 },
-        { "K", 0x4B, 0, 0 },
-        { "L", 0x4C, 0, 0 },
-        { ";", VK_OEM_1, 0, 0 },
-        { "\'", VK_OEM_7, 0, 0 },
-        { "Enter", VK_RETURN, 0, 84 },
-    },
-    {
-        { "L.Shift", VK_LSHIFT, 0, 104 },
-        { "Z", 0x5A, 0, 0 },
-        { "X", 0x58, 0, 0 },
-        { "C", 0x43, 0, 0 },
-        { "V", 0x56, 0, 0 },
-        { "B", 0x42, 0, 0 },
-        { "N", 0x4E, 0, 0 },
-        { "M", 0x4D, 0, 0 },
-        { ",", VK_OEM_COMMA, 0, 0 },
-        { ".", VK_OEM_PERIOD, 0, 0 },
-        { "/", VK_OEM_2, 0, 0 },
-        { "R.Shift", VK_RSHIFT, 0, 104 },
-        { "Up", VK_UP, 68, 0 },
-    },
-    { { "L.Ctrl", VK_LCONTROL, 0, 60 },
-      { "L.Alt", VK_LMENU, 68, 60 },
-      { "Space", VK_SPACE, 0, 260 },
-      { "R.Alt", VK_RMENU, 0, 60 },
-      { "R.Ctrl", VK_RCONTROL, 68, 60 },
-      { "Left", VK_LEFT, 24, 0 },
-      { "Down", VK_DOWN, 0, 0 },
-      { "Right", VK_RIGHT, 0, 0 } } };
+const std::map< uint32_t, std::string > l_keyboardLayout = {
+    { VK_ESCAPE, "Esc" },
+    { VK_F1, "F1" },
+    { VK_F2, "F2" },
+    { VK_F3, "F3" },
+    { VK_F4, "F4" },
+    { VK_F5, "F5" },
+    { VK_F6, "F6" },
+    { VK_F7, "F7" },
+    { VK_F8, "F8" },
+    { VK_F9, "F9" },
+    { VK_F10, "F10" },
+    { VK_F11, "F11" },
+    { VK_F12, "F12" },
+    { VK_PAUSE, "Pause" },
+    { VK_OEM_3, "~" },
+    { 0x31, "1" },
+    { 0x32, "2" },
+    { 0x33, "3" },
+    { 0x34, "4" },
+    { 0x35, "5" },
+    { 0x36, "6" },
+    { 0x37, "7" },
+    { 0x38, "8" },
+    { 0x39, "9" },
+    { 0x30, "0" },
+    { VK_OEM_MINUS, "-" },
+    { VK_OEM_PLUS, "+" },
+    { VK_BACK, "Backspace" },
+    { VK_INSERT, "Insert" },
+    { VK_HOME, "Home" },
+    { VK_PRIOR, "PgUp" },
+    { VK_TAB, "Tab" },
+    { 0x51, "Q" },
+    { 0x57, "W" },
+    { 0x45, "E" },
+    { 0x52, "R" },
+    { 0x54, "T" },
+    { 0x59, "Y" },
+    { 0x55, "U" },
+    { 0x49, "I" },
+    { 0x4F, "O" },
+    { 0x50, "P" },
+    { VK_OEM_4, "[" },
+    { VK_OEM_6, "]" },
+    { VK_OEM_5, "|" },
+    { VK_DELETE, "Del" },
+    { VK_END, "End" },
+    { VK_NEXT, "PgDn" },
+    { VK_CAPITAL, "Caps Lock" },
+    { 0x41, "A" },
+    { 0x53, "S" },
+    { 0x44, "D" },
+    { 0x46, "F" },
+    { 0x47, "G" },
+    { 0x48, "H" },
+    { 0x4A, "J" },
+    { 0x4B, "K" },
+    { 0x4C, "L" },
+    { VK_OEM_1, ";" },
+    { VK_OEM_7, "\'" },
+    { VK_RETURN, "Enter" },
+    { VK_LSHIFT, "L.Shift" },
+    { 0x5A, "Z" },
+    { 0x58, "X" },
+    { 0x43, "C" },
+    { 0x56, "V" },
+    { 0x42, "B" },
+    { 0x4E, "N" },
+    { 0x4D, "M" },
+    { VK_OEM_COMMA, "," },
+    { VK_OEM_PERIOD, "." },
+    { VK_OEM_2, "/" },
+    { VK_RSHIFT, "R.Shift" },
+    { VK_UP, "Up" },
+    { VK_LCONTROL, "L.Ctrl" },
+    { VK_LMENU, "L.Alt" },
+    { VK_SPACE, "Space" },
+    { VK_RMENU, "R.Alt" },
+    { VK_RCONTROL, "R.Ctrl" },
+    { VK_LEFT, "Left" },
+    { VK_DOWN, "Down" },
+    { VK_RIGHT, "Right" } };
 
 HWND g_hFocusWindow = NULL;
+uint32_t g_framesPassed = 0;
+uint16_t g_menuCursorIndex = 0;
 
 } // namespace
 
@@ -155,6 +139,10 @@ extern "C" uint16_t __declspec( dllexport )
     if ( ( GetActiveWindow() != g_hFocusWindow ) ||
          ( g_hFocusWindow == NULL ) ) {
         return ( l_returnValue );
+    }
+
+    if ( g_framesPassed < ( UINT32_MAX - 1 ) ) {
+        g_framesPassed++;
     }
 
     std::set< std::string > l_activeMappedKeys;
@@ -262,35 +250,23 @@ extern "C" uint16_t __declspec( dllexport )
         }
     }
 
-    /*  {
-        static uint32_t l_framesPassed = 0;
+    {
+        if ( g_framesPassed >= 30 ) {
+            if ( _activeMappedKeys.find( "ToggleOverlay_KeyConfig_Native" ) !=
+                 _activeMappedKeys.end() ) {
+                g_activeFlagsKeyboard ^= SHOW_OVERLAY_NATIVE;
 
-        if ( l_framesPassed >= 10 ) {
-        l_framesPassed = 0;
-
-        if ( GetKeyState(
-        g_jsonControlsKeyboard[ "ToggleOverlay_KeyConfig" ] ) )
-        { if ( _useCallback( "overlay$Toggle" ) ) { g_activeFlagsKeyboard |=
-        SHOW_OVERLAY_KEY_CONFIG;
+                g_framesPassed = 0;
+            }
         }
-
-        } else if ( GetKeyState(
-        g_jsonControlsKeyboard
-        [ "ToggleOverlay_KeyConfig_Native" ] ) ) {
-    // if ( _useCallback( "overlay$Toggle" ) ) {
-    g_activeFlagsKeyboard ^= SHOW_OVERLAY_KEY_CONFIG_NATIVE;
-    // }
     }
 
-    } else {
-    l_framesPassed++;
-    }
-    }
-    */
     {
         player_t l_localPlayer = FIRST;
 
-        applyInput( l_buttons, l_direction, l_localPlayer );
+        if ( !( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) ) {
+            applyInput( l_buttons, l_direction, l_localPlayer );
+        }
     }
 
     l_returnValue =
@@ -333,117 +309,148 @@ extern "C" uint16_t __declspec( dllexport )
 }
 
 extern "C" uint16_t __declspec( dllexport )
-    overlay$beforeDraw$ImGui( void** _callbackArguments ) {
-    static uint8_t l_mapping;
+    keyboard$getInput$end( void** _callbackArguments ) {
+    if ( g_framesPassed > 7 ) {
+        if ( g_activeFlagsKeyboard & OVERLAY_IS_MAPPING_KEY ) {
+            std::set< std::string >* _activeMappedKeys =
+                ( std::set< std::string >* )_callbackArguments[ 0 ];
+            std::set< uint8_t >* _activeKeys =
+                ( std::set< uint8_t >* )_callbackArguments[ 1 ];
 
-    if ( g_activeFlagsKeyboard & SHOW_OVERLAY_KEY_CONFIG ) {
-        for ( std::vector< keyLayout_t > const& _keyboardLayoutLine :
-              l_keyboardLayout ) {
-            uint8_t l_keyIndex = 0;
+            if ( ( *_activeMappedKeys ).find( "B" ) !=
+                 ( *_activeMappedKeys ).end() ) {
+                g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
 
-            _useCallback( "ImGui$BeginGroup" );
+                g_framesPassed = 0;
+            }
 
-            for ( keyLayout_t const& _keyLayout : _keyboardLayoutLine ) {
-                const float l_spacingBefore = _keyLayout.offset + 4.f;
+            if ( !( *_activeKeys ).empty() ) {
+                uint16_t l_index = 0;
 
-                const float l_width =
-                    ( _keyLayout.width ) ? ( _keyLayout.width ) : ( 40 );
+                for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
+                    if ( l_index == g_menuCursorIndex ) {
+                        g_jsonControlsKeyboard[ std::to_string(
+                            *( _activeKeys->begin() ) ) ] =
+                            _item.value().template get< std::string >();
 
-                if ( l_keyIndex ) {
-                    float l_offsetFromStartX = 0.f;
+                        g_jsonControlsKeyboard.erase( _item.key() );
 
-                    _useCallback( "ImGui$SameLine", 2, &l_offsetFromStartX,
-                                  &l_spacingBefore );
-
-                } else {
-                    if ( l_spacingBefore >= 1.f ) {
-                        _useCallback( "ImGui$Indent", 1, &l_spacingBefore );
+                        break;
                     }
+
+                    l_index++;
                 }
 
-                const char* l_buttonLabel = _keyLayout.label.c_str();
-                const ImVec2 l_buttonSize = ImVec2( l_width, 40 );
+                g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
 
-                uint16_t l_result = _useCallback(
-                    "ImGui$Button", 2, &l_buttonLabel, &l_buttonSize );
+                g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
 
-                if ( ( l_result ) && ( l_result != ENODATA ) ) {
-                    l_mapping = _keyLayout.virtualKeyCode;
+                g_framesPassed = 0;
+            }
 
-                    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG;
-                    g_activeFlagsKeyboard |= SHOW_OVERLAY_KEY_CONFIG_ACTION;
+        } else if ( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) {
+            std::set< std::string >* _activeMappedKeys =
+                ( std::set< std::string >* )_callbackArguments[ 0 ];
+
+            if ( ( *_activeMappedKeys ).find( "8" ) !=
+                 ( *_activeMappedKeys ).end() ) {
+                g_menuCursorIndex--;
+
+                if ( g_menuCursorIndex >
+                     ( g_jsonControlsKeyboard.size() - 1 ) ) {
+                    g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
                 }
 
-                l_keyIndex++;
+                g_framesPassed = 0;
+            } else if ( ( *_activeMappedKeys ).find( "2" ) !=
+                        ( *_activeMappedKeys ).end() ) {
+                g_menuCursorIndex++;
+
+                if ( g_menuCursorIndex >
+                     ( g_jsonControlsKeyboard.size() - 1 ) ) {
+                    g_menuCursorIndex = 0;
+                }
+
+                g_framesPassed = 0;
             }
 
-            _useCallback( "ImGui$EndGroup" );
-        }
-    }
+            if ( ( *_activeMappedKeys ).find( "A" ) !=
+                 ( *_activeMappedKeys ).end() ) {
+                g_activeFlagsKeyboard |= OVERLAY_IS_MAPPING_KEY;
 
-    if ( g_activeFlagsKeyboard & SHOW_OVERLAY_KEY_CONFIG_ACTION ) {
-        ImGuiID l_childId = 127;
-        const ImVec2 l_childSize = ImVec2( 220, -1 );
-        ImGuiChildFlags l_childFlags = ImGuiChildFlags_FrameStyle;
-        ImGuiWindowFlags l_childWindowFlags = 0;
+                g_framesPassed = 0;
 
-        _useCallback( "ImGui$BeginChild", 4, &l_childId, &l_childSize,
-                      &l_childFlags, &l_childWindowFlags );
+            } else if ( ( *_activeMappedKeys ).find( "B" ) !=
+                        ( *_activeMappedKeys ).end() ) {
+                g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
 
-        for ( const auto& _mappedKey : g_jsonControlsKeyboard.items() ) {
-            const char* l_selectableLabel = _mappedKey.key().c_str();
-            const bool l_isSelected = true;
-            const ImGuiSelectableFlags l_selectableFlags = 0;
-            const ImVec2 l_selectableSize = ImVec2( 0, 0 );
-
-            uint16_t l_result = _useCallback(
-                "ImGui$Selectable", 4, &l_selectableLabel, &l_isSelected,
-                &l_selectableFlags, &l_selectableSize );
-
-            if ( ( l_result ) && ( l_result != ENODATA ) ) {
-                const std::string l_action = _mappedKey.key();
-
-                g_jsonControlsKeyboard[ l_action ] = l_mapping;
-
-                // g_jsonControlsKeyboard.overwrite();
-
-                g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG_ACTION;
-                g_activeFlagsKeyboard |= SHOW_OVERLAY_KEY_CONFIG;
+                g_framesPassed = 0;
             }
         }
-
-        _useCallback( "ImGui$EndChild" );
     }
-
-    return ( 0 );
-}
-
-extern "C" uint16_t __declspec( dllexport ) overlay$Toggle( void ) {
-    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG;
-    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG_ACTION;
-    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_KEY_CONFIG_NATIVE;
 
     return ( 0 );
 }
 
 extern "C" uint16_t __declspec( dllexport )
     extraDrawCallback( void** _callbackArguments ) {
-    if ( g_activeFlagsKeyboard & SHOW_OVERLAY_KEY_CONFIG_NATIVE ) {
-        struct background {
+    static bool l_animationNeeded = true;
+
+    if ( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) {
+        const uint8_t l_maxFramesPerSecond = 60;
+        const float l_transitionTimeInSeconds = 0.2;
+        static int32_t l_overlayY = 0;
+        RECT l_tempRectangle;
+        static uint32_t l_windowHeight = 0;
+
+        if ( GetWindowRect( g_hFocusWindow, &l_tempRectangle ) ) {
+            uint32_t l_tempHeight =
+                ( l_tempRectangle.bottom - l_tempRectangle.top );
+
+            if ( ( l_overlayY < 0 ) && ( l_windowHeight ) &&
+                 ( l_windowHeight != l_tempHeight ) ) {
+                l_overlayY = ( ( l_tempHeight + l_overlayY ) * -1 );
+            }
+
+            l_windowHeight = l_tempHeight;
+
+            if ( l_animationNeeded ) {
+                l_overlayY = ( l_windowHeight * -1 );
+
+                l_animationNeeded = false;
+            }
+        }
+
+        struct rectangle {
+            uint16_t layer;
             colorsForRectangle_t colorsForRectangle;
             coordinates_t coordinates;
             struct size size;
-        } l_background;
+        };
+
+        struct text {
+            uint16_t layer;
+            uint8_t alpha;
+            uint16_t shade;
+            uint16_t shade2;
+            coordinates_t coordinates;
+            struct size size;
+            const std::string content;
+        };
+
+        std::vector< struct rectangle > l_rectangles;
+        std::vector< struct text > l_texts;
 
         // Logic
         {
             // Background
             {
-                const uint8_t l_alpha = 0xff;
-                const uint8_t l_red = 30;
-                const uint8_t l_green = 30;
-                const uint8_t l_blue = 0xff;
+                const uint8_t l_alpha = 65;
+                const uint8_t l_red = 0xDA;
+                const uint8_t l_green = 0xDA;
+                const uint8_t l_blue = 0xDA;
                 uint32_t l_color = 0;
+                struct rectangle l_background;
 
                 _useCallback( "native$getColorForRectangle", 5, &l_alpha,
                               &l_red, &l_green, &l_blue, &l_color );
@@ -451,56 +458,183 @@ extern "C" uint16_t __declspec( dllexport )
                 l_background.colorsForRectangle = { l_color, l_color, l_color,
                                                     l_color };
 
-                l_background.coordinates = { 0, 0 };
+                l_background.layer = ( 0 );
+
                 l_background.size = { *( uint32_t* )SCREEN_WIDTH,
-                                      ( 300 - 50 ) };
+                                      l_windowHeight };
+
+                if ( l_overlayY < 0 ) {
+                    l_overlayY += ( l_background.size.height /
+                                    ( l_transitionTimeInSeconds *
+                                      l_maxFramesPerSecond ) );
+                }
+
+                if ( l_overlayY > 0 ) {
+                    l_overlayY = ( -1 * ( l_background.size.height /
+                                          ( l_transitionTimeInSeconds *
+                                            l_maxFramesPerSecond ) ) );
+                }
+
+                l_background.coordinates = { 0, l_overlayY };
+
+                l_rectangles.push_back( l_background );
             }
 
             // UI
             {
-                // Text
-                {}
+                struct rectangle l_textBackground;
 
-                // Sprite
-                {}
+                // Text background
+                {
+                    const uint8_t l_alpha = 0xFF;
+                    const uint8_t l_red = 0;
+                    const uint8_t l_green = 0;
+                    const uint8_t l_blue = 0;
+                    uint32_t l_color = 0;
+
+                    _useCallback( "native$getColorForRectangle", 5, &l_alpha,
+                                  &l_red, &l_green, &l_blue, &l_color );
+
+                    l_textBackground.colorsForRectangle = { l_color, l_color,
+                                                            l_color, l_color };
+
+                    l_textBackground.layer = ( 1 );
+                }
+
+                // Text
+                {
+                    const uint16_t l_layer = ( 2 );
+                    const uint8_t l_alpha = 0xFF;
+                    const uint16_t l_shade = 0xFF;
+                    const uint16_t l_shade2 = 0xFF;
+                    const uint8_t l_fontSize = 13;
+                    const uint8_t l_textBackgroundLeftRightPadding = 15;
+                    const uint8_t l_textBackgroundTopBottomPadding = 7;
+                    const int32_t l_leftMargin =
+                        ( 50 + l_textBackgroundLeftRightPadding );
+                    const uint8_t l_rowTopMargin =
+                        ( 6 + l_textBackgroundTopBottomPadding );
+                    uint16_t l_index = 0;
+
+                    for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
+                        const int32_t l_rowY =
+                            ( 50 + l_overlayY +
+                              ( int32_t )( ( l_index * l_fontSize ) +
+                                           ( l_index * l_rowTopMargin ) ) );
+                        const std::string l_valueContent =
+                            _item.value().template get< std::string >();
+                        const uint32_t l_valueWidth =
+                            ( l_valueContent.length() * l_fontSize );
+                        const std::string l_keyContent =
+                            ( l_keyboardLayout.at( std::stoi( _item.key() ) ) );
+                        const uint32_t l_keyWidth =
+                            ( l_keyContent.length() * l_fontSize );
+                        const int32_t l_keyX =
+                            ( *( int32_t* )SCREEN_WIDTH - l_keyWidth -
+                              ( l_leftMargin * 2 ) );
+
+                        l_texts.push_back( { l_layer,
+                                             l_alpha,
+                                             l_shade,
+                                             l_shade2,
+                                             { l_leftMargin, l_rowY },
+                                             { l_fontSize, l_fontSize },
+                                             l_valueContent } );
+
+                        l_textBackground.size = {
+                            ( l_valueWidth +
+                              ( l_textBackgroundLeftRightPadding * 2 ) ),
+                            ( l_fontSize +
+                              ( l_textBackgroundTopBottomPadding * 2 ) ) };
+                        l_textBackground.coordinates = {
+                            ( l_leftMargin - l_textBackgroundLeftRightPadding ),
+                            ( l_rowY - l_textBackgroundTopBottomPadding ) };
+
+                        if ( l_index == g_menuCursorIndex ) {
+                            struct rectangle l_textBackgroundSelected =
+                                l_textBackground;
+
+                            const uint8_t l_alpha = 0xFF;
+                            const uint8_t l_red = 0xFF;
+                            const uint8_t l_green = 0;
+                            const uint8_t l_blue = 0;
+                            uint32_t l_color = 0;
+
+                            _useCallback( "native$getColorForRectangle", 5,
+                                          &l_alpha, &l_red, &l_green, &l_blue,
+                                          &l_color );
+
+                            l_textBackgroundSelected.colorsForRectangle = {
+                                l_color, l_color, l_color, l_color };
+
+                            l_rectangles.push_back( l_textBackgroundSelected );
+
+                        } else {
+                            l_rectangles.push_back( l_textBackground );
+                        }
+
+                        l_texts.push_back( { l_layer,
+                                             l_alpha,
+                                             l_shade,
+                                             l_shade2,
+                                             { l_keyX, l_rowY },
+                                             { l_fontSize, l_fontSize },
+                                             l_keyContent } );
+
+                        l_textBackground.size = {
+                            ( l_keyWidth +
+                              ( l_textBackgroundLeftRightPadding * 2 ) ),
+                            ( l_fontSize +
+                              ( l_textBackgroundTopBottomPadding * 2 ) ) };
+                        l_textBackground.coordinates = {
+                            ( l_keyX - l_textBackgroundLeftRightPadding ),
+                            ( l_rowY - l_textBackgroundTopBottomPadding ) };
+
+                        if ( l_index == g_menuCursorIndex ) {
+                            struct rectangle l_textBackgroundSelected =
+                                l_textBackground;
+
+                            const uint8_t l_alpha = 0xFF;
+                            const uint8_t l_red = 0;
+                            const uint8_t l_green = static_cast< uint8_t >(
+                                0x59 * ( g_activeFlagsKeyboard &
+                                         OVERLAY_IS_MAPPING_KEY ) );
+                            const uint8_t l_blue = 0xFF;
+                            uint32_t l_color = 0;
+
+                            _useCallback( "native$getColorForRectangle", 5,
+                                          &l_alpha, &l_red, &l_green, &l_blue,
+                                          &l_color );
+
+                            l_textBackgroundSelected.colorsForRectangle = {
+                                l_color, l_color, l_color, l_color };
+
+                            l_rectangles.push_back( l_textBackgroundSelected );
+
+                        } else {
+                            l_rectangles.push_back( l_textBackground );
+                        }
+
+                        l_index++;
+                    }
+                }
             }
         }
-
-        std::string l_test = "ttt";
-
-        uint32_t l_width2 = 24;
-        uint32_t l_height2 = 24;
-        uint32_t l_x2 = ( 300 - 1 );
-        uint32_t l_y2 = 50;
-        const char* l_text = l_test.data();
-        uint32_t l_alpha2 = 0xff;
-        uint32_t l_shade = 0xff;
-        uint32_t l_shade2 = 0x1f0;
-
-        uint32_t l_width3 = 25;
-        uintptr_t* l_textureAddress = ( uintptr_t* )BUTTON_SPRITE_TEX;
-        uint32_t l_x3 = 500;
-        uint32_t l_y3 = 250;
-        uint32_t l_height3 = 25;
-        uint32_t l_textureX = ( 0x19 * 6 );
-        uint32_t l_textureY = 0;
-        uint32_t l_textureWidth = 0x19;
-        uint32_t l_textureHeight = 0x19;
 
         // Render
         {
             // Background
             {
-                uint32_t l_layerIndex = 0x2ff;
-
-                _useCallback(
-                    "native$drawRectangle", 9, &l_background.coordinates.x,
-                    &l_background.coordinates.y, &l_background.size.width,
-                    &l_background.size.height,
-                    &l_background.colorsForRectangle.a,
-                    &l_background.colorsForRectangle.b,
-                    &l_background.colorsForRectangle.c,
-                    &l_background.colorsForRectangle.d, &l_layerIndex );
+                for ( const struct rectangle _rectangle : l_rectangles ) {
+                    _useCallback(
+                        "native$drawRectangle", 9, &_rectangle.coordinates.x,
+                        &_rectangle.coordinates.y, &_rectangle.size.width,
+                        &_rectangle.size.height,
+                        &_rectangle.colorsForRectangle.a,
+                        &_rectangle.colorsForRectangle.b,
+                        &_rectangle.colorsForRectangle.c,
+                        &_rectangle.colorsForRectangle.d, &_rectangle.layer );
+                }
             }
 
             // UI
@@ -509,30 +643,22 @@ extern "C" uint16_t __declspec( dllexport )
                 {
                     uintptr_t* l_fontAddress = ( uintptr_t* )FONT2;
                     uint32_t l_letterSpacing = 0;
-                    uint32_t l_layerIndex = 0;
                     char* l_out = 0;
 
-                    _useCallback( "native$drawText", 12, &l_width2, &l_height2,
-                                  &l_x2, &l_y2, &l_text, &l_alpha2, &l_shade,
-                                  &l_shade2, l_fontAddress, &l_letterSpacing,
-                                  &l_layerIndex, &l_out );
-                }
-
-                // Sprite
-                {
-                    uint32_t l_directXDevice = 0;
-                    uint32_t l_flags = 0xFFFFFFFF;
-                    uint32_t l_unknown = 0;
-                    uint32_t l_layerIndex = 0x2cc;
-
-                    _useCallback( "native$drawSprite", 13, &l_width3,
-                                  &l_directXDevice, &*l_textureAddress, &l_x3,
-                                  &l_y3, &l_height3, &l_textureX, &l_textureY,
-                                  &l_textureWidth, &l_textureHeight, &l_flags,
-                                  &l_unknown, &l_layerIndex );
+                    for ( const struct text _text : l_texts ) {
+                        _useCallback( "native$drawText", 12, &_text.size.width,
+                                      &_text.size.height, &_text.coordinates.x,
+                                      &_text.coordinates.y, &_text.content,
+                                      &_text.alpha, &_text.shade, &_text.shade2,
+                                      l_fontAddress, &l_letterSpacing,
+                                      &_text.layer, &l_out );
+                    }
                 }
             }
         }
+
+    } else {
+        l_animationNeeded = true;
     }
 
     return ( 0 );

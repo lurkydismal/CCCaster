@@ -18,9 +18,7 @@ CXXEXTRA              = -Ofast \
 			-fpermissive
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I ../../json_file/include \
-			-I ../../states_dll/_useCallback/include \
-			-I ../overlay_addon/imgui/include \
+INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
 			-I controls_parse/include \
@@ -38,7 +36,6 @@ keyboard_dll_MODULE= keyboard.dll
 keyboard_dll_C_SRCS=
 keyboard_dll_CXX_SRCS= src/main.cpp \
 			     addon_callbacks/src/addon_callbacks.cpp \
-			     ../../json_file/src/json_file.cpp \
 			     ../../states_dll/_useCallback/src/_useCallback.cpp
 keyboard_dll_RC_SRCS=
 keyboard_dll_LDFLAGS= -shared \
