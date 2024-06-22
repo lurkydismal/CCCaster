@@ -1,20 +1,18 @@
 {
     "keyboard": {
-        "8": 38,
-        "6": 39,
-        "2": 40,
-        "4": 37,
-        "A": 90,
-        "B": 88,
-        "C": 67,
-        "D": 86,
-        "E": 68,
-        "AB": 83,
-        "FN1": 221,
-        "FN2": 82,
-        "START": 84,
-        "ToggleOverlay_KeyConfig_Native": 115,
-        "ToggleOverlay_Netplay": 114,
-        "ToggleOverlay_KeyConfig": 113
+        "38": "8",
+        "39": "6",
+        "40": "2",
+        "37": "4",
+        "90": "A",
+        "88": "B",
+        "67": "C",
+        "86": "D",
+        "68": "E",
+        "83": "AB",
+        "221": "FN1",
+        "82": "FN2",
+        "84": "START",
+        "115": "ToggleOverlay_KeyConfig_Native"
     }
 }
