@@ -73,10 +73,10 @@ extern "C" uint16_t __declspec( dllexport )
         ImGuiIO& l_io = ImGui::GetIO();
 
         // Update and Render additional Platform Windows
-        if ( l_io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable ) {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-        }
+        //      if ( l_io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable ) {
+        //          ImGui::UpdatePlatformWindows();
+        //          ImGui::RenderPlatformWindowsDefault();
+        //      }
 
         g_isDraw = false;
     }
@@ -155,12 +155,12 @@ extern "C" uint16_t __declspec( dllexport )
 }
 
 extern "C" uint16_t __declspec( dllexport )
-    overlay$Toggle( void** _callbackArguments ) {
-    if ( !g_imGuiInitialized ) {
-        return ( 0 );
-    }
-
+    overlay$ImGui$toggle( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
+
+    if ( !g_imGuiInitialized ) {
+        return ( l_returnValue );
+    }
 
     g_activeFlags ^= SHOW_OVERLAY;
 

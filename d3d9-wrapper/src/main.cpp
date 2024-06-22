@@ -206,8 +206,11 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     return ( hRet );
 }
 
-LRESULT WINAPI
-CustomWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, int idx ) {
+LRESULT WINAPI CustomWindowProcedure( HWND hWnd,
+                                      UINT uMsg,
+                                      WPARAM wParam,
+                                      LPARAM lParam,
+                                      int idx ) {
     uint16_t l_result = _useCallback( "CustomWindowProcedure", 5, hWnd, uMsg,
                                       wParam, lParam, idx );
 
@@ -269,15 +272,16 @@ CustomWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, int idx ) {
         }
     }
 
-    WNDPROC OrigProc = WNDPROC( WndProcList[ idx ].second );
+    //  WNDPROC OrigProc = WNDPROC( WndProcList[ idx ].second );
 
-    return ( OrigProc( hWnd, uMsg, wParam, lParam ) );
+    //  return ( OrigProc( hWnd, uMsg, wParam, lParam ) );
+    return DefWindowProcA( hWnd, uMsg, wParam, lParam );
 }
 
-LRESULT WINAPI CustomWndProcA( HWND hWnd,
-                               UINT uMsg,
-                               WPARAM wParam,
-                               LPARAM lParam ) {
+LRESULT WINAPI CustomWindowProcedureA( HWND hWnd,
+                                       UINT uMsg,
+                                       WPARAM wParam,
+                                       LPARAM lParam ) {
     uint16_t l_result =
         _useCallback( "CustomWindowProcedureA", 4, hWnd, uMsg, wParam, lParam );
 
@@ -290,7 +294,8 @@ LRESULT WINAPI CustomWndProcA( HWND hWnd,
     if ( wClassAtom ) {
         for ( unsigned int i = 0; i < WndProcList.size(); i++ ) {
             if ( WndProcList[ i ].first == wClassAtom ) {
-                return ( CustomWndProc( hWnd, uMsg, wParam, lParam, i ) );
+                return (
+                    CustomWindowProcedure( hWnd, uMsg, wParam, lParam, i ) );
             }
         }
     }
@@ -299,10 +304,10 @@ LRESULT WINAPI CustomWndProcA( HWND hWnd,
     return ( DefWindowProcA( hWnd, uMsg, wParam, lParam ) );
 }
 
-LRESULT WINAPI CustomWndProcW( HWND hWnd,
-                               UINT uMsg,
-                               WPARAM wParam,
-                               LPARAM lParam ) {
+LRESULT WINAPI CustomWindowProcedureW( HWND hWnd,
+                                       UINT uMsg,
+                                       WPARAM wParam,
+                                       LPARAM lParam ) {
     uint16_t l_result =
         _useCallback( "CustomWindowProcedureW", 4, hWnd, uMsg, wParam, lParam );
 
@@ -315,7 +320,8 @@ LRESULT WINAPI CustomWndProcW( HWND hWnd,
     if ( wClassAtom ) {
         for ( unsigned int i = 0; i < WndProcList.size(); i++ ) {
             if ( WndProcList[ i ].first == wClassAtom ) {
-                return ( CustomWndProc( hWnd, uMsg, wParam, lParam, i ) );
+                return (
+                    CustomWindowProcedure( hWnd, uMsg, wParam, lParam, i ) );
             }
         }
     }
@@ -345,7 +351,7 @@ ATOM __stdcall hk_RegisterClassA( WNDCLASSA* lpWndClass ) {
     }
 
     ULONG_PTR pWndProc = ULONG_PTR( lpWndClass->lpfnWndProc );
-    lpWndClass->lpfnWndProc = CustomWndProcA;
+    lpWndClass->lpfnWndProc = CustomWindowProcedureA;
     WORD wClassAtom = oRegisterClassA( lpWndClass );
 
     if ( wClassAtom != 0 ) {
@@ -366,7 +372,7 @@ ATOM __stdcall hk_RegisterClassW( WNDCLASSW* lpWndClass ) {
     }
 
     ULONG_PTR pWndProc = ULONG_PTR( lpWndClass->lpfnWndProc );
-    lpWndClass->lpfnWndProc = CustomWndProcW;
+    lpWndClass->lpfnWndProc = CustomWindowProcedureW;
     WORD wClassAtom = oRegisterClassW( lpWndClass );
 
     if ( wClassAtom != 0 ) {
@@ -387,7 +393,7 @@ ATOM __stdcall hk_RegisterClassExA( WNDCLASSEXA* lpWndClass ) {
     }
 
     ULONG_PTR pWndProc = ULONG_PTR( lpWndClass->lpfnWndProc );
-    lpWndClass->lpfnWndProc = CustomWndProcA;
+    lpWndClass->lpfnWndProc = CustomWindowProcedureA;
     WORD wClassAtom = oRegisterClassExA( lpWndClass );
 
     if ( wClassAtom != 0 ) {
@@ -408,7 +414,7 @@ ATOM __stdcall hk_RegisterClassExW( WNDCLASSEXW* lpWndClass ) {
     }
 
     ULONG_PTR pWndProc = ULONG_PTR( lpWndClass->lpfnWndProc );
-    lpWndClass->lpfnWndProc = CustomWndProcW;
+    lpWndClass->lpfnWndProc = CustomWindowProcedureW;
     WORD wClassAtom = oRegisterClassExW( lpWndClass );
 
     if ( wClassAtom != 0 ) {
@@ -741,13 +747,13 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
                     }
 
 #define DETOUR_HOOK( _functionName )                                          \
-    MH_CreateHookApi( L"user3.", #_functionName, ( void* )hk_##_functionName, \
+    MH_CreateHookApi( L"user32", #_functionName, ( void* )hk_##_functionName, \
                       ( void** )&o##_functionName );
 
                     DETOUR_HOOK( RegisterClassA )
                     DETOUR_HOOK( RegisterClassW )
                     DETOUR_HOOK( RegisterClassExA )
-                    DETOUR_HOOK( RegisterClassExW )
+                    //  DETOUR_HOOK( RegisterClassExW )
                     DETOUR_HOOK( GetForegroundWindow )
                     DETOUR_HOOK( GetActiveWindow )
                     DETOUR_HOOK( GetFocus )
