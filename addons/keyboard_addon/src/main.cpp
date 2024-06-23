@@ -1,7 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include <fstream>
+#include <stdio.h>
+
 #include <sstream>
 
 #include "nlohmann/json.hpp"
@@ -9,10 +10,6 @@
 // #include <icecream/icecream.hpp>
 
 #include "controls_parse.hpp"
-
-#define CONTROLS_PREFERENCES_FILE_NAME "controls"
-#define CONTROLS_PREFERENCES_FILE_EXTENSION "json"
-#define BACKUP_ADDITION_TO_FILE_NAME "_backup"
 
 json g_jsonControlsKeyboard;
 
@@ -23,7 +20,7 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
         case DLL_PROCESS_ATTACH: {
             // Parse JSON files
             {
-                // Preferences file
+                // Controls file
                 {
                     const std::string l_controlsConfigFileName =
                         ( std::string( CONTROLS_PREFERENCES_FILE_NAME ) +
@@ -37,68 +34,31 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
 
                     // Parse controls preferences file
                     try {
-                        // parsing input with a syntax error
-                        MessageBoxA( 0, "1", "test", 0 );
-
-                        char* buffer = 0;
-                        long length;
-                        FILE* f =
-                            fopen( l_controlsConfigFileName.c_str(), "rb" );
-
-                        if ( f ) {
-                            fseek( f, 0, SEEK_END );
-                            length = ftell( f );
-                            fseek( f, 0, SEEK_SET );
-                            buffer = ( char* )malloc( length );
-                            if ( buffer ) {
-                                fread( buffer, 1, length, f );
-                            }
-                            fclose( f );
-                        }
+                        char* buffer =
+                            readFile( l_controlsConfigFileName.c_str() );
 
                         std::string t;
                         if ( buffer ) {
                             t = std::string( buffer );
                             free( buffer );
 
-                            MessageBoxA( 0, "2", "test", 0 );
-                            MessageBoxA( 0, t.c_str(), "test", 0 );
-
                         } else {
-                            buffer = 0;
-                            f = fopen( l_controlsConfigBackupFileName.c_str(),
-                                       "rb" );
-
-                            if ( f ) {
-                                fseek( f, 0, SEEK_END );
-                                length = ftell( f );
-                                fseek( f, 0, SEEK_SET );
-                                buffer = ( char* )malloc( length );
-                                if ( buffer ) {
-                                    fread( buffer, 1, length, f );
-                                }
-                                fclose( f );
-                            }
+                            buffer = readFile(
+                                l_controlsConfigBackupFileName.c_str() );
 
                             if ( buffer ) {
                                 t = std::string( buffer );
                                 free( buffer );
 
-                                MessageBoxA( 0, "3", "test", 0 );
-                                MessageBoxA( 0, t.c_str(), "test", 0 );
+                                writeFile( l_controlsConfigFileName.c_str(),
+                                           t.c_str() );
                             }
                         }
 
-                        MessageBoxA( 0, "6", "test", 0 );
-                        MessageBoxA( 0, t.c_str(), "test", 0 );
-                        g_jsonControlsKeyboard = json::parse( t );
+                        g_jsonControlsKeyboard =
+                            json::parse( t ).at( "keyboard" );
 
                     } catch ( const json::parse_error& e ) {
-                        // output exception information
-                        MessageBoxA( 0, std::string( e.what() ).c_str(), "test",
-                                     0 );
-
-                        MessageBoxA( 0, "4", "test", 0 );
                         g_jsonControlsKeyboard = {
                             { "38", "8" },
                             { "39", "6" },
@@ -116,18 +76,17 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
                             { "115", "ToggleOverlay_KeyConfig_Native" },
                         };
 
-                        std::string t = g_jsonControlsKeyboard.dump( 4 ) +
-                                        std::string( "\n" );
+                        json l_jsonControls = {
+                            { "keyboard", g_jsonControlsKeyboard },
+                        };
 
-                        const char* buffer = t.c_str();
-                        FILE* f =
-                            fopen( l_controlsConfigFileName.c_str(), "wb" );
+                        std::string buffer =
+                            l_jsonControls.dump( 4 ) + std::string( "\n" );
 
-                        if ( f ) {
-                            fprintf( f, "%s\n", buffer );
-                        }
-
-                        MessageBoxA( 0, "5", "test", 0 );
+                        writeFile( l_controlsConfigBackupFileName.c_str(),
+                                   buffer.c_str() );
+                        writeFile( l_controlsConfigFileName.c_str(),
+                                   buffer.c_str() );
                     }
                 }
             }

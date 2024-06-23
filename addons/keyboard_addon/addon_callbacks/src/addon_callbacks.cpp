@@ -24,7 +24,7 @@ namespace {
 
 uint32_t g_activeFlagsKeyboard = 0;
 bool g_disableMenu = false;
-const std::map< uint32_t, std::string > l_keyboardLayout = {
+const std::map< uint32_t, std::string > g_keyboardLayout = {
     { VK_ESCAPE, "Esc" },
     { VK_F1, "F1" },
     { VK_F2, "F2" },
@@ -151,15 +151,18 @@ extern "C" uint16_t __declspec( dllexport )
 #define KEYS_TOTAL ( 0xFE + 1 )
 
     for ( uint8_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
-        if ( GetKeyState( _index ) & 0x8000 ) {
-            const std::string l_indexAsString = std::to_string( _index );
+        if ( !( _index == VK_MENU ) && !( _index == VK_SHIFT ) &&
+             !( _index == VK_CONTROL ) ) {
+            if ( GetKeyState( _index ) & 0x8000 ) {
+                const std::string l_indexAsString = std::to_string( _index );
 
-            if ( g_jsonControlsKeyboard.contains( l_indexAsString ) ) {
-                l_activeMappedKeys.insert(
-                    g_jsonControlsKeyboard.at( l_indexAsString ) );
+                if ( g_jsonControlsKeyboard.contains( l_indexAsString ) ) {
+                    l_activeMappedKeys.insert(
+                        g_jsonControlsKeyboard.at( l_indexAsString ) );
 
-            } else {
-                l_activeKeys.insert( _index );
+                } else {
+                    l_activeKeys.insert( _index );
+                }
             }
         }
     }
@@ -177,33 +180,31 @@ extern "C" uint16_t __declspec( dllexport )
 extern "C" uint16_t __declspec( dllexport )
     keyboard$applyInput( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    std::set< std::string > _activeMappedKeys =
-        *( std::set< std::string >* )_callbackArguments[ 0 ];
+    std::set< std::string >* _activeMappedKeys =
+        ( std::set< std::string >* )_callbackArguments[ 0 ];
     direction_t l_direction = NEUTRAL_DIRECTION;
     button_t l_buttons = NEUTRAL_BUTTON;
 
     l_returnValue =
-        _useCallback( "keyboard$applyInput$begin", 1, _activeMappedKeys );
+        _useCallback( "keyboard$applyInput$begin", 1, *_activeMappedKeys );
 
-    if ( _activeMappedKeys.find( "8" ) != _activeMappedKeys.end() ) {
+    if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
         l_direction = UP;
-    }
 
-    if ( _activeMappedKeys.find( "2" ) != _activeMappedKeys.end() ) {
+    } else if ( _activeMappedKeys->find( "2" ) != _activeMappedKeys->end() ) {
         l_direction = DOWN;
     }
 
-    if ( _activeMappedKeys.find( "4" ) != _activeMappedKeys.end() ) {
+    if ( _activeMappedKeys->find( "4" ) != _activeMappedKeys->end() ) {
         l_direction = ( l_direction )
                           ? static_cast< direction_t >(
-                                --*reinterpret_cast< uint8_t* >( l_direction ) )
+                                ( static_cast< uint8_t >( l_direction ) ) - 1 )
                           : LEFT;
-    }
 
-    if ( _activeMappedKeys.find( "6" ) != _activeMappedKeys.end() ) {
+    } else if ( _activeMappedKeys->find( "6" ) != _activeMappedKeys->end() ) {
         l_direction = ( l_direction )
                           ? static_cast< direction_t >(
-                                ++*reinterpret_cast< uint8_t* >( l_direction ) )
+                                ( static_cast< uint8_t >( l_direction ) ) + 1 )
                           : RIGHT;
     }
 
@@ -223,8 +224,8 @@ extern "C" uint16_t __declspec( dllexport )
         { "START", START } };
 
     for ( std::pair< std::string, button_t > const& _button : l_temp ) {
-        if ( _activeMappedKeys.find( _button.first ) !=
-             _activeMappedKeys.end() ) {
+        if ( _activeMappedKeys->find( _button.first ) !=
+             _activeMappedKeys->end() ) {
             l_buttons = static_cast< button_t >(
                 static_cast< uint16_t >( l_buttons ) |
                 static_cast< uint16_t >( _button.second ) );
@@ -252,8 +253,8 @@ extern "C" uint16_t __declspec( dllexport )
 
     {
         if ( g_framesPassed >= 30 ) {
-            if ( _activeMappedKeys.find( "ToggleOverlay_KeyConfig_Native" ) !=
-                 _activeMappedKeys.end() ) {
+            if ( _activeMappedKeys->find( "ToggleOverlay_KeyConfig_Native" ) !=
+                 _activeMappedKeys->end() ) {
                 g_activeFlagsKeyboard ^= SHOW_OVERLAY_NATIVE;
 
                 g_framesPassed = 0;
@@ -317,28 +318,47 @@ extern "C" uint16_t __declspec( dllexport )
             std::set< uint8_t >* _activeKeys =
                 ( std::set< uint8_t >* )_callbackArguments[ 1 ];
 
-            if ( ( *_activeMappedKeys ).find( "B" ) !=
-                 ( *_activeMappedKeys ).end() ) {
+            if ( _activeMappedKeys->find( "B" ) != _activeMappedKeys->end() ) {
                 g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
             }
 
-            if ( !( *_activeKeys ).empty() ) {
-                uint16_t l_index = 0;
+            if ( !_activeKeys->empty() ) {
+                if ( g_keyboardLayout.find( *( _activeKeys->begin() ) ) !=
+                     g_keyboardLayout.end() ) {
+                    uint16_t l_index = 0;
 
-                for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
-                    if ( l_index == g_menuCursorIndex ) {
-                        g_jsonControlsKeyboard[ std::to_string(
-                            *( _activeKeys->begin() ) ) ] =
-                            _item.value().template get< std::string >();
+                    for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
+                        if ( l_index == g_menuCursorIndex ) {
+                            g_jsonControlsKeyboard[ std::to_string(
+                                *( _activeKeys->begin() ) ) ] =
+                                _item.value().template get< std::string >();
 
-                        g_jsonControlsKeyboard.erase( _item.key() );
+                            g_jsonControlsKeyboard.erase( _item.key() );
 
-                        break;
+                            const std::string l_controlsConfigFileName =
+                                ( std::string(
+                                      CONTROLS_PREFERENCES_FILE_NAME ) +
+                                  std::string( "." ) +
+                                  std::string(
+                                      CONTROLS_PREFERENCES_FILE_EXTENSION ) );
+
+                            json l_jsonControls = {
+                                { "keyboard", g_jsonControlsKeyboard },
+                            };
+
+                            std::string buffer =
+                                l_jsonControls.dump( 4 ) + std::string( "\n" );
+
+                            writeFile( l_controlsConfigFileName.c_str(),
+                                       buffer.c_str() );
+
+                            break;
+                        }
+
+                        l_index++;
                     }
-
-                    l_index++;
                 }
 
                 g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
@@ -352,8 +372,7 @@ extern "C" uint16_t __declspec( dllexport )
             std::set< std::string >* _activeMappedKeys =
                 ( std::set< std::string >* )_callbackArguments[ 0 ];
 
-            if ( ( *_activeMappedKeys ).find( "8" ) !=
-                 ( *_activeMappedKeys ).end() ) {
+            if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
                 g_menuCursorIndex--;
 
                 if ( g_menuCursorIndex >
@@ -362,8 +381,8 @@ extern "C" uint16_t __declspec( dllexport )
                 }
 
                 g_framesPassed = 0;
-            } else if ( ( *_activeMappedKeys ).find( "2" ) !=
-                        ( *_activeMappedKeys ).end() ) {
+            } else if ( _activeMappedKeys->find( "2" ) !=
+                        _activeMappedKeys->end() ) {
                 g_menuCursorIndex++;
 
                 if ( g_menuCursorIndex >
@@ -374,14 +393,13 @@ extern "C" uint16_t __declspec( dllexport )
                 g_framesPassed = 0;
             }
 
-            if ( ( *_activeMappedKeys ).find( "A" ) !=
-                 ( *_activeMappedKeys ).end() ) {
+            if ( _activeMappedKeys->find( "A" ) != _activeMappedKeys->end() ) {
                 g_activeFlagsKeyboard |= OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
 
-            } else if ( ( *_activeMappedKeys ).find( "B" ) !=
-                        ( *_activeMappedKeys ).end() ) {
+            } else if ( _activeMappedKeys->find( "B" ) !=
+                        _activeMappedKeys->end() ) {
                 g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
@@ -526,7 +544,7 @@ extern "C" uint16_t __declspec( dllexport )
                         const uint32_t l_valueWidth =
                             ( l_valueContent.length() * l_fontSize );
                         const std::string l_keyContent =
-                            ( l_keyboardLayout.at( std::stoi( _item.key() ) ) );
+                            ( g_keyboardLayout.at( std::stoi( _item.key() ) ) );
                         const uint32_t l_keyWidth =
                             ( l_keyContent.length() * l_fontSize );
                         const int32_t l_keyX =

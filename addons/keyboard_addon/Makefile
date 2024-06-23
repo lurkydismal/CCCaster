@@ -10,8 +10,7 @@ EXES                  =
 
 CEXTRA                = -Ofast \
 			-m32 \
-			-std=c11 \
-			-fpermissive
+			-std=c11
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
@@ -19,6 +18,7 @@ CXXEXTRA              = -Ofast \
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
+			-I ../overlay_addon/imgui/include \
 			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
 			-I controls_parse/include \
@@ -33,7 +33,7 @@ LIBRARIES             =
 ### keyboard.dll sources and settings
 
 keyboard_dll_MODULE= keyboard.dll
-keyboard_dll_C_SRCS=
+keyboard_dll_C_SRCS= controls_parse/src/controls_parse.c
 keyboard_dll_CXX_SRCS= src/main.cpp \
 			     addon_callbacks/src/addon_callbacks.cpp \
 			     ../../states_dll/_useCallback/src/_useCallback.cpp
