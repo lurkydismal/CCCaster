@@ -1,9 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-// #include <fmt/core.h>
-// #include <icecream/icecream.hpp>
-
 #include "addon_callbacks.hpp"
 #include "imgui.h"
 #include "imgui_impl_dx9.h"

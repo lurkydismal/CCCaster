@@ -5,11 +5,8 @@
 
 #include <sstream>
 
-#include "nlohmann/json.hpp"
-// #include <fmt/core.h>
-// #include <icecream/icecream.hpp>
-
 #include "controls_parse.hpp"
+#include "nlohmann/json.hpp"
 
 json g_jsonControlsKeyboard;
 
