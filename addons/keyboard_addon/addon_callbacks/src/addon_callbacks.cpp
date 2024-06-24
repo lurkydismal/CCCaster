@@ -6,9 +6,6 @@
 #include <cstdint>
 #include <set>
 
-// #include <fmt/core.h>
-// #include <icecream/icecream.hpp>
-
 #include "_useCallback.hpp"
 #include "button_input.h"
 #include "controls_parse.hpp"
@@ -140,6 +137,11 @@ extern "C" uint16_t __declspec( dllexport )
          ( g_hFocusWindow == NULL ) ) {
         return ( l_returnValue );
     }
+
+    std::string t = "test\n";
+
+    _useCallback( "log$transaction$query", 2, t.c_str(), t.length() );
+    _useCallback( "log$transaction$commit" );
 
     if ( g_framesPassed < ( UINT32_MAX - 1 ) ) {
         g_framesPassed++;
