@@ -1,6 +1,6 @@
 SRCDIR                = .
 SUBDIRS               =
-DLLS                  = states.dll
+DLLS                  = log.dll
 LIBS                  =
 EXES                  =
 
@@ -13,51 +13,59 @@ CEXTRA                = -Ofast \
 			-std=c11
 CXXEXTRA              = -Ofast \
 			-m32 \
-			-std=c++11
+			-std=c++11 \
+			-fpermissive
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          =
+INCLUDE_PATH          = -I log/include \
+			-I addon_callbacks/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
 LIBRARIES             =
 
 
-### states.dll sources and settings
+### log.dll sources and settings
 
-states_dll_MODULE = states.dll
-states_dll_C_SRCS =
-states_dll_CXX_SRCS= src/main.cpp
-states_dll_RC_SRCS=
-states_dll_LDFLAGS= -shared \
-			$(states_dll_MODULE:.dll=.def) \
+keyboard_dll_MODULE= log.dll
+keyboard_dll_C_SRCS= src/main.c \
+		     log/src/log.c \
+		     addon_callbacks/src/addon_callbacks.c
+keyboard_dll_CXX_SRCS=
+keyboard_dll_RC_SRCS=
+keyboard_dll_LDFLAGS= -shared \
+			$(keyboard_dll_MODULE:.dll=.def) \
 			-m32 \
 			-s
-states_dll_ARFLAGS=
-states_dll_DLL_PATH=
-states_dll_DLLS   =
-states_dll_LIBRARY_PATH=
-states_dll_LIBRARIES=
+keyboard_dll_ARFLAGS=
+keyboard_dll_DLL_PATH=
+keyboard_dll_DLLS= odbc32 \
+			ole32 \
+			oleaut32 \
+			winspool \
+			odbccp32
+keyboard_dll_LIBRARY_PATH=
+keyboard_dll_LIBRARIES= uuid
 
-states_dll_OBJS   = $(states_dll_C_SRCS:.c=.o) \
-			$(states_dll_CXX_SRCS:.cpp=.o) \
-			$(states_dll_RC_SRCS:.rc=.res)
+keyboard_dll_OBJS= $(keyboard_dll_C_SRCS:.c=.o) \
+			$(keyboard_dll_CXX_SRCS:.cpp=.o) \
+			$(keyboard_dll_RC_SRCS:.rc=.res)
 
 
 
 ### Global source lists
 
-C_SRCS                = $(states_dll_C_SRCS)
-CXX_SRCS              = $(states_dll_CXX_SRCS)
-RC_SRCS               = $(states_dll_RC_SRCS)
+C_SRCS                = $(keyboard_dll_C_SRCS)
+CXX_SRCS              = $(keyboard_dll_CXX_SRCS)
+RC_SRCS               = $(keyboard_dll_RC_SRCS)
 
 
 ### Tools
 
-CC = ccache i686-w64-mingw32-gcc 
-CXX = ccache i686-w64-mingw32-g++ 
+CC = ccache i686-w64-mingw32-gcc
+CXX = ccache i686-w64-mingw32-g++
 RC = wrc
-AR = i686-w64-mingw32-ar
+AR = ar
 
 
 ### Generic targets
@@ -106,5 +114,7 @@ $(EXTRASUBDIRS:%=%/__clean__): dummy
 ### Target specific build rules
 DEFLIB = $(LIBRARY_PATH) $(LIBRARIES) $(DLL_PATH) $(DLL_IMPORTS:%=-l%)
 
-$(states_dll_MODULE).so: $(states_dll_OBJS) $(states_dll_MODULE:.dll=.def)
-	$(CXX) $(states_dll_LDFLAGS) -o $@ $(states_dll_OBJS) $(states_dll_LIBRARY_PATH) $(states_dll_DLL_PATH) $(DEFLIB) $(states_dll_DLLS:%=-l%) $(states_dll_LIBRARIES:%=-l%)
+$(keyboard_dll_MODULE).so: $(keyboard_dll_OBJS) $(keyboard_dll_MODULE:.dll=.def)
+	$(CXX) $(keyboard_dll_LDFLAGS) -o $@ $(keyboard_dll_OBJS) $(keyboard_dll_LIBRARY_PATH) $(keyboard_dll_DLL_PATH) $(DEFLIB) $(keyboard_dll_DLLS:%=-l%) $(keyboard_dll_LIBRARIES:%=-l%)
+
+

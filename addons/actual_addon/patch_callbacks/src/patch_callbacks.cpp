@@ -98,7 +98,7 @@ void gameMainLoopCallback( void ) {
 
                 uint16_t l_result = _useCallback( "gameMode$opening" );
 
-                return;
+                break;
             }
 
             case TITLE: {
@@ -109,6 +109,8 @@ void gameMainLoopCallback( void ) {
                 _useCallback( "keyboard$applyInput", 1, l_activeMappedKeys );
 
                 uint16_t l_result = _useCallback( "gameMode$title" );
+
+                break;
             }
 
             case MAIN: {
@@ -158,19 +160,15 @@ void gameMainLoopCallback( void ) {
 
                                 if ( l_framesPassed % 2 ) {
                                     std::set< std::string > l_activeMappedKeys =
-                   { "A" }; std::set< std::string > l_activeKeys = {};
+                   { "A" };
 
-                                    _useCallback( "keyboard$applyInput", 2,
-                   l_activeMappedKeys, l_activeKeys );
+                                    _useCallback( "keyboard$applyInput", 1,
+                   l_activeMappedKeys );
                                 }
+                                */
 
-                                uint16_t l_result = _useCallback(
-                   "gameMode$main" );
+                uint16_t l_result = _useCallback( "gameMode$main" );
 
-                                if ( l_framesPassed % 2 ) {
-                                    return;
-                                }
-                */
                 break;
             }
 
@@ -190,8 +188,6 @@ void gameMainLoopCallback( void ) {
                 uint16_t l_result = _useCallback( "gameMode$inMatch" );
 
                 if ( l_isNewRound ) {
-                    printf( "l_isNewRound\n" );
-
                     uint16_t l_result = _useCallback( "match$newRound" );
                 }
 

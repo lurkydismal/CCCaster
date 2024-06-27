@@ -1,0 +1,13 @@
+{
+    name: log
+    description: Logging
+    update: reserved
+    version: v0.1.0
+    source: reserved
+    main: log.dll
+    events: {
+        log$transaction$query : log$transaction$query
+        log$transaction$commit : log$transaction$commit
+        mainLoop$end : mainLoop$end
+    }
+}

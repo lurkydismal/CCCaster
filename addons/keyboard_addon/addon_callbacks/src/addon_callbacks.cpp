@@ -138,11 +138,6 @@ extern "C" uint16_t __declspec( dllexport )
         return ( l_returnValue );
     }
 
-    std::string t = "test\n";
-
-    _useCallback( "log$transaction$query", 2, t.c_str(), t.length() );
-    _useCallback( "log$transaction$commit" );
-
     if ( g_framesPassed < ( UINT32_MAX - 1 ) ) {
         g_framesPassed++;
     }
@@ -541,12 +536,29 @@ extern "C" uint16_t __declspec( dllexport )
                             ( 50 + l_overlayY +
                               ( int32_t )( ( l_index * l_fontSize ) +
                                            ( l_index * l_rowTopMargin ) ) );
-                        const std::string l_valueContent =
+                        std::string l_valueContent =
                             _item.value().template get< std::string >();
+
+                        const uint32_t l_maxValueWidth = 325;
+
+                        if ( l_valueContent.length() >
+                             ( l_maxValueWidth / l_fontSize ) ) {
+                            l_valueContent.resize(
+                                ( l_maxValueWidth / l_fontSize ) - 3 );
+                            std::fill_n( l_valueContent.rbegin(), 3, '.' );
+                        }
+
                         const uint32_t l_valueWidth =
                             ( l_valueContent.length() * l_fontSize );
-                        const std::string l_keyContent =
-                            ( g_keyboardLayout.at( std::stoi( _item.key() ) ) );
+
+                        std::string l_keyContent = "";
+
+                        if ( g_keyboardLayout.find( std::stoi(
+                                 _item.key() ) ) != g_keyboardLayout.end() ) {
+                            l_keyContent = ( g_keyboardLayout.at(
+                                std::stoi( _item.key() ) ) );
+                        }
+
                         const uint32_t l_keyWidth =
                             ( l_keyContent.length() * l_fontSize );
                         const int32_t l_keyX =
