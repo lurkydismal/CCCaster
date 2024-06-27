@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "icecream.h"
-
 #define LOG_FILE_NAME "log_trace"
 #define LOG_FILE_EXTENSION "txt"
 
@@ -25,15 +23,6 @@ static bool _addCallbacks( std::string const& _callbackName,
                            const bool _overwrite = false ) {
     bool l_returnValue = true;
     std::vector< addonCallbackFunction_t* > l_callbacks;
-
-#if defined( TRACE )
-
-    ic();
-    ic_str( _callbackName.c_str() );
-    ic_int( _functionCount, _overwrite );
-    ic_ptr( _functionAddresses );
-
-#endif
 
     for ( uint32_t _functionIndex = 0; _functionIndex < _functionCount;
           _functionIndex++ ) {
@@ -75,14 +64,6 @@ static uint16_t _useCallback( std::string const& _callbackName,
     uint16_t l_returnValue = 0;
     const auto l_callbacks = g_callbackFunctionAddresses.find( _callbackName );
 
-#if defined( TRACE )
-
-    ic();
-    ic_str( _callbackName.c_str() );
-    ic_ptr( _callbackArguments );
-
-#endif
-
     if ( l_callbacks == g_callbackFunctionAddresses.end() ) {
         l_returnValue = ENODATA;
 
@@ -105,34 +86,6 @@ extern "C" uint16_t __declspec( dllexport )
     std::string l_callbackName( _callbackName );
 
     l_returnValue = _useCallback( l_callbackName, _callbackArguments );
-
-    return ( l_returnValue );
-}
-
-extern "C" BOOL WINAPI DllMain( HMODULE hModule,
-                                DWORD dwReason,
-                                LPVOID lpReserved ) {
-    bool l_returnValue = true;
-
-    switch ( dwReason ) {
-        case DLL_PROCESS_ATTACH: {
-#if defined( TRACE )
-
-            FILE* l_fileHandle =
-                fopen( ( std::string( LOG_FILE_NAME ) + std::string( "." ) +
-                         std::string( LOG_FILE_EXTENSION ) )
-                           .c_str(),
-                       "wb" );
-
-            if ( l_fileHandle ) {
-                log_add_fp( l_fileHandle, DEBUG );
-            }
-
-#endif
-
-            break;
-        }
-    }
 
     return ( l_returnValue );
 }
