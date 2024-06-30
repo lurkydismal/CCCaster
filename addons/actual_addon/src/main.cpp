@@ -473,7 +473,7 @@ static void init( void ) {
     //       // Rest of the code is unchanged, just shifted down
     //       0x59, 0x5E, 0x83, 0xC4, 0x10, 0xC2, 0x04, 0x00 } };
 
-    // // Control when to exit the game by ESC button
+    // Control when to exit the game by ESC button
     static patch_t l_enableEscapeToExitPatch1{
         0x4A0070,
         { // cmp byte ptr [&g_enableEscapeToExit],00
@@ -521,6 +521,93 @@ static void init( void ) {
 
     static patch_t l_ryougiStageMusicLoopingPatch2{
         0x7695EC, { 0xAA, 0xCC, 0x1E, 0x40 } };
+
+    // Disable gamepad mappings
+    static patch_t l_gamepadMappingsPatch1{ 0x41F098, { 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch2{ 0x41F0A0, { 0x90, 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch3{ 0x4A024E, { 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch4{ 0x4A027F, { 0x90, 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch5{ 0x4A0291, { 0x90, 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch6{ 0x4A02A2, { 0x90, 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch7{ 0x4A02B4, { 0x90, 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch8{ 0x4A02E9, { 0x90, 0x90 } };
+    static patch_t l_gamepadMappingsPatch9{ 0x4A02F2, { 0x90, 0x90, 0x90 } };
+
+    // Disable keyboard mappings
+    static patch_t l_keyboardMappingsPatch1{
+        0x54D2C0,
+        { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+
+    // Enable disabled stages
+    static patch_t l_disabledStagePatch1{ 0x54CEBC,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch2{ 0x54CEC0,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch3{ 0x54CEC4,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch4{ 0x54CFA8,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch5{ 0x54CFAC,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch6{ 0x54CFB0,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch7{ 0x54CF68,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch8{ 0x54CF6C,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch9{ 0x54CF70,
+                                          { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch10{ 0x54CF74,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch11{ 0x54CF78,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch12{ 0x54CF7C,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch13{ 0x54CF80,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch14{ 0x54CF84,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch15{ 0x54CF88,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch16{ 0x54CF8C,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch17{ 0x54CF90,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch18{ 0x54CF94,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch19{ 0x54CF98,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch20{ 0x54CF9C,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch21{ 0x54CFA0,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+    static patch_t l_disabledStagePatch22{ 0x54CFA4,
+                                           { 0xFF, 0x00, 0x00, 0x00 } };
+
+    // Disables the code that sets the intro state to 0. This is so we can
+    // manually set it during rollback
+    static patch_t l_autoIntroStatePatch1{
+        0x45C1F2, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 } };
+
+    // Prevent training mode music from reseting
+    static patch_t l_trainingMusicResetPatch1{ 0x472C6D,
+                                               { // jmp 00472C74
+                                                 0xEB, 0x05 } };
+
+    static patch_t l_bossStageFlashPatch1{
+        0x53B3C8,
+        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+          0xFF } };
+
+    static patch_t l_multipleWindowsPatch1{ 0x40D25A,
+                                            { // jmp 0040D262
+                                              0xEB } };
+
+    // Skip MBAACC initial config window
+    static patch_t l_initialConfigWindowPatch1{ 0x04A1D42, { 0xEB, 0x0E } };
+
+    static patch_t l_initialConfigWindowPatch2{ 0x04A1D4A, { 0xEB } };
 
 #undef INLINE_DWORD
 }
