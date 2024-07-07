@@ -1,5 +1,4 @@
-#if !defined( GAME_MODE_H )
-#define GAME_MODE_H
+#pragma once
 
 // Current game mode
 #define CC_GAME_MODE_ADDR ( 0x54EEE8 )
@@ -17,5 +16,3 @@ enum gameMode_t {
     REPLAY = 26,
     HIGH_SCORES = 11
 };
-
-#endif

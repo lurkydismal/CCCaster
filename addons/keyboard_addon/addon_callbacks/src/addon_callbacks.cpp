@@ -129,17 +129,17 @@ void applyInput( button_t _buttons, direction_t _direction, player_t _player ) {
         ( uint16_t )( _direction );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    mainLoop$newFrame( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
+
+    if ( g_framesPassed < ( UINT32_MAX - 1 ) ) {
+        g_framesPassed++;
+    }
 
     if ( ( GetActiveWindow() != g_hFocusWindow ) ||
          ( g_hFocusWindow == NULL ) ) {
         return ( l_returnValue );
-    }
-
-    if ( g_framesPassed < ( UINT32_MAX - 1 ) ) {
-        g_framesPassed++;
     }
 
     std::set< std::string > l_activeMappedKeys;
@@ -174,8 +174,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    keyboard$applyInput( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     std::set< std::string >* _activeMappedKeys =
         ( std::set< std::string >* )_callbackArguments[ 0 ];
@@ -183,7 +183,7 @@ extern "C" uint16_t __declspec( dllexport )
     button_t l_buttons = NEUTRAL_BUTTON;
 
     l_returnValue =
-        _useCallback( "keyboard$applyInput$begin", 1, *_activeMappedKeys );
+        _useCallback( "keyboard$applyInput$begin", 1, _activeMappedKeys );
 
     if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
         l_direction = UP;
@@ -230,17 +230,6 @@ extern "C" uint16_t __declspec( dllexport )
     }
 
     {
-        // 6 - 0110
-        // 4 - 0100
-        // 2 - 0010
-        if ( ( l_direction == 0 ) || ( l_direction & 0b1001 ) ) {
-            l_buttons =
-                static_cast< button_t >( static_cast< uint16_t >( l_buttons ) &
-                                         ~static_cast< uint16_t >( AB ) );
-        }
-    }
-
-    {
         if ( g_disableMenu ) {
             l_buttons = static_cast< button_t >(
                 static_cast< uint16_t >( l_buttons ) &
@@ -252,7 +241,21 @@ extern "C" uint16_t __declspec( dllexport )
         if ( g_framesPassed >= 30 ) {
             if ( _activeMappedKeys->find( "ToggleOverlay_KeyConfig_Native" ) !=
                  _activeMappedKeys->end() ) {
-                g_activeFlagsKeyboard ^= SHOW_OVERLAY_NATIVE;
+                static bool l_wasOverlayToggled = false;
+                const bool l_isOverlayToggled =
+                    _useCallback( "overlay$Toggle" );
+
+                if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+                    l_wasOverlayToggled = true;
+
+                    g_activeFlagsKeyboard = SHOW_OVERLAY_NATIVE;
+
+                } else if ( ( l_isOverlayToggled ) &&
+                            ( l_wasOverlayToggled ) ) {
+                    l_wasOverlayToggled = false;
+
+                    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_NATIVE;
+                }
 
                 g_framesPassed = 0;
             }
@@ -273,15 +276,15 @@ extern "C" uint16_t __declspec( dllexport )
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    gameMode$versus( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) gameMode$versus(
+    void** _callbackArguments ) {
     g_disableMenu = true;
 
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+    void** _callbackArguments ) {
     HWND* _hFocusWindow = ( HWND* )_callbackArguments[ 2 ];
     D3DPRESENT_PARAMETERS** _pPresentationParameters =
         ( D3DPRESENT_PARAMETERS** )_callbackArguments[ 4 ];
@@ -306,8 +309,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    keyboard$getInput$end( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
+    void** _callbackArguments ) {
     if ( g_framesPassed > 7 ) {
         if ( g_activeFlagsKeyboard & OVERLAY_IS_MAPPING_KEY ) {
             std::set< std::string >* _activeMappedKeys =
@@ -407,8 +410,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    extraDrawCallback( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
+    void** _callbackArguments ) {
     static bool l_animationNeeded = true;
 
     if ( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) {
@@ -529,13 +532,30 @@ extern "C" uint16_t __declspec( dllexport )
                         ( 50 + l_textBackgroundLeftRightPadding );
                     const uint8_t l_rowTopMargin =
                         ( 6 + l_textBackgroundTopBottomPadding );
+                    const uint8_t l_maxItemsPerPage = 15;
+                    const uint16_t l_firstIndexToShow =
+                        ( g_menuCursorIndex > ( l_maxItemsPerPage - 1 ) )
+                            ? ( g_menuCursorIndex - ( l_maxItemsPerPage - 1 ) )
+                            : ( 0 );
                     uint16_t l_index = 0;
+                    uint16_t l_indexForShown = 0;
 
                     for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
+                        if ( l_index < l_firstIndexToShow ) {
+                            l_index++;
+
+                            continue;
+                        }
+
+                        if ( l_indexForShown >= l_maxItemsPerPage ) {
+                            break;
+                        }
+
                         const int32_t l_rowY =
                             ( 50 + l_overlayY +
-                              ( int32_t )( ( l_index * l_fontSize ) +
-                                           ( l_index * l_rowTopMargin ) ) );
+                              ( int32_t )( ( l_indexForShown * l_fontSize ) +
+                                           ( l_indexForShown *
+                                             l_rowTopMargin ) ) );
                         std::string l_valueContent =
                             _item.value().template get< std::string >();
 
@@ -582,7 +602,8 @@ extern "C" uint16_t __declspec( dllexport )
                             ( l_leftMargin - l_textBackgroundLeftRightPadding ),
                             ( l_rowY - l_textBackgroundTopBottomPadding ) };
 
-                        if ( l_index == g_menuCursorIndex ) {
+                        if ( l_indexForShown ==
+                             ( g_menuCursorIndex - l_firstIndexToShow ) ) {
                             struct rectangle l_textBackgroundSelected =
                                 l_textBackground;
 
@@ -622,7 +643,8 @@ extern "C" uint16_t __declspec( dllexport )
                             ( l_keyX - l_textBackgroundLeftRightPadding ),
                             ( l_rowY - l_textBackgroundTopBottomPadding ) };
 
-                        if ( l_index == g_menuCursorIndex ) {
+                        if ( l_indexForShown ==
+                             ( g_menuCursorIndex - l_firstIndexToShow ) ) {
                             struct rectangle l_textBackgroundSelected =
                                 l_textBackground;
 
@@ -648,6 +670,7 @@ extern "C" uint16_t __declspec( dllexport )
                         }
 
                         l_index++;
+                        l_indexForShown++;
                     }
                 }
             }

@@ -12,6 +12,7 @@
         IDirect3DDevice9Ex$PreReset: IDirect3DDevice9Ex$PreReset
         IDirect3DDevice9Ex$PostReset: IDirect3DDevice9Ex$PostReset
         CustomWindowProcedure: CustomWindowProcedure
+        overlay$toggle: overlay$toggle
         overlay$ImGui$toggle: overlay$ImGui$toggle
         ImGui$Button: ImGui$Button
         ImGui$InputText: ImGui$InputText

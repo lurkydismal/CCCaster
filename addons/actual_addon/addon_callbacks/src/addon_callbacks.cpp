@@ -5,8 +5,8 @@
 
 useCallbackFunction_t g_useCallback = NULL;
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+    void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
     if ( !l_statesDll ) {

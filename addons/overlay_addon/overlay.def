@@ -7,6 +7,7 @@ IDirect3DDevice9Ex$EndScene
 IDirect3DDevice9Ex$PreReset
 IDirect3DDevice9Ex$PostReset
 CustomWindowProcedure
+overlay$toggle
 overlay$ImGui$toggle
 ImGui$Button
 ImGui$InputText

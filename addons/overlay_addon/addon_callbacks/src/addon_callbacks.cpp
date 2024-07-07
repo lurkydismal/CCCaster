@@ -24,8 +24,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd,
                                                               WPARAM wParam,
                                                               LPARAM lParam );
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3D9Ex$CreateDevice( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+    void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
     if ( !l_statesDll ) {
@@ -52,8 +52,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3DDevice9Ex$EndScene( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3DDevice9Ex$EndScene(
+    void** _callbackArguments ) {
     if ( !g_imGuiInitialized ) {
         return ( 0 );
     }
@@ -84,8 +84,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3DDevice9Ex$PreReset( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3DDevice9Ex$PreReset(
+    void** _callbackArguments ) {
     if ( !g_imGuiInitialized ) {
         return ( 0 );
     }
@@ -100,8 +100,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    IDirect3DDevice9Ex$PostReset( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) IDirect3DDevice9Ex$PostReset(
+    void** _callbackArguments ) {
     if ( !g_imGuiInitialized ) {
         return ( 0 );
     }
@@ -116,8 +116,8 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    CustomWindowProcedure( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) CustomWindowProcedure(
+    void** _callbackArguments ) {
     if ( !g_imGuiInitialized ) {
         return ( 0 );
     }
@@ -133,8 +133,8 @@ extern "C" uint16_t __declspec( dllexport )
                                              _lAdditionalMessage ) );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    extraDrawCallback( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
+    void** _callbackArguments ) {
     if ( !g_imGuiInitialized ) {
         return ( 0 );
     }
@@ -154,15 +154,24 @@ extern "C" uint16_t __declspec( dllexport )
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    overlay$ImGui$toggle( void** _callbackArguments ) {
+extern "C" uint16_t __declspec( dllexport ) overlay$toggle(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
+    g_activeFlags ^= SHOW_OVERLAY;
+
+    return ( g_activeFlags & SHOW_OVERLAY );
+}
+
+extern "C" uint16_t __declspec( dllexport ) overlay$ImGui$toggle(
+    void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     if ( !g_imGuiInitialized ) {
         return ( l_returnValue );
     }
 
-    g_activeFlags ^= SHOW_OVERLAY;
+    g_activeFlags ^= SHOW_OVERLAY_IMGUI;
 
-    return ( g_activeFlags & SHOW_OVERLAY );
+    return ( g_activeFlags & SHOW_OVERLAY_IMGUI );
 }
