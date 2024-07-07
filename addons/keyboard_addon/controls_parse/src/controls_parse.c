@@ -3,27 +3,30 @@
 
 char* readFile( const char* _fileName ) {
     char* l_string = NULL;
-    size_t l_stringSize;
-    size_t l_readSize;
+    size_t l_stringLength;
+    size_t l_readLength;
+
     FILE* l_fileHandle = fopen( _fileName, "r" );
 
     if ( l_fileHandle ) {
         fseek( l_fileHandle, 0, SEEK_END );
+
         // Offset from the first to the last byte, or in other words, filesize
-        l_stringSize = ftell( l_fileHandle );
-        // go back to the start of the file
+        l_stringLength = ftell( l_fileHandle );
+
+        // Go back to the start of the file
         rewind( l_fileHandle );
 
-        l_string = ( char* )malloc( sizeof( char ) * ( l_stringSize + 1 ) );
+        l_string = ( char* )malloc( sizeof( char ) * ( l_stringLength + 1 ) );
 
         // Read it all in one operation
-        l_readSize =
-            fread( l_string, sizeof( char ), l_stringSize, l_fileHandle );
+        l_readLength =
+            fread( l_string, sizeof( char ), l_stringLength, l_fileHandle );
 
-        // fread doesn't set it so put a \0 in the last position
-        l_string[ l_stringSize ] = '\0';
+        // NUL in the last position
+        l_string[ l_stringLength ] = '\0';
 
-        if ( l_stringSize != l_readSize ) {
+        if ( l_stringLength != l_readLength ) {
             free( l_string );
 
             l_string = NULL;
@@ -35,10 +38,14 @@ char* readFile( const char* _fileName ) {
     return ( l_string );
 }
 
-void writeFile( const char* _fileName, const char* _string ) {
-    FILE* l_fileHandle = fopen( _fileName, "wb" );
+void writeFile( const char* _fileName,
+                const char* _string,
+                const size_t _stringLength ) {
+    FILE* l_fileHandle = fopen( _fileName, "w" );
 
     if ( l_fileHandle ) {
-        fprintf( l_fileHandle, "%s\n", _string );
+        fwrite( _string, sizeof( _string[ 0 ] ), _stringLength, l_fileHandle );
     }
+
+    fclose( l_fileHandle );
 }

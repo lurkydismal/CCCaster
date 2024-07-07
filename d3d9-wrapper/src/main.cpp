@@ -116,6 +116,10 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
             IID_IDirect3DDevice9 );
     }
 
+    const char l_message[] = "IDirect3D9Ex CreateDevice ()\n";
+
+    _useCallback( "log$transaction$query", 2, l_message, sizeof( l_message ) );
+
     uint16_t l_result = _useCallback(
         "IDirect3D9Ex$CreateDevice", 6, &Adapter, &DeviceType, &hFocusWindow,
         &BehaviorFlags, &pPresentationParameters, &ppReturnedDeviceInterface );
