@@ -19,8 +19,7 @@ CXXEXTRA              = -Ofast \
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
-			-I ../actual_addon/applyInput/include \
-			-I ../overlay_addon/imgui/include \
+			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
 			-I ../ \
 			-I ../../
@@ -35,7 +34,6 @@ LIBRARIES             =
 netplay_dll_MODULE= netplay.dll
 netplay_dll_C_SRCS=
 netplay_dll_CXX_SRCS= addon_callbacks/src/addon_callbacks.cpp \
-			    ../actual_addon/applyInput/src/applyInput.cpp \
 			    ../../states_dll/_useCallback/src/_useCallback.cpp
 netplay_dll_RC_SRCS=
 netplay_dll_LDFLAGS= -shared \

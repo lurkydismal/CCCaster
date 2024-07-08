@@ -19,7 +19,7 @@
 
 namespace {
 
-uint32_t g_activeFlagsKeyboard = 0;
+uint32_t g_activeFlagsOverlay = 0;
 bool g_disableMenu = false;
 const std::map< uint32_t, std::string > g_keyboardLayout = {
     { VK_ESCAPE, "Esc" },
@@ -181,9 +181,10 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
         ( std::set< std::string >* )_callbackArguments[ 0 ];
     direction_t l_direction = NEUTRAL_DIRECTION;
     button_t l_buttons = NEUTRAL_BUTTON;
+    player_t l_localPlayer = FIRST;
 
     l_returnValue =
-        _useCallback( "keyboard$applyInput$begin", 1, _activeMappedKeys );
+        _useCallback( "keyboard$applyInput$begin", 2, _activeMappedKeys, &l_localPlayer );
 
     if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
         l_direction = UP;
@@ -248,13 +249,13 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
                 if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
                     l_wasOverlayToggled = true;
 
-                    g_activeFlagsKeyboard = SHOW_OVERLAY_NATIVE;
+                    g_activeFlagsOverlay = SHOW_NATIVE;
 
                 } else if ( ( l_isOverlayToggled ) &&
                             ( l_wasOverlayToggled ) ) {
                     l_wasOverlayToggled = false;
 
-                    g_activeFlagsKeyboard &= ~SHOW_OVERLAY_NATIVE;
+                    g_activeFlagsOverlay &= ~SHOW_NATIVE;
                 }
 
                 g_framesPassed = 0;
@@ -263,9 +264,7 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
     }
 
     {
-        player_t l_localPlayer = FIRST;
-
-        if ( !( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) ) {
+        if ( !( g_activeFlagsOverlay & SHOW_NATIVE ) ) {
             applyInput( l_buttons, l_direction, l_localPlayer );
         }
     }
@@ -312,14 +311,14 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
 extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     if ( g_framesPassed > 7 ) {
-        if ( g_activeFlagsKeyboard & OVERLAY_IS_MAPPING_KEY ) {
+        if ( g_activeFlagsOverlay & OVERLAY_IS_MAPPING_KEY ) {
             std::set< std::string >* _activeMappedKeys =
                 ( std::set< std::string >* )_callbackArguments[ 0 ];
             std::set< uint8_t >* _activeKeys =
                 ( std::set< uint8_t >* )_callbackArguments[ 1 ];
 
             if ( _activeMappedKeys->find( "B" ) != _activeMappedKeys->end() ) {
-                g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
+                g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
             }
@@ -363,12 +362,12 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
 
                 g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
 
-                g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
+                g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
             }
 
-        } else if ( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) {
+        } else if ( g_activeFlagsOverlay & SHOW_NATIVE ) {
             std::set< std::string >* _activeMappedKeys =
                 ( std::set< std::string >* )_callbackArguments[ 0 ];
 
@@ -394,13 +393,13 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
             }
 
             if ( _activeMappedKeys->find( "A" ) != _activeMappedKeys->end() ) {
-                g_activeFlagsKeyboard |= OVERLAY_IS_MAPPING_KEY;
+                g_activeFlagsOverlay |= OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
 
             } else if ( _activeMappedKeys->find( "B" ) !=
                         _activeMappedKeys->end() ) {
-                g_activeFlagsKeyboard &= ~OVERLAY_IS_MAPPING_KEY;
+                g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
 
                 g_framesPassed = 0;
             }
@@ -412,9 +411,11 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
 
 extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
     void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
     static bool l_animationNeeded = true;
 
-    if ( g_activeFlagsKeyboard & SHOW_OVERLAY_NATIVE ) {
+    if ( g_activeFlagsOverlay & SHOW_NATIVE ) {
         const uint8_t l_maxFramesPerSecond = 60;
         const float l_transitionTimeInSeconds = 0.2;
         static int32_t l_overlayY = 0;
@@ -651,7 +652,7 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
                             const uint8_t l_alpha = 0xFF;
                             const uint8_t l_red = 0;
                             const uint8_t l_green = static_cast< uint8_t >(
-                                0x59 * ( g_activeFlagsKeyboard &
+                                0x59 * ( g_activeFlagsOverlay &
                                          OVERLAY_IS_MAPPING_KEY ) );
                             const uint8_t l_blue = 0xFF;
                             uint32_t l_color = 0;
