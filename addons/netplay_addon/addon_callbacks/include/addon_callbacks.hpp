@@ -2,4 +2,6 @@
 
 #include <cstdint>
 
-enum AVAILABLE_FLAGS_NETPLAY { SHOW_OVERLAY_NETPLAY = 0b1 };
+#define HEAP_MEMORY_SIZE ( sizeof( uint16_t ) * 20 )
+
+enum AVAILABLE_FLAGS_NETPLAY { SHOW_NATIVE = 0b1 };

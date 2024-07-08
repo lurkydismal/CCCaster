@@ -1,9 +1,9 @@
 LIBRARY netplay
 EXPORTS
 
-gameMode$opening
 gameMode$characterSelect
 gameMode$loading
 gameMode$inMatch
 keyboard$getInput$end
-overlay$beforeDraw$ImGui
+IDirect3D9Ex$CreateDevice
+extraDrawCallback
