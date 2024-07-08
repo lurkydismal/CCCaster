@@ -6,13 +6,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#include <vector>
 #include <set>
+#include <vector>
 
-#include "player_t.h"
 #include "_useCallback.hpp"
 #include "d3d9.h"
 #include "native.hpp"
+#include "player_t.h"
 
 #pragma comment( lib, "user32.lib" )
 #pragma comment( lib, "ws2_32.lib" )
@@ -22,6 +22,7 @@ useCallbackFunction_t g_useCallback = NULL;
 
 namespace {
 
+uint16_t g_menuCursorIndex = 0;
 uint32_t g_framesPassed = 0;
 WSADATA g_wsaData;
 struct addrinfo g_hints;
@@ -119,29 +120,35 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-    std::set< std::string > l_activeMappedKeys = ( direction_t* )_callbackArguments[ 0 ];
-    std::set< uint8_t > l_activeKeys = ( button_t* )_callbackArguments[ 1 ];
+    if ( g_framesPassed > 7 ) {
+        if ( g_activeFlagsOverlay & SHOW_NATIVE ) {
+            std::set< std::string >* _activeMappedKeys =
+                ( std::set< std::string >* )_callbackArguments[ 0 ];
 
-    {
-        if ( g_framesPassed >= 30 ) {
-            if ( _activeMappedKeys->find( "ToggleOverlay_KeyConfig_Native" ) !=
-                 _activeMappedKeys->end() ) {
-                static bool l_wasOverlayToggled = false;
-                const bool l_isOverlayToggled =
-                    _useCallback( "overlay$Toggle" );
+            if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
+                g_menuCursorIndex--;
 
-                if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
-                    l_wasOverlayToggled = true;
-
-                    g_activeFlagsOverlay = SHOW_NATIVE;
-
-                } else if ( ( l_isOverlayToggled ) &&
-                            ( l_wasOverlayToggled ) ) {
-                    l_wasOverlayToggled = false;
-
-                    g_activeFlagsOverlay &= ~SHOW_NATIVE;
+                if ( g_menuCursorIndex > ( g_overlayLayout.size() - 1 ) ) {
+                    g_menuCursorIndex = ( g_overlayLayout.size() - 1 );
                 }
 
+                g_framesPassed = 0;
+            } else if ( _activeMappedKeys->find( "2" ) !=
+                        _activeMappedKeys->end() ) {
+                g_menuCursorIndex++;
+
+                if ( g_menuCursorIndex > ( g_overlayLayout.size() - 1 ) ) {
+                    g_menuCursorIndex = 0;
+                }
+
+                g_framesPassed = 0;
+            }
+
+            if ( _activeMappedKeys->find( "A" ) != _activeMappedKeys->end() ) {
+                g_framesPassed = 0;
+
+            } else if ( _activeMappedKeys->find( "B" ) !=
+                        _activeMappedKeys->end() ) {
                 g_framesPassed = 0;
             }
         }
@@ -159,6 +166,31 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
     send( g_connectSocket, l_localPlayerInput, sizeof( uint16_t ), 0 );
 #endif
 
+    if ( g_framesPassed >= 30 ) {
+        std::set< std::string >* _activeMappedKeys =
+            ( std::set< std::string >* )_callbackArguments[ 0 ];
+
+        if ( _activeMappedKeys->find( "ToggleOverlay_Netplay_Native" ) !=
+             _activeMappedKeys->end() ) {
+            static bool l_wasOverlayToggled = false;
+            const bool l_isOverlayToggled = _useCallback( "overlay$Toggle" );
+
+            if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+                l_wasOverlayToggled = true;
+
+                g_activeFlagsOverlay = SHOW_NATIVE;
+
+            } else if ( ( l_isOverlayToggled ) && ( l_wasOverlayToggled ) ) {
+                l_wasOverlayToggled = false;
+
+                g_activeFlagsOverlay &= ~SHOW_NATIVE;
+            }
+
+            g_framesPassed = 0;
+        }
+    }
+
+EXIT:
     return ( l_returnValue );
 }
 
@@ -428,7 +460,7 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
                               std::pair< std::vector< std::string >, void* > >&
                               _item : g_overlayLayout ) {
                         // Key
-                        { printf( "%s\n", _item.first ); }
+                        { printf( "%s\n", _item.first.c_str() ); }
 
                         // Value
                         {
@@ -437,7 +469,7 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
 
                             for ( const std::string& _valueName :
                                   _value.first ) {
-                                printf( "%s\n", _valueName );
+                                printf( "%s\n", _valueName.c_str() );
                             }
 
                             printf( "%d\n", _value.second );
