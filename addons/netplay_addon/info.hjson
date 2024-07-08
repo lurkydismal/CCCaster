@@ -6,6 +6,7 @@
     source: reserved
     main: netplay.dll
     events: {
+        mainLoop$newFrame: mainLoop$newFrame
         gameMode$characterSelect: gameMode$characterSelect
         gameMode$loading: gameMode$loading
         gameMode$inMatch: gameMode$inMatch
