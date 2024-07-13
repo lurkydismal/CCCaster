@@ -22,7 +22,8 @@ useCallbackFunction_t g_useCallback = NULL;
 
 namespace {
 
-uint16_t g_menuCursorIndex = 0;
+std::vector< size_t > g_menuSelected = { 0, 0, 0 };
+coordinates_t g_menuCursorIndex = { 0, 0 };
 uint32_t g_framesPassed = 0;
 WSADATA g_wsaData;
 struct addrinfo g_hints;
@@ -40,9 +41,9 @@ const std::vector<
     g_overlayLayout = {
         { "Address", { { "" }, ( void* )&g_address } },
         { "Type",
-          { { "Direct", "GGRS Rollback", "GGRS Direct" }, ( void* )&g_type } },
+          { { "Direct", "GGRS Direct", "GGRS Rollback" }, ( void* )&g_type } },
         { "Action",
-          { { "Connect", "Host", "Spectate" }, ( void* )&g_action } } };
+          { { "Host", "Connect", "Spectate" }, ( void* )&g_action } } };
 
 } // namespace
 
@@ -69,8 +70,8 @@ extern "C" uint16_t __declspec( dllexport ) gameMode$characterSelect(
     recv( g_connectSocket, l_remotePlayerInput, sizeof( uint16_t ), 0 );
 
     applyInput( INLINE_INPUT(
-                    *( reinterpret_cast< uint16_t* >( l_remotePlayerInput ) ) ),
-                g_remotePlayer );
+                *( reinterpret_cast< uint16_t* >( l_remotePlayerInput ) ) ),
+            g_remotePlayer );
 #endif
 
     return ( l_returnValue );
@@ -89,8 +90,8 @@ extern "C" uint16_t __declspec( dllexport ) gameMode$loading(
     recv( g_connectSocket, l_remotePlayerInput, sizeof( uint16_t ), 0 );
 
     applyInput( INLINE_INPUT(
-                    *( reinterpret_cast< uint16_t* >( l_remotePlayerInput ) ) ),
-                g_remotePlayer );
+                *( reinterpret_cast< uint16_t* >( l_remotePlayerInput ) ) ),
+            g_remotePlayer );
 #endif
 
     return ( l_returnValue );
@@ -109,8 +110,8 @@ extern "C" uint16_t __declspec( dllexport ) gameMode$inMatch(
     recv( g_connectSocket, l_remotePlayerInput, sizeof( uint16_t ), 0 );
 
     applyInput( INLINE_INPUT(
-                    *( reinterpret_cast< uint16_t* >( l_remotePlayerInput ) ) ),
-                g_remotePlayer );
+                *( reinterpret_cast< uint16_t* >( l_remotePlayerInput ) ) ),
+            g_remotePlayer );
 #endif
 
     return ( l_returnValue );
@@ -119,52 +120,6 @@ extern "C" uint16_t __declspec( dllexport ) gameMode$inMatch(
 extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-
-    if ( g_framesPassed > 7 ) {
-        if ( g_activeFlagsOverlay & SHOW_NATIVE ) {
-            std::set< std::string >* _activeMappedKeys =
-                ( std::set< std::string >* )_callbackArguments[ 0 ];
-
-            if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
-                g_menuCursorIndex--;
-
-                if ( g_menuCursorIndex > ( g_overlayLayout.size() - 1 ) ) {
-                    g_menuCursorIndex = ( g_overlayLayout.size() - 1 );
-                }
-
-                g_framesPassed = 0;
-            } else if ( _activeMappedKeys->find( "2" ) !=
-                        _activeMappedKeys->end() ) {
-                g_menuCursorIndex++;
-
-                if ( g_menuCursorIndex > ( g_overlayLayout.size() - 1 ) ) {
-                    g_menuCursorIndex = 0;
-                }
-
-                g_framesPassed = 0;
-            }
-
-            if ( _activeMappedKeys->find( "A" ) != _activeMappedKeys->end() ) {
-                g_framesPassed = 0;
-
-            } else if ( _activeMappedKeys->find( "B" ) !=
-                        _activeMappedKeys->end() ) {
-                g_framesPassed = 0;
-            }
-        }
-    }
-
-#if 0
-
-    char l_allocatedMemory[ HEAP_MEMORY_SIZE ];
-
-    char* l_localPlayerInput = &( l_allocatedMemory[ 0 ] );
-
-    *( reinterpret_cast< uint16_t* >( l_localPlayerInput ) ) =
-        COMBINE_INPUT( l_buttons, l_direction );
-
-    send( g_connectSocket, l_localPlayerInput, sizeof( uint16_t ), 0 );
-#endif
 
     if ( g_framesPassed >= 30 ) {
         std::set< std::string >* _activeMappedKeys =
@@ -189,6 +144,87 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
             g_framesPassed = 0;
         }
     }
+
+    if ( g_activeFlagsOverlay & SHOW_NATIVE ) {
+        std::set< std::string >* _activeMappedKeys =
+            ( std::set< std::string >* )_callbackArguments[ 0 ];
+        std::set< uint8_t >* _activeKeys =
+            ( std::set< uint8_t >* )_callbackArguments[ 1 ];
+
+        if ( g_framesPassed > 7 ) {
+            if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
+                g_menuCursorIndex.y--;
+
+                if ( g_menuCursorIndex.y > ( g_overlayLayout.size() - 1 ) ) {
+                    g_menuCursorIndex.y = ( g_overlayLayout.size() - 1 );
+                }
+
+                g_menuCursorIndex.x = g_menuSelected[ g_menuCursorIndex.y ];
+
+                g_framesPassed = 0;
+
+            } else if ( _activeMappedKeys->find( "2" ) !=
+                        _activeMappedKeys->end() ) {
+                g_menuCursorIndex.y++;
+
+                if ( g_menuCursorIndex.y > ( g_overlayLayout.size() - 1 ) ) {
+                    g_menuCursorIndex.y = 0;
+                }
+
+                g_menuCursorIndex.x = g_menuSelected[ g_menuCursorIndex.y ];
+
+                g_framesPassed = 0;
+
+            } else if ( _activeMappedKeys->find( "4" ) !=
+                        _activeMappedKeys->end() ) {
+                g_menuCursorIndex.x++;
+
+                if ( g_menuCursorIndex.x >
+                     ( g_overlayLayout.at( g_menuCursorIndex.y )
+                           .second.first.size() -
+                       1 ) ) {
+                    g_menuCursorIndex.x = 0;
+                }
+
+                g_menuSelected[ g_menuCursorIndex.y ] = g_menuCursorIndex.x;
+
+                g_framesPassed = 0;
+
+            } else if ( _activeMappedKeys->find( "6" ) !=
+                        _activeMappedKeys->end() ) {
+                g_menuCursorIndex.x--;
+
+                if ( g_menuCursorIndex.x >
+                     ( g_overlayLayout.at( g_menuCursorIndex.y )
+                           .second.first.size() -
+                       1 ) ) {
+                    g_menuCursorIndex.x =
+                        ( g_overlayLayout.at( g_menuCursorIndex.y )
+                              .second.first.size() -
+                          1 );
+                }
+
+                g_menuSelected[ g_menuCursorIndex.y ] = g_menuCursorIndex.x;
+
+                g_framesPassed = 0;
+            }
+        }
+
+        _activeMappedKeys->clear();
+        _activeKeys->clear();
+    }
+
+#if 0
+
+    char l_allocatedMemory[ HEAP_MEMORY_SIZE ];
+
+    char* l_localPlayerInput = &( l_allocatedMemory[ 0 ] );
+
+    *( reinterpret_cast< uint16_t* >( l_localPlayerInput ) ) =
+        COMBINE_INPUT( l_buttons, l_direction );
+
+    send( g_connectSocket, l_localPlayerInput, sizeof( uint16_t ), 0 );
+#endif
 
 EXIT:
     return ( l_returnValue );
@@ -450,7 +486,7 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
                     const uint8_t l_textBackgroundLeftRightPadding = 15;
                     const uint8_t l_textBackgroundTopBottomPadding = 7;
                     const int32_t l_leftMargin =
-                        ( 50 + l_textBackgroundLeftRightPadding );
+                        ( 20 + l_textBackgroundLeftRightPadding );
                     const uint8_t l_rowTopMargin =
                         ( 6 + l_textBackgroundTopBottomPadding );
                     uint16_t l_index = 0;
@@ -459,171 +495,150 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
                               std::string,
                               std::pair< std::vector< std::string >, void* > >&
                               _item : g_overlayLayout ) {
+                        const int32_t l_rowY =
+                            ( 50 + l_overlayY +
+                              ( int32_t )( ( l_index * l_fontSize ) +
+                                           ( l_index * l_rowTopMargin ) ) );
+
                         // Key
-                        { printf( "%s\n", _item.first.c_str() ); }
+                        {
+                            const std::string l_keyContent = _item.first;
+
+                            const uint32_t l_keyWidth =
+                                ( l_keyContent.length() * l_fontSize );
+
+                            l_texts.push_back( { l_layer,
+                                                 l_alpha,
+                                                 l_shade,
+                                                 l_shade2,
+                                                 { l_leftMargin, l_rowY },
+                                                 { l_fontSize, l_fontSize },
+                                                 l_keyContent } );
+
+                            l_textBackground.size = {
+                                ( uint32_t )( l_keyWidth +
+                                              ( l_textBackgroundLeftRightPadding *
+                                                2 ) ),
+                                ( uint32_t )( l_fontSize +
+                                              ( l_textBackgroundTopBottomPadding *
+                                                2 ) ) };
+                            l_textBackground.coordinates = {
+                                ( l_leftMargin -
+                                  l_textBackgroundLeftRightPadding ),
+                                ( l_rowY - l_textBackgroundTopBottomPadding ) };
+
+                            if ( l_index == g_menuCursorIndex.y ) {
+                                struct rectangle l_textBackgroundSelected =
+                                    l_textBackground;
+
+                                const uint8_t l_alpha = 0xFF;
+                                const uint8_t l_red = 0xFF;
+                                const uint8_t l_green = 0;
+                                const uint8_t l_blue = 0;
+                                uint32_t l_color = 0;
+
+                                _useCallback( "native$getColorForRectangle", 5,
+                                              &l_alpha, &l_red, &l_green,
+                                              &l_blue, &l_color );
+
+                                l_textBackgroundSelected.colorsForRectangle = {
+                                    l_color, l_color, l_color, l_color };
+
+                                l_rectangles.push_back(
+                                    l_textBackgroundSelected );
+
+                            } else {
+                                l_rectangles.push_back( l_textBackground );
+                            }
+
+                            // printf( "%s\n", _item.first.c_str() );
+                        }
 
                         // Value
                         {
                             const std::pair< std::vector< std::string >,
                                              void* >& _value = _item.second;
 
+                            int32_t l_valueWidthTotal = 0;
+                            uint16_t l_valueIndex = 0;
+
                             for ( const std::string& _valueName :
                                   _value.first ) {
-                                printf( "%s\n", _valueName.c_str() );
+                                const std::string l_valueContent = _valueName;
+                                int32_t l_valueWidth =
+                                    ( l_valueContent.length() * l_fontSize );
+                                int32_t l_valueX =
+                                    ( *( int32_t* )SCREEN_WIDTH - l_valueWidth -
+                                      l_leftMargin );
+
+                                if ( l_valueIndex ) {
+                                    l_valueX -=
+                                        ( l_valueWidthTotal +
+                                          ( l_leftMargin * l_valueIndex ) );
+                                }
+
+                                l_valueWidthTotal += l_valueWidth;
+
+                                l_texts.push_back( { l_layer,
+                                                     l_alpha,
+                                                     l_shade,
+                                                     l_shade2,
+                                                     { l_valueX, l_rowY },
+                                                     { l_fontSize, l_fontSize },
+                                                     l_valueContent } );
+
+                                l_textBackground.size = {
+                                    ( uint32_t )( l_valueWidth +
+                                                  ( l_textBackgroundLeftRightPadding *
+                                                    2 ) ),
+                                    ( uint32_t )( l_fontSize +
+                                                  ( l_textBackgroundTopBottomPadding *
+                                                    2 ) ) };
+                                l_textBackground.coordinates = {
+                                    ( l_valueX -
+                                      l_textBackgroundLeftRightPadding ),
+                                    ( l_rowY -
+                                      l_textBackgroundTopBottomPadding ) };
+
+                                if ( l_valueIndex ==
+                                     g_menuSelected.at( l_index ) ) {
+                                    struct rectangle l_textBackgroundSelected =
+                                        l_textBackground;
+
+                                    const uint8_t l_alpha = 0xFF;
+                                    const uint8_t l_red = 0;
+                                    const uint8_t l_green =
+                                        ( 0x89 * ( size_t )( (
+                                                     l_index ==
+                                                     g_menuCursorIndex.y ) ) );
+                                    const uint8_t l_blue = 0xFF;
+                                    uint32_t l_color = 0;
+
+                                    _useCallback( "native$getColorForRectangle",
+                                                  5, &l_alpha, &l_red, &l_green,
+                                                  &l_blue, &l_color );
+
+                                    l_textBackgroundSelected
+                                        .colorsForRectangle = {
+                                        l_color, l_color, l_color, l_color };
+
+                                    l_rectangles.push_back(
+                                        l_textBackgroundSelected );
+
+                                } else {
+                                    l_rectangles.push_back( l_textBackground );
+                                }
+
+                                // printf( "%s\n", _valueName.c_str() );
+
+                                l_valueIndex++;
                             }
 
-                            printf( "%d\n", _value.second );
+                            // printf( "%d\n", _value.second );
                         }
+
+                        l_index++;
                     }
-
-                    //                  if ( 0 ) {
-                    //                      const int32_t l_rowY =
-                    //                          ( 50 + l_overlayY +
-                    //                            ( int32_t )( ( l_index *
-                    //                            l_fontSize ) +
-                    //                                         ( l_index *
-                    //                                           l_rowTopMargin
-                    //                                           ) ) );
-                    //                      std::string l_valueContent =
-                    //                          _item.value().template get<
-                    //                          std::string >();
-
-                    //                      const uint32_t l_valueWidth =
-                    //                          ( l_valueContent.length() *
-                    //                          l_fontSize );
-
-                    //                      std::string l_keyContent = "";
-
-                    //                      const uint32_t l_keyWidth =
-                    //                          ( l_keyContent.length() *
-                    //                          l_fontSize );
-                    //                      const int32_t l_keyX =
-                    //                          ( *( int32_t* )SCREEN_WIDTH -
-                    //                          l_keyWidth -
-                    //                            ( l_leftMargin * 2 ) );
-
-                    //                      l_texts.push_back( { l_layer,
-                    //                                           l_alpha,
-                    //                                           l_shade,
-                    //                                           l_shade2,
-                    //                                           { l_leftMargin,
-                    //                                           l_rowY }, {
-                    //                                           l_fontSize,
-                    //                                           l_fontSize },
-                    //                                           l_valueContent
-                    //                                           } );
-
-                    //                      l_textBackground.size = {
-                    //                          ( l_valueWidth +
-                    //                            (
-                    //                            l_textBackgroundLeftRightPadding
-                    //                            * 2 ) ),
-                    //                          ( l_fontSize +
-                    //                            (
-                    //                            l_textBackgroundTopBottomPadding
-                    //                            * 2 ) ) };
-                    //                      l_textBackground.coordinates = {
-                    //                          ( l_leftMargin -
-                    //                          l_textBackgroundLeftRightPadding
-                    //                          ), ( l_rowY -
-                    //                          l_textBackgroundTopBottomPadding
-                    //                          ) };
-
-                    //                      if ( l_index ==
-                    //                           ( g_menuCursorIndex -
-                    //                           l_firstIndexToShow ) ) {
-                    //                          struct rectangle
-                    //                          l_textBackgroundSelected =
-                    //                              l_textBackground;
-
-                    //                          const uint8_t l_alpha = 0xFF;
-                    //                          const uint8_t l_red = 0xFF;
-                    //                          const uint8_t l_green = 0;
-                    //                          const uint8_t l_blue = 0;
-                    //                          uint32_t l_color = 0;
-
-                    //                          _useCallback(
-                    //                          "native$getColorForRectangle",
-                    //                          5,
-                    //                                        &l_alpha, &l_red,
-                    //                                        &l_green, &l_blue,
-                    //                                        &l_color );
-
-                    //                          l_textBackgroundSelected.colorsForRectangle
-                    //                          = {
-                    //                              l_color, l_color, l_color,
-                    //                              l_color };
-
-                    //                          l_rectangles.push_back(
-                    //                          l_textBackgroundSelected );
-
-                    //                      } else {
-                    //                          l_rectangles.push_back(
-                    //                          l_textBackground );
-                    //                      }
-
-                    //                      l_texts.push_back( { l_layer,
-                    //                                           l_alpha,
-                    //                                           l_shade,
-                    //                                           l_shade2,
-                    //                                           { l_keyX,
-                    //                                           l_rowY }, {
-                    //                                           l_fontSize,
-                    //                                           l_fontSize },
-                    //                                           l_keyContent }
-                    //                                           );
-
-                    //                      l_textBackground.size = {
-                    //                          ( l_keyWidth +
-                    //                            (
-                    //                            l_textBackgroundLeftRightPadding
-                    //                            * 2 ) ),
-                    //                          ( l_fontSize +
-                    //                            (
-                    //                            l_textBackgroundTopBottomPadding
-                    //                            * 2 ) ) };
-                    //                      l_textBackground.coordinates = {
-                    //                          ( l_keyX -
-                    //                          l_textBackgroundLeftRightPadding
-                    //                          ), ( l_rowY -
-                    //                          l_textBackgroundTopBottomPadding
-                    //                          ) };
-
-                    //                      if ( l_index ==
-                    //                           ( g_menuCursorIndex -
-                    //                           l_firstIndexToShow ) ) {
-                    //                          struct rectangle
-                    //                          l_textBackgroundSelected =
-                    //                              l_textBackground;
-
-                    //                          const uint8_t l_alpha = 0xFF;
-                    //                          const uint8_t l_red = 0;
-                    //                          const uint8_t l_green = 0x59;
-                    //                          const uint8_t l_blue = 0xFF;
-                    //                          uint32_t l_color = 0;
-
-                    //                          _useCallback(
-                    //                          "native$getColorForRectangle",
-                    //                          5,
-                    //                                        &l_alpha, &l_red,
-                    //                                        &l_green, &l_blue,
-                    //                                        &l_color );
-
-                    //                          l_textBackgroundSelected.colorsForRectangle
-                    //                          = {
-                    //                              l_color, l_color, l_color,
-                    //                              l_color };
-
-                    //                          l_rectangles.push_back(
-                    //                          l_textBackgroundSelected );
-
-                    //                      } else {
-                    //                          l_rectangles.push_back(
-                    //                          l_textBackground );
-                    //                      }
-
-                    //                      l_index++;
-                    //                  }
                 }
             }
         }
