@@ -8,10 +8,9 @@
 
 #endif // _WIN32
 
-#include <cstdint>
+#include <stdint.h>
 
-extern "C" int16_t __declspec( dllexport ) onGameStarted(
-    void** _callbackArguments ) {
+int16_t __declspec( dllexport ) onGameStarted( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
     l_returnValue = !( MessageBoxA( NULL,
@@ -22,8 +21,7 @@ extern "C" int16_t __declspec( dllexport ) onGameStarted(
     return ( l_returnValue );
 }
 
-extern "C" int16_t __declspec( dllexport ) onHosted(
-    void** _callbackArguments ) {
+int16_t __declspec( dllexport ) onHosted( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
     l_returnValue = !( MessageBoxA( NULL,
@@ -34,8 +32,7 @@ extern "C" int16_t __declspec( dllexport ) onHosted(
     return ( l_returnValue );
 }
 
-extern "C" int16_t __declspec( dllexport ) onConnection(
-    void** _callbackArguments ) {
+int16_t __declspec( dllexport ) onConnection( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
     l_returnValue = !( MessageBoxA( NULL,
