@@ -25,19 +25,19 @@ uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
 
 void extraTexturesCallBack( void ) {
-    uint16_t l_result = _useCallback( "extraTextures", 0 );
+    uint16_t l_result = _useCallback( "extraTextures" );
 }
 
 void characterSelectColorsCallback( void ) {
-    uint16_t l_result = _useCallback( "characterSelectColors", 0 );
+    uint16_t l_result = _useCallback( "characterSelectColors" );
 }
 
 void loadingColorsCallback( void ) {
-    uint16_t l_result = _useCallback( "loadingColors", 0 );
+    uint16_t l_result = _useCallback( "loadingColors" );
 }
 
 void extraDrawCallback( void ) {
-    uint16_t l_result = _useCallback( "extraDraw", 0 );
+    uint16_t l_result = _useCallback( "extraDraw" );
 }
 
 void gameMainLoopCallback( void ) {
@@ -61,7 +61,7 @@ void gameMainLoopCallback( void ) {
     if ( l_isNewFrame ) {
         {
             // New frame callback
-            uint16_t l_result = _useCallback( "mainLoop$newFrame", 0 );
+            uint16_t l_result = _useCallback( "mainLoop$newFrame" );
         }
 
         static uint32_t l_roundStartCounter = g_roundStartCounter;
@@ -88,7 +88,7 @@ void gameMainLoopCallback( void ) {
 
         switch ( l_currentGameMode ) {
             case STARTUP: {
-                uint16_t l_result = _useCallback( "gameMode$startup", 0 );
+                uint16_t l_result = _useCallback( "gameMode$startup" );
 
                 break;
             }
@@ -96,7 +96,7 @@ void gameMainLoopCallback( void ) {
             case OPENING: {
                 *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
-                uint16_t l_result = _useCallback( "gameMode$opening", 0 );
+                uint16_t l_result = _useCallback( "gameMode$opening" );
 
                 break;
             }
@@ -108,7 +108,7 @@ void gameMainLoopCallback( void ) {
 
                 _useCallback( "keyboard$applyInput", 1, l_activeMappedKeys );
 
-                uint16_t l_result = _useCallback( "gameMode$title", 0 );
+                uint16_t l_result = _useCallback( "gameMode$title" );
 
                 break;
             }
@@ -167,28 +167,28 @@ void gameMainLoopCallback( void ) {
                                 }
                                 */
 
-                uint16_t l_result = _useCallback( "gameMode$main", 0 );
+                uint16_t l_result = _useCallback( "gameMode$main" );
 
                 break;
             }
 
             case CHARACTER_SELECT: {
-                uint16_t l_result = _useCallback( "gameMode$characterSelect", 0 );
+                uint16_t l_result = _useCallback( "gameMode$characterSelect" );
 
                 break;
             }
 
             case LOADING: {
-                uint16_t l_result = _useCallback( "gameMode$loading", 0 );
+                uint16_t l_result = _useCallback( "gameMode$loading" );
 
                 break;
             }
 
             case IN_MATCH: {
-                uint16_t l_result = _useCallback( "gameMode$inMatch", 0 );
+                uint16_t l_result = _useCallback( "gameMode$inMatch" );
 
                 if ( l_isNewRound ) {
-                    uint16_t l_result = _useCallback( "match$newRound", 0 );
+                    uint16_t l_result = _useCallback( "match$newRound" );
                 }
 
                 break;
@@ -196,5 +196,5 @@ void gameMainLoopCallback( void ) {
         }
     }
 
-    uint16_t l_result = _useCallback( "mainLoop$end", 0 );
+    uint16_t l_result = _useCallback( "mainLoop$end" );
 }

@@ -8,7 +8,7 @@
 
 using json = nlohmann::ordered_json;
 
-extern json g_jsonControlsKeyboard;
+extern json g_jsonControlsJoystick;
 
 extern "C" {
 

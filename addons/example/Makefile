@@ -32,7 +32,8 @@ example_dll_RC_SRCS   =
 example_dll_LDFLAGS   = -shared \
 			$(example_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-static
 example_dll_ARFLAGS   =
 example_dll_DLL_PATH  =
 example_dll_DLLS      = odbc32 \

@@ -43,11 +43,11 @@ static bool _addCallbacks( std::string const& _callbackName,
     return ( l_returnValue );
 }
 
-extern "C" bool __declspec( dllexport )
-    addCallbacks( const char* _callbackName,
-                  size_t _functionCount,
-                  uintptr_t* _functionAddresses,
-                  const bool _overwrite = false ) {
+extern "C" bool __declspec( dllexport ) addCallbacks(
+    const char* _callbackName,
+    size_t _functionCount,
+    uintptr_t* _functionAddresses,
+    const bool _overwrite = false ) {
     bool l_returnValue = true;
     std::string l_callbackName( _callbackName );
 
@@ -78,8 +78,9 @@ static uint16_t _useCallback( std::string const& _callbackName,
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport )
-    useCallback( const char* _callbackName, void** _callbackArguments = NULL ) {
+extern "C" uint16_t __declspec( dllexport ) useCallback(
+    const char* _callbackName,
+    void** _callbackArguments = NULL ) {
     uint16_t l_returnValue = 0;
     std::string l_callbackName( _callbackName );
 

@@ -8,7 +8,7 @@
 #include "controls_parse.hpp"
 #include "nlohmann/json.hpp"
 
-json g_jsonControlsKeyboard;
+json g_jsonControlsJoystick;
 
 BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
     bool l_returnValue = true;
@@ -52,29 +52,29 @@ BOOL WINAPI DllMain( HMODULE _moduleHandle, DWORD _callReason, LPVOID _ ) {
                             }
                         }
 
-                        g_jsonControlsKeyboard =
+                        g_jsonControlsJoystick =
                             json::parse( t ).at( "joystick" );
 
                     } catch ( const json::parse_error& e ) {
-                        g_jsonControlsKeyboard = {
-                            { "38", "8" },
-                            { "39", "6" },
-                            { "40", "2" },
-                            { "37", "4" },
-                            { "90", "A" },
-                            { "88", "B" },
-                            { "67", "C" },
-                            { "86", "D" },
-                            { "68", "E" },
-                            { "83", "AB" },
-                            { "221", "FN1" },
-                            { "82", "FN2" },
-                            { "84", "START" },
-                            { "115", "ToggleOverlay_KeyConfig_Native" },
+                        g_jsonControlsJoystick = {
+                            { "1", "8" },
+                            { "2", "6" },
+                            { "3", "2" },
+                            { "4", "4" },
+                            { "5", "A" },
+                            { "6", "B" },
+                            { "7", "C" },
+                            { "8", "D" },
+                            { "9", "E" },
+                            { "10", "AB" },
+                            { "11", "FN1" },
+                            { "12", "FN2" },
+                            { "13", "START" },
+                            { "14", "ToggleOverlay_KeyConfig_Native" },
                         };
 
                         json l_jsonControls = {
-                            { "joystick", g_jsonControlsKeyboard },
+                            { "joystick", g_jsonControlsJoystick },
                         };
 
                         std::string buffer =

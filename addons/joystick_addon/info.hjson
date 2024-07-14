@@ -7,10 +7,10 @@
     main: joystick.dll
     events: {
         mainLoop$newFrame: mainLoop$newFrame
-        keyboard$getInput$end : keyboard$getInput$end
-        keyboard$applyInput: keyboard$applyInput
-        gameMode$versus: gameMode$versus
-        IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
-        extraDraw: extraDrawCallback
+        joystick$getInput$end : joystick$getInput$end
+        joystick$applyInput : joystick$applyInput
+        gameMode$versus : gameMode$versus
+        IDirect3D9Ex$CreateDevice : IDirect3D9Ex$CreateDevice
+        extraDraw : extraDrawCallback
     }
 }

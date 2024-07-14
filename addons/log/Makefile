@@ -36,7 +36,8 @@ keyboard_dll_RC_SRCS=
 keyboard_dll_LDFLAGS= -shared \
 			$(keyboard_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-static
 keyboard_dll_ARFLAGS=
 keyboard_dll_DLL_PATH=
 keyboard_dll_DLLS= odbc32 \

@@ -7,11 +7,11 @@
 #include <set>
 
 #include "_useCallback.hpp"
-#include "button_input.h"
+#include "button_t.h"
 #include "controls_parse.hpp"
 #include "d3d9.h"
 #include "d3dx9.h"
-#include "direction_input.h"
+#include "direction_t.h"
 #include "native.hpp"
 #include "player_t.h"
 
@@ -167,8 +167,8 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
     button_t l_buttons = NEUTRAL_BUTTON;
     player_t l_localPlayer = FIRST;
 
-    l_returnValue =
-        _useCallback( "keyboard$applyInput$begin", 2, _activeMappedKeys, &l_localPlayer );
+    l_returnValue = _useCallback( "keyboard$applyInput$begin", 2,
+                                  _activeMappedKeys, &l_localPlayer );
 
     if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
         l_direction = UP;
@@ -228,15 +228,17 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
                  _activeMappedKeys->end() ) {
                 static bool l_wasOverlayToggled = false;
                 const bool l_isOverlayToggled =
-                    _useCallback( "overlay$Toggle" );
+                    _useCallback( "overlay$getState" );
 
-                if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+                if ( ( !l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+                    _useCallback( "overlay$toggle" );
                     l_wasOverlayToggled = true;
 
                     g_activeFlagsOverlay = SHOW_NATIVE;
 
                 } else if ( ( l_isOverlayToggled ) &&
                             ( l_wasOverlayToggled ) ) {
+                    _useCallback( "overlay$toggle" );
                     l_wasOverlayToggled = false;
 
                     g_activeFlagsOverlay &= ~SHOW_NATIVE;
@@ -249,7 +251,8 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
 
     {
         if ( !( g_activeFlagsOverlay & SHOW_NATIVE ) ) {
-            _useCallback( "game$applyInput", 3, l_buttons, l_direction, l_localPlayer );
+            l_returnValue = _useCallback( "game$applyInput", 3, &l_buttons,
+                                          &l_direction, &l_localPlayer );
         }
     }
 

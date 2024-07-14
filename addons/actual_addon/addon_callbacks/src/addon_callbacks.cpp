@@ -2,6 +2,7 @@
 #include <windows.h>
 
 #include <stdlib.h>
+
 #include "_useCallback.hpp"
 #include "button_t.h"
 #include "direction_t.h"
@@ -9,7 +10,7 @@
 
 useCallbackFunction_t g_useCallback = NULL;
 
-uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
@@ -27,7 +28,7 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
-uint16_t __declspec( dllexport ) game$applyInput(
+extern "C" uint16_t __declspec( dllexport ) game$applyInput(
     void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
@@ -35,8 +36,7 @@ uint16_t __declspec( dllexport ) game$applyInput(
     direction_t* _direction = ( direction_t* )_callbackArguments[ 1 ];
     player_t* _player = ( player_t* )_callbackArguments[ 2 ];
 
-    char* const l_inputsStructureAddress =
-        *( ( char** )( 0x76E6AC ) );
+    char* const l_inputsStructureAddress = *( ( char** )( 0x76E6AC ) );
     // const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
     // const uintptr_t l_firstPlayerButtonsOffset = 0x24;    // 36
     // const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44

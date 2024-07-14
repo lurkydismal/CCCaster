@@ -40,7 +40,8 @@ actual_addon_dll_RC_SRCS=
 actual_addon_dll_LDFLAGS= -shared \
 			$(actual_addon_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-static
 actual_addon_dll_ARFLAGS=
 actual_addon_dll_DLL_PATH=
 actual_addon_dll_DLLS = odbc32 \
