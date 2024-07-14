@@ -1,6 +1,6 @@
 SRCDIR                = .
 SUBDIRS               =
-DLLS                  = actual_addon.dll
+DLLS                  = joystick.dll
 LIBS                  =
 EXES                  =
 
@@ -13,54 +13,56 @@ CEXTRA                = -Ofast \
 			-std=c11
 CXXEXTRA              = -Ofast \
 			-m32 \
-			-std=c++11
+			-std=c++11 \
+			-fpermissive
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
+			-I ../overlay_addon/imgui/include \
+			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
-			-I patch_callbacks/include \
-			-I patch_t/include \
-			-I ../
+			-I controls_parse/include \
+			-I ../ \
+			-I ../../
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
 LIBRARIES             =
 
 
-### actual_addon.dll sources and settings
+### joystick.dll sources and settings
 
-actual_addon_dll_MODULE= actual_addon.dll
-actual_addon_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
-			 ../../states_dll/_useCallback/src/_useCallback.c
-actual_addon_dll_CXX_SRCS= src/main.cpp \
-			   patch_callbacks/src/patch_callbacks.cpp \
-			   patch_t/src/patch_t.cpp \
-actual_addon_dll_RC_SRCS=
-actual_addon_dll_LDFLAGS= -shared \
-			$(actual_addon_dll_MODULE:.dll=.def) \
+joystick_dll_MODULE= joystick.dll
+joystick_dll_C_SRCS= controls_parse/src/controls_parse.c
+joystick_dll_CXX_SRCS= src/main.cpp \
+			     addon_callbacks/src/addon_callbacks.cpp \
+			     ../../states_dll/_useCallback/src/_useCallback.cpp
+joystick_dll_RC_SRCS=
+joystick_dll_LDFLAGS= -shared \
+			$(joystick_dll_MODULE:.dll=.def) \
 			-m32 \
 			-s
-actual_addon_dll_ARFLAGS=
-actual_addon_dll_DLL_PATH=
-actual_addon_dll_DLLS = odbc32 \
+joystick_dll_ARFLAGS=
+joystick_dll_DLL_PATH=
+joystick_dll_DLLS= odbc32 \
 			ole32 \
 			oleaut32 \
 			winspool \
 			odbccp32
-actual_addon_dll_LIBRARY_PATH=
-actual_addon_dll_LIBRARIES= uuid
+joystick_dll_LIBRARY_PATH=
+joystick_dll_LIBRARIES= uuid
 
-actual_addon_dll_OBJS = $(actual_addon_dll_C_SRCS:.c=.o) \
-			$(actual_addon_dll_CXX_SRCS:.cpp=.o) \
-			$(actual_addon_dll_RC_SRCS:.rc=.res)
+joystick_dll_OBJS= $(joystick_dll_C_SRCS:.c=.o) \
+			$(joystick_dll_CXX_SRCS:.cpp=.o) \
+			$(joystick_dll_RC_SRCS:.rc=.res)
 
 
 
 ### Global source lists
 
-C_SRCS                = $(actual_addon_dll_C_SRCS)
-CXX_SRCS              = $(actual_addon_dll_CXX_SRCS)
-RC_SRCS               = $(actual_addon_dll_RC_SRCS)
+C_SRCS                = $(joystick_dll_C_SRCS)
+CXX_SRCS              = $(joystick_dll_CXX_SRCS)
+RC_SRCS               = $(joystick_dll_RC_SRCS)
 
 
 ### Tools
@@ -114,10 +116,10 @@ $(SUBDIRS:%=%/__clean__): dummy
 $(EXTRASUBDIRS:%=%/__clean__): dummy
 	-cd `dirname $@` && $(RM) $(CLEAN_FILES)
 
-### Target.defific build rules
+### Target specific build rules
 DEFLIB = $(LIBRARY_PATH) $(LIBRARIES) $(DLL_PATH) $(DLL_IMPORTS:%=-l%)
 
-$(actual_addon_dll_MODULE).so: $(actual_addon_dll_OBJS) $(actual_addon_dll_MODULE:.dll=.def)
-	$(CXX) $(actual_addon_dll_LDFLAGS) -o $@ $(actual_addon_dll_OBJS) $(actual_addon_dll_LIBRARY_PATH) $(actual_addon_dll_DLL_PATH) $(DEFLIB) $(actual_addon_dll_DLLS:%=-l%) $(actual_addon_dll_LIBRARIES:%=-l%)
+$(joystick_dll_MODULE).so: $(joystick_dll_OBJS) $(joystick_dll_MODULE:.dll=.def)
+	$(CXX) $(joystick_dll_LDFLAGS) -o $@ $(joystick_dll_OBJS) $(joystick_dll_LIBRARY_PATH) $(joystick_dll_DLL_PATH) $(DEFLIB) $(joystick_dll_DLLS:%=-l%) $(joystick_dll_LIBRARIES:%=-l%)
 
 

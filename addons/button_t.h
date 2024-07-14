@@ -1,7 +1,6 @@
-#if !defined( BUTTON_INPUT_H )
-#define BUTTON_INPUT_H
+#pragma once
 
-enum button_t {
+typedef enum {
     NEUTRAL_BUTTON = 0x0,
     A = 0x0010,
     B = 0x0020,
@@ -15,6 +14,4 @@ enum button_t {
     CONFIRM = 0x0400,
     CANCEL = 0x0800,
     FACING = 0x0002
-};
-
-#endif
+} button_t;

@@ -1,3 +1,3 @@
 #pragma once
 
-enum player_t { FIRST = 1, SECOND = 2 };
+typedef enum { FIRST = 1, SECOND = 2 } player_t;

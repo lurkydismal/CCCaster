@@ -1,6 +1,6 @@
 #pragma once
 
-// Current game mode
+// Current game mode address
 #define CC_GAME_MODE_ADDR ( 0x54EEE8 )
 
 enum gameMode_t {

@@ -1,7 +1,6 @@
-#if !defined( DIRECTION_INPUT_H )
-#define DIRECTION_INPUT_H
+#pragma once
 
-enum direction_t {
+typedef enum {
     NEUTRAL_DIRECTION = 0x0,
     UP = 8,
     UP_RIGHT = 9,
@@ -11,6 +10,4 @@ enum direction_t {
     DOWN_LEFT = 1,
     LEFT = 4,
     UP_LEFT = 7
-};
-
-#endif
+} direction_t;
