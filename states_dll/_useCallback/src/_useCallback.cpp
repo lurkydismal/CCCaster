@@ -1,19 +1,21 @@
-#include "_useCallback.h"
+#include "_useCallback.hpp"
 
 #include <stdarg.h>
 #include <stdlib.h>
 
-uint16_t _useCallback( const char* _callbackName,
+#include <string>
+
+uint16_t _useCallback( std::string const& _callbackName,
                        const size_t _callbackArgumentsCount,
                        ... ) {
     if ( !_callbackArgumentsCount ) {
-        return ( g_useCallback( _callbackName, NULL ) );
+        return ( g_useCallback( _callbackName.c_str(), NULL ) );
     }
 
     va_list l_arguments;
     va_start( l_arguments, _callbackArgumentsCount );
 
-    void** l_callbackArguments = (void**)malloc( _callbackArgumentsCount );
+    void** l_callbackArguments = new void*[ _callbackArgumentsCount ];
 
     for ( size_t _index = 0; _index < _callbackArgumentsCount; _index++ ) {
         l_callbackArguments[ _index ] = va_arg( l_arguments, void* );
@@ -22,9 +24,9 @@ uint16_t _useCallback( const char* _callbackName,
     va_end( l_arguments );
 
     uint16_t l_result =
-        g_useCallback( _callbackName, l_callbackArguments );
+        g_useCallback( _callbackName.c_str(), l_callbackArguments );
 
-    free( l_callbackArguments );
+    delete l_callbackArguments;
 
     return ( l_result );
 }

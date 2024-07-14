@@ -39,7 +39,8 @@ netplay_dll_RC_SRCS=
 netplay_dll_LDFLAGS= -shared \
 			$(netplay_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-static
 netplay_dll_ARFLAGS=
 netplay_dll_DLL_PATH=
 netplay_dll_DLLS= odbc32 \

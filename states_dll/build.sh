@@ -9,4 +9,4 @@ clear && \
     clang-format --style=file \
     -i \
     src/*.cpp \
-    _useCallback/src/*.c _useCallback/include/*.h
+    _useCallback/src/*.cpp _useCallback/include/*.hpp

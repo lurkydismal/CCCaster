@@ -27,7 +27,7 @@ INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
-LIBRARIES             =
+LIBRARIES             = -ldinput -ldinput8
 
 
 ### joystick.dll sources and settings
@@ -41,7 +41,8 @@ joystick_dll_RC_SRCS=
 joystick_dll_LDFLAGS= -shared \
 			$(joystick_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-static
 joystick_dll_ARFLAGS=
 joystick_dll_DLL_PATH=
 joystick_dll_DLLS= odbc32 \

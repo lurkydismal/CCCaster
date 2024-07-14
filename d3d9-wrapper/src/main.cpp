@@ -215,8 +215,10 @@ LRESULT WINAPI CustomWindowProcedure( HWND hWnd,
                                       WPARAM wParam,
                                       LPARAM lParam,
                                       int idx ) {
+    // MessageBoxA( 0, "10", "test", 0 );
     uint16_t l_result = _useCallback( "CustomWindowProcedure", 5, hWnd, uMsg,
                                       wParam, lParam, idx );
+    // MessageBoxA( 0, "11", "test", 0 );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( true );
@@ -276,18 +278,21 @@ LRESULT WINAPI CustomWindowProcedure( HWND hWnd,
         }
     }
 
-    //  WNDPROC OrigProc = WNDPROC( WndProcList[ idx ].second );
+    WNDPROC OrigProc = WNDPROC( WndProcList[ idx ].second );
 
-    //  return ( OrigProc( hWnd, uMsg, wParam, lParam ) );
-    return DefWindowProcA( hWnd, uMsg, wParam, lParam );
+    // MessageBoxA( 0, "12", "test", 0 );
+    return ( OrigProc( hWnd, uMsg, wParam, lParam ) );
+    // return DefWindowProcA( hWnd, uMsg, wParam, lParam );
 }
 
 LRESULT WINAPI CustomWindowProcedureA( HWND hWnd,
                                        UINT uMsg,
                                        WPARAM wParam,
                                        LPARAM lParam ) {
+    // MessageBoxA( 0, "1", "test", 0 );
     uint16_t l_result =
         _useCallback( "CustomWindowProcedureA", 4, hWnd, uMsg, wParam, lParam );
+    // MessageBoxA( 0, "2", "test", 0 );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( true );
@@ -298,12 +303,14 @@ LRESULT WINAPI CustomWindowProcedureA( HWND hWnd,
     if ( wClassAtom ) {
         for ( unsigned int i = 0; i < WndProcList.size(); i++ ) {
             if ( WndProcList[ i ].first == wClassAtom ) {
+                // MessageBoxA( 0, "3", "test", 0 );
                 return (
                     CustomWindowProcedure( hWnd, uMsg, wParam, lParam, i ) );
             }
         }
     }
 
+    // MessageBoxA( 0, "4", "test", 0 );
     // We should never reach here, but having safeguards anyway is good
     return ( DefWindowProcA( hWnd, uMsg, wParam, lParam ) );
 }
@@ -312,8 +319,10 @@ LRESULT WINAPI CustomWindowProcedureW( HWND hWnd,
                                        UINT uMsg,
                                        WPARAM wParam,
                                        LPARAM lParam ) {
+    // MessageBoxA( 0, "5", "test", 0 );
     uint16_t l_result =
         _useCallback( "CustomWindowProcedureW", 4, hWnd, uMsg, wParam, lParam );
+    // MessageBoxA( 0, "8", "test", 0 );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( true );
@@ -324,12 +333,14 @@ LRESULT WINAPI CustomWindowProcedureW( HWND hWnd,
     if ( wClassAtom ) {
         for ( unsigned int i = 0; i < WndProcList.size(); i++ ) {
             if ( WndProcList[ i ].first == wClassAtom ) {
+                // MessageBoxA( 0, "6", "test", 0 );
                 return (
                     CustomWindowProcedure( hWnd, uMsg, wParam, lParam, i ) );
             }
         }
     }
 
+    // MessageBoxA( 0, "7", "test", 0 );
     // We should never reach here, but having safeguards anyway is good
     return ( DefWindowProcW( hWnd, uMsg, wParam, lParam ) );
 }

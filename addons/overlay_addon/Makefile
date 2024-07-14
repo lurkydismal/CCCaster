@@ -50,7 +50,8 @@ overlay_dll_RC_SRCS=
 overlay_dll_LDFLAGS= -shared \
 			$(overlay_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-static
 overlay_dll_ARFLAGS=
 overlay_dll_DLL_PATH=
 overlay_dll_DLLS= odbc32 \

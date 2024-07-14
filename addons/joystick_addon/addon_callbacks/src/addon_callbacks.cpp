@@ -3,25 +3,39 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#define INITGUID
+// Need at least version 8
+#define DIRECTINPUT_VERSION 0x0800
+
+#include <dinput.h>
+// #include <dinputd.h>
+#include <initguid.h>
+
 #include <cstdint>
 #include <set>
 
 #include "_useCallback.hpp"
-#include "button_input.h"
+#include "button_t.h"
 #include "controls_parse.hpp"
 #include "d3d9.h"
 #include "d3dx9.h"
-#include "direction_input.h"
+#include "direction_t.h"
 #include "native.hpp"
 #include "player_t.h"
 
 #pragma comment( lib, "user32.lib" )
+#pragma comment( lib, "gdi32.lib" )
+#pragma comment( lib, "ole32.lib" )
+#pragma comment( lib, "oleaut32.lib" )
+#pragma comment( lib, "comctl32.lib" )
+#pragma comment( lib, "d3d9.lib" )
+#pragma comment( lib, "d3dx9.lib" )
+#pragma comment( lib, "dinput.lib" )
+#pragma comment( lib, "dinput8.lib" )
 
 namespace {
 
-uint32_t g_activeFlagsOverlay = 0;
-bool g_disableMenu = false;
-const std::map< uint32_t, std::string > g_keyboardLayout = {
+const std::map< uint32_t, std::string > g_joystickLayout = {
     { VK_ESCAPE, "Esc" },
     { VK_F1, "F1" },
     { VK_F2, "F2" },
@@ -105,29 +119,56 @@ const std::map< uint32_t, std::string > g_keyboardLayout = {
     { VK_DOWN, "Down" },
     { VK_RIGHT, "Right" } };
 
+uint32_t g_activeFlagsOverlay = 0;
+bool g_disableMenu = false;
+LPDIRECTINPUT8 g_pDI = NULL;
+LPDIRECTINPUTDEVICE8 g_pJoystick = NULL;
 HWND g_hFocusWindow = NULL;
 uint32_t g_framesPassed = 0;
 uint16_t g_menuCursorIndex = 0;
 
+int32_t __attribute__( ( stdcall ) ) enumJoysticks( LPCDIDEVICEINSTANCE lpddi,
+                                                    void* pvRef ) {
+    static size_t l_index = 0;
+
+    ( ( std::vector< DIDEVICEINSTANCE >* )pvRef )->push_back( *lpddi );
+
+    LPDIRECTINPUTDEVICE8 l_tempDevice = NULL;
+
+    g_pDI->CreateDevice( lpddi->guidInstance, &l_tempDevice, NULL );
+
+    // Query for the actual joystick device to use
+    IDirectInputDevice8_QueryInterface( l_tempDevice, IID_IDirectInputDevice8,
+                                        ( void** )&g_pJoystick );
+
+    if ( g_pJoystick ) {
+        {
+            const char l_message[] = "g_pJoystick\n";
+
+            _useCallback( "log$transaction$query", 2, l_message,
+                          sizeof( l_message ) );
+        }
+
+    } else {
+        {
+            const char l_message[] = "!g_pJoystick\n";
+
+            _useCallback( "log$transaction$query", 2, l_message,
+                          sizeof( l_message ) );
+        }
+    }
+
+    // We no longer need the original DirectInput device pointer
+    IDirectInputDevice8_Release( l_tempDevice );
+
+    l_index++;
+
+    return ( DIENUM_CONTINUE );
+}
+
 } // namespace
 
 useCallbackFunction_t g_useCallback = NULL;
-
-void applyInput( button_t _buttons, direction_t _direction, player_t _player ) {
-    char* const l_inputsStructureAddress =
-        *( reinterpret_cast< char** >( 0x76E6AC ) );
-    // const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
-    // const uintptr_t l_firstPlayerButtonsOffset = 0x24;    // 36
-    // const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44
-    // const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
-
-    *( uint16_t* )( l_inputsStructureAddress + 16 +
-                    ( 20 * ( ( uint8_t )_player ) ) ) =
-        ( uint16_t )( _buttons );
-    *( uint16_t* )( l_inputsStructureAddress + 4 +
-                    ( 20 * ( ( uint8_t )_player ) ) ) =
-        ( uint16_t )( _direction );
-}
 
 extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
@@ -145,36 +186,15 @@ extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
     std::set< std::string > l_activeMappedKeys;
     std::set< uint8_t > l_activeKeys;
 
-#define KEYS_TOTAL ( 0xFE + 1 )
-
-    for ( uint8_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
-        if ( !( _index == VK_MENU ) && !( _index == VK_SHIFT ) &&
-             !( _index == VK_CONTROL ) ) {
-            if ( GetKeyState( _index ) & 0x8000 ) {
-                const std::string l_indexAsString = std::to_string( _index );
-
-                if ( g_jsonControlsKeyboard.contains( l_indexAsString ) ) {
-                    l_activeMappedKeys.insert(
-                        g_jsonControlsKeyboard.at( l_indexAsString ) );
-
-                } else {
-                    l_activeKeys.insert( _index );
-                }
-            }
-        }
-    }
-
-#undef KEY_NUMBER
-
-    l_returnValue = _useCallback( "keyboard$getInput$end", 2,
+    l_returnValue = _useCallback( "joystick$getInput$end", 2,
                                   &l_activeMappedKeys, &l_activeKeys );
     l_returnValue =
-        _useCallback( "keyboard$applyInput", 1, &l_activeMappedKeys );
+        _useCallback( "joystick$applyInput", 1, &l_activeMappedKeys );
 
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
+extern "C" uint16_t __declspec( dllexport ) joystick$applyInput(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     std::set< std::string >* _activeMappedKeys =
@@ -183,8 +203,8 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
     button_t l_buttons = NEUTRAL_BUTTON;
     player_t l_localPlayer = FIRST;
 
-    l_returnValue =
-        _useCallback( "keyboard$applyInput$begin", 2, _activeMappedKeys, &l_localPlayer );
+    l_returnValue = _useCallback( "joystick$applyInput$begin", 2,
+                                  _activeMappedKeys, &l_localPlayer );
 
     if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
         l_direction = UP;
@@ -238,39 +258,30 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
         }
     }
 
+#if 0
     {
         if ( g_framesPassed >= 30 ) {
             if ( _activeMappedKeys->find( "ToggleOverlay_KeyConfig_Native" ) !=
                  _activeMappedKeys->end() ) {
                 static bool l_wasOverlayToggled = false;
                 const bool l_isOverlayToggled =
-                    _useCallback( "overlay$Toggle" );
-
-                if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
-                    l_wasOverlayToggled = true;
-
-                    g_activeFlagsOverlay = SHOW_NATIVE;
-
-                } else if ( ( l_isOverlayToggled ) &&
-                            ( l_wasOverlayToggled ) ) {
-                    l_wasOverlayToggled = false;
-
-                    g_activeFlagsOverlay &= ~SHOW_NATIVE;
-                }
+                    _useCallback( "overlay$getState" );
 
                 g_framesPassed = 0;
             }
         }
     }
+#endif
 
     {
         if ( !( g_activeFlagsOverlay & SHOW_NATIVE ) ) {
-            applyInput( l_buttons, l_direction, l_localPlayer );
+            l_returnValue = _useCallback( "game$applyInput", 3, &l_buttons,
+                                          &l_direction, &l_localPlayer );
         }
     }
 
     l_returnValue =
-        _useCallback( "keyboard$applyInput$end", 1, _activeMappedKeys );
+        _useCallback( "joystick$applyInput$end", 1, _activeMappedKeys );
 
     return ( l_returnValue );
 }
@@ -305,10 +316,77 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
         exit( 1 );
     }
 
+    {
+        const char l_message[] = "start\n";
+
+        _useCallback( "log$transaction$query", 2, l_message,
+                      sizeof( l_message ) );
+    }
+
+    DirectInput8Create( GetModuleHandle( NULL ), DIRECTINPUT_VERSION,
+                        IID_IDirectInput8, ( VOID** )&g_pDI, NULL );
+
+    IDirectInput8_Initialize( g_pDI, GetModuleHandle( NULL ),
+                              DIRECTINPUT_VERSION );
+
+    std::vector< DIDEVICEINSTANCE > activeJoysticks;
+
+    IDirectInput8_EnumDevices( g_pDI, DI8DEVCLASS_GAMECTRL, enumJoysticks,
+                               ( void* )&activeJoysticks, DIEDFL_ATTACHEDONLY );
+
+    if ( !g_pJoystick ) {
+        {
+            const char l_message[] = "!g_pJoystick 2\n";
+
+            _useCallback( "log$transaction$query", 2, l_message,
+                          sizeof( l_message ) );
+        }
+
+        goto EXIT;
+    }
+
+    {
+        g_pJoystick->SetCooperativeLevel(
+            g_hFocusWindow,
+            DISCL_EXCLUSIVE | DISCL_BACKGROUND // DISCL_NONEXCLUSIVE
+        );
+
+        g_pJoystick->SetDataFormat( &c_dfDIJoystick2 );
+
+#if 0
+        DIDEVCAPS ddc;
+        ddc.dwSize = sizeof ( ddc );
+
+        // Get the joystick capabilities
+        result = IDirectInputDevice8_GetCapabilities ( device, &ddc );
+        if ( FAILED ( result ) )
+        {
+            LOG ( "IDirectInputDevice8_GetCapabilities failed: 0x%08x", result );
+            return;
+        }
+
+        info.device = device;
+        info.numHats = min<uint64_t> ( MAX_NUM_HATS, ddc.dwPOVs );
+        info.numButtons = min<uint64_t> ( MAX_NUM_BUTTONS, ddc.dwButtons );
+
+        g_pJoystick->EnumObjects(
+                EnumObjectsCallback,
+                ( void* )g_hFocusWindow,
+                DIDFT_AXIS // DIDFT_RELAXIS | DIDFT_PSHBUTTON
+                );
+#endif
+    }
+
+EXIT: {
+    const char l_message[] = "end\n";
+
+    _useCallback( "log$transaction$query", 2, l_message, sizeof( l_message ) );
+}
+
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
+extern "C" uint16_t __declspec( dllexport ) joystick$getInput$end(
     void** _callbackArguments ) {
     if ( g_framesPassed > 7 ) {
         if ( g_activeFlagsOverlay & OVERLAY_IS_MAPPING_KEY ) {
@@ -324,17 +402,17 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
             }
 
             if ( !_activeKeys->empty() ) {
-                if ( g_keyboardLayout.find( *( _activeKeys->begin() ) ) !=
-                     g_keyboardLayout.end() ) {
+                if ( g_joystickLayout.find( *( _activeKeys->begin() ) ) !=
+                     g_joystickLayout.end() ) {
                     uint16_t l_index = 0;
 
-                    for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
+                    for ( const auto& _item : g_jsonControlsJoystick.items() ) {
                         if ( l_index == g_menuCursorIndex ) {
-                            g_jsonControlsKeyboard[ std::to_string(
+                            g_jsonControlsJoystick[ std::to_string(
                                 *( _activeKeys->begin() ) ) ] =
                                 _item.value().template get< std::string >();
 
-                            g_jsonControlsKeyboard.erase( _item.key() );
+                            g_jsonControlsJoystick.erase( _item.key() );
 
                             const std::string l_controlsConfigFileName =
                                 ( std::string(
@@ -344,7 +422,7 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
                                       CONTROLS_PREFERENCES_FILE_EXTENSION ) );
 
                             json l_jsonControls = {
-                                { "keyboard", g_jsonControlsKeyboard },
+                                { "joystick", g_jsonControlsJoystick },
                             };
 
                             std::string buffer =
@@ -360,7 +438,7 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
                     }
                 }
 
-                g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
+                g_menuCursorIndex = ( g_jsonControlsJoystick.size() - 1 );
 
                 g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
 
@@ -375,8 +453,8 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
                 g_menuCursorIndex--;
 
                 if ( g_menuCursorIndex >
-                     ( g_jsonControlsKeyboard.size() - 1 ) ) {
-                    g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
+                     ( g_jsonControlsJoystick.size() - 1 ) ) {
+                    g_menuCursorIndex = ( g_jsonControlsJoystick.size() - 1 );
                 }
 
                 g_framesPassed = 0;
@@ -385,7 +463,7 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
                 g_menuCursorIndex++;
 
                 if ( g_menuCursorIndex >
-                     ( g_jsonControlsKeyboard.size() - 1 ) ) {
+                     ( g_jsonControlsJoystick.size() - 1 ) ) {
                     g_menuCursorIndex = 0;
                 }
 
@@ -541,7 +619,7 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
                     uint16_t l_index = 0;
                     uint16_t l_indexForShown = 0;
 
-                    for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
+                    for ( const auto& _item : g_jsonControlsJoystick.items() ) {
                         if ( l_index < l_firstIndexToShow ) {
                             l_index++;
 
@@ -574,9 +652,9 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
 
                         std::string l_keyContent = "";
 
-                        if ( g_keyboardLayout.find( std::stoi(
-                                 _item.key() ) ) != g_keyboardLayout.end() ) {
-                            l_keyContent = ( g_keyboardLayout.at(
+                        if ( g_joystickLayout.find( std::stoi(
+                                 _item.key() ) ) != g_joystickLayout.end() ) {
+                            l_keyContent = ( g_joystickLayout.at(
                                 std::stoi( _item.key() ) ) );
                         }
 

@@ -154,6 +154,20 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
     return ( 0 );
 }
 
+extern "C" uint16_t __declspec( dllexport ) overlay$getState(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
+    return ( g_activeFlags & SHOW_OVERLAY );
+}
+
+extern "C" uint16_t __declspec( dllexport ) overlay$ImGui$getState(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
+    return ( g_activeFlags & SHOW_OVERLAY_IMGUI );
+}
+
 extern "C" uint16_t __declspec( dllexport ) overlay$toggle(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;

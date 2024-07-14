@@ -128,14 +128,16 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
         if ( _activeMappedKeys->find( "ToggleOverlay_Netplay_Native" ) !=
              _activeMappedKeys->end() ) {
             static bool l_wasOverlayToggled = false;
-            const bool l_isOverlayToggled = _useCallback( "overlay$Toggle" );
+            const bool l_isOverlayToggled = _useCallback( "overlay$getState" );
 
-            if ( ( l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+            if ( ( !l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+                _useCallback( "overlay$toggle" );
                 l_wasOverlayToggled = true;
 
                 g_activeFlagsOverlay = SHOW_NATIVE;
 
             } else if ( ( l_isOverlayToggled ) && ( l_wasOverlayToggled ) ) {
+                _useCallback( "overlay$toggle" );
                 l_wasOverlayToggled = false;
 
                 g_activeFlagsOverlay &= ~SHOW_NATIVE;
