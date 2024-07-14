@@ -7,5 +7,6 @@
     main: actual_addon.dll
     events: {
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
+        game$applyInput: game$applyInput
     }
 }

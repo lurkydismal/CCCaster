@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "a.h"
+#include "misc.h"
 
 extern uint32_t g_currentMenuIndex;
 extern uint32_t g_menuConfirmState;
