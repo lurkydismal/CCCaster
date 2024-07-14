@@ -13,4 +13,4 @@ mkdir -p "${ADDONS_DIR}/log" && \
     -i \
     src/*.c \
     log/include/*.h log/src/*.c \
-    addon_callbacks/include/*.h addon_callbacks/src/*.c
+    addon_callbacks/src/*.c

@@ -10,8 +10,6 @@
 #define LOG_FILE_NAME "log_trace"
 #define LOG_FILE_EXTENSION "txt"
 
-enum logLevel_t { TRACE = 0, DEBUG, INFO, WARN, ERR, FATAL };
-
 typedef uint16_t addonCallbackFunction_t( void** );
 
 std::map< std::string, std::vector< addonCallbackFunction_t* > >

@@ -113,6 +113,22 @@ uint16_t g_menuCursorIndex = 0;
 
 useCallbackFunction_t g_useCallback = NULL;
 
+void applyInput( button_t _buttons, direction_t _direction, player_t _player ) {
+    char* const l_inputsStructureAddress =
+        *( reinterpret_cast< char** >( 0x76E6AC ) );
+    // const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
+    // const uintptr_t l_firstPlayerButtonsOffset = 0x24;    // 36
+    // const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44
+    // const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
+
+    *( uint16_t* )( l_inputsStructureAddress + 16 +
+                    ( 20 * ( ( uint8_t )_player ) ) ) =
+        ( uint16_t )( _buttons );
+    *( uint16_t* )( l_inputsStructureAddress + 4 +
+                    ( 20 * ( ( uint8_t )_player ) ) ) =
+        ( uint16_t )( _direction );
+}
+
 extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
@@ -249,7 +265,7 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
 
     {
         if ( !( g_activeFlagsOverlay & SHOW_NATIVE ) ) {
-            _useCallback( "game$applyInput", 3, l_buttons, l_direction, l_localPlayer );
+            applyInput( l_buttons, l_direction, l_localPlayer );
         }
     }
 
