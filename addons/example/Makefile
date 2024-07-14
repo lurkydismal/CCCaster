@@ -26,8 +26,8 @@ LIBRARIES             =
 ### example.dll sources and settings
 
 example_dll_MODULE    = example.dll
-example_dll_C_SRCS    =
-example_dll_CXX_SRCS  = example.c
+example_dll_C_SRCS    = example.c
+example_dll_CXX_SRCS  =
 example_dll_RC_SRCS   =
 example_dll_LDFLAGS   = -shared \
 			$(example_dll_MODULE:.dll=.def) \

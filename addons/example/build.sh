@@ -3,7 +3,6 @@
 source ../../config.sh && \
 clear && \
 mkdir -p "${ADDONS_DIR}/example" && \
-    make clean && \
     make -j $(( `nproc` - 1 )) && \
     mv -f example.dll.so \
     "${ADDONS_DIR}/example/example.dll" && \
