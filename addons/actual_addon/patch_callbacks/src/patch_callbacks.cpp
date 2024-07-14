@@ -7,10 +7,10 @@
 #include <string>
 
 #include "_useCallback.hpp"
-#include "a.h"
-#include "button_input.h"
-#include "direction_input.h"
-#include "game_mode.h"
+#include "button_t.h"
+#include "direction_t.h"
+#include "gameMode_t.h"
+#include "misc.h"
 #include "patch_t.hpp"
 #include "player_t.h"
 
