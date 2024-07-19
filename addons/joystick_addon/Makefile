@@ -18,7 +18,6 @@ CXXEXTRA              = -Ofast \
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
-			-I ../overlay_addon/imgui/include \
 			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
 			-I controls_parse/include \

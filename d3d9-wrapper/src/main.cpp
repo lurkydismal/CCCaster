@@ -210,107 +210,13 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     return ( hRet );
 }
 
-LRESULT WINAPI CustomWindowProcedure( HWND hWnd,
-                                      UINT uMsg,
-                                      WPARAM wParam,
-                                      LPARAM lParam,
-                                      int idx ) {
-    // MessageBoxA( 0, "10", "test", 0 );
-    uint16_t l_result = _useCallback( "CustomWindowProcedure", 5, hWnd, uMsg,
-                                      wParam, lParam, idx );
-    // MessageBoxA( 0, "11", "test", 0 );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( true );
-    }
-
-    if ( ( hWnd == g_hFocusWindow ) ||
-         // skip child windows like buttons, edit boxes, etc.
-         ( _fnIsTopLevelWindow( hWnd ) ) ) {
-        switch ( uMsg ) {
-            case WM_ACTIVATE: {
-                if ( LOWORD( wParam ) == WA_INACTIVE ) {
-                    if ( ( HWND )lParam == NULL ) {
-                        return ( 0 );
-                    }
-
-                    DWORD dwPID = 0;
-                    GetWindowThreadProcessId( ( HWND )lParam, &dwPID );
-
-                    if ( dwPID != GetCurrentProcessId() ) {
-                        return ( 0 );
-                    }
-                }
-
-                break;
-            }
-
-            case WM_NCACTIVATE: {
-                if ( LOWORD( wParam ) == WA_INACTIVE ) {
-                    return ( 0 );
-                }
-
-                break;
-            }
-
-            case WM_ACTIVATEAPP: {
-                if ( wParam == FALSE ) {
-                    return ( 0 );
-                }
-
-                break;
-            }
-
-            case WM_KILLFOCUS: {
-                if ( ( HWND )wParam == NULL ) {
-                    return ( 0 );
-                }
-
-                DWORD dwPID = 0;
-                GetWindowThreadProcessId( ( HWND )wParam, &dwPID );
-
-                if ( dwPID != GetCurrentProcessId() ) {
-                    return ( 0 );
-                }
-
-                break;
-            }
-        }
-    }
-
-    WNDPROC OrigProc = WNDPROC( WndProcList[ idx ].second );
-
-    // MessageBoxA( 0, "12", "test", 0 );
-    return ( OrigProc( hWnd, uMsg, wParam, lParam ) );
-    // return DefWindowProcA( hWnd, uMsg, wParam, lParam );
-}
-
 LRESULT WINAPI CustomWindowProcedureA( HWND hWnd,
                                        UINT uMsg,
                                        WPARAM wParam,
                                        LPARAM lParam ) {
-    // MessageBoxA( 0, "1", "test", 0 );
     uint16_t l_result =
         _useCallback( "CustomWindowProcedureA", 4, hWnd, uMsg, wParam, lParam );
-    // MessageBoxA( 0, "2", "test", 0 );
 
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( true );
-    }
-
-    WORD wClassAtom = GetClassWord( hWnd, GCW_ATOM );
-
-    if ( wClassAtom ) {
-        for ( unsigned int i = 0; i < WndProcList.size(); i++ ) {
-            if ( WndProcList[ i ].first == wClassAtom ) {
-                // MessageBoxA( 0, "3", "test", 0 );
-                return (
-                    CustomWindowProcedure( hWnd, uMsg, wParam, lParam, i ) );
-            }
-        }
-    }
-
-    // MessageBoxA( 0, "4", "test", 0 );
     // We should never reach here, but having safeguards anyway is good
     return ( DefWindowProcA( hWnd, uMsg, wParam, lParam ) );
 }
@@ -319,28 +225,9 @@ LRESULT WINAPI CustomWindowProcedureW( HWND hWnd,
                                        UINT uMsg,
                                        WPARAM wParam,
                                        LPARAM lParam ) {
-    // MessageBoxA( 0, "5", "test", 0 );
     uint16_t l_result =
         _useCallback( "CustomWindowProcedureW", 4, hWnd, uMsg, wParam, lParam );
-    // MessageBoxA( 0, "8", "test", 0 );
 
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( true );
-    }
-
-    WORD wClassAtom = GetClassWord( hWnd, GCW_ATOM );
-
-    if ( wClassAtom ) {
-        for ( unsigned int i = 0; i < WndProcList.size(); i++ ) {
-            if ( WndProcList[ i ].first == wClassAtom ) {
-                // MessageBoxA( 0, "6", "test", 0 );
-                return (
-                    CustomWindowProcedure( hWnd, uMsg, wParam, lParam, i ) );
-            }
-        }
-    }
-
-    // MessageBoxA( 0, "7", "test", 0 );
     // We should never reach here, but having safeguards anyway is good
     return ( DefWindowProcW( hWnd, uMsg, wParam, lParam ) );
 }
