@@ -104,9 +104,11 @@ void gameMainLoopCallback( void ) {
             case TITLE: {
                 *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
-                std::set< std::string > l_activeMappedKeys = { "A" };
-
-                _useCallback( "keyboard$applyInput", 1, l_activeMappedKeys );
+                const button_t l_button = A;
+                const direction_t l_direction = NEUTRAL_DIRECTION;
+                const player_t l_player = FIRST;
+                _useCallback( "game$applyInput", 3, &l_button, &l_direction,
+                              &l_player );
 
                 uint16_t l_result = _useCallback( "gameMode$title" );
 

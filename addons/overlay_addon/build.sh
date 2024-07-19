@@ -13,7 +13,5 @@ mkdir -p "${ADDONS_DIR}/overlay" && \
     "${ADDONS_DIR}//overlay/." && \
     clang-format --style=file \
     -i \
-    src/*.cpp \
     addon_callbacks/include/*.hpp addon_callbacks/src/*.cpp \
-    imgui/include/*.hpp imgui/src/*.cpp \
     native/include/*.hpp native/src/*.cpp

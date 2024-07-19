@@ -1,25 +1,9 @@
 LIBRARY overlay
 EXPORTS
 
-extraDrawCallback
 IDirect3D9Ex$CreateDevice
-IDirect3DDevice9Ex$EndScene
-IDirect3DDevice9Ex$PreReset
-IDirect3DDevice9Ex$PostReset
-CustomWindowProcedure
 overlay$getState
-overlay$ImGui$getState
 overlay$toggle
-overlay$ImGui$toggle
-ImGui$Button
-ImGui$InputText
-ImGui$Selectable
-ImGui$Indent
-ImGui$SameLine
-ImGui$BeginGroup
-ImGui$EndGroup
-ImGui$BeginChild
-ImGui$EndChild
 native$getColorForRectangle
 native$drawRectangle
 native$drawText

@@ -19,9 +19,6 @@ DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I addon_callbacks/include \
 			-I native/include \
-			-I ../../imgui \
-			-I ../../imgui/backends \
-			-I ../../imgui/misc/cpp \
 			-I ../../
 DLL_PATH              =
 DLL_IMPORTS           =
@@ -33,19 +30,9 @@ LIBRARIES             = -lCallDraw
 
 overlay_dll_MODULE= overlay.dll
 overlay_dll_C_SRCS=
-overlay_dll_CXX_SRCS= src/main.cpp \
-		      addon_callbacks/src/addon_callbacks.cpp \
-		      imgui/src/imgui.cpp \
+overlay_dll_CXX_SRCS= addon_callbacks/src/addon_callbacks.cpp \
 		      native/src/native.cpp \
-		      ../../states_dll/_useCallback/src/_useCallback.cpp \
-		      ../../imgui/imgui.cpp \
-		      ../../imgui/imgui_demo.cpp \
-		      ../../imgui/imgui_draw.cpp \
-		      ../../imgui/imgui_tables.cpp \
-		      ../../imgui/imgui_widgets.cpp \
-		      ../../imgui/backends/imgui_impl_dx9.cpp \
-		      ../../imgui/backends/imgui_impl_win32.cpp \
-		      ../../imgui/misc/cpp/imgui_stdlib.cpp
+		      ../../states_dll/_useCallback/src/_useCallback.cpp
 overlay_dll_RC_SRCS=
 overlay_dll_LDFLAGS= -shared \
 			$(overlay_dll_MODULE:.dll=.def) \
