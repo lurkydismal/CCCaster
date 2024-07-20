@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <set>
 
-#include "_useCallback.hpp"
+#include "_useCallback.h"
 #include "button_t.h"
 #include "controls_parse.hpp"
 #include "d3d9.h"

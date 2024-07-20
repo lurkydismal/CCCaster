@@ -1,8 +1,5 @@
 #include "log.h"
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 static char g_transactionString[ 1024 * 2 ];

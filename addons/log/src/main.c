@@ -1,16 +1,17 @@
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #include <stdbool.h>
 
 #include "log.h"
 
+#define ATTACH 1
+
 FILE* g_fileDescriptor;
 
-BOOL WINAPI DllMain( HMODULE _handle, DWORD _reason, LPVOID _ ) {
+int32_t __attribute( ( stdcall ) ) DllMain( void* _handle,
+                                            uint32_t _reason,
+                                            void* _ ) {
     bool l_returnValue = true;
 
-    if ( _reason == DLL_PROCESS_ATTACH ) {
+    if ( _reason == ATTACH ) {
         g_fileDescriptor = fopen( LOG_FILE_NAME "." LOG_FILE_EXTENSION, "w" );
 
         if ( !g_fileDescriptor ) {
