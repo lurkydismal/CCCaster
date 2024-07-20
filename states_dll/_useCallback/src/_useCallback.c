@@ -9,7 +9,7 @@ extern "C" {
 
 #endif
 
-uint16_t _useCallback( const char* _callbackName,
+uint16_t __useCallback( const char* _callbackName,
                        const size_t _callbackArgumentsCount,
                        ... ) {
     if ( !_callbackArgumentsCount ) {

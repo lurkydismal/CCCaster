@@ -50,7 +50,7 @@ HRESULT m_IDirect3DDevice9Ex::Present( CONST RECT* pSourceRect,
                                        HWND hDestWindowOverride,
                                        CONST RGNDATA* pDirtyRegion ) {
     uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$Present", 4, pSourceRect, pDestRect,
+        _useCallback( "IDirect3DDevice9Ex$Present", pSourceRect, pDestRect,
                       hDestWindowOverride, pDirtyRegion );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
@@ -67,8 +67,8 @@ HRESULT m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
                                          CONST RGNDATA* pDirtyRegion,
                                          DWORD dwFlags ) {
     uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$PresentEx", 5, pSourceRect, pDestRect,
-                      hDestWindowOverride, pDirtyRegion, dwFlags );
+        _useCallback( "IDirect3DDevice9Ex$PresentEx", pSourceRect, pDestRect,
+                      hDestWindowOverride, pDirtyRegion, &dwFlags );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -79,7 +79,7 @@ HRESULT m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
 }
 
 HRESULT m_IDirect3DDevice9Ex::EndScene( void ) {
-    uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene", 0 );
+    uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -110,11 +110,12 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
 
     const char l_message[] = "IDirect3D9Ex CreateDevice ()\n";
 
-    _useCallback( "log$transaction$query", 2, l_message, sizeof( l_message ) );
-    _useCallback( "log$transaction$commit", 0 );
+    _useCallback( "log$transaction$query", l_message,
+                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$commit" );
 
     uint16_t l_result = _useCallback(
-        "IDirect3D9Ex$CreateDevice", 6, &Adapter, &DeviceType, &hFocusWindow,
+        "IDirect3D9Ex$CreateDevice", &Adapter, &DeviceType, &hFocusWindow,
         &BehaviorFlags, &pPresentationParameters, &ppReturnedDeviceInterface );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
@@ -126,8 +127,8 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
 
 HRESULT m_IDirect3DDevice9Ex::Reset(
     D3DPRESENT_PARAMETERS* pPresentationParameters ) {
-    uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$PreReset", 1,
-                                      pPresentationParameters );
+    uint16_t l_result =
+        _useCallback( "IDirect3DDevice9Ex$PreReset", pPresentationParameters );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -135,8 +136,8 @@ HRESULT m_IDirect3DDevice9Ex::Reset(
 
     auto hRet = ProxyInterface->Reset( pPresentationParameters );
 
-    l_result = _useCallback( "IDirect3DDevice9Ex$PostReset", 1,
-                             pPresentationParameters );
+    l_result =
+        _useCallback( "IDirect3DDevice9Ex$PostReset", pPresentationParameters );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -168,8 +169,8 @@ HRESULT m_IDirect3D9Ex::CreateDeviceEx(
     }
 
     uint16_t l_result =
-        _useCallback( "IDirect3D9Ex$CreateDeviceEx", 7, Adapter, DeviceType,
-                      hFocusWindow, BehaviorFlags, pPresentationParameters,
+        _useCallback( "IDirect3D9Ex$CreateDeviceEx", &Adapter, &DeviceType,
+                      hFocusWindow, &BehaviorFlags, pPresentationParameters,
                       pFullscreenDisplayMode, ppReturnedDeviceInterface );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
@@ -183,8 +184,8 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters,
     D3DDISPLAYMODEEX* pFullscreenDisplayMode ) {
     uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$PreResetEx", 2,
-                      pPresentationParameters, pFullscreenDisplayMode );
+        _useCallback( "IDirect3DDevice9Ex$PreResetEx", pPresentationParameters,
+                      pFullscreenDisplayMode );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -193,7 +194,7 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     auto hRet = ProxyInterface->ResetEx( pPresentationParameters,
                                          pFullscreenDisplayMode );
 
-    l_result = _useCallback( "IDirect3DDevice9Ex$PostResetEx", 2,
+    l_result = _useCallback( "IDirect3DDevice9Ex$PostResetEx",
                              pPresentationParameters, pFullscreenDisplayMode );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
@@ -203,8 +204,8 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     return ( hRet );
 }
 
-static BOOL loadDll( std::string _DLLName, HMODULE& _moduleHandle ) {
-    BOOL l_returnValue = true;
+static bool loadDll( std::string _DLLName, HMODULE& _moduleHandle ) {
+    bool l_returnValue = true;
     char path[ MAX_PATH ];
 
     GetSystemDirectoryA( path, MAX_PATH );
@@ -226,7 +227,7 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
         case DLL_PROCESS_ATTACH: {
             g_hWrapperModule = hModule;
 
-            BOOL l_d3d9LoadResult = loadDll( "d3d9.dll", g_d3d9dll );
+            bool l_d3d9LoadResult = loadDll( "d3d9.dll", g_d3d9dll );
 
             if ( l_d3d9LoadResult ) {
                 if ( g_d3d9dll ) {
