@@ -32,8 +32,7 @@ states_dll_RC_SRCS=
 states_dll_LDFLAGS= -shared \
 			$(states_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s \
-			-static
+			-s
 states_dll_ARFLAGS=
 states_dll_DLL_PATH=
 states_dll_DLLS   =

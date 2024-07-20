@@ -40,8 +40,7 @@ joystick_dll_RC_SRCS=
 joystick_dll_LDFLAGS= -shared \
 			$(joystick_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s \
-			-static
+			-s
 joystick_dll_ARFLAGS=
 joystick_dll_DLL_PATH=
 joystick_dll_DLLS= odbc32 \

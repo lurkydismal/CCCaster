@@ -28,7 +28,7 @@ LIBRARIES             = -lminhook
 ### d3d9.dll sources and settings
 
 d3d9_dll_MODULE= d3d9.dll
-d3d9_dll_C_SRCS=
+d3d9_dll_C_SRCS= ../states_dll/_useCallback/src/_useCallback.c
 d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DCubeTexture9.cpp \
 		   src/IDirect3DDevice9Ex.cpp \
@@ -45,14 +45,12 @@ d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DVolume9.cpp \
 		   src/IDirect3DVolumeTexture9.cpp \
 		   src/InterfaceQuery.cpp \
-		   src/main.cpp \
-		   ../states_dll/_useCallback/src/_useCallback.cpp
+		   src/main.cpp
 d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \
 			$(d3d9_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s \
-			-static
+			-s
 d3d9_dll_ARFLAGS=
 d3d9_dll_DLL_PATH=
 d3d9_dll_DLLS = odbc32 \
@@ -80,7 +78,7 @@ RC_SRCS               = $(d3d9_dll_RC_SRCS)
 
 ### Tools
 
-CC = ccache i686-w64-mingw32-gc
+CC = ccache i686-w64-mingw32-gcc
 CXX = ccache i686-w64-mingw32-g++
 RC = wrc
 AR = ar

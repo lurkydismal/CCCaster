@@ -9,7 +9,7 @@
 #include <set>
 #include <vector>
 
-#include "_useCallback.hpp"
+#include "_useCallback.h"
 #include "d3d9.h"
 #include "native.hpp"
 #include "player_t.h"
