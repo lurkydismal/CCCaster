@@ -17,12 +17,11 @@ CXXEXTRA              = -Ofast \
 			-fvisibility=hidden
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
-			-I ../minhook/include
+INCLUDE_PATH          = -I ../states_dll/_useCallback/include
 DLL_PATH              =
 DLL_IMPORTS           =
-LIBRARY_PATH          = -L ../minhook
-LIBRARIES             = -lminhook
+LIBRARY_PATH          =
+LIBRARIES             =
 
 
 ### d3d9.dll sources and settings
