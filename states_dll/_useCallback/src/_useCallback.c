@@ -10,8 +10,8 @@ extern "C" {
 #endif
 
 uint16_t __useCallback( const char* _callbackName,
-                       const size_t _callbackArgumentsCount,
-                       ... ) {
+                        const size_t _callbackArgumentsCount,
+                        ... ) {
     if ( !_callbackArgumentsCount ) {
         return ( g_useCallback( _callbackName, NULL ) );
     }
@@ -28,7 +28,8 @@ uint16_t __useCallback( const char* _callbackName,
 
     va_end( l_arguments );
 
-    uint16_t l_result = g_useCallback( _callbackName, l_callbackArguments );
+    const uint16_t l_result =
+        g_useCallback( _callbackName, l_callbackArguments );
 
     free( l_callbackArguments );
 

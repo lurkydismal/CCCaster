@@ -247,7 +247,7 @@ unsafe fn load_addons_directory() {
 
     let states_function_add_callbacks = v_address_to_function!(
         GetProcAddress(states_h_module, ("addCallbacks\0").as_ptr() as LPCSTR) as FARPROC,
-        extern "C" fn(LPCSTR, usize, *const usize)
+        extern "C" fn(LPCSTR, usize, *const usize, u32)
     );
 
     // Load callbacks into the event handling DLL.
@@ -266,6 +266,7 @@ unsafe fn load_addons_directory() {
                 format!("{}\0", event_name).as_ptr() as LPCSTR,
                 function_addresses.len(),
                 function_addresses.to_owned().as_ptr(),
+                0,
             );
         }
     });

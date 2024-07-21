@@ -1,15 +1,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include <minhook.h>
-#include <tlhelp32.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#include <stdint.h>
 
-#include <chrono>
-#include <cstdint>
 #include <string>
-#include <vector>
 
 #include "_useCallback.h"
 #include "d3d9.h"
@@ -168,6 +162,12 @@ HRESULT m_IDirect3D9Ex::CreateDeviceEx(
             *ppReturnedDeviceInterface, this, IID_IDirect3DDevice9Ex );
     }
 
+    const char l_message[] = "IDirect3D9Ex CreateDeviceEx ()\n";
+
+    _useCallback( "log$transaction$query", l_message,
+                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$commit" );
+
     uint16_t l_result =
         _useCallback( "IDirect3D9Ex$CreateDeviceEx", &Adapter, &DeviceType,
                       hFocusWindow, &BehaviorFlags, pPresentationParameters,
@@ -204,16 +204,17 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     return ( hRet );
 }
 
-static bool loadDll( std::string _DLLName, HMODULE& _moduleHandle ) {
+static bool loadDll( const char* _DLLName, HMODULE* _moduleHandle ) {
     bool l_returnValue = true;
     char path[ MAX_PATH ];
 
     GetSystemDirectoryA( path, MAX_PATH );
-    strcat_s( path, ( "/" + _DLLName ).c_str() );
+    strcat( path, "/" );
+    strcat( path, _DLLName );
 
-    _moduleHandle = LoadLibraryA( path );
+    *_moduleHandle = LoadLibraryA( path );
 
-    if ( !_moduleHandle ) {
+    if ( !( *_moduleHandle ) ) {
         l_returnValue = false;
     }
 
@@ -227,7 +228,7 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
         case DLL_PROCESS_ATTACH: {
             g_hWrapperModule = hModule;
 
-            bool l_d3d9LoadResult = loadDll( "d3d9.dll", g_d3d9dll );
+            bool l_d3d9LoadResult = loadDll( "d3d9.dll", &g_d3d9dll );
 
             if ( l_d3d9LoadResult ) {
                 if ( g_d3d9dll ) {
