@@ -12,6 +12,6 @@ mkdir -p "${ADDONS_DIR}/actual_addon" && \
     clang-format --style=file \
     -i \
     src/*.cpp \
-    addon_callbacks/src/*.cpp \
-    patch_callbacks/src/*.cpp patch_callbacks/include/*.hpp \
-    patch_t/src/*.cpp patch_t/include/*.hpp
+    addon_callbacks/src/*.c \
+    patch_callbacks/src/*.cpp patch_callbacks/include/*.h \
+    patch_t/src/*.c patch_t/include/*.h
