@@ -10,7 +10,7 @@
 
 useCallbackFunction_t g_useCallback = NULL;
 
-extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
@@ -28,8 +28,7 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) game$applyInput(
-    void** _callbackArguments ) {
+uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
     button_t* _buttons = ( button_t* )_callbackArguments[ 0 ];

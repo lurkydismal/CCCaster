@@ -8,5 +8,4 @@ clear && \
     "${MBAA_DIR}/d3d9.dll" && \
     clang-format --style=file \
     -i \
-    src/*.cpp src/*.h \
-    ../minhook/include/*.h
+    src/*.cpp src/*.h

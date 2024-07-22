@@ -12,5 +12,5 @@ mkdir -p "${ADDONS_DIR}/log" && \
     clang-format --style=file \
     -i \
     src/*.c \
-    log/include/*.h log/src/*.c \
+    log/src/*.c log/include/*.h \
     addon_callbacks/src/*.c
