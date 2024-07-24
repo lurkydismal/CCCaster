@@ -30,11 +30,11 @@ LIBRARIES             =
 ### actual_addon.dll sources and settings
 
 actual_addon_dll_MODULE= actual_addon.dll
-actual_addon_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
-			 ../../states_dll/_useCallback/src/_useCallback.c\
-			 patch_t/src/patch_t.c
-actual_addon_dll_CXX_SRCS= src/main.cpp \
-			   patch_callbacks/src/patch_callbacks.cpp
+actual_addon_dll_C_SRCS= src/main.c \
+			 addon_callbacks/src/addon_callbacks.c \
+			 patch_t/src/patch_t.c \
+			 ../../states_dll/_useCallback/src/_useCallback.c
+actual_addon_dll_CXX_SRCS= patch_callbacks/src/patch_callbacks.cpp
 actual_addon_dll_RC_SRCS=
 actual_addon_dll_LDFLAGS= -shared \
 			$(actual_addon_dll_MODULE:.dll=.def) \

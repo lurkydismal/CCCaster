@@ -51,6 +51,7 @@ HRESULT m_IDirect3DDevice9Ex::Present( CONST RECT* pSourceRect,
                                        CONST RGNDATA* pDirtyRegion ) {
     l_renderCallsPerFrame = 0;
 
+#if 0
     const char l_message[] =
         "m_IDirect3DDevice9Ex Present ( pSourceRect, pDestRect, "
         "hDestWindowOverride, pDirtyRegion )\n";
@@ -58,6 +59,7 @@ HRESULT m_IDirect3DDevice9Ex::Present( CONST RECT* pSourceRect,
     _useCallback( "log$transaction$query", l_message,
                   ( void* )sizeof( l_message ) );
     _useCallback( "log$transaction$commit" );
+#endif
 
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$Present", pSourceRect, pDestRect,
@@ -99,11 +101,13 @@ HRESULT m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
 HRESULT m_IDirect3DDevice9Ex::EndScene( void ) {
     l_renderCallsPerFrame++;
 
+#if 0
     const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
 
     _useCallback( "log$transaction$query", l_message,
                   ( void* )sizeof( l_message ) );
     _useCallback( "log$transaction$commit" );
+#endif
 
     uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
 
