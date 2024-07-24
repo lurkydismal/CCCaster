@@ -15,6 +15,12 @@
 
 #define HEAP_MEMORY_SIZE 150
 
+#if defined( __cplusplus )
+
+extern "C" {
+
+#endif
+
 uint32_t g_currentMenuIndex = 0;
 uint32_t g_menuConfirmState = 0;
 bool g_enableEscapeToExit = false;
@@ -199,3 +205,8 @@ void gameMainLoopCallback( void ) {
 
     uint16_t l_result = _useCallback( "mainLoop$end" );
 }
+
+#if defined( __cplusplus )
+}
+
+#endif

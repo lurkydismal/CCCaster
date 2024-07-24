@@ -5,6 +5,12 @@
 
 #include "misc.h"
 
+#if defined( __cplusplus )
+
+extern "C" {
+
+#endif
+
 extern uint32_t g_currentMenuIndex;
 extern uint32_t g_menuConfirmState;
 extern bool g_enableEscapeToExit;
@@ -18,3 +24,8 @@ void characterSelectColorsCallback( void );
 void loadingColorsCallback( void );
 void extraDrawCallback( void );
 void gameMainLoopCallback( void );
+
+#if defined( __cplusplus )
+}
+
+#endif

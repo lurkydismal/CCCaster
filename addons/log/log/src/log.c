@@ -1,6 +1,7 @@
 #include "log.h"
 
 #include <string.h>
+#include <stdarg.h>
 
 static char g_transactionString[ 1024 * 2 ];
 static size_t g_transactionStringLength = 0;
