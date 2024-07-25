@@ -29,10 +29,10 @@ LIBRARIES             = -lCallDraw
 ### overlay.dll sources and settings
 
 overlay_dll_MODULE= overlay.dll
-overlay_dll_C_SRCS=
-overlay_dll_CXX_SRCS= addon_callbacks/src/addon_callbacks.cpp \
-		      native/src/native.cpp \
-		      ../../states_dll/_useCallback/src/_useCallback.cpp
+overlay_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
+		    native/src/native.c \
+		    ../../states_dll/_useCallback/src/_useCallback.c
+overlay_dll_CXX_SRCS=
 overlay_dll_RC_SRCS=
 overlay_dll_LDFLAGS= -shared \
 			$(overlay_dll_MODULE:.dll=.def) \

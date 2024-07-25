@@ -3,8 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include <set>
-#include <string>
+#include <stdio.h>
 
 #include "_useCallback.h"
 #include "button_t.h"
@@ -14,12 +13,6 @@
 #include "player_t.h"
 
 #define HEAP_MEMORY_SIZE 150
-
-#if defined( __cplusplus )
-
-extern "C" {
-
-#endif
 
 uint32_t g_currentMenuIndex = 0;
 uint32_t g_menuConfirmState = 0;
@@ -49,14 +42,11 @@ void gameMainLoopCallback( void ) {
 // Frame step timer, always counting up
 #define CC_WORLD_TIMER_ADDR ( 0x55D1D4 )
 
-    static uint32_t l_framesPassed =
-        *( reinterpret_cast< uint32_t* >( CC_WORLD_TIMER_ADDR ) );
+    static uint32_t l_framesPassed = 0;
     bool l_isNewFrame = false;
 
-    if ( l_framesPassed !=
-         *( reinterpret_cast< uint32_t* >( CC_WORLD_TIMER_ADDR ) ) ) {
-        l_framesPassed =
-            *( reinterpret_cast< uint32_t* >( CC_WORLD_TIMER_ADDR ) );
+    if ( l_framesPassed != *( ( uint32_t* )( CC_WORLD_TIMER_ADDR ) ) ) {
+        l_framesPassed = *( ( uint32_t* )( CC_WORLD_TIMER_ADDR ) );
 
         l_isNewFrame = true;
     }
@@ -69,7 +59,7 @@ void gameMainLoopCallback( void ) {
             uint16_t l_result = _useCallback( "mainLoop$newFrame" );
         }
 
-        static uint32_t l_roundStartCounter = g_roundStartCounter;
+        static uint32_t l_roundStartCounter = 0;
         bool l_isNewRound = false;
 
         if ( l_roundStartCounter != g_roundStartCounter ) {
@@ -80,10 +70,8 @@ void gameMainLoopCallback( void ) {
 
         static gameMode_t l_currentGameMode = STARTUP;
 
-        if ( l_currentGameMode !=
-             *( reinterpret_cast< gameMode_t* >( CC_GAME_MODE_ADDR ) ) ) {
-            l_currentGameMode =
-                *( reinterpret_cast< gameMode_t* >( CC_GAME_MODE_ADDR ) );
+        if ( l_currentGameMode != *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) ) ) {
+            l_currentGameMode = *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) );
 
             printf( "%d\n", l_currentGameMode );
 
@@ -99,7 +87,7 @@ void gameMainLoopCallback( void ) {
             }
 
             case OPENING: {
-                *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
+                *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
                 uint16_t l_result = _useCallback( "gameMode$opening" );
 
@@ -107,7 +95,7 @@ void gameMainLoopCallback( void ) {
             }
 
             case TITLE: {
-                *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) = 1;
+                *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
                 const button_t l_button = A;
                 const direction_t l_direction = NEUTRAL_DIRECTION;
@@ -121,7 +109,7 @@ void gameMainLoopCallback( void ) {
             }
 
             case MAIN: {
-                //  *( reinterpret_cast< uint32_t* >( CC_SKIP_FRAMES_ADDR ) ) =
+                //  *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) =
                 //  1;
 
                 /*              {
@@ -205,8 +193,3 @@ void gameMainLoopCallback( void ) {
 
     uint16_t l_result = _useCallback( "mainLoop$end" );
 }
-
-#if defined( __cplusplus )
-}
-
-#endif

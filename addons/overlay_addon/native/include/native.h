@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 
 #define SCREEN_WIDTH ( 0x54D048 ) // The actual width of the main viewport
 
