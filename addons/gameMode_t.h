@@ -3,7 +3,7 @@
 // Current game mode address
 #define CC_GAME_MODE_ADDR ( 0x54EEE8 )
 
-enum gameMode_t {
+typedef enum {
     STARTUP = 65535,
     OPENING = 3,
     TITLE = 2,
@@ -15,4 +15,4 @@ enum gameMode_t {
     LOADING_DEMO = 13,
     REPLAY = 26,
     HIGH_SCORES = 11
-};
+} gameMode_t;

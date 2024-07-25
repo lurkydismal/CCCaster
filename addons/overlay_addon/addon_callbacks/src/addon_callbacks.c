@@ -1,9 +1,9 @@
-#include "addon_callbacks.hpp"
+#include "addon_callbacks.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include <vector>
+#include <stdlib.h>
 
 #include "_useCallback.h"
 
@@ -14,7 +14,7 @@
 uint32_t g_activeFlags = 0;
 useCallbackFunction_t g_useCallback = NULL;
 
-extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
@@ -32,15 +32,13 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) overlay$getState(
-    void** _callbackArguments ) {
+uint16_t __declspec( dllexport ) overlay$getState( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     return ( g_activeFlags & SHOW_OVERLAY );
 }
 
-extern "C" uint16_t __declspec( dllexport ) overlay$toggle(
-    void** _callbackArguments ) {
+uint16_t __declspec( dllexport ) overlay$toggle( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     g_activeFlags ^= SHOW_OVERLAY;
