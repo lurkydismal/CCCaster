@@ -1,4 +1,4 @@
-#include "addon_callbacks.hpp"
+#include "addon_callbacks.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
