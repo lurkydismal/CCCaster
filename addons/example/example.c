@@ -10,13 +10,15 @@
 
 #include <stdint.h>
 
+#define MESSAGE_BOX( _text )                 \
+    MessageBoxA( NULL, _text, /* box text */ \
+                 "on",        /* box name */ \
+                 0 )
+
 int16_t __declspec( dllexport ) onGameStarted( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
-    l_returnValue = !( MessageBoxA( NULL,
-                                    "GameStarted", // box text
-                                    "on",          // box name
-                                    0 ) );
+    l_returnValue = !( MESSAGE_BOX( "GameStarted" ) );
 
     return ( l_returnValue );
 }
@@ -24,10 +26,7 @@ int16_t __declspec( dllexport ) onGameStarted( void** _callbackArguments ) {
 int16_t __declspec( dllexport ) onHosted( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
-    l_returnValue = !( MessageBoxA( NULL,
-                                    "Hosted", // box text
-                                    "on",     // box name
-                                    0 ) );
+    l_returnValue = !( MESSAGE_BOX( "Hosted" ) );
 
     return ( l_returnValue );
 }
@@ -35,10 +34,7 @@ int16_t __declspec( dllexport ) onHosted( void** _callbackArguments ) {
 int16_t __declspec( dllexport ) onConnection( void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
-    l_returnValue = !( MessageBoxA( NULL,
-                                    "Connection", // box text
-                                    "on",         // box name
-                                    0 ) );
+    l_returnValue = !( MESSAGE_BOX( "Connection" ) );
 
     return ( l_returnValue );
 }
