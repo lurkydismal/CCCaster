@@ -14,4 +14,5 @@ mkdir -p "${ADDONS_DIR}/actual_addon" && \
     src/*.c \
     addon_callbacks/src/*.c \
     patch_callbacks/src/*.c patch_callbacks/include/*.h \
-    patch_t/src/*.c patch_t/include/*.h
+    patch_t/src/*.c patch_t/include/*.h \
+    settings_parser/src/*.c settings_parser/include/*h

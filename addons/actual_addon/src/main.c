@@ -3,7 +3,11 @@
 
 #include "patch_callbacks.h"
 #include "patch_t.h"
+#include "settings_parser.h"
 
+#define SETTINGS_FILE_NAME "settings"
+#define SETTINGS_FILE_EXTENSION "yaml"
+#define SETTINGS_FILE_PATH SETTINGS_FILE_NAME "." SETTINGS_FILE_EXTENSION
 #define ATTACH 1
 
 #define MAKE_PATCH( _address, ... )                              \
@@ -425,6 +429,8 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
         MAKE_PATCH( 0x04A1D4A, { 0xEB } );
 
 #undef INLINE_DWORD
+
+        readSettingsFromFile( SETTINGS_FILE_PATH );
     }
 
     return ( l_returnValue );

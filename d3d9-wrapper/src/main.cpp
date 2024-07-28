@@ -355,11 +355,13 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 }
 
 extern "C" HRESULT WINAPI Direct3DShaderValidatorCreate9( void ) {
+#if 0
     const char l_message[] = "Direct3DShaderValidatorCreate9 ()\n";
 
     _useCallback( "log$transaction$query", l_message,
                   ( void* )sizeof( l_message ) );
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pDirect3DShaderValidatorCreate9 ) {
         return ( E_FAIL );
@@ -503,11 +505,13 @@ extern "C" HRESULT WINAPI DebugSetLevel( DWORD dw1 ) {
 }
 
 extern "C" void WINAPI DebugSetMute( void ) {
+#if 0
     const char l_message[] = "DebugSetMute ()\n";
 
     _useCallback( "log$transaction$query", l_message,
                   ( void* )sizeof( l_message ) );
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( m_pDebugSetMute ) {
         return ( m_pDebugSetMute() );
