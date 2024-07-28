@@ -31,7 +31,6 @@ patch_t patchCreate( uintptr_t _address,
         strcat( string, "]" );
 
         const char l_message[] = "patchCreate( %lu, %p : [ %s ], %d )";
-        const size_t l_messageLength =
         const size_t l_messageLength = snprintf( NULL, 0, l_message, _address,
                                                  _bytes, string, _bytesLength );
         char l_buffer[ l_messageLength + 1 ];

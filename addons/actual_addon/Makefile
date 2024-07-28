@@ -20,6 +20,7 @@ INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I addon_callbacks/include \
 			-I patch_callbacks/include \
 			-I patch_t/include \
+			-I settings_parser/include \
 			-I ../
 DLL_PATH              =
 DLL_IMPORTS           =
@@ -34,6 +35,7 @@ actual_addon_dll_C_SRCS= src/main.c \
 			 addon_callbacks/src/addon_callbacks.c \
 			 patch_t/src/patch_t.c \
 			 patch_callbacks/src/patch_callbacks.c \
+			 settings_parser/src/settings_parser.c \
 			 ../../states_dll/_useCallback/src/_useCallback.c
 actual_addon_dll_CXX_SRCS=
 actual_addon_dll_RC_SRCS=
