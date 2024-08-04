@@ -1,269 +1,238 @@
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
+
+typedef enum {
+    KEY,
+    VALUE
+} content_t;
+
+char** g_labels;
+size_t g_labelCount = 0;
+char**** g_content;
+/*
+ * [ // [ labels ]
+ *  [ // [ pairs ]
+ *   [ // [ 2 ] - key : value
+ *    "key",
+ *    "value"
+ *   ]
+ *  ]
+ * ]
+ */
+
+static void print( void );
+static void readFromFile( const char* _fileName );
+
+static void addLabel( const char* _text, const size_t _textLength ) {
+    g_labelCount++;
+    const size_t l_labelIndex = ( g_labelCount - 1 );
+
+    g_labels = (char**)realloc( g_labels, g_labelCount * sizeof( char* ) );
+
+    g_labels[ l_labelIndex ] = (char*)malloc( ( _textLength + 1 ) * sizeof( char ) );
+    memcpy( g_labels[ l_labelIndex ], _text, _textLength );
+    g_labels[ l_labelIndex ][ _textLength ] = '\0';
+
+    g_content = (char****)realloc( g_content, g_labelCount * sizeof( char*** ) );
+
+    g_content[ l_labelIndex ] = (char***)malloc( 1 * sizeof( char** ) );
+    g_content[ l_labelIndex ][ 0 ] = (char**)malloc( 1 * sizeof( char* ) );
+
+    g_content[ l_labelIndex ][ 0 ][ 0 ] = (char*)malloc( 1 * sizeof( char ) );
+    ( *(size_t*)( &( g_content[ l_labelIndex ][ 0 ][ 0 ] ) ) ) = 1;
+}
+
+static void addContent( const char* _text, const size_t _textLength, const content_t _contentType ) {
+    const size_t l_labelIndex = ( g_labelCount - 1 );
+    const size_t l_keysCount = (size_t)( g_content[ l_labelIndex ][ 0 ][ 0 ] );
+#if 0
+    printf( "l_keysCount : %lu\n", l_keysCount );
+#endif
+
+    const size_t l_keyIndex = ( l_keysCount - 1 );
+
+    char** l_content = &( g_content[ l_labelIndex ][ l_keyIndex ][ _contentType ] );
+
+    const bool l_isNotNUlTerminated = ( _text[ _textLength ] != '\0' );
+
+    *l_content = (char*)malloc( ( _textLength + (size_t)l_isNotNUlTerminated ) * sizeof( char ) );
+    memcpy( *l_content, _text, _textLength );
+
+    if ( l_isNotNUlTerminated ) {
+        ( *l_content )[ _textLength ] = '\0';
+    }
+}
+
+static void addKey( const char* _text, const size_t _textLength ) {
+    const size_t l_labelIndex = ( g_labelCount - 1 );
+
+    ( *(size_t*)( &( g_content[ l_labelIndex ][ 0 ][ 0 ] ) ) )++;
+
+    const size_t l_keysCount = (size_t)( g_content[ l_labelIndex ][ 0 ][ 0 ] );
+#if 0
+    printf( "l_keysCount : %lu\n", l_keysCount );
+#endif
+
+    const size_t l_keyIndex = ( l_keysCount - 1 );
+
+    g_content[ l_labelIndex ] = (char***)realloc( g_content[ l_labelIndex ], l_keysCount * sizeof( char** ) );
+    g_content[ l_labelIndex ][ l_keyIndex ] = (char**)malloc( 2 * sizeof( char* ) );
+
+    addContent( _text, _textLength, KEY );
+}
+
+static void addValue( const char* _text, const size_t _textLength ) {
+    addContent( _text, _textLength, VALUE );
+}
+
+int main( int argc, char** argv ) {
+#if 0
+    printf( "start\n" );
+#endif
+
+    {
+        const char l_text[] = "label";
+
+        addLabel( l_text, sizeof( l_text ) );
+
+        const char l_key[] = "kkey";
+
+        addKey( l_key, sizeof( l_key ) );
+
+        const char l_value[] = { 'v', 'v', 'v', 'a', 'l', 'u', 'e' };
+
+        addValue( l_value, sizeof( l_value ) );
+    }
+
+    readFromFile( "t.ini" );
+
+    print();
+
+#if 0
+    printf( "end\n" );
+#endif
+
+    return (0);
+}
+
+static void print( void ) {
+    for ( size_t _labelIndex = 0; _labelIndex < g_labelCount; _labelIndex++ ) {
+        printf( "_labelIndex : %lu\n", _labelIndex );
+
+        printf( "label : %s\n", g_labels[ _labelIndex ] );
+
+        size_t l_keysCount = (size_t)( g_content[ _labelIndex ][ 0 ][ 0 ] );
+        printf( "l_keysCount : %lu\n", l_keysCount );
+        
+        free( g_labels[ _labelIndex ] );
+
+        for ( size_t _keyIndex = 1; _keyIndex < l_keysCount; _keyIndex++ ) {
+            const char* l_key = g_content[ _labelIndex ][ _keyIndex ][ 0 ];
+
+            printf( "key : %s\n", l_key );
+            free( g_content[ _labelIndex ][ _keyIndex ][ 0 ] );
+
+            const char* l_value = g_content[ _labelIndex ][ _keyIndex ][ 1 ];
+
+            printf( "value : %s\n", l_value );
+            free( g_content[ _labelIndex ][ _keyIndex ][ 1 ] );
+
+            free( g_content[ _labelIndex ][ _keyIndex ] );
+        }
+
+        free( g_content[ _labelIndex ][ 0 ][ 0 ] );
+        free( g_content[ _labelIndex ][ 0 ] );
+        free( g_content[ _labelIndex ] );
+    }
+
+    if ( g_labelCount ) {
+        free( g_labels );
+        free( g_content );
+
+        g_labelCount = 0;
+    }
+}
 
 #define MAX_LINE_LENGTH 255
 
-char** g_sectionLabels;
-size_t g_labelCount = 1;
-char**** g_sectionContents;
+static char* trim( const char* _text, const size_t _textLength ) {
+    size_t l_textLength = 0;
+    char* l_buffer = (char*)malloc( ( _textLength + 1 ) * sizeof( char ) );
 
-uint16_t readSettingsFromFile( const char* _fileName ) {
-    uint16_t l_returnValue = 1;
+    for ( size_t _index = 0; _index < _textLength; _index++ ) {
+        const char l_symbol = _text[ _index ];
 
-    printf( "read: %s = %lu\n", _fileName, g_labelCount );
+        if ( isspace( l_symbol ) ) {
+            continue;
+
+        } else if ( l_symbol == '#' ) {
+            break;
+        }
+
+        l_buffer[ l_textLength ] = l_symbol;
+        l_textLength++;
+    }
+
+    char* l_text = (char*)malloc( ( l_textLength + 1 ) * sizeof( char ) );
+    memcpy( l_text, l_buffer, l_textLength );
+    l_text[ l_textLength ] = '\0';
+
+    free( l_buffer );
+
+    return ( l_text );
+}
+
+static char** parseLine( char* _text, size_t _textLength ) {
+#if 0
+    printf( "%s : %lu\n", _text, _textLength );
+#endif
+
+    if ( _text[ 0 ] == '[' ) {
+        _text++;
+        _textLength -= 2;
+        _text[ _textLength ] = '\0';
+
+        addLabel( _text, _textLength );
+
+    } else {
+        for ( size_t _index = 0; _index < _textLength; _index++ ) {
+            if ( _text[ _index ] == '=' ) {
+                addKey( _text, _index );
+                addValue( ( _text + _index + 1 ), ( _textLength - _index ) );
+
+#if 0
+                printf( "%s : %lu = %lu\n", _text, _textLength, _index );
+#endif
+
+                break;
+            }
+        }
+    }
+
+#if 0
+    printf( "%s : %lu\n", _text, _textLength );
+#endif
+}
+
+static void readFromFile( const char* _fileName ) {
+    FILE* l_fileHandle = fopen( _fileName, "r" );
 
     char l_line[ MAX_LINE_LENGTH ];
 
-    FILE* l_fileHandle = fopen( _fileName, "r" );
+    while ( fgets( l_line, MAX_LINE_LENGTH, l_fileHandle ) != NULL ) {
+        char* l_trimmedLine = trim( l_line, strlen( l_line ) );
+        const size_t l_lineLength = strlen( l_trimmedLine );
 
-    if ( l_fileHandle ) {
-        if ( g_labelCount > 1 ) {
-            for ( size_t _index = 1; _index < g_labelCount; _index++ ) {
-                printf( "label: %s\n", g_sectionLabels[ _index ] );
-                free( g_sectionLabels[ _index ] );
-
-                printf( "length: %d\n", *( g_sectionContents[ 0 ][ 0 ][ 0 ] ) );
-
-                for ( size_t _indexContent = 1; _indexContent < (size_t)( *( g_sectionContents[ 0 ][ 0 ][ 0 ] ) ); _indexContent++ ) {
-                    char*** l_label = g_sectionContents[ _index ];
-                    char** l_section = g_sectionContents[ _index ][ _indexContent ];
-                    char* l_key = g_sectionContents[ _index ][ _indexContent ][ 0 ];
-                    char* l_value = g_sectionContents[ _index ][ _indexContent ][ 1 ];
-
-                    printf( "content: %p [ %p ] = %s : %s\n", l_label, l_section, l_key, l_value );
-
-                    free( g_sectionContents[ _index ][ _indexContent ][ 0 ] );
-                    free( g_sectionContents[ _index ][ _indexContent ][ 1 ] );
-                    free( g_sectionContents[ _index ][ _indexContent ] );
-                }
-
-                free( g_sectionContents[ _index ][ 0 ][ 0 ] );
-                free( g_sectionContents[ _index ][ 0 ] );
-                free( g_sectionContents[ _index ] );
-            }
-
-            free( g_sectionLabels );
-            free( g_sectionContents );
-
-            g_labelCount = 1;
+        if ( l_lineLength ) {
+            parseLine( l_trimmedLine, l_lineLength );
         }
 
-        g_sectionLabels = ( char** )malloc( 1 * sizeof( char** ) );
-        g_sectionContents = ( char**** )malloc( 1 * sizeof( char**** ) );
-        g_sectionContents[ 0 ] = ( char*** )malloc( 2 * sizeof( char*** ) );
-        g_sectionContents[ 0 ][ 0 ] = ( char** )malloc( 1 * sizeof( char** ) );
-        g_sectionContents[ 0 ][ 0 ][ 0 ] = ( char* )malloc( 1 );
-
-        *( g_sectionContents[ 0 ][ 0 ][ 0 ] ) = 0;
-
-        size_t l_labelContentCount = 0;
-
-        while ( fgets( l_line, MAX_LINE_LENGTH, l_fileHandle ) != NULL ) {
-            bool l_isLabel = false;
-            char* l_buffer = ( char* )malloc( MAX_LINE_LENGTH );
-            printf( "l_buffer: %p\n", l_buffer );
-            size_t l_bufferLength = 0;
-
-            for ( size_t _index = 0; _index < ( MAX_LINE_LENGTH - 1 );
-                    _index++ ) {
-                const char l_character = l_line[ _index ];
-
-                if ( ( l_character == '#' ) || ( l_character == '\n' ) ||
-                        ( l_character == ']' ) ) {
-                    break;
-
-                } else if ( l_character == ' ' ) {
-                    continue;
-
-                } else if ( ( !l_bufferLength ) && ( l_character == '[' ) ) {
-                    l_labelContentCount = 0;
-
-                    l_isLabel = true;
-                    g_labelCount++;
-                    printf( "[: %d , %lu \n", l_isLabel, g_labelCount );
-
-                } else {
-                    l_buffer[ l_bufferLength ] = l_character;
-                    l_bufferLength++;
-                }
-            }
-
-            if ( l_bufferLength ) {
-                l_buffer[ l_bufferLength ] = '\0';
-
-                const size_t l_labelIndex = ( g_labelCount - 1 );
-
-                printf( "l_buffer 2: %s = %lu\n", l_buffer, l_bufferLength );
-
-                if ( l_isLabel ) {
-                    printf( "isLabel\n" );
-
-                    if ( l_labelIndex ) {
-                        g_sectionLabels = ( char** )realloc(
-                                g_sectionLabels, g_labelCount * sizeof( char* ) );
-                    }
-
-                    g_sectionLabels[ l_labelIndex ] =
-                        ( char* )malloc( l_bufferLength );
-                    strcpy( g_sectionLabels[ l_labelIndex ], l_buffer );
-
-                    printf( "g_sectionLabels[ l_labelIndex = %lu ]: %s\n", l_labelIndex, g_sectionLabels[ l_labelIndex ] );
-
-                } else if ( ( !l_isLabel ) && ( g_labelCount ) ) {
-                    printf( "isContent\n" );
-
-                    l_labelContentCount++;
-
-                    const size_t l_labelIndex = ( g_labelCount - 1 );
-                    const size_t l_labelContentIndex = ( l_labelContentCount - 1 );
-                    printf( "%lu %lu : %lu %lu\n", g_labelCount, l_labelIndex, l_labelContentCount, l_labelContentIndex );
-
-                    if ( ( l_labelIndex ) && ( !l_labelContentCount ) ) {
-                        printf( "1\n" );
-                        g_sectionContents = ( char**** )realloc(
-                                g_sectionContents, g_labelCount * sizeof( char**** ) );
-                    }
-
-                    if ( l_labelContentCount ) {
-                        printf( "2\n" );
-                        g_sectionContents[ l_labelIndex ] = ( char*** )realloc(
-                                g_sectionContents[ l_labelIndex ], l_labelContentCount * sizeof( char*** ) );
-
-                        printf( "3\n" );
-                        *( g_sectionContents[ 0 ][ 0 ][ 0 ] ) = l_labelContentCount;
-                    }
-
-                    g_sectionContents[ l_labelIndex ][ l_labelContentIndex ] =
-                        ( char** )malloc( 2 * sizeof( char** ) );
-                    printf( "g_sectionContents[ l_labelIndex = %lu ][ l_labelContentIndex = %lu ]: %p [ %p ]\n", l_labelIndex, l_labelContentIndex, g_sectionContents[ l_labelIndex ], g_sectionContents[ l_labelIndex ][ l_labelContentIndex ] );
-
-                    for ( size_t _index = 0; _index < ( l_bufferLength - 1 );
-                            _index++ ) {
-                        if ( l_buffer[ _index ] == '=' ) {
-                            char* l_key;
-                            char* l_value;
-
-                            printf( "_index = %lu\n", _index );
-
-                            const size_t l_keyLength = ( _index );
-                            l_key = (char*)malloc( l_keyLength );
-
-                            memcpy( l_key, l_buffer, l_keyLength );
-                            l_key[ l_keyLength ] = '\0';
-
-                            printf( "l_key = %s, l_keyLength = %lu\n", l_key, l_keyLength );
-
-                            const size_t l_valueLength = ( l_bufferLength - _index - 1 );
-                            l_value = (char*)malloc( l_valueLength );
-                            l_value[ l_valueLength ] = '\0';
-
-                            memcpy( l_value, l_buffer + l_keyLength + 1, l_valueLength );
-
-                            printf( "l_value = %s, l_valueLength = %lu\n", l_value, l_valueLength );
-
-                            // Key
-                            g_sectionContents[ l_labelIndex ][ l_labelContentIndex ][ 0 ] = (char*)malloc( l_keyLength );
-                            strcpy( g_sectionContents[ l_labelIndex ][ l_labelContentIndex ][ 0 ], l_key );
-
-                            printf( "g_sectionContents[ l_labelIndex = %lu ][ l_labelContentIndex = %lu ][ 0 ]: %s\n", l_labelIndex, l_labelContentIndex, g_sectionContents[ l_labelIndex ][ l_labelContentIndex ][ 0 ] );
-
-                            // Value
-                            g_sectionContents[ l_labelIndex ][ l_labelContentIndex ][ 1 ] = (char*)malloc( l_valueLength );
-                            strcpy( g_sectionContents[ l_labelIndex ][ l_labelContentIndex ][ 1 ], l_value );
-
-                            printf( "g_sectionContents[ l_labelIndex = %lu ][ l_labelContentIndex = %lu ][ 1 ]: %s\n", l_labelIndex, l_labelContentIndex, g_sectionContents[ l_labelIndex ][ l_labelContentIndex ][ 1 ] );
-
-                            free( l_key );
-                            free( l_value );
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            free( l_buffer );
-        }
-
-        l_returnValue = 0;
+        free( l_trimmedLine );
     }
 
     fclose( l_fileHandle );
-
-    return ( l_returnValue );
-}
-
-uint16_t writeSettingsToFile( const char* _fileName ) {
-    uint16_t l_returnValue = 1;
-
-    printf( "write: g_labelCount = %lu\n", g_labelCount );
-
-    if ( g_labelCount > 1 ) {
-        FILE* l_fileHandle = fopen( _fileName, "w" );
-
-        if ( l_fileHandle ) {
-            for ( size_t _index = 1; _index < g_labelCount; _index++ ) {
-                {
-                    const char l_message[] = "[%s]\n";
-                    const size_t l_messageLength = snprintf( NULL, 0, l_message, g_sectionLabels[ _index ] );
-                    char l_buffer[ l_messageLength + 1 ];
-                    snprintf( l_buffer, sizeof( l_buffer ), l_message, g_sectionLabels[ _index ] );
-
-                    printf( "%s", l_buffer );
-                    fwrite( l_buffer, sizeof( l_buffer[ 0 ] ), sizeof( l_buffer ), l_fileHandle );
-                }
-
-                printf( "length: %d\n", *( g_sectionContents[ 0 ][ 0 ][ 0 ] ) );
-
-                for ( size_t _indexContent = 1; _indexContent < (size_t)( *( g_sectionContents[ 0 ][ 0 ][ 0 ] ) ); _indexContent++ ) {
-                    char*** l_label = g_sectionContents[ _index ];
-                    char** l_section = g_sectionContents[ _index ][ _indexContent ];
-                    char* l_key = g_sectionContents[ _index ][ _indexContent ][ 0 ];
-                    char* l_value = g_sectionContents[ _index ][ _indexContent ][ 1 ];
-
-                    {
-                        const char l_message[] = "%s = %s\n";
-                        const size_t l_messageLength = snprintf( NULL, 0, l_message, l_key, l_value );
-                        char l_buffer[ l_messageLength + 1 ];
-                        snprintf( l_buffer, sizeof( l_buffer ), l_message, l_key, l_value );
-
-                        printf( "content: %p [ %p ] : %s", l_label, l_section, l_buffer );
-                        fwrite( l_buffer, sizeof( l_buffer[ 0 ] ), sizeof( l_buffer ), l_fileHandle );
-                    }
-                }
-            }
-
-            l_returnValue = 0;
-        }
-
-        fclose( l_fileHandle );
-    }
-
-    return ( l_returnValue );
-}
-
-int main( const int _argumentCount, const char* const* _argumentArray ) {
-    printf( "begin\n" );
-
-    if ( _argumentCount < 3 ) {
-        printf( "no arguments\n" );
-
-        goto EXIT;
-    }
-
-    readSettingsFromFile( _argumentArray[ 1 ] );
-
-    writeSettingsToFile( _argumentArray[ 2 ] );
-
-    readSettingsFromFile( _argumentArray[ 2 ] );
-
-    writeSettingsToFile( _argumentArray[ 3 ] );
-
-EXIT:
-    printf( "end\n" );
-
-    return ( 0 );
 }
