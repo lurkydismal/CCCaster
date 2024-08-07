@@ -7,13 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_LINE_LENGTH 255
-
-typedef enum { KEY, VALUE } content_t;
-
-char** g_labels;
-size_t g_labelCount = 0;
-char**** g_content;
+static char** g_labels;
+static size_t g_labelCount = 0;
+static char**** g_content;
 /*
  * [ // [ labels ]
  *  [ // [ pairs ]
@@ -285,7 +281,7 @@ static char*** getContentByIndex( const size_t _labelIndex ) {
     return ( g_content[ _labelIndex ] );
 }
 
-static char*** getContentByLabel( const char* _label ) {
+char*** getContentByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex == UINT32_MAX ) {
