@@ -50,3 +50,17 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
 
     return ( l_returnValue );
 }
+
+uint16_t __declspec( dllexport ) core$getContentByLabel(
+    void** _callbackArguments ) {
+    int16_t l_returnValue = 0;
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) core$changeSettingsKeyByLabel(
+    void** _callbackArguments ) {
+    int16_t l_returnValue = 0;
+
+    return ( l_returnValue );
+}
