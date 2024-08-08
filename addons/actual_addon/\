@@ -188,9 +188,9 @@ uint16_t readSettingsFromFile( const char* _fileName ) {
         }
 
         l_returnValue = 0;
-
-        fclose( l_fileHandle );
     }
+
+    fclose( l_fileHandle );
 
     return ( l_returnValue );
 }
@@ -206,6 +206,8 @@ uint16_t readSettingsFromString( const char* _text, const size_t _textLength ) {
     char* l_line = strtok( l_text, l_delimiter );
 
     while ( l_line ) {
+        printf( "%s\n", l_line );
+
         char* l_trimmedLine = trim( l_line, strlen( l_line ) );
         const size_t l_lineLength = strlen( l_trimmedLine );
 
@@ -217,8 +219,6 @@ uint16_t readSettingsFromString( const char* _text, const size_t _textLength ) {
 
         l_line = strtok( NULL, l_delimiter );
     }
-
-    free( l_text );
 
     l_returnValue = 0;
 
@@ -292,9 +292,9 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
         }
 
         l_returnValue = 0;
-
-        fclose( l_fileHandle );
     }
+
+    fclose( l_fileHandle );
 
     return ( l_returnValue );
 }
@@ -389,39 +389,13 @@ int main( void ) {
 
     } else {
         const char l_defaultSettings[] =
-            "[keyboard]\n"
-            "38 = 8\n"
-            "39 = 6\n"
-            "40 = 2\n"
-            "37 = 4\n"
-            "90 = A\n"
-            "88 = B\n"
-            "67 = C\n"
-            "86 = D\n"
-            "68 = E\n"
-            "83 = AB\n"
-            "221 = FN1\n"
-            "82 = FN2\n"
-            "84 = START\n"
-            "115 = ToggleOverlay_KeyConfig_Native\n";
+            ( "#asd"
+              "[Label] #te"
+              "Key = vialue #tests"
+              "#asdad" );
 
         readSettingsFromString( l_defaultSettings,
-                                sizeof( l_defaultSettings ) );
-
-        for ( size_t _labelIndex = 0; _labelIndex < g_labelCount;
-              _labelIndex++ ) {
-            const size_t l_keysCount =
-                ( size_t )( g_content[ _labelIndex ][ 0 ][ 0 ] );
-
-            for ( size_t _keyIndex = 1; _keyIndex < l_keysCount; _keyIndex++ ) {
-                const char* l_label = g_labels[ _labelIndex ];
-                char*** l_content = g_content[ _labelIndex ];
-                const char* l_key = l_content[ _keyIndex ][ 0 ];
-                const char* l_value = l_content[ _keyIndex ][ 1 ];
-
-                printf( "[%s]\n%s=%s\n", l_label, l_key, l_value );
-            }
-        }
+                sizeof( l_defaultSettings ) );
     }
 
     freeSettingsTable();

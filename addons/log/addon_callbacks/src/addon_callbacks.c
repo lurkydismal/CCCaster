@@ -8,7 +8,7 @@ int16_t __declspec( dllexport ) log$transaction$query(
     const char* _string = ( const char* )_callbackArguments[ 0 ];
     const size_t _stringLength = ( const size_t )_callbackArguments[ 1 ];
 
-    l_returnCode = log_query( _string, _stringLength );
+    l_returnCode = log_query( _string );
 
     return ( l_returnCode );
 }

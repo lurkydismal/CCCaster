@@ -1,12 +1,13 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "patch_callbacks.h"
 #include "patch_t.h"
 #include "settings_parser.h"
 
 #define SETTINGS_FILE_NAME "settings"
-#define SETTINGS_FILE_EXTENSION "yaml"
+#define SETTINGS_FILE_EXTENSION "ini"
 #define SETTINGS_FILE_PATH SETTINGS_FILE_NAME "." SETTINGS_FILE_EXTENSION
 #define ATTACH 1
 
@@ -15,6 +16,11 @@
         uint8_t l_patch[] = __VA_ARGS__;                         \
         patchCreate( _address, l_patch, ( sizeof( l_patch ) ) ); \
     } while ( 0 )
+
+void save( void ) {
+    writeSettingsToFile( SETTINGS_FILE_PATH );
+    freeSettingsTable();
+}
 
 int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
                                               uint32_t _reason,
@@ -430,7 +436,31 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
 #undef INLINE_DWORD
 
-        readSettingsFromFile( SETTINGS_FILE_PATH );
+        if ( readSettingsFromFile( SETTINGS_FILE_PATH ) != 0 ) {
+            const char l_defaultSettings[] =
+                "[keyboard]\n"
+                "38 = 8\n"
+                "39 = 6\n"
+                "40 = 2\n"
+                "37 = 4\n"
+                "90 = A\n"
+                "88 = B\n"
+                "67 = C\n"
+                "86 = D\n"
+                "68 = E\n"
+                "83 = AB\n"
+                "221 = FN1\n"
+                "82 = FN2\n"
+                "84 = START\n"
+                "115 = ToggleOverlay_KeyConfig_Native\n";
+
+            readSettingsFromString( l_defaultSettings,
+                                    sizeof( l_defaultSettings ) );
+
+            writeSettingsToFile( SETTINGS_FILE_PATH );
+
+            atexit( save );
+        }
     }
 
     return ( l_returnValue );
