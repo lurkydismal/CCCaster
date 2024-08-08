@@ -7,6 +7,7 @@
 #include "button_t.h"
 #include "direction_t.h"
 #include "player_t.h"
+#include "settings_parser.h"
 
 useCallbackFunction_t g_useCallback = NULL;
 
@@ -51,9 +52,15 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     return ( l_returnValue );
 }
 
-uint16_t __declspec( dllexport ) core$getContentByLabel(
+uint16_t __declspec( dllexport ) core$getSettingsContentByLabel(
     void** _callbackArguments ) {
     int16_t l_returnValue = 0;
+
+    const char* const* const** _returnValue =
+        ( const char* const* const** )_callbackArguments[ 0 ];
+    const char* const* _label = ( const char* const* )_callbackArguments[ 1 ];
+
+    *_returnValue = getSettingsContentByLabel( *_label );
 
     return ( l_returnValue );
 }
@@ -61,6 +68,12 @@ uint16_t __declspec( dllexport ) core$getContentByLabel(
 uint16_t __declspec( dllexport ) core$changeSettingsKeyByLabel(
     void** _callbackArguments ) {
     int16_t l_returnValue = 0;
+
+    const char* const* _key = ( const char* const* )_callbackArguments[ 0 ];
+    const char* const* _label = ( const char* const* )_callbackArguments[ 1 ];
+    const char* const* _value = ( const char* const* )_callbackArguments[ 2 ];
+
+    l_returnValue = changeSettingsKeyByLabel( *_key, *_label, *_value );
 
     return ( l_returnValue );
 }

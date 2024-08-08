@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_LINE_LENGTH 255
+#define MAX_LINE_LENGTH 100
 
 typedef enum { KEY, VALUE } content_t;
 
-char** g_labels;
-size_t g_labelCount = 0;
-char**** g_content;
+static char** g_labels;
+static size_t g_labelCount = 0;
+static char**** g_content;
 /*
  * [ // [ labels ]
  *  [ // [ pairs ]
@@ -87,7 +87,7 @@ static void addValue( const char* _text, const size_t _textLength ) {
     addContent( _text, _textLength, VALUE );
 }
 
-uint16_t freeTable( void ) {
+uint16_t freeSettingsTable( void ) {
     uint16_t l_returnValue = 1;
 
     for ( size_t _labelIndex = 0; _labelIndex < g_labelCount; _labelIndex++ ) {
@@ -168,7 +168,7 @@ static void parseLine( char* _text, size_t _textLength ) {
     }
 }
 
-uint16_t readFromFile( const char* _fileName ) {
+uint16_t readSettingsFromFile( const char* _fileName ) {
     uint16_t l_returnValue = 1;
 
     FILE* l_fileHandle = fopen( _fileName, "r" );
@@ -188,14 +188,44 @@ uint16_t readFromFile( const char* _fileName ) {
         }
 
         l_returnValue = 0;
-    }
 
-    fclose( l_fileHandle );
+        fclose( l_fileHandle );
+    }
 
     return ( l_returnValue );
 }
 
-uint16_t writeToFile( const char* _fileName ) {
+uint16_t readSettingsFromString( const char* _text, const size_t _textLength ) {
+    uint16_t l_returnValue = 1;
+
+    char* l_text = ( char* )malloc( ( _textLength + 1 ) * sizeof( char ) );
+    memcpy( l_text, _text, _textLength );
+    l_text[ _textLength ] = '\0';
+
+    const char l_delimiter[] = "\n";
+    char* l_line = strtok( l_text, l_delimiter );
+
+    while ( l_line ) {
+        char* l_trimmedLine = trim( l_line, strlen( l_line ) );
+        const size_t l_lineLength = strlen( l_trimmedLine );
+
+        if ( l_lineLength ) {
+            parseLine( l_trimmedLine, l_lineLength );
+        }
+
+        free( l_trimmedLine );
+
+        l_line = strtok( NULL, l_delimiter );
+    }
+
+    free( l_text );
+
+    l_returnValue = 0;
+
+    return ( l_returnValue );
+}
+
+uint16_t writeSettingsToFile( const char* _fileName ) {
     uint16_t l_returnValue = 1;
 
     FILE* l_fileHandle = fopen( _fileName, "w" );
@@ -262,9 +292,9 @@ uint16_t writeToFile( const char* _fileName ) {
         }
 
         l_returnValue = 0;
-    }
 
-    fclose( l_fileHandle );
+        fclose( l_fileHandle );
+    }
 
     return ( l_returnValue );
 }
@@ -283,7 +313,7 @@ static char*** getContentByIndex( const size_t _labelIndex ) {
     return ( g_content[ _labelIndex ] );
 }
 
-static char*** getContentByLabel( const char* _label ) {
+char*** getContentByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex == UINT32_MAX ) {
@@ -321,9 +351,9 @@ static void changeKeyByIndex( const size_t _keyIndex,
     g_content[ _labelIndex ][ _keyIndex ][ 1 ] = l_value;
 }
 
-uint16_t changeKeyByLabel( const char* _key,
-                           const char* _label,
-                           const char* _value ) {
+uint16_t changeSettingsKeyByLabel( const char* _key,
+                                   const char* _label,
+                                   const char* _value ) {
     uint16_t l_returnValue = 0;
 
     char*** l_content = getContentByLabel( _label );
@@ -351,14 +381,50 @@ EXIT:
 }
 
 int main( void ) {
-    if ( !readFromFile( "t.ini" ) ) {
-        changeKeyByLabel( "zaxc", "wqetrcw", "test" );
-        changeKeyByLabel( "qwe", "TestLabel", "testtt" );
+    if ( readSettingsFromFile( "1t.ini" ) == 0 ) {
+        changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" );
+        changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" );
 
-        writeToFile( "tc.ini" );
+        writeSettingsToFile( "tc.ini" );
+
+    } else {
+        const char l_defaultSettings[] =
+            "[keyboard]\n"
+            "38 = 8\n"
+            "39 = 6\n"
+            "40 = 2\n"
+            "37 = 4\n"
+            "90 = A\n"
+            "88 = B\n"
+            "67 = C\n"
+            "86 = D\n"
+            "68 = E\n"
+            "83 = AB\n"
+            "221 = FN1\n"
+            "82 = FN2\n"
+            "84 = START\n"
+            "115 = ToggleOverlay_KeyConfig_Native\n";
+
+        readSettingsFromString( l_defaultSettings,
+                                sizeof( l_defaultSettings ) );
+
+        for ( size_t _labelIndex = 0; _labelIndex < g_labelCount;
+              _labelIndex++ ) {
+            const size_t l_keysCount =
+                ( size_t )( g_content[ _labelIndex ][ 0 ][ 0 ] );
+
+            for ( size_t _keyIndex = 1; _keyIndex < l_keysCount; _keyIndex++ ) {
+                const char* l_label = g_labels[ _labelIndex ];
+                char*** l_content = g_content[ _labelIndex ];
+                const char* l_key = l_content[ _keyIndex ][ 0 ];
+                const char* l_value = l_content[ _keyIndex ][ 1 ];
+
+                printf( "[%s]\n%s=%s\n", l_label, l_key, l_value );
+            }
+        }
     }
 
-    freeTable();
+    freeSettingsTable();
 
     return ( 0 );
 }

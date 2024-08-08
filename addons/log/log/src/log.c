@@ -3,15 +3,16 @@
 #include <stdarg.h>
 #include <string.h>
 
-static char g_transactionString[ 1024 * 2 ];
+static char g_transactionString[ MAX_TRANSACITON_STRING_SIZE ];
 static size_t g_transactionStringLength = 0;
 
-uint16_t log_query( const char* _string, const size_t _stringLength ) {
+uint16_t log_query( const char* _string ) {
     uint16_t l_returnValue = 0;
 
-    memcpy( g_transactionString + g_transactionStringLength, _string,
-            _stringLength );
-    g_transactionStringLength += _stringLength;
+    const size_t l_stringLength = strlen( _string );
+    memcpy( ( g_transactionString + g_transactionStringLength ), _string,
+            l_stringLength );
+    g_transactionStringLength += ( l_stringLength - 1 );
 
     return ( l_returnValue );
 }
@@ -22,9 +23,13 @@ uint16_t log_commit( void ) {
     if ( g_transactionStringLength ) {
         size_t l_writtenCount =
             fwrite( g_transactionString, sizeof( g_transactionString[ 0 ] ),
-                    g_transactionStringLength, g_fileDescriptor );
+                    ( g_transactionStringLength + 1 ), g_fileDescriptor );
 
-        l_returnValue = !( l_writtenCount == g_transactionStringLength );
+        l_returnValue =
+            !( l_writtenCount == ( g_transactionStringLength + 1 ) );
+
+        printf( "LOG: %s", g_transactionString, g_transactionStringLength,
+                l_writtenCount );
 
         fflush( g_fileDescriptor );
 

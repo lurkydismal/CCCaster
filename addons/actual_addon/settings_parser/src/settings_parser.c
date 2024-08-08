@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef enum { KEY, VALUE } content_t;
+
 static char** g_labels;
 static size_t g_labelCount = 0;
 static char**** g_content;
@@ -186,9 +188,39 @@ uint16_t readSettingsFromFile( const char* _fileName ) {
         }
 
         l_returnValue = 0;
+
+        fclose( l_fileHandle );
     }
 
-    fclose( l_fileHandle );
+    return ( l_returnValue );
+}
+
+uint16_t readSettingsFromString( const char* _text, const size_t _textLength ) {
+    uint16_t l_returnValue = 1;
+
+    char* l_text = ( char* )malloc( ( _textLength + 1 ) * sizeof( char ) );
+    memcpy( l_text, _text, _textLength );
+    l_text[ _textLength ] = '\0';
+
+    const char l_delimiter[] = "\n";
+    char* l_line = strtok( l_text, l_delimiter );
+
+    while ( l_line ) {
+        char* l_trimmedLine = trim( l_line, strlen( l_line ) );
+        const size_t l_lineLength = strlen( l_trimmedLine );
+
+        if ( l_lineLength ) {
+            parseLine( l_trimmedLine, l_lineLength );
+        }
+
+        free( l_trimmedLine );
+
+        l_line = strtok( NULL, l_delimiter );
+    }
+
+    free( l_text );
+
+    l_returnValue = 0;
 
     return ( l_returnValue );
 }
@@ -260,9 +292,9 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
         }
 
         l_returnValue = 0;
-    }
 
-    fclose( l_fileHandle );
+        fclose( l_fileHandle );
+    }
 
     return ( l_returnValue );
 }
@@ -277,11 +309,11 @@ static size_t getLabelIndex( const char* _label ) {
     return ( UINT32_MAX );
 }
 
-static char*** getContentByIndex( const size_t _labelIndex ) {
+static const char* const* const* getContentByIndex( const size_t _labelIndex ) {
     return ( g_content[ _labelIndex ] );
 }
 
-char*** getContentByLabel( const char* _label ) {
+const char* const* const* getSettingsContentByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex == UINT32_MAX ) {
@@ -291,7 +323,8 @@ char*** getContentByLabel( const char* _label ) {
     return ( getContentByIndex( l_labelIndex ) );
 }
 
-static size_t getKeyIndex( char*** _content, const char* _key ) {
+static size_t getKeyIndex( const char* const* const* _content,
+                           const char* _key ) {
     const size_t l_contentKeyCount = ( size_t )( _content[ 0 ][ 0 ] );
 
     for ( size_t _index = 1; _index < l_contentKeyCount; _index++ ) {
@@ -324,7 +357,7 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
                                    const char* _value ) {
     uint16_t l_returnValue = 0;
 
-    char*** l_content = getContentByLabel( _label );
+    const char* const* const* l_content = getSettingsContentByLabel( _label );
 
     if ( l_content == NULL ) {
         l_returnValue = 1;
