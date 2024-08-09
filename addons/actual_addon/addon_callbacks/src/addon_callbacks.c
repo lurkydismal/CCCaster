@@ -1,6 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
+#define NOMINMAX
+#include <libloaderapi.h>
 #include <stdlib.h>
 
 #include "_useCallback.h"
@@ -13,7 +13,7 @@ useCallbackFunction_t g_useCallback = NULL;
 
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
-    HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+    void* l_statesDll = GetModuleHandleA( "states.dll" );
 
     if ( !l_statesDll ) {
         exit( 1 );
@@ -52,15 +52,26 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     return ( l_returnValue );
 }
 
+uint16_t __declspec( dllexport ) core$readSettingsFromString(
+    void** _callbackArguments ) {
+    int16_t l_returnValue = 0;
+
+    const char* _string = ( const char* )_callbackArguments[ 0 ];
+
+    l_returnValue = readSettingsFromString( _string );
+
+    return ( l_returnValue );
+}
+
 uint16_t __declspec( dllexport ) core$getSettingsContentByLabel(
     void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
     const char* const* const** _returnValue =
         ( const char* const* const** )_callbackArguments[ 0 ];
-    const char* const* _label = ( const char* const* )_callbackArguments[ 1 ];
+    const char* _label = ( const char* )_callbackArguments[ 1 ];
 
-    *_returnValue = getSettingsContentByLabel( *_label );
+    *_returnValue = getSettingsContentByLabel( _label );
 
     return ( l_returnValue );
 }
@@ -74,6 +85,10 @@ uint16_t __declspec( dllexport ) core$changeSettingsKeyByLabel(
     const char* const* _value = ( const char* const* )_callbackArguments[ 2 ];
 
     l_returnValue = changeSettingsKeyByLabel( *_key, *_label, *_value );
+
+    if ( l_returnValue == 0 ) {
+        writeSettingsToFile( SETTINGS_FILE_PATH );
+    }
 
     return ( l_returnValue );
 }

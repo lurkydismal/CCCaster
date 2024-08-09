@@ -6,9 +6,6 @@
 #include "patch_t.h"
 #include "settings_parser.h"
 
-#define SETTINGS_FILE_NAME "settings"
-#define SETTINGS_FILE_EXTENSION "ini"
-#define SETTINGS_FILE_PATH SETTINGS_FILE_NAME "." SETTINGS_FILE_EXTENSION
 #define ATTACH 1
 
 #define MAKE_PATCH( _address, ... )                              \
@@ -16,11 +13,6 @@
         uint8_t l_patch[] = __VA_ARGS__;                         \
         patchCreate( _address, l_patch, ( sizeof( l_patch ) ) ); \
     } while ( 0 )
-
-void save( void ) {
-    writeSettingsToFile( SETTINGS_FILE_PATH );
-    freeSettingsTable();
-}
 
 int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
                                               uint32_t _reason,
@@ -454,12 +446,9 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
                 "84 = START\n"
                 "115 = ToggleOverlay_KeyConfig_Native\n";
 
-            readSettingsFromString( l_defaultSettings,
-                                    sizeof( l_defaultSettings ) );
+            readSettingsFromString( l_defaultSettings );
 
             writeSettingsToFile( SETTINGS_FILE_PATH );
-
-            atexit( save );
         }
     }
 

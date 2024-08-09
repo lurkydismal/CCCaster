@@ -13,11 +13,7 @@
 #pragma comment( lib, "d3dx9.lib" )
 #pragma comment( lib, "user32.lib" )
 
-namespace {
-
-size_t l_renderCallsPerFrame = 0;
-
-}
+static size_t l_renderCallsPerFrame = 0;
 
 Direct3DShaderValidatorCreate9Proc m_pDirect3DShaderValidatorCreate9;
 PSGPErrorProc m_pPSGPError;
@@ -56,8 +52,7 @@ HRESULT m_IDirect3DDevice9Ex::Present( CONST RECT* pSourceRect,
         "m_IDirect3DDevice9Ex Present ( pSourceRect, pDestRect, "
         "hDestWindowOverride, pDirtyRegion )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -82,8 +77,7 @@ HRESULT m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
         "m_IDirect3DDevice9Ex PresentEx ( pSourceRect, pDestRect, "
         "hDestWindowOverride, pDirtyRegion, dwFlags )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     uint16_t l_result =
@@ -104,8 +98,7 @@ HRESULT m_IDirect3DDevice9Ex::EndScene( void ) {
 #if 0
     const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -142,8 +135,7 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
         "IDirect3D9Ex CreateDevice ( Adapter, DeviceType, hFocusWindow, "
         "BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface)\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     uint16_t l_result = _useCallback(
@@ -162,8 +154,7 @@ HRESULT m_IDirect3DDevice9Ex::Reset(
     const char l_message[] =
         "m_IDirect3DDevice9Ex Reset ( pPresentationParameters )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     uint16_t l_result =
@@ -212,8 +203,7 @@ HRESULT m_IDirect3D9Ex::CreateDeviceEx(
         "BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, "
         "ppReturnedDeviceInterface )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     uint16_t l_result =
@@ -235,8 +225,7 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
         "m_IDirect3DDevice9Ex ResetEx ( pPresentationParameters, "
         "pFullscreenDisplayMode )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     uint16_t l_result =
@@ -358,8 +347,7 @@ extern "C" HRESULT WINAPI Direct3DShaderValidatorCreate9( void ) {
 #if 0
     const char l_message[] = "Direct3DShaderValidatorCreate9 ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -373,8 +361,7 @@ extern "C" HRESULT WINAPI Direct3DShaderValidatorCreate9( void ) {
 extern "C" HRESULT WINAPI PSGPError( void ) {
     const char l_message[] = "PSGPError ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pPSGPError ) {
@@ -387,8 +374,7 @@ extern "C" HRESULT WINAPI PSGPError( void ) {
 extern "C" HRESULT WINAPI PSGPSampleTexture( void ) {
     const char l_message[] = "PSGPSampleTexture ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pPSGPSampleTexture ) {
@@ -401,8 +387,7 @@ extern "C" HRESULT WINAPI PSGPSampleTexture( void ) {
 extern "C" int WINAPI D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName ) {
     const char l_message[] = "D3DPERF_BeginEvent ( col, wszName )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pD3DPERF_BeginEvent ) {
@@ -415,8 +400,7 @@ extern "C" int WINAPI D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName ) {
 extern "C" int WINAPI D3DPERF_EndEvent( void ) {
     const char l_message[] = "D3DPERF_EndEvent ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pD3DPERF_EndEvent ) {
@@ -429,8 +413,7 @@ extern "C" int WINAPI D3DPERF_EndEvent( void ) {
 extern "C" DWORD WINAPI D3DPERF_GetStatus( void ) {
     const char l_message[] = "D3DPERF_GetStatus ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pD3DPERF_GetStatus ) {
@@ -443,8 +426,7 @@ extern "C" DWORD WINAPI D3DPERF_GetStatus( void ) {
 extern "C" BOOL WINAPI D3DPERF_QueryRepeatFrame( void ) {
     const char l_message[] = "D3DPERF_QueryRepeatFrame ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pD3DPERF_QueryRepeatFrame ) {
@@ -457,8 +439,7 @@ extern "C" BOOL WINAPI D3DPERF_QueryRepeatFrame( void ) {
 extern "C" void WINAPI D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName ) {
     const char l_message[] = "D3DPERF_SetMarker ( col, wszName )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( m_pD3DPERF_SetMarker ) {
@@ -469,8 +450,7 @@ extern "C" void WINAPI D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName ) {
 extern "C" void WINAPI D3DPERF_SetOptions( DWORD dwOptions ) {
     const char l_message[] = "D3DPERF_SetOptions ( dwOptions )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( m_pD3DPERF_SetOptions ) {
@@ -481,8 +461,7 @@ extern "C" void WINAPI D3DPERF_SetOptions( DWORD dwOptions ) {
 extern "C" void WINAPI D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName ) {
     const char l_message[] = "D3DPERF_SetRegion ( col, wszName )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( m_pD3DPERF_SetRegion ) {
@@ -493,8 +472,7 @@ extern "C" void WINAPI D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName ) {
 extern "C" HRESULT WINAPI DebugSetLevel( DWORD dw1 ) {
     const char l_message[] = "DebugSetLevel ( dw1 )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pDebugSetLevel ) {
@@ -508,8 +486,7 @@ extern "C" void WINAPI DebugSetMute( void ) {
 #if 0
     const char l_message[] = "DebugSetMute ()\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -522,8 +499,7 @@ extern "C" int WINAPI Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
     const char l_message[] =
         "Direct3D9EnableMaximizedWindowedModeShim ( mEnable )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pDirect3D9EnableMaximizedWindowedModeShim ) {
@@ -536,8 +512,7 @@ extern "C" int WINAPI Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
 extern "C" IDirect3D9* WINAPI Direct3DCreate9( UINT SDKVersion ) {
     const char l_message[] = "Direct3DCreate9 ( SDKVersion )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pDirect3DCreate9 ) {
@@ -557,8 +532,7 @@ extern "C" HRESULT WINAPI Direct3DCreate9Ex( UINT SDKVersion,
                                              IDirect3D9Ex** ppD3D ) {
     const char l_message[] = "Direct3DCreate9Ex ( SDKVersion, ppD3D )\n";
 
-    _useCallback( "log$transaction$query", l_message,
-                  ( void* )sizeof( l_message ) );
+    _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
     if ( !m_pDirect3DCreate9Ex ) {

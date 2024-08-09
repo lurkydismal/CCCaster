@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct PATCH {
+typedef struct {
     uintptr_t address;
     uint8_t* bytesBackup;
     size_t bytesBackupLength;

@@ -1,9 +1,8 @@
 #include "patch_callbacks.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "_useCallback.h"
 #include "button_t.h"
@@ -12,8 +11,6 @@
 #include "misc.h"
 #include "player_t.h"
 
-#define HEAP_MEMORY_SIZE 150
-
 uint32_t g_currentMenuIndex = 0;
 uint32_t g_menuConfirmState = 0;
 bool g_enableEscapeToExit = false;
@@ -21,6 +18,62 @@ uint32_t g_roundStartCounter = 0;
 uint8_t g_SFXMute[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
+
+size_t lengthOfsize( size_t _number ) {
+    size_t l_length = 0;
+
+    do {
+        l_length++;
+        _number /= 10;
+    } while ( _number != 0 );
+
+    return ( l_length );
+}
+
+///////////////
+/// @brief Converts a long integer to a string.
+/// @details Copyright 1988-90 by Robert B. Stout dba MicroFirm. Released to
+/// public domain, 1991. Can not convert negative values.
+/// @param[in] _number Number to be converted.
+/// @param[in] _string Buffer in which to build the converted string.
+/// @return A character pointer to the converted string if successful, a NULL
+/// pointer if the number base specified is out of range.
+///////////////
+char* stoa( size_t _number, char* _string ) {
+///////////////
+/// @brief Size of string buffer.
+///////////////
+#define BUFSIZE ( sizeof( size_t ) * 8 + 1 )
+
+    /// Declare l_characterIndex to register, buffer and pointer of \c _string.
+    register uint32_t l_characterIndex;
+    char *l_tail, *l_head = _string, l_buf[ BUFSIZE ];
+
+    /// Set the last character of string to NULL terminator.
+    l_tail = &( l_buf[ BUFSIZE - 1 ] ); // Last character position
+    *l_tail-- = '\0';
+
+    /// Convert integer value to string value.
+    l_characterIndex = 1;
+
+    do {
+        ++l_characterIndex;
+
+        *l_tail-- = ( char )( ( _number % 10 ) + '0' );
+
+        _number /= 10;
+    } while ( _number != 0 );
+
+    /// Copy l_tail string to l_head string.
+    memcpy( l_head,          // Destination
+            ++l_tail,        // Source
+            l_characterIndex // Number of bytes
+    );
+
+    return ( _string );
+
+#undef BUFSIZE
+}
 
 void extraTexturesCallBack( void ) {
     uint16_t l_result = _useCallback( "extraTextures" );
@@ -73,7 +126,16 @@ void gameMainLoopCallback( void ) {
         if ( l_currentGameMode != *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) ) ) {
             l_currentGameMode = *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) );
 
-            printf( "%d\n", l_currentGameMode );
+            {
+                char* l_currentGameModeAsText = stoa( l_currentGameMode );
+
+                _useCallback(
+                        "log$transaction$query",
+                        l_currentGameModeAsText
+                        );
+
+                free( l_currentGameModeAsText );
+            }
 
             uint16_t l_result =
                 _useCallback( "gameMode$changed", &l_currentGameMode );
