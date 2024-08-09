@@ -6,7 +6,6 @@ int16_t __declspec( dllexport ) log$transaction$query(
     void** _callbackArguments ) {
     uint16_t l_returnCode = 0;
     const char* _string = ( const char* )_callbackArguments[ 0 ];
-    const size_t _stringLength = ( const size_t )_callbackArguments[ 1 ];
 
     l_returnCode = log_query( _string );
 

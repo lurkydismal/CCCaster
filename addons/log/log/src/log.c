@@ -28,8 +28,7 @@ uint16_t log_commit( void ) {
         l_returnValue =
             !( l_writtenCount == ( g_transactionStringLength + 1 ) );
 
-        printf( "LOG: %s", g_transactionString, g_transactionStringLength,
-                l_writtenCount );
+        printf( "LOG: %s", g_transactionString );
 
         fflush( g_fileDescriptor );
 

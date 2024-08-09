@@ -23,16 +23,17 @@ static char**** g_content;
  * ]
  */
 
-static void addLabel( const char* _text, const size_t _textLength ) {
+static void addLabel( const char* _text ) {
+    const size_t l_textLength = strlen( _text );
+
     g_labelCount++;
     const size_t l_labelIndex = ( g_labelCount - 1 );
 
     g_labels = ( char** )realloc( g_labels, g_labelCount * sizeof( char* ) );
 
     g_labels[ l_labelIndex ] =
-        ( char* )malloc( ( _textLength + 1 ) * sizeof( char ) );
-    memcpy( g_labels[ l_labelIndex ], _text, _textLength );
-    g_labels[ l_labelIndex ][ _textLength ] = '\0';
+        ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
+    memcpy( g_labels[ l_labelIndex ], _text, ( l_textLength + 1 ) );
 
     g_content =
         ( char**** )realloc( g_content, g_labelCount * sizeof( char*** ) );
@@ -43,9 +44,9 @@ static void addLabel( const char* _text, const size_t _textLength ) {
     ( *( size_t* )( &( g_content[ l_labelIndex ][ 0 ][ 0 ] ) ) ) = 1;
 }
 
-static void addContent( const char* _text,
-                        const size_t _textLength,
-                        const content_t _contentType ) {
+static void addContent( const char* _text, const content_t _contentType ) {
+    const size_t l_textLength = strlen( _text );
+
     const size_t l_labelIndex = ( g_labelCount - 1 );
     const size_t l_keysCount =
         ( size_t )( g_content[ l_labelIndex ][ 0 ][ 0 ] );
@@ -55,18 +56,11 @@ static void addContent( const char* _text,
     char** l_content =
         &( g_content[ l_labelIndex ][ l_keyIndex ][ _contentType ] );
 
-    const bool l_isNotNUlTerminated = ( _text[ _textLength - 1 ] != '\0' );
-
-    *l_content = ( char* )malloc(
-        ( _textLength + ( size_t )l_isNotNUlTerminated ) * sizeof( char ) );
-    memcpy( *l_content, _text, _textLength );
-
-    if ( l_isNotNUlTerminated ) {
-        ( *l_content )[ _textLength ] = '\0';
-    }
+    *l_content = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
+    memcpy( *l_content, _text, ( l_textLength + 1 ) );
 }
 
-static void addKey( const char* _text, const size_t _textLength ) {
+static void addKey( const char* _text ) {
     const size_t l_labelIndex = ( g_labelCount - 1 );
 
     ( *( size_t* )( &( g_content[ l_labelIndex ][ 0 ][ 0 ] ) ) )++;
@@ -80,11 +74,11 @@ static void addKey( const char* _text, const size_t _textLength ) {
     g_content[ l_labelIndex ][ l_keyIndex ] =
         ( char** )malloc( 2 * sizeof( char* ) );
 
-    addContent( _text, _textLength, KEY );
+    addContent( _text, KEY );
 }
 
-static void addValue( const char* _text, const size_t _textLength ) {
-    addContent( _text, _textLength, VALUE );
+static void addValue( const char* _text ) {
+    addContent( _text, VALUE );
 }
 
 uint16_t freeSettingsTable( void ) {
@@ -121,11 +115,13 @@ uint16_t freeSettingsTable( void ) {
     return ( l_returnValue );
 }
 
-static char* trim( const char* _text, const size_t _textLength ) {
-    size_t l_textLength = 0;
-    char* l_buffer = ( char* )malloc( ( _textLength + 1 ) * sizeof( char ) );
+static char* trim( const char* _text ) {
+    const size_t l_textLength = strlen( _text );
 
-    for ( size_t _index = 0; _index < _textLength; _index++ ) {
+    char* l_buffer = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
+    size_t l_bufferLength = 0;
+
+    for ( size_t _index = 0; _index < l_textLength; _index++ ) {
         const char l_symbol = _text[ _index ];
 
         if ( isspace( l_symbol ) ) {
@@ -135,32 +131,36 @@ static char* trim( const char* _text, const size_t _textLength ) {
             break;
         }
 
-        l_buffer[ l_textLength ] = l_symbol;
-        l_textLength++;
+        l_buffer[ l_bufferLength ] = l_symbol;
+        l_bufferLength++;
     }
 
-    char* l_text = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
-    memcpy( l_text, l_buffer, l_textLength );
-    l_text[ l_textLength ] = '\0';
+    l_buffer[ l_bufferLength ] = '\0';
+    l_bufferLength++;
+
+    char* l_text = ( char* )malloc( l_bufferLength * sizeof( char ) );
+    memcpy( l_text, l_buffer, l_bufferLength );
 
     free( l_buffer );
 
     return ( l_text );
 }
 
-static void parseLine( char* _text, size_t _textLength ) {
-    if ( _text[ 0 ] == '[' ) {
-        _text++;
-        _textLength -= 2;
-        _text[ _textLength ] = '\0';
+static void parseLine( char* _text ) {
+    size_t l_textLength = strlen( _text );
 
-        addLabel( _text, _textLength );
+    if ( _text[ 0 ] == '[' ) {
+        _text[ l_textLength - 1 ] = '\0';
+
+        addLabel( _text + 1 );
 
     } else {
-        for ( size_t _index = 0; _index < _textLength; _index++ ) {
+        for ( size_t _index = 0; _index < ( l_textLength - 1 ); _index++ ) {
             if ( _text[ _index ] == '=' ) {
-                addKey( _text, _index );
-                addValue( ( _text + _index + 1 ), ( _textLength - _index ) );
+                _text[ _index ] = '\0';
+
+                addKey( _text );
+                addValue( _text + _index + 1 );
 
                 break;
             }
@@ -177,11 +177,11 @@ uint16_t readSettingsFromFile( const char* _fileName ) {
         char l_line[ MAX_LINE_LENGTH ];
 
         while ( fgets( l_line, MAX_LINE_LENGTH, l_fileHandle ) != NULL ) {
-            char* l_trimmedLine = trim( l_line, strlen( l_line ) );
+            char* l_trimmedLine = trim( l_line );
             const size_t l_lineLength = strlen( l_trimmedLine );
 
             if ( l_lineLength ) {
-                parseLine( l_trimmedLine, l_lineLength );
+                parseLine( l_trimmedLine );
             }
 
             free( l_trimmedLine );
@@ -195,22 +195,22 @@ uint16_t readSettingsFromFile( const char* _fileName ) {
     return ( l_returnValue );
 }
 
-uint16_t readSettingsFromString( const char* _text, const size_t _textLength ) {
+uint16_t readSettingsFromString( const char* _text ) {
     uint16_t l_returnValue = 1;
 
-    char* l_text = ( char* )malloc( ( _textLength + 1 ) * sizeof( char ) );
-    memcpy( l_text, _text, _textLength );
-    l_text[ _textLength ] = '\0';
+    size_t l_textLength = strlen( _text );
+    char* l_text = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
+    memcpy( l_text, _text, ( l_textLength + 1 ) );
 
     const char l_delimiter[] = "\n";
     char* l_line = strtok( l_text, l_delimiter );
 
     while ( l_line ) {
-        char* l_trimmedLine = trim( l_line, strlen( l_line ) );
+        char* l_trimmedLine = trim( l_line );
         const size_t l_lineLength = strlen( l_trimmedLine );
 
         if ( l_lineLength ) {
-            parseLine( l_trimmedLine, l_lineLength );
+            parseLine( l_trimmedLine );
         }
 
         free( l_trimmedLine );
@@ -309,11 +309,11 @@ static size_t getLabelIndex( const char* _label ) {
     return ( UINT32_MAX );
 }
 
-static char*** getContentByIndex( const size_t _labelIndex ) {
-    return ( g_content[ _labelIndex ] );
+static const char* const* const* getContentByIndex( const size_t _labelIndex ) {
+    return ( ( const char* const* const* )( g_content[ _labelIndex ] ) );
 }
 
-char*** getContentByLabel( const char* _label ) {
+const char* const* const* getSettingsContentByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex == UINT32_MAX ) {
@@ -323,7 +323,8 @@ char*** getContentByLabel( const char* _label ) {
     return ( getContentByIndex( l_labelIndex ) );
 }
 
-static size_t getKeyIndex( char*** _content, const char* _key ) {
+static size_t getKeyIndex( const char* const* const* _content,
+                           const char* _key ) {
     const size_t l_contentKeyCount = ( size_t )( _content[ 0 ][ 0 ] );
 
     for ( size_t _index = 1; _index < l_contentKeyCount; _index++ ) {
@@ -356,7 +357,7 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
                                    const char* _value ) {
     uint16_t l_returnValue = 0;
 
-    char*** l_content = getContentByLabel( _label );
+    const char* const* const* l_content = getSettingsContentByLabel( _label );
 
     if ( l_content == NULL ) {
         l_returnValue = 1;
@@ -382,12 +383,16 @@ EXIT:
 
 int main( void ) {
     if ( readSettingsFromFile( "1t.ini" ) == 0 ) {
+        printf( "1\n" );
+
         changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" );
         changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" );
 
         writeSettingsToFile( "tc.ini" );
 
     } else {
+        printf( "2\n" );
+
         const char l_defaultSettings[] =
             "[keyboard]\n"
             "38 = 8\n"
@@ -405,8 +410,7 @@ int main( void ) {
             "84 = START\n"
             "115 = ToggleOverlay_KeyConfig_Native\n";
 
-        readSettingsFromString( l_defaultSettings,
-                                sizeof( l_defaultSettings ) );
+        readSettingsFromString( l_defaultSettings );
 
         for ( size_t _labelIndex = 0; _labelIndex < g_labelCount;
               _labelIndex++ ) {
@@ -422,6 +426,12 @@ int main( void ) {
                 printf( "[%s]\n%s=%s\n", l_label, l_key, l_value );
             }
         }
+
+        printf( "%d\n", changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) );
+        printf( "%d\n", changeSettingsKeyByLabel( "82", "keyboard", "fn3" ) );
+        printf( "%d\n", changeSettingsKeyByLabel( "81", "keyboard", "fn4" ) );
+
+        writeSettingsToFile( "tc.ini" );
     }
 
     freeSettingsTable();
