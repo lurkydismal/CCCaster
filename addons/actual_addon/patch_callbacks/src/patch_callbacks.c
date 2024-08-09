@@ -35,19 +35,19 @@ size_t lengthOfsize( size_t _number ) {
 /// @details Copyright 1988-90 by Robert B. Stout dba MicroFirm. Released to
 /// public domain, 1991. Can not convert negative values.
 /// @param[in] _number Number to be converted.
-/// @param[in] _string Buffer in which to build the converted string.
-/// @return A character pointer to the converted string if successful, a NULL
-/// pointer if the number base specified is out of range.
+/// @return A character pointer to the converted string.
 ///////////////
-char* stoa( size_t _number, char* _string ) {
+char* stoa( size_t _number ) {
 ///////////////
 /// @brief Size of string buffer.
 ///////////////
 #define BUFSIZE ( sizeof( size_t ) * 8 + 1 )
 
-    /// Declare l_characterIndex to register, buffer and pointer of \c _string.
+    /// Declare l_characterIndex to register, buffer and pointer of \c l_buffer.
+    const size_t l_lengthOfNumber = lengthOfsize( _number );
+    char* l_buffer = ( char* )malloc( l_lengthOfNumber + 1 );
     register uint32_t l_characterIndex;
-    char *l_tail, *l_head = _string, l_buf[ BUFSIZE ];
+    char *l_tail, *l_head = l_buffer, l_buf[ BUFSIZE ];
 
     /// Set the last character of string to NULL terminator.
     l_tail = &( l_buf[ BUFSIZE - 1 ] ); // Last character position
@@ -70,7 +70,7 @@ char* stoa( size_t _number, char* _string ) {
             l_characterIndex // Number of bytes
     );
 
-    return ( _string );
+    return ( l_buffer );
 
 #undef BUFSIZE
 }
@@ -129,10 +129,9 @@ void gameMainLoopCallback( void ) {
             {
                 char* l_currentGameModeAsText = stoa( l_currentGameMode );
 
-                _useCallback(
-                        "log$transaction$query",
-                        l_currentGameModeAsText
-                        );
+                _useCallback( "log$transaction$query",
+                              l_currentGameModeAsText );
+                _useCallback( "log$transaction$commit" );
 
                 free( l_currentGameModeAsText );
             }
