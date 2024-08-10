@@ -60,6 +60,10 @@ uint16_t __declspec( dllexport ) core$readSettingsFromString(
 
     l_returnValue = readSettingsFromString( _string );
 
+    if ( l_returnValue == 0 ) {
+        writeSettingsToFile( SETTINGS_FILE_PATH );
+    }
+
     return ( l_returnValue );
 }
 
@@ -72,6 +76,8 @@ uint16_t __declspec( dllexport ) core$getSettingsContentByLabel(
     const char* _label = ( const char* )_callbackArguments[ 1 ];
 
     *_returnValue = getSettingsContentByLabel( _label );
+
+    l_returnValue = ( *_returnValue == NULL );
 
     return ( l_returnValue );
 }

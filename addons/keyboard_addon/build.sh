@@ -13,6 +13,5 @@ mkdir -p "${ADDONS_DIR}/keyboard" && \
     "${MBAA_DIR}/." && \
     clang-format --style=file \
     -i \
-    src/*.cpp \
-    addon_callbacks/src/*.cpp addon_callbacks/include/*.hpp \
-    controls_parse/src/controls_parse.c controls_parse/include/*.hpp
+    addon_callbacks/src/*.c addon_callbacks/include/*.h \
+    controls_parse/include/*.h

@@ -9,6 +9,7 @@
 #include "direction_t.h"
 #include "gameMode_t.h"
 #include "misc.h"
+#include "patch_t.h"
 #include "player_t.h"
 
 uint32_t g_currentMenuIndex = 0;
@@ -22,6 +23,7 @@ uint32_t* g_autoReplaySaveState;
 size_t lengthOfsize( size_t _number ) {
     size_t l_length = 0;
 
+#pragma GCC ivdep
     do {
         l_length++;
         _number /= 10;
@@ -30,45 +32,27 @@ size_t lengthOfsize( size_t _number ) {
     return ( l_length );
 }
 
-///////////////
-/// @brief Converts a long integer to a string.
-/// @details Copyright 1988-90 by Robert B. Stout dba MicroFirm. Released to
-/// public domain, 1991. Can not convert negative values.
-/// @param[in] _number Number to be converted.
-/// @return A character pointer to the converted string.
-///////////////
 char* stoa( size_t _number ) {
-///////////////
-/// @brief Size of string buffer.
-///////////////
 #define BUFSIZE ( sizeof( size_t ) * 8 + 1 )
 
-    /// Declare l_characterIndex to register, buffer and pointer of \c l_buffer.
     const size_t l_lengthOfNumber = lengthOfsize( _number );
     char* l_buffer = ( char* )malloc( l_lengthOfNumber + 1 );
     register uint32_t l_characterIndex;
     char *l_tail, *l_head = l_buffer, l_buf[ BUFSIZE ];
 
-    /// Set the last character of string to NULL terminator.
-    l_tail = &( l_buf[ BUFSIZE - 1 ] ); // Last character position
+    l_tail = &( l_buf[ BUFSIZE - 1 ] );
     *l_tail-- = '\0';
 
-    /// Convert integer value to string value.
     l_characterIndex = 1;
 
-    do {
+#pragma GCC ivdep
+    for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
         ++l_characterIndex;
 
         *l_tail-- = ( char )( ( _number % 10 ) + '0' );
+    }
 
-        _number /= 10;
-    } while ( _number != 0 );
-
-    /// Copy l_tail string to l_head string.
-    memcpy( l_head,          // Destination
-            ++l_tail,        // Source
-            l_characterIndex // Number of bytes
-    );
+    memcpy( l_head, ++l_tail, l_characterIndex );
 
     return ( l_buffer );
 
@@ -108,7 +92,6 @@ void gameMainLoopCallback( void ) {
 
     if ( l_isNewFrame ) {
         {
-            // New frame callback
             uint16_t l_result = _useCallback( "mainLoop$newFrame" );
         }
 
@@ -128,6 +111,14 @@ void gameMainLoopCallback( void ) {
 
             {
                 char* l_currentGameModeAsText = stoa( l_currentGameMode );
+                const size_t l_currentGameModeAsTextLength =
+                    strlen( l_currentGameModeAsText );
+                l_currentGameModeAsText = ( char* )realloc(
+                    l_currentGameModeAsText,
+                    ( l_currentGameModeAsTextLength + 1 + 1 ) );
+                l_currentGameModeAsText[ l_currentGameModeAsTextLength ] = '\n';
+                l_currentGameModeAsText[ l_currentGameModeAsTextLength + 1 ] =
+                    '\0';
 
                 _useCallback( "log$transaction$query",
                               l_currentGameModeAsText );
@@ -170,58 +161,61 @@ void gameMainLoopCallback( void ) {
             }
 
             case MAIN: {
-                //  *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) =
-                //  1;
+#if 0
+                *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
-                /*              {
-                                    static patch_t forceGotoGameModePatch;
+                {
+                    static patch_t forceGotoGameModePatch;
 
-                                    if ( !forceGotoGameModePatch ) {
-                                        // Force the game to go to a certain
-                   mode
-                                        // jmp 0042B4B6
-                                        forceGotoGameModePatch.apply( 0x42B475,
-                                                                      { 0xEB,
-                   0x3F } ); uint16_t l_result = _useCallback( "gameMode$versus"
-                   );
+                    if ( !( forceGotoGameModePatch.bytesBackupLength ) ) {
+                        {
+                            // Force the game to go to a certain mode
+                            // jmp 0042B4B6
+                            MAKE_PATCH_WITH_RETURN( forceGotoGameModePatch,
+                                                    0x42B475, { 0xEB, 0x3F } );
 
-                                        // jmp 0042B4D3
-                                        // static patch_t forceGotoVersusCPU{
-                   0x42B475, {
-                                        //  0xEB,
-                                        // 0x5C
-                                        // }
-                                        // };
-                                        // uint16_t l_result = _useCallback(
-                                        // "gameMode$versusCPU" );
+                            uint16_t l_result =
+                                _useCallback( "gameMode$versus" );
+                        }
 
-                                        // jmp 0042B499
-                                        // static patch_t forceGotoTraining{
-                   0x42B475, {
-                                        // 0xEB,
-                                        // 0x22 } }; uint16_t l_result =
-                   _useCallback(
-                                        // "gameMode$training" );
+                        {
+                            // jmp 0042B4D3
+                            MAKE_PATCH_WITH_RETURN( forceGotoGameModePatch,
+                                                    0x42B475, { 0xEB, 0x5C } );
 
-                                        // jmp 0042B541
-                                        // static patch_t forceGotoReplay{
-                                        //     0x42B475, { 0xE9, 0xC7, 0x00,
-                   0x00, 0x00 }
-                                        //   };
-                                        // uint16_t l_result = _useCallback(
-                                        // "gameMode$replay"
-                                        // );
-                                    }
-                                }
+                            uint16_t l_result =
+                                _useCallback( "gameMode$versusCPU" );
+                        }
 
-                                if ( l_framesPassed % 2 ) {
-                                    std::set< std::string > l_activeMappedKeys =
-                   { "A" };
+                        {
+                            // jmp 0042B499
+                            MAKE_PATCH_WITH_RETURN( forceGotoGameModePatch,
+                                                    0x42B475, { 0xEB, 0x22 } );
 
-                                    _useCallback( "keyboard$applyInput", 1,
-                   l_activeMappedKeys );
-                                }
-                                */
+                            uint16_t l_result =
+                                _useCallback( "gameMode$training" );
+                        }
+
+                        {
+                            // jmp 0042B541
+                            MAKE_PATCH_WITH_RETURN(
+                                forceGotoGameModePatch, 0x42B475,
+                                { 0xE9, 0xC7, 0x00, 0x00, 0x00 } );
+
+                            uint16_t l_result =
+                                _useCallback( "gameMode$replay" );
+                        }
+                    }
+                }
+
+                if ( l_framesPassed % 2 ) {
+                    const button_t l_button = A;
+                    const direction_t l_direction = NEUTRAL_DIRECTION;
+                    const player_t l_player = FIRST;
+                    _useCallback( "game$applyInput", &l_button, &l_direction,
+                            &l_player );
+                }
+#endif
 
                 uint16_t l_result = _useCallback( "gameMode$main" );
 
