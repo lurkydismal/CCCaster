@@ -77,6 +77,7 @@ bool patchRemove( patch_t* _patch ) {
         }
 
         free( _patch->bytesBackup );
+        _patch->bytesBackupLength = 0;
     }
 
 EXIT:

@@ -32,10 +32,9 @@ LIBRARIES             =
 ### keyboard.dll sources and settings
 
 keyboard_dll_MODULE= keyboard.dll
-keyboard_dll_C_SRCS= controls_parse/src/controls_parse.c
-keyboard_dll_CXX_SRCS= src/main.cpp \
-			     addon_callbacks/src/addon_callbacks.cpp \
-			     ../../states_dll/_useCallback/src/_useCallback.cpp
+keyboard_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
+		     ../../states_dll/_useCallback/src/_useCallback.c
+keyboard_dll_CXX_SRCS=
 keyboard_dll_RC_SRCS=
 keyboard_dll_LDFLAGS= -shared \
 			$(keyboard_dll_MODULE:.dll=.def) \

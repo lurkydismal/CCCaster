@@ -8,6 +8,7 @@
     events: {
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
         game$applyInput: game$applyInput
+        core$readSettingsFromString: core$readSettingsFromString
         core$getSettingsContentByLabel: core$getSettingsContentByLabel
         core$changeSettingsKeyByLabel: core$changeSettingsKeyByLabel
     }

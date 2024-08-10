@@ -5,6 +5,7 @@
 #define SETTINGS_FILE_NAME "settings"
 #define SETTINGS_FILE_EXTENSION "ini"
 #define SETTINGS_FILE_PATH SETTINGS_FILE_NAME "." SETTINGS_FILE_EXTENSION
+#define SETTINGS_BACKUP_FILE_PATH "backup_" SETTINGS_FILE_PATH
 #define MAX_LINE_LENGTH 100
 
 uint16_t readSettingsFromFile( const char* _fileName );

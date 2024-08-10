@@ -1,24 +1,20 @@
 #include "addon_callbacks.h"
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+// #include <windows.h>
 
-#include <cstdint>
-#include <set>
+#include <stdint.h>
 
 #include "_useCallback.h"
 #include "button_t.h"
-#include "controls_parse.hpp"
+#include "controls_parse.h"
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "direction_t.h"
-#include "native.hpp"
+#include "native.h"
 #include "player_t.h"
 
-#pragma comment( lib, "user32.lib" )
-
-namespace {
-
+#if 0
 uint32_t g_activeFlagsOverlay = 0;
 bool g_disableMenu = false;
 const std::map< uint32_t, std::string > g_keyboardLayout = {
@@ -111,7 +107,11 @@ uint16_t g_menuCursorIndex = 0;
 
 } // namespace
 
+#endif
 useCallbackFunction_t g_useCallback = NULL;
+char** g_controlsKeys;
+char** g_controlsValues;
+#if 0
 
 extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
@@ -269,8 +269,10 @@ extern "C" uint16_t __declspec( dllexport ) gameMode$versus(
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+#endif
+uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
+#if 0
     HWND* _hFocusWindow = ( HWND* )_callbackArguments[ 2 ];
     D3DPRESENT_PARAMETERS** _pPresentationParameters =
         ( D3DPRESENT_PARAMETERS** )_callbackArguments[ 4 ];
@@ -278,6 +280,7 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     g_hFocusWindow = ( *_hFocusWindow )
                          ? ( *_hFocusWindow )
                          : ( ( *_pPresentationParameters )->hDeviceWindow );
+#endif
 
     HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
 
@@ -285,15 +288,54 @@ extern "C" uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
         exit( 1 );
     }
 
-    g_useCallback = reinterpret_cast< useCallbackFunction_t >(
-        GetProcAddress( l_statesDll, "useCallback" ) );
+    g_useCallback =
+        ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback" );
 
     if ( !g_useCallback ) {
         exit( 1 );
     }
 
+    const char* const* const* l_settings;
+
+    if ( _useCallback( "core$getSettingsContentByLabel", &l_settings,
+                       "keyboard" ) == 0 ) {
+        _useCallback( "log$transaction$query", "KEYBOARD\n" );
+
+        const char* l_value =
+            l_settings[ ( ( size_t )( l_settings[ 0 ][ 0 ] ) - 1 ) ][ 1 ];
+        const size_t l_bufferLength = ( strlen( l_value ) + 1 + 1 );
+        char* l_buffer = ( char* )malloc( l_bufferLength );
+        memcpy( l_buffer, l_value, l_bufferLength );
+        l_buffer[ l_bufferLength - 2 ] = '\n';
+        l_buffer[ l_bufferLength - 1 ] = '\0';
+
+        _useCallback( "log$transaction$query", l_buffer );
+        free( l_buffer );
+
+    } else {
+        const char l_defaultSettings[] =
+            "[keyboard]\n"
+            "38 = 8\n"
+            "39 = 6\n"
+            "40 = 2\n"
+            "37 = 4\n"
+            "90 = A\n"
+            "88 = B\n"
+            "67 = C\n"
+            "86 = D\n"
+            "68 = E\n"
+            "83 = AB\n"
+            "221 = FN1\n"
+            "82 = FN2\n"
+            "84 = START\n"
+            "115 = ToggleOverlay_KeyConfig_Native\n";
+
+        _useCallback( "core$readSettingsFromString", l_defaultSettings );
+    }
+
     return ( 0 );
 }
+#if 0
 
 extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
@@ -706,3 +748,4 @@ extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
 
     return ( 0 );
 }
+#endif
