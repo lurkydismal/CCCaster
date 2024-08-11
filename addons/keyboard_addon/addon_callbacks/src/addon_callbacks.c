@@ -1,8 +1,10 @@
 #include "addon_callbacks.h"
 
 #define WIN32_LEAN_AND_MEAN
-// #include <windows.h>
+#define NOMINMAX
+#include <windows.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "_useCallback.h"
@@ -14,105 +16,97 @@
 #include "native.h"
 #include "player_t.h"
 
-#if 0
-uint32_t g_activeFlagsOverlay = 0;
-bool g_disableMenu = false;
-const std::map< uint32_t, std::string > g_keyboardLayout = {
-    { VK_ESCAPE, "Esc" },
-    { VK_F1, "F1" },
-    { VK_F2, "F2" },
-    { VK_F3, "F3" },
-    { VK_F4, "F4" },
-    { VK_F5, "F5" },
-    { VK_F6, "F6" },
-    { VK_F7, "F7" },
-    { VK_F8, "F8" },
-    { VK_F9, "F9" },
-    { VK_F10, "F10" },
-    { VK_F11, "F11" },
-    { VK_F12, "F12" },
-    { VK_PAUSE, "Pause" },
-    { VK_OEM_3, "~" },
-    { 0x31, "1" },
-    { 0x32, "2" },
-    { 0x33, "3" },
-    { 0x34, "4" },
-    { 0x35, "5" },
-    { 0x36, "6" },
-    { 0x37, "7" },
-    { 0x38, "8" },
-    { 0x39, "9" },
-    { 0x30, "0" },
-    { VK_OEM_MINUS, "-" },
-    { VK_OEM_PLUS, "+" },
-    { VK_BACK, "Backspace" },
-    { VK_INSERT, "Insert" },
-    { VK_HOME, "Home" },
-    { VK_PRIOR, "PgUp" },
-    { VK_TAB, "Tab" },
-    { 0x51, "Q" },
-    { 0x57, "W" },
-    { 0x45, "E" },
-    { 0x52, "R" },
-    { 0x54, "T" },
-    { 0x59, "Y" },
-    { 0x55, "U" },
-    { 0x49, "I" },
-    { 0x4F, "O" },
-    { 0x50, "P" },
-    { VK_OEM_4, "[" },
-    { VK_OEM_6, "]" },
-    { VK_OEM_5, "|" },
-    { VK_DELETE, "Del" },
-    { VK_END, "End" },
-    { VK_NEXT, "PgDn" },
-    { VK_CAPITAL, "Caps Lock" },
-    { 0x41, "A" },
-    { 0x53, "S" },
-    { 0x44, "D" },
-    { 0x46, "F" },
-    { 0x47, "G" },
-    { 0x48, "H" },
-    { 0x4A, "J" },
-    { 0x4B, "K" },
-    { 0x4C, "L" },
-    { VK_OEM_1, ";" },
-    { VK_OEM_7, "\'" },
-    { VK_RETURN, "Enter" },
-    { VK_LSHIFT, "L.Shift" },
-    { 0x5A, "Z" },
-    { 0x58, "X" },
-    { 0x43, "C" },
-    { 0x56, "V" },
-    { 0x42, "B" },
-    { 0x4E, "N" },
-    { 0x4D, "M" },
-    { VK_OEM_COMMA, "," },
-    { VK_OEM_PERIOD, "." },
-    { VK_OEM_2, "/" },
-    { VK_RSHIFT, "R.Shift" },
-    { VK_UP, "Up" },
-    { VK_LCONTROL, "L.Ctrl" },
-    { VK_LMENU, "L.Alt" },
-    { VK_SPACE, "Space" },
-    { VK_RMENU, "R.Alt" },
-    { VK_RCONTROL, "R.Ctrl" },
-    { VK_LEFT, "Left" },
-    { VK_DOWN, "Down" },
-    { VK_RIGHT, "Right" } };
+const size_t g_keyboardLayoutKeys[] = {
+    VK_ESCAPE,     VK_F1,       VK_F2,     VK_F3,       VK_F4,
+    VK_F5,         VK_F6,       VK_F7,     VK_F8,       VK_F9,
+    VK_F10,        VK_F11,      VK_F12,    VK_PAUSE,    VK_OEM_3,
+    0x31,          0x32,        0x33,      0x34,        0x35,
+    0x36,          0x37,        0x38,      0x39,        0x30,
+    VK_OEM_MINUS,  VK_OEM_PLUS, VK_BACK,   VK_INSERT,   VK_HOME,
+    VK_PRIOR,      VK_TAB,      0x51,      0x57,        0x45,
+    0x52,          0x54,        0x59,      0x55,        0x49,
+    0x4F,          0x50,        VK_OEM_4,  VK_OEM_6,    VK_OEM_5,
+    VK_DELETE,     VK_END,      VK_NEXT,   VK_CAPITAL,  0x41,
+    0x53,          0x44,        0x46,      0x47,        0x48,
+    0x4A,          0x4B,        0x4C,      VK_OEM_1,    VK_OEM_7,
+    VK_RETURN,     VK_LSHIFT,   0x5A,      0x58,        0x43,
+    0x56,          0x42,        0x4E,      0x4D,        VK_OEM_COMMA,
+    VK_OEM_PERIOD, VK_OEM_2,    VK_RSHIFT, VK_UP,       VK_LCONTROL,
+    VK_LMENU,      VK_SPACE,    VK_RMENU,  VK_RCONTROL, VK_LEFT,
+    VK_DOWN,       VK_RIGHT };
 
-HWND g_hFocusWindow = NULL;
-uint32_t g_framesPassed = 0;
-uint16_t g_menuCursorIndex = 0;
+const char* g_keyboardLayoutValues[] = {
+    "Esc",    "F1",     "F2",      "F3",   "F4",     "F5",      "F6",
+    "F7",     "F8",     "F9",      "F10",  "F11",    "F12",     "Pause",
+    "~",      "1",      "2",       "3",    "4",      "5",       "6",
+    "7",      "8",      "9",       "0",    "-",      "+",       "Backspace",
+    "Insert", "Home",   "PgUp",    "Tab",  "Q",      "W",       "E",
+    "R",      "T",      "Y",       "U",    "I",      "O",       "P",
+    "[",      "]",      "|",       "Del",  "End",    "PgDn",    "Caps Lock",
+    "A",      "S",      "D",       "F",    "G",      "H",       "J",
+    "K",      "L",      ";",       "\'",   "Enter",  "L.Shift", "Z",
+    "X",      "C",      "V",       "B",    "N",      "M",       ",",
+    ".",      "/",      "R.Shift", "Up",   "L.Ctrl", "L.Alt",   "Space",
+    "R.Alt",  "R.Ctrl", "Left",    "Down", "Right" };
 
-} // namespace
+static HWND g_hFocusWindow;
+static uint32_t g_framesPassed = 0;
+static uint32_t g_activeFlagsOverlay = 0;
+static bool g_disableMenu = false;
+static uint16_t g_menuCursorIndex = 0;
 
-#endif
-useCallbackFunction_t g_useCallback = NULL;
+useCallbackFunction_t g_useCallback;
 char*** g_settings;
-#if 0
 
-extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
+uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+    void** _callbackArguments ) {
+    HWND* _hFocusWindow = ( HWND* )_callbackArguments[ 2 ];
+    D3DPRESENT_PARAMETERS** _pPresentationParameters =
+        ( D3DPRESENT_PARAMETERS** )_callbackArguments[ 4 ];
+
+    g_hFocusWindow = ( *_hFocusWindow )
+                         ? ( *_hFocusWindow )
+                         : ( ( *_pPresentationParameters )->hDeviceWindow );
+
+    void* l_statesDll = GetModuleHandleA( "states.dll" );
+
+    if ( !l_statesDll ) {
+        exit( 1 );
+    }
+
+    g_useCallback =
+        ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback" );
+
+    if ( !g_useCallback ) {
+        exit( 1 );
+    }
+
+    if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
+                       "keyboard" ) != 0 ) {
+        const char l_defaultSettings[] =
+            "[keyboard]\n"
+            "8 = 38\n"
+            "6 = 39\n"
+            "2 = 40\n"
+            "4 = 37\n"
+            "A = 90\n"
+            "B = 88\n"
+            "C = 67\n"
+            "D = 86\n"
+            "E = 68\n"
+            "AB = 83\n"
+            "FN1 = 221\n"
+            "FN2 = 82\n"
+            "START = 84\n"
+            "ToggleOverlay_KeyConfig_Native = 115\n";
+
+        _useCallback( "core$readSettingsFromString", l_defaultSettings );
+    }
+
+    return ( 0 );
+}
+
+uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
@@ -157,7 +151,7 @@ extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
+uint16_t __declspec( dllexport ) keyboard$applyInput(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     std::set< std::string >* _activeMappedKeys =
@@ -261,66 +255,15 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$applyInput(
     return ( l_returnValue );
 }
 
-extern "C" uint16_t __declspec( dllexport ) gameMode$versus(
+uint16_t __declspec( dllexport ) gameMode$versus(
     void** _callbackArguments ) {
     g_disableMenu = true;
 
     return ( 0 );
 }
 
-#endif
-uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
-    void** _callbackArguments ) {
 #if 0
-    HWND* _hFocusWindow = ( HWND* )_callbackArguments[ 2 ];
-    D3DPRESENT_PARAMETERS** _pPresentationParameters =
-        ( D3DPRESENT_PARAMETERS** )_callbackArguments[ 4 ];
-
-    g_hFocusWindow = ( *_hFocusWindow )
-                         ? ( *_hFocusWindow )
-                         : ( ( *_pPresentationParameters )->hDeviceWindow );
-#endif
-
-    void* l_statesDll = GetModuleHandleA( "states.dll" );
-
-    if ( !l_statesDll ) {
-        exit( 1 );
-    }
-
-    g_useCallback =
-        ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback" );
-
-    if ( !g_useCallback ) {
-        exit( 1 );
-    }
-
-    if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
-                       "keyboard" ) != 0 ) {
-        const char l_defaultSettings[] =
-            "[keyboard]\n"
-            "38 = 8\n"
-            "39 = 6\n"
-            "40 = 2\n"
-            "37 = 4\n"
-            "90 = A\n"
-            "88 = B\n"
-            "67 = C\n"
-            "86 = D\n"
-            "68 = E\n"
-            "83 = AB\n"
-            "221 = FN1\n"
-            "82 = FN2\n"
-            "84 = START\n"
-            "115 = ToggleOverlay_KeyConfig_Native\n";
-
-        _useCallback( "core$readSettingsFromString", l_defaultSettings );
-    }
-
-    return ( 0 );
-}
-#if 0
-
-extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
+uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     if ( g_framesPassed > 7 ) {
         if ( g_activeFlagsOverlay & OVERLAY_IS_MAPPING_KEY ) {
@@ -421,7 +364,7 @@ extern "C" uint16_t __declspec( dllexport ) keyboard$getInput$end(
     return ( 0 );
 }
 
-extern "C" uint16_t __declspec( dllexport ) extraDrawCallback(
+uint16_t __declspec( dllexport ) extraDrawCallback(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
