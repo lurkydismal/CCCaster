@@ -71,8 +71,7 @@ uint16_t __declspec( dllexport ) core$getSettingsContentByLabel(
     void** _callbackArguments ) {
     int16_t l_returnValue = 0;
 
-    const char* const* const** _returnValue =
-        ( const char* const* const** )_callbackArguments[ 0 ];
+    char**** _returnValue = ( char**** )_callbackArguments[ 0 ];
     const char* _label = ( const char* )_callbackArguments[ 1 ];
 
     *_returnValue = getSettingsContentByLabel( _label );
