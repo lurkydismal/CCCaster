@@ -1,4 +1,3 @@
 #pragma once
 
-extern char** g_controlsKeys;
-extern char** g_controlsValues;
+extern char*** g_settings;

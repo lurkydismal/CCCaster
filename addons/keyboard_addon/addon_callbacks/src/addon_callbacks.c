@@ -109,8 +109,7 @@ uint16_t g_menuCursorIndex = 0;
 
 #endif
 useCallbackFunction_t g_useCallback = NULL;
-char** g_controlsKeys;
-char** g_controlsValues;
+char*** g_settings;
 #if 0
 
 extern "C" uint16_t __declspec( dllexport ) mainLoop$newFrame(
@@ -282,7 +281,7 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
                          : ( ( *_pPresentationParameters )->hDeviceWindow );
 #endif
 
-    HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+    void* l_statesDll = GetModuleHandleA( "states.dll" );
 
     if ( !l_statesDll ) {
         exit( 1 );
@@ -295,24 +294,8 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
         exit( 1 );
     }
 
-    const char* const* const* l_settings;
-
-    if ( _useCallback( "core$getSettingsContentByLabel", &l_settings,
-                       "keyboard" ) == 0 ) {
-        _useCallback( "log$transaction$query", "KEYBOARD\n" );
-
-        const char* l_value =
-            l_settings[ ( ( size_t )( l_settings[ 0 ][ 0 ] ) - 1 ) ][ 1 ];
-        const size_t l_bufferLength = ( strlen( l_value ) + 1 + 1 );
-        char* l_buffer = ( char* )malloc( l_bufferLength );
-        memcpy( l_buffer, l_value, l_bufferLength );
-        l_buffer[ l_bufferLength - 2 ] = '\n';
-        l_buffer[ l_bufferLength - 1 ] = '\0';
-
-        _useCallback( "log$transaction$query", l_buffer );
-        free( l_buffer );
-
-    } else {
+    if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
+                       "keyboard" ) != 0 ) {
         const char l_defaultSettings[] =
             "[keyboard]\n"
             "38 = 8\n"
