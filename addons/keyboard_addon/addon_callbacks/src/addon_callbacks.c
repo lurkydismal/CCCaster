@@ -119,8 +119,8 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
         return ( l_returnValue );
     }
 
-    std::set< std::string > l_activeMappedKeys;
-    std::set< uint8_t > l_activeKeys;
+    char** l_activeMappedKeys;
+    uint8_t* l_activeKeys;
 
 #define KEYS_TOTAL ( 0xFE + 1 )
 
@@ -151,6 +151,7 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
     return ( l_returnValue );
 }
 
+#if 0
 uint16_t __declspec( dllexport ) keyboard$applyInput(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
