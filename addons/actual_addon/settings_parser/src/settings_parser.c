@@ -2,7 +2,6 @@
 
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,8 +24,14 @@ static char**** g_content;
  * ]
  */
 
+size_t* getLabelCount( void ) {
+    return ( &g_labelCount );
+}
+
 static size_t getLabelIndex( const char* _label ) {
-    for ( size_t _index = 0; _index < g_labelCount; _index++ ) {
+    const size_t* l_labelCount = getLabelCount();
+
+    for ( size_t _index = 0; _index < *l_labelCount; _index++ ) {
         if ( strcmp( _label, g_labels[ _index ] ) == 0 ) {
             return ( _index );
         }
@@ -36,7 +41,9 @@ static size_t getLabelIndex( const char* _label ) {
 }
 
 static void freeLabelByIndex( const size_t _labelIndex ) {
-    if ( !g_labelCount ) {
+    size_t* l_labelCount = getLabelCount();
+
+    if ( !*l_labelCount ) {
         return;
     }
 
@@ -55,9 +62,9 @@ static void freeLabelByIndex( const size_t _labelIndex ) {
     free( g_content[ _labelIndex ][ 0 ] );
     free( g_content[ _labelIndex ] );
 
-    g_labelCount--;
+    ( *l_labelCount )--;
 
-    if ( !g_labelCount ) {
+    if ( !*l_labelCount ) {
         free( g_labels );
         free( g_content );
     }
@@ -72,15 +79,17 @@ static void freeLabelByLabel( const char* _label ) {
 }
 
 static void addLabel( const char* _text ) {
-    g_labelCount++;
-    const size_t l_labelIndex = ( g_labelCount - 1 );
+    size_t* l_labelCount = getLabelCount();
 
-    g_labels = ( char** )realloc( g_labels, g_labelCount * sizeof( char* ) );
+    ( *l_labelCount )++;
+    const size_t l_labelIndex = ( *l_labelCount - 1 );
+
+    g_labels = ( char** )realloc( g_labels, *l_labelCount * sizeof( char* ) );
 
     g_labels[ l_labelIndex ] = strdup( _text );
 
     g_content =
-        ( char**** )realloc( g_content, g_labelCount * sizeof( char*** ) );
+        ( char**** )realloc( g_content, *l_labelCount * sizeof( char*** ) );
 
     g_content[ l_labelIndex ] = ( char*** )malloc( 1 * sizeof( char** ) );
     g_content[ l_labelIndex ][ 0 ] = ( char** )malloc( 1 * sizeof( char* ) );
@@ -120,7 +129,9 @@ static char*** getContentByIndex( const size_t _labelIndex ) {
 }
 
 static void addContent( const char* _text, const content_t _contentType ) {
-    const size_t l_labelIndex = ( g_labelCount - 1 );
+    const size_t* l_labelCount = getLabelCount();
+
+    const size_t l_labelIndex = ( *l_labelCount - 1 );
     const size_t l_keysCount =
         ( size_t )( g_content[ l_labelIndex ][ 0 ][ 0 ] );
 
@@ -147,7 +158,9 @@ static size_t getKeyIndex( char*** _content, const char* _key ) {
 }
 
 static void addKey( const char* _text ) {
-    const size_t l_labelIndex = ( g_labelCount - 1 );
+    const size_t* l_labelCount = getLabelCount();
+
+    const size_t l_labelIndex = ( *l_labelCount - 1 );
 
     ( *( size_t* )( &( g_content[ l_labelIndex ][ 0 ][ 0 ] ) ) )++;
 
@@ -268,13 +281,15 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
     if ( l_keyIndex == UINT32_MAX ) {
         l_returnValue = ENOKEY;
 
-        const size_t l_labelCount = g_labelCount;
-        g_labelCount = ( l_labelIndex + 1 );
+        size_t* l_labelCount = getLabelCount();
+
+        const size_t l_labelCountBackup = *l_labelCount;
+        *l_labelCount = ( l_labelIndex + 1 );
 
         addKey( _key );
         addValue( _value );
 
-        g_labelCount = l_labelCount;
+        *l_labelCount = l_labelCountBackup;
 
         goto EXIT;
     }
@@ -346,7 +361,9 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
     FILE* l_fileHandle = fopen( _fileName, "w" );
 
     if ( l_fileHandle ) {
-        for ( size_t _labelIndex = 0; _labelIndex < g_labelCount;
+        const size_t l_labelCount = *( getLabelCount() );
+
+        for ( size_t _labelIndex = 0; _labelIndex < l_labelCount;
               _labelIndex++ ) {
             const char* l_label = g_labels[ _labelIndex ];
             const size_t l_labelLength = strlen( l_label );
@@ -417,21 +434,42 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
 uint16_t freeSettingsTable( void ) {
     uint16_t l_returnValue = 1;
 
+    const size_t* l_labelCount = getLabelCount();
+
 #if 0
-    while ( g_labelCount ) {
+    while ( *l_labelCount ) {
         freeLabelByIndex( 0 );
     }
 #endif
 
-    const size_t l_labelCount = g_labelCount;
+    const size_t l_labelCountBackup = *l_labelCount;
 
-    for ( size_t _labelIndex = 0; _labelIndex < l_labelCount; _labelIndex++ ) {
+    for ( size_t _labelIndex = 0; _labelIndex < l_labelCountBackup;
+          _labelIndex++ ) {
         freeLabelByIndex( _labelIndex );
     }
 
-    if ( ( !g_labels ) && ( !g_content ) && ( !g_labelCount ) ) {
+    if ( ( !g_labels ) && ( !g_content ) && ( !*l_labelCount ) ) {
         l_returnValue = 0;
     }
 
     return ( l_returnValue );
+}
+
+void printSettings( void ) {
+    const size_t l_labelCount = *( getLabelCount() );
+
+    for ( size_t _labelIndex = 0; _labelIndex < l_labelCount; _labelIndex++ ) {
+        const size_t l_keysCount =
+            ( size_t )( g_content[ _labelIndex ][ 0 ][ 0 ] );
+
+        for ( size_t _keyIndex = 1; _keyIndex < l_keysCount; _keyIndex++ ) {
+            const char* l_label = g_labels[ _labelIndex ];
+            char*** l_content = g_content[ _labelIndex ];
+            const char* l_key = l_content[ _keyIndex ][ 0 ];
+            const char* l_value = l_content[ _keyIndex ][ 1 ];
+
+            printf( "[%s]\n%s=%s\n", l_label, l_key, l_value );
+        }
+    }
 }

@@ -11,6 +11,7 @@
 #include "misc.h"
 #include "patch_t.h"
 #include "player_t.h"
+#include "stdfunc.h"
 
 uint32_t g_currentMenuIndex = 0;
 uint32_t g_menuConfirmState = 0;
@@ -19,45 +20,6 @@ uint32_t g_roundStartCounter = 0;
 uint8_t g_SFXMute[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
-
-size_t lengthOfsize( size_t _number ) {
-    size_t l_length = 0;
-
-#pragma GCC ivdep
-    do {
-        l_length++;
-        _number /= 10;
-    } while ( _number != 0 );
-
-    return ( l_length );
-}
-
-char* stoa( size_t _number ) {
-#define BUFSIZE ( sizeof( size_t ) * 8 + 1 )
-
-    const size_t l_lengthOfNumber = lengthOfsize( _number );
-    char* l_buffer = ( char* )malloc( l_lengthOfNumber + 1 );
-    register uint32_t l_characterIndex;
-    char *l_tail, *l_head = l_buffer, l_buf[ BUFSIZE ];
-
-    l_tail = &( l_buf[ BUFSIZE - 1 ] );
-    *l_tail-- = '\0';
-
-    l_characterIndex = 1;
-
-#pragma GCC ivdep
-    for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
-        ++l_characterIndex;
-
-        *l_tail-- = ( char )( ( _number % 10 ) + '0' );
-    }
-
-    memcpy( l_head, ++l_tail, l_characterIndex );
-
-    return ( l_buffer );
-
-#undef BUFSIZE
-}
 
 void extraTexturesCallBack( void ) {
     uint16_t l_result = _useCallback( "extraTextures" );

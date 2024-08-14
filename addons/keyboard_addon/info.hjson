@@ -7,10 +7,10 @@
     main: keyboard.dll
     events: {
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
-        mainLoop$newFrame: mainLoop$newFrame
-        keyboard$getInput$end : keyboard$getInput$end
-        keyboard$applyInput: keyboard$applyInput
         gameMode$versus: gameMode$versus
+        mainLoop$newFrame: mainLoop$newFrame
+        # keyboard$getInput$end : keyboard$getInput$end
+        keyboard$applyInput: keyboard$applyInput
         # extraDraw: extraDrawCallback
     }
 }

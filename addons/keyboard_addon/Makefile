@@ -18,6 +18,7 @@ CXXEXTRA              = -Ofast \
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
+			-I ../../stdfunc/include \
 			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
 			-I controls_parse/include \
@@ -33,6 +34,7 @@ LIBRARIES             =
 
 keyboard_dll_MODULE= keyboard.dll
 keyboard_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
+		     ../../stdfunc/src/stdfunc.c \
 		     ../../states_dll/_useCallback/src/_useCallback.c
 keyboard_dll_CXX_SRCS=
 keyboard_dll_RC_SRCS=
