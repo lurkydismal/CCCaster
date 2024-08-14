@@ -15,6 +15,7 @@
 #include "direction_t.h"
 #include "native.h"
 #include "player_t.h"
+#include "stdfunc.h"
 
 const size_t g_keyboardLayoutKeys[] = {
     VK_ESCAPE,     VK_F1,       VK_F2,     VK_F3,       VK_F4,
@@ -83,25 +84,14 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
 
     if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
                        "keyboard" ) != 0 ) {
-        const char l_defaultSettings[] =
-            "[keyboard]\n"
-            "8 = 38\n"
-            "6 = 39\n"
-            "2 = 40\n"
-            "4 = 37\n"
-            "A = 90\n"
-            "B = 88\n"
-            "C = 67\n"
-            "D = 86\n"
-            "E = 68\n"
-            "AB = 83\n"
-            "FN1 = 221\n"
-            "FN2 = 82\n"
-            "START = 84\n"
-            "ToggleOverlay_KeyConfig_Native = 115\n";
-
-        _useCallback( "core$readSettingsFromString", l_defaultSettings );
+        _useCallback( "core$readSettingsFromString", DEFAULT_SETTINGS );
     }
+
+    return ( 0 );
+}
+
+uint16_t __declspec( dllexport ) gameMode$versus( void** _callbackArguments ) {
+    g_disableMenu = true;
 
     return ( 0 );
 }
@@ -119,23 +109,50 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
         return ( l_returnValue );
     }
 
-    char** l_activeMappedKeys;
-    uint8_t* l_activeKeys;
+    char** l_activeMappedKeys = ( char** )createArray( sizeof( char* ) );
+
+    uint32_t* l_activeKeys = ( uint32_t* )createArray( sizeof( uint8_t ) );
 
 #define KEYS_TOTAL ( 0xFE + 1 )
 
-    for ( uint8_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
+    for ( uint32_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
         if ( !( _index == VK_MENU ) && !( _index == VK_SHIFT ) &&
              !( _index == VK_CONTROL ) ) {
             if ( GetKeyState( _index ) & 0x8000 ) {
-                const std::string l_indexAsString = std::to_string( _index );
+                const char* l_indexAsString = stoa( _index );
+                _useCallback( "log$transaction$query", l_indexAsString );
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
 
-                if ( g_jsonControlsKeyboard.contains( l_indexAsString ) ) {
-                    l_activeMappedKeys.insert(
-                        g_jsonControlsKeyboard.at( l_indexAsString ) );
+                const size_t l_keyboardLayoutKeysLength =
+                    ( sizeof( g_keyboardLayoutKeys ) /
+                      sizeof( g_keyboardLayoutKeys[ 0 ] ) );
+                const char* l_x = stoa( l_keyboardLayoutKeysLength );
+                _useCallback( "log$transaction$query", l_x );
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
+
+                if ( contains( ( const void** )g_keyboardLayoutKeys,
+                               l_keyboardLayoutKeysLength, ( void* )_index,
+                               sizeof( _index ) ) ) {
+                    _useCallback( "log$transaction$query",
+                                  "333333333333333\n" );
+                    _useCallback( "log$transaction$commit" );
+                    insertIntoArray(
+                        ( void*** )( &l_activeMappedKeys ),
+                        ( void* )( g_keyboardLayoutValues[ findInArray(
+                            ( const void** )g_keyboardLayoutKeys,
+                            l_keyboardLayoutKeysLength, ( void* )_index,
+                            sizeof( _index ) ) ] ),
+                        sizeof( l_activeMappedKeys[ 0 ] ) );
 
                 } else {
-                    l_activeKeys.insert( _index );
+                    _useCallback( "log$transaction$query",
+                                  "222222222222222\n" );
+                    _useCallback( "log$transaction$commit" );
+                    insertIntoArray( ( void*** )( &l_activeKeys ),
+                                     ( void* )_index,
+                                     sizeof( l_activeKeys[ 0 ] ) );
                 }
             }
         }
@@ -143,25 +160,25 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
 #undef KEY_NUMBER
 
-    l_returnValue = _useCallback( "keyboard$getInput$end", 2,
-                                  &l_activeMappedKeys, &l_activeKeys );
-    l_returnValue =
-        _useCallback( "keyboard$applyInput", 1, &l_activeMappedKeys );
+    l_returnValue = _useCallback( "keyboard$getInput$end", &l_activeMappedKeys,
+                                  &l_activeKeys );
+    l_returnValue = _useCallback( "keyboard$applyInput", &l_activeMappedKeys );
 
     return ( l_returnValue );
 }
 
-#if 0
 uint16_t __declspec( dllexport ) keyboard$applyInput(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
+
+#if 0
     std::set< std::string >* _activeMappedKeys =
         ( std::set< std::string >* )_callbackArguments[ 0 ];
     direction_t l_direction = NEUTRAL_DIRECTION;
     button_t l_buttons = NEUTRAL_BUTTON;
     player_t l_localPlayer = FIRST;
 
-    l_returnValue = _useCallback( "keyboard$applyInput$begin", 2,
+    l_returnValue = _useCallback( "keyboard$applyInput$begin",
                                   _activeMappedKeys, &l_localPlayer );
 
     if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
@@ -245,22 +262,16 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
 
     {
         if ( !( g_activeFlagsOverlay & SHOW_NATIVE ) ) {
-            l_returnValue = _useCallback( "game$applyInput", 3, &l_buttons,
+            l_returnValue = _useCallback( "game$applyInput", &l_buttons,
                                           &l_direction, &l_localPlayer );
         }
     }
 
     l_returnValue =
-        _useCallback( "keyboard$applyInput$end", 1, _activeMappedKeys );
+        _useCallback( "keyboard$applyInput$end", _activeMappedKeys );
+#endif
 
     return ( l_returnValue );
-}
-
-uint16_t __declspec( dllexport ) gameMode$versus(
-    void** _callbackArguments ) {
-    g_disableMenu = true;
-
-    return ( 0 );
 }
 
 #if 0
@@ -427,7 +438,7 @@ uint16_t __declspec( dllexport ) extraDrawCallback(
                 uint32_t l_color = 0;
                 struct rectangle l_background;
 
-                _useCallback( "native$getColorForRectangle", 5, &l_alpha,
+                _useCallback( "native$getColorForRectangle", &l_alpha,
                               &l_red, &l_green, &l_blue, &l_color );
 
                 l_background.colorsForRectangle = { l_color, l_color, l_color,
@@ -467,7 +478,7 @@ uint16_t __declspec( dllexport ) extraDrawCallback(
                     const uint8_t l_blue = 0;
                     uint32_t l_color = 0;
 
-                    _useCallback( "native$getColorForRectangle", 5, &l_alpha,
+                    _useCallback( "native$getColorForRectangle", &l_alpha,
                                   &l_red, &l_green, &l_blue, &l_color );
 
                     l_textBackground.colorsForRectangle = { l_color, l_color,
@@ -570,7 +581,7 @@ uint16_t __declspec( dllexport ) extraDrawCallback(
                             const uint8_t l_blue = 0;
                             uint32_t l_color = 0;
 
-                            _useCallback( "native$getColorForRectangle", 5,
+                            _useCallback( "native$getColorForRectangle",
                                           &l_alpha, &l_red, &l_green, &l_blue,
                                           &l_color );
 
@@ -613,7 +624,7 @@ uint16_t __declspec( dllexport ) extraDrawCallback(
                             const uint8_t l_blue = 0xFF;
                             uint32_t l_color = 0;
 
-                            _useCallback( "native$getColorForRectangle", 5,
+                            _useCallback( "native$getColorForRectangle",
                                           &l_alpha, &l_red, &l_green, &l_blue,
                                           &l_color );
 
@@ -639,7 +650,7 @@ uint16_t __declspec( dllexport ) extraDrawCallback(
             {
                 for ( const struct rectangle _rectangle : l_rectangles ) {
                     _useCallback(
-                        "native$drawRectangle", 9, &_rectangle.coordinates.x,
+                        "native$drawRectangle", &_rectangle.coordinates.x,
                         &_rectangle.coordinates.y, &_rectangle.size.width,
                         &_rectangle.size.height,
                         &_rectangle.colorsForRectangle.a,
@@ -658,7 +669,7 @@ uint16_t __declspec( dllexport ) extraDrawCallback(
                     char* l_out = 0;
 
                     for ( const struct text _text : l_texts ) {
-                        _useCallback( "native$drawText", 12, &_text.size.width,
+                        _useCallback( "native$drawText", &_text.size.width,
                                       &_text.size.height, &_text.coordinates.x,
                                       &_text.coordinates.y, &_text.content,
                                       &_text.alpha, &_text.shade, &_text.shade2,

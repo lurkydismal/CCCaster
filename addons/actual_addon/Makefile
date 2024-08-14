@@ -17,6 +17,7 @@ CXXEXTRA              = -Ofast \
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
+			 -I ../../stdfunc/include \
 			-I addon_callbacks/include \
 			-I patch_callbacks/include \
 			-I patch_t/include \
@@ -36,6 +37,7 @@ actual_addon_dll_C_SRCS= src/main.c \
 			 patch_t/src/patch_t.c \
 			 patch_callbacks/src/patch_callbacks.c \
 			 settings_parser/src/settings_parser.c \
+			 ../../stdfunc/src/stdfunc.c \
 			 ../../states_dll/_useCallback/src/_useCallback.c
 actual_addon_dll_CXX_SRCS=
 actual_addon_dll_RC_SRCS=
