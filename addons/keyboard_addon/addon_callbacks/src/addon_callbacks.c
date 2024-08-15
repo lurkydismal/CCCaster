@@ -127,23 +127,26 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
                 const size_t l_keyboardLayoutKeysLength =
                     ( sizeof( g_keyboardLayoutKeys ) /
                       sizeof( g_keyboardLayoutKeys[ 0 ] ) );
-                const char* l_x = stoa( l_keyboardLayoutKeysLength );
-                _useCallback( "log$transaction$query", l_x );
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
 
                 if ( contains( ( const void** )g_keyboardLayoutKeys,
                                l_keyboardLayoutKeysLength, ( void* )_index,
                                sizeof( _index ) ) ) {
-                    _useCallback( "log$transaction$query",
-                                  "333333333333333\n" );
+                    _useCallback( "log$transaction$query", "index: " );
+
+                    const size_t l_index =
+                        findInArray( ( const void** )g_keyboardLayoutKeys,
+                                     l_keyboardLayoutKeysLength,
+                                     ( void* )_index, sizeof( _index ) );
+
+                    char* l_temp = stoa( l_index );
+                    _useCallback( "log$transaction$query", l_temp );
+                    free( l_temp );
+                    _useCallback( "log$transaction$query", "\n" );
                     _useCallback( "log$transaction$commit" );
+
                     insertIntoArray(
                         ( void*** )( &l_activeMappedKeys ),
-                        ( void* )( g_keyboardLayoutValues[ findInArray(
-                            ( const void** )g_keyboardLayoutKeys,
-                            l_keyboardLayoutKeysLength, ( void* )_index,
-                            sizeof( _index ) ) ] ),
+                        ( void* )( g_keyboardLayoutValues[ l_index ] ),
                         sizeof( l_activeMappedKeys[ 0 ] ) );
 
                 } else {
