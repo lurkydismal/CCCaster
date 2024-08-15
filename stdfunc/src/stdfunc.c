@@ -5,6 +5,10 @@
 #include <stdio.h>
 
 size_t lengthOfSize( size_t _number ) {
+    if ( _number == 0 ) {
+        return ( 1 );
+    }
+
     size_t l_length = 0;
 
 #pragma GCC ivdep
@@ -26,15 +30,25 @@ char* stoa( size_t _number ) {
     l_tail = &( l_buf[ BUFSIZE - 1 ] );
     *l_tail-- = '\0';
 
-    register uint32_t l_characterIndex;
+    register uint32_t l_characterIndex = 2;
 
-#pragma GCC ivdep
-    for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
-        ++l_characterIndex;
+    if ( l_lengthOfNumber == 1 ) {
+        *l_tail-- = (char)( _number + '0' );
 
-        *l_tail-- = ( char )( ( _number % 10 ) + '0' );
+        goto EXIT;
     }
 
+    {
+
+#pragma GCC ivdep
+        for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
+            ++l_characterIndex;
+
+            *l_tail-- = ( char )( ( _number % 10 ) + '0' );
+        }
+    }
+
+EXIT:
     memcpy( l_head, ++l_tail, l_characterIndex );
 
     return ( l_buffer );
@@ -64,15 +78,8 @@ void insertIntoArray( void*** _array,
 }
 
 size_t findInArray( const void** _array, const size_t _arrayLength, const void* _value, const size_t _valueBytesCount ) {
-    printf( "findInArray: %p %lu %p %lu\n", _array, _arrayLength, _value, _valueBytesCount );
-    printf( "findInArray: %lu\n", _value );
-
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
-        printf( "findInArray: %lu\n", _index );
-        printf( "findInArray: %p\n", _array[ _index ] );
-        printf( "findInArray: %lu\n", _array[ _index ] );
-
-        if ( memcmp( _array[ _index ], _value, _valueBytesCount ) == 0 ) {
+        if ( memcmp( &( _array[ _index ] ), &_value, _valueBytesCount ) == 0 ) {
             return ( _index );
         }
     }
@@ -81,7 +88,5 @@ size_t findInArray( const void** _array, const size_t _arrayLength, const void* 
 }
 
 bool contains( const void** _array, const size_t _arrayLength, const void* _value, const size_t _valueBytesCount ) {
-    printf( "contains: %p %lu %p %lu\n", _array, _arrayLength, _value, _valueBytesCount );
-
     return ( findInArray( _array, _arrayLength, _value, _valueBytesCount ) != UINT32_MAX );
 }
