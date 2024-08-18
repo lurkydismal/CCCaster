@@ -2,6 +2,5 @@ LIBRARY keyboard
 EXPORTS
 
 IDirect3D9Ex$CreateDevice
-gameMode$versus
 mainLoop$newFrame
 keyboard$applyInput
