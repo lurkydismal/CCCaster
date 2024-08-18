@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 size_t lengthOfSize( size_t _number ) {
     if ( _number == 0 ) {
@@ -77,16 +76,32 @@ void insertIntoArray( void*** _array,
     ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
 }
 
-size_t findInArray( const void** _array, const size_t _arrayLength, const void* _value, const size_t _valueBytesCount ) {
-    for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
-        if ( memcmp( &( _array[ _index ] ), &_value, _valueBytesCount ) == 0 ) {
+ssize_t findStringInArray( const char** _array, const char* _value ) {
+    const size_t l_arrayLength = (size_t)( _array[ 0 ]  );
+
+    for ( size_t _index = 1; _index < l_arrayLength; _index++ ) {
+        if ( strcmp(  _array[ _index ], _value ) == 0 ) {
             return ( _index );
         }
     }
 
-    return ( UINT32_MAX );
+    return ( -1 );
 }
 
-bool contains( const void** _array, const size_t _arrayLength, const void* _value, const size_t _valueBytesCount ) {
-    return ( findInArray( _array, _arrayLength, _value, _valueBytesCount ) != UINT32_MAX );
+ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
+    for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
+        if ( _array[ _index ] == _value ) {
+            return ( _index );
+        }
+    }
+
+    return ( -1 );
+}
+
+bool containsString( const char** _array, const char* _value ) {
+    return ( findStringInArray( _array, _value ) >= 0 );
+}
+
+bool contains( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
+    return ( findInArray( _array, _arrayLength, _value ) >= 0 );
 }

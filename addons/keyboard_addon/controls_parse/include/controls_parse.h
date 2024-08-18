@@ -4,17 +4,17 @@ extern char*** g_settings;
 
 #define DEFAULT_SETTINGS \
     ( "[keyboard]\n"     \
-      "8 = 38\n"         \
-      "6 = 39\n"         \
-      "2 = 40\n"         \
-      "4 = 37\n"         \
-      "A = 90\n"         \
-      "B = 88\n"         \
-      "C = 67\n"         \
-      "D = 86\n"         \
-      "E = 68\n"         \
-      "AB = 83\n"        \
-      "FN1 = 221\n"      \
-      "FN2 = 82\n"       \
-      "START = 84\n"     \
-      "ToggleOverlay_KeyConfig_Native = 115\n" )
+      "8 = Up\n"         \
+      "6 = Right\n"      \
+      "2 = Down\n"       \
+      "4 = Left\n"       \
+      "A = Z\n"          \
+      "B = X\n"          \
+      "C = C\n"          \
+      "D = V\n"          \
+      "E = D\n"          \
+      "AB = S\n"         \
+      "FN1 = ]\n"        \
+      "FN2 = R\n"        \
+      "START = T\n"      \
+      "ToggleOverlay_KeyConfig_Native = F4\n" )

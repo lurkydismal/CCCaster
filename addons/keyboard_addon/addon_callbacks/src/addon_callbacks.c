@@ -17,7 +17,7 @@
 #include "player_t.h"
 #include "stdfunc.h"
 
-const size_t g_keyboardLayoutKeys[] = {
+static const size_t g_keyboardLayoutKeys[] = {
     VK_ESCAPE,     VK_F1,       VK_F2,     VK_F3,       VK_F4,
     VK_F5,         VK_F6,       VK_F7,     VK_F8,       VK_F9,
     VK_F10,        VK_F11,      VK_F12,    VK_PAUSE,    VK_OEM_3,
@@ -36,7 +36,7 @@ const size_t g_keyboardLayoutKeys[] = {
     VK_LMENU,      VK_SPACE,    VK_RMENU,  VK_RCONTROL, VK_LEFT,
     VK_DOWN,       VK_RIGHT };
 
-const char* g_keyboardLayoutValues[] = {
+static const char* g_keyboardLayoutValues[] = {
     "Esc",    "F1",     "F2",      "F3",   "F4",     "F5",      "F6",
     "F7",     "F8",     "F9",      "F10",  "F11",    "F12",     "Pause",
     "~",      "1",      "2",       "3",    "4",      "5",       "6",
@@ -51,10 +51,6 @@ const char* g_keyboardLayoutValues[] = {
     "R.Alt",  "R.Ctrl", "Left",    "Down", "Right" };
 
 static HWND g_hFocusWindow;
-static uint32_t g_framesPassed = 0;
-static uint32_t g_activeFlagsOverlay = 0;
-static bool g_disableMenu = false;
-static uint16_t g_menuCursorIndex = 0;
 
 useCallbackFunction_t g_useCallback;
 char*** g_settings;
@@ -85,77 +81,107 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
                        "keyboard" ) != 0 ) {
         _useCallback( "core$readSettingsFromString", DEFAULT_SETTINGS );
+
+        _useCallback( "core$getSettingsContentByLabel", &g_settings,
+                      "keyboard" );
     }
 
     return ( 0 );
 }
 
+#if 0
 uint16_t __declspec( dllexport ) gameMode$versus( void** _callbackArguments ) {
     g_disableMenu = true;
 
     return ( 0 );
 }
+#endif
 
 uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-    if ( g_framesPassed < ( UINT32_MAX - 1 ) ) {
-        g_framesPassed++;
-    }
+    char** l_activeMappedKeys = ( char** )createArray( sizeof( char* ) );
 
     if ( ( GetActiveWindow() != g_hFocusWindow ) ||
          ( g_hFocusWindow == NULL ) ) {
+        l_returnValue =
+            _useCallback( "keyboard$applyInput", &l_activeMappedKeys );
+
         return ( l_returnValue );
     }
 
-    char** l_activeMappedKeys = ( char** )createArray( sizeof( char* ) );
-
-    uint32_t* l_activeKeys = ( uint32_t* )createArray( sizeof( uint8_t ) );
+    char** l_activeKeys = ( char** )createArray( sizeof( char* ) );
 
 #define KEYS_TOTAL ( 0xFE + 1 )
 
-    for ( uint32_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
-        if ( !( _index == VK_MENU ) && !( _index == VK_SHIFT ) &&
-             !( _index == VK_CONTROL ) ) {
+    for ( uint8_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
+        if ( ( _index != VK_MENU ) && ( _index != VK_SHIFT ) &&
+             ( _index != VK_CONTROL ) ) {
             if ( GetKeyState( _index ) & 0x8000 ) {
-                const char* l_indexAsString = stoa( _index );
-                _useCallback( "log$transaction$query", l_indexAsString );
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
-
                 const size_t l_keyboardLayoutKeysLength =
                     ( sizeof( g_keyboardLayoutKeys ) /
                       sizeof( g_keyboardLayoutKeys[ 0 ] ) );
 
-                if ( contains( ( const void** )g_keyboardLayoutKeys,
-                               l_keyboardLayoutKeysLength, ( void* )_index,
-                               sizeof( _index ) ) ) {
-                    _useCallback( "log$transaction$query", "index: " );
+                if ( contains( g_keyboardLayoutKeys, l_keyboardLayoutKeysLength,
+                               _index ) ) {
+                    const char* l_keyboardLayoutValue =
+                        g_keyboardLayoutValues[ findInArray(
+                            g_keyboardLayoutKeys, l_keyboardLayoutKeysLength,
+                            _index ) ];
 
-                    const size_t l_index =
-                        findInArray( ( const void** )g_keyboardLayoutKeys,
-                                     l_keyboardLayoutKeysLength,
-                                     ( void* )_index, sizeof( _index ) );
+                    ssize_t l_mappedButtonKeyIndex = -1;
 
-                    char* l_temp = stoa( l_index );
-                    _useCallback( "log$transaction$query", l_temp );
-                    free( l_temp );
-                    _useCallback( "log$transaction$query", "\n" );
-                    _useCallback( "log$transaction$commit" );
+                    {
+                        const size_t l_mappedButtonKeysLength =
+                            ( size_t )( g_settings[ 0 ][ 0 ] );
 
-                    insertIntoArray(
-                        ( void*** )( &l_activeMappedKeys ),
-                        ( void* )( g_keyboardLayoutValues[ l_index ] ),
-                        sizeof( l_activeMappedKeys[ 0 ] ) );
+                        for ( size_t _mappedButtonKeyIndex = 1;
+                              _mappedButtonKeyIndex < l_mappedButtonKeysLength;
+                              _mappedButtonKeyIndex++ ) {
+                            const char* l_value =
+                                g_settings[ _mappedButtonKeyIndex ][ 1 ];
 
-                } else {
-                    _useCallback( "log$transaction$query",
-                                  "222222222222222\n" );
-                    _useCallback( "log$transaction$commit" );
-                    insertIntoArray( ( void*** )( &l_activeKeys ),
-                                     ( void* )_index,
-                                     sizeof( l_activeKeys[ 0 ] ) );
+                            if ( strcmp( l_value, l_keyboardLayoutValue ) ==
+                                 0 ) {
+                                l_mappedButtonKeyIndex = _mappedButtonKeyIndex;
+
+                                break;
+                            }
+                        }
+                    }
+
+                    if ( l_mappedButtonKeyIndex >= 0 ) {
+                        _useCallback( "log$transaction$query", "mapped: " );
+
+                        insertIntoArray(
+                            ( void*** )( &l_activeMappedKeys ),
+                            ( void* )( g_settings[ l_mappedButtonKeyIndex ]
+                                                 [ 0 ] ),
+                            sizeof( l_activeMappedKeys[ 0 ] ) );
+
+                        _useCallback(
+                            "log$transaction$query",
+                            l_activeMappedKeys
+                                [ ( ( size_t )( l_activeMappedKeys[ 0 ] ) ) -
+                                  1 ] );
+                        _useCallback( "log$transaction$query", "\n" );
+                        _useCallback( "log$transaction$commit" );
+
+                    } else {
+                        _useCallback( "log$transaction$query", "not mapped: " );
+
+                        insertIntoArray( ( void*** )( &l_activeKeys ),
+                                         ( void* )( l_keyboardLayoutValue ),
+                                         sizeof( l_activeKeys[ 0 ] ) );
+
+                        _useCallback(
+                            "log$transaction$query",
+                            l_activeKeys[ ( ( size_t )( l_activeKeys[ 0 ] ) ) -
+                                          1 ] );
+                        _useCallback( "log$transaction$query", "\n" );
+                        _useCallback( "log$transaction$commit" );
+                    }
                 }
             }
         }
@@ -167,6 +193,9 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
                                   &l_activeKeys );
     l_returnValue = _useCallback( "keyboard$applyInput", &l_activeMappedKeys );
 
+    free( l_activeMappedKeys );
+    free( l_activeKeys );
+
     return ( l_returnValue );
 }
 
@@ -174,105 +203,129 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-#if 0
-    std::set< std::string >* _activeMappedKeys =
-        ( std::set< std::string >* )_callbackArguments[ 0 ];
+    char*** _activeMappedKeys = ( char*** )_callbackArguments[ 0 ];
+    size_t l_activeMappedKeysLength = ( size_t )( ( *_activeMappedKeys )[ 0 ] );
     direction_t l_direction = NEUTRAL_DIRECTION;
     button_t l_buttons = NEUTRAL_BUTTON;
     player_t l_localPlayer = FIRST;
 
-    l_returnValue = _useCallback( "keyboard$applyInput$begin",
-                                  _activeMappedKeys, &l_localPlayer );
+    _useCallback( "keyboard$applyInput$begin", _activeMappedKeys,
+                  &l_localPlayer );
 
-    if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
-        l_direction = UP;
+    if ( l_activeMappedKeysLength > 1 ) {
+        if ( containsString( ( const char** )( *_activeMappedKeys ), "8" ) ) {
+            l_direction = UP;
 
-    } else if ( _activeMappedKeys->find( "2" ) != _activeMappedKeys->end() ) {
-        l_direction = DOWN;
-    }
+            l_activeMappedKeysLength--;
 
-    if ( _activeMappedKeys->find( "4" ) != _activeMappedKeys->end() ) {
-        l_direction = ( l_direction )
-                          ? static_cast< direction_t >(
-                                ( static_cast< uint8_t >( l_direction ) ) - 1 )
-                          : LEFT;
+        } else if ( containsString( ( const char** )( *_activeMappedKeys ),
+                                    "2" ) ) {
+            l_direction = DOWN;
 
-    } else if ( _activeMappedKeys->find( "6" ) != _activeMappedKeys->end() ) {
-        l_direction = ( l_direction )
-                          ? static_cast< direction_t >(
-                                ( static_cast< uint8_t >( l_direction ) ) + 1 )
-                          : RIGHT;
-    }
-
-    const std::set< std::pair< std::string, button_t > > l_temp = {
-        { "A",
-          ( static_cast< button_t >( static_cast< uint16_t >( A ) |
-                                     static_cast< uint16_t >( CONFIRM ) ) ) },
-        { "B",
-          ( static_cast< button_t >( static_cast< uint16_t >( B ) |
-                                     static_cast< uint16_t >( CANCEL ) ) ) },
-        { "C", C },
-        { "D", D },
-        { "E", E },
-        { "AB", AB },
-        { "FN1", FN1 },
-        { "FN2", FN2 },
-        { "START", START } };
-
-    for ( std::pair< std::string, button_t > const& _button : l_temp ) {
-        if ( _activeMappedKeys->find( _button.first ) !=
-             _activeMappedKeys->end() ) {
-            l_buttons = static_cast< button_t >(
-                static_cast< uint16_t >( l_buttons ) |
-                static_cast< uint16_t >( _button.second ) );
+            l_activeMappedKeysLength--;
         }
-    }
 
-    {
-        if ( g_disableMenu ) {
-            l_buttons = static_cast< button_t >(
-                static_cast< uint16_t >( l_buttons ) &
-                ~( static_cast< uint16_t >( START ) ) );
-        }
-    }
+        if ( l_activeMappedKeysLength > 1 ) {
+            if ( containsString( ( const char** )( *_activeMappedKeys ),
+                                 "4" ) ) {
+                l_direction =
+                    ( l_direction )
+                        ? ( direction_t )( ( ( uint8_t )( l_direction ) ) - 1 )
+                        : LEFT;
 
-    {
-        if ( g_framesPassed >= 30 ) {
-            if ( _activeMappedKeys->find( "ToggleOverlay_KeyConfig_Native" ) !=
-                 _activeMappedKeys->end() ) {
-                static bool l_wasOverlayToggled = false;
-                const bool l_isOverlayToggled =
-                    _useCallback( "overlay$getState" );
+                l_activeMappedKeysLength--;
 
-                if ( ( !l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
-                    _useCallback( "overlay$toggle" );
-                    l_wasOverlayToggled = true;
+            } else if ( containsString( ( const char** )( *_activeMappedKeys ),
+                                        "6" ) ) {
+                l_direction =
+                    ( l_direction )
+                        ? ( direction_t )( ( ( uint8_t )( l_direction ) ) + 1 )
+                        : RIGHT;
 
-                    g_activeFlagsOverlay = SHOW_NATIVE;
+                l_activeMappedKeysLength--;
+            }
 
-                } else if ( ( l_isOverlayToggled ) &&
-                            ( l_wasOverlayToggled ) ) {
-                    _useCallback( "overlay$toggle" );
-                    l_wasOverlayToggled = false;
+            if ( l_activeMappedKeysLength > 1 ) {
+                const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
+                                             "AB", "FN1", "FN2", "START" };
 
-                    g_activeFlagsOverlay &= ~SHOW_NATIVE;
+                const button_t l_tempValues[] = {
+                    ( ( button_t )( ( uint16_t )( A ) |
+                                    ( uint16_t )( CONFIRM ) ) ),
+                    ( ( button_t )( ( uint16_t )( B ) |
+                                    ( uint16_t )( CANCEL ) ) ),
+                    C,
+                    D,
+                    E,
+                    AB,
+                    FN1,
+                    FN2,
+                    START };
+
+                for ( size_t _index = 0;
+                      ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) );
+                      _index++ ) {
+                    if ( l_activeMappedKeysLength <= 1 ) {
+                        break;
+                    }
+
+                    const char* l_key = l_tempKeys[ _index ];
+
+                    if ( containsString( ( const char** )( *_activeMappedKeys ),
+                                         l_key ) ) {
+                        const button_t l_value = l_tempValues[ _index ];
+                        l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
+                                                  ( uint16_t )( l_value ) );
+
+                        l_activeMappedKeysLength--;
+                    }
                 }
 
-                g_framesPassed = 0;
+#if 0
+                {
+                    if ( g_disableMenu ) {
+                        l_buttons = ( button_t )( ( uint16_t )( l_buttons ) & ~( ( uint16_t )( START ) ) );
+                    }
+                }
+
+                {
+                    if ( g_framesPassed >= 30 ) {
+                        const char l_temp = "ToggleOverlay_KeyConfig_Native";
+                        const size_t l_tempBytesCount = ( strlen( l_temp ) + 1 );
+
+                        if ( containsString( (const char**)( *_activeMappedKeys ), l_temp, l_tempBytesCount ) ) {
+                            static bool l_wasOverlayToggled = false;
+                            const bool l_isOverlayToggled =
+                                _useCallback( "overlay$getState" );
+
+                            if ( ( !l_isOverlayToggled ) && ( !l_wasOverlayToggled ) ) {
+                                _useCallback( "overlay$toggle" );
+                                l_wasOverlayToggled = true;
+
+                                g_activeFlagsOverlay = SHOW_NATIVE;
+
+                            } else if ( ( l_isOverlayToggled ) &&
+                                    ( l_wasOverlayToggled ) ) {
+                                _useCallback( "overlay$toggle" );
+                                l_wasOverlayToggled = false;
+
+                                g_activeFlagsOverlay &= ~SHOW_NATIVE;
+                            }
+
+                            g_framesPassed = 0;
+                        }
+                    }
+                }
+#endif
             }
         }
     }
 
-    {
-        if ( !( g_activeFlagsOverlay & SHOW_NATIVE ) ) {
-            l_returnValue = _useCallback( "game$applyInput", &l_buttons,
-                                          &l_direction, &l_localPlayer );
-        }
-    }
+    _useCallback( "keyboard$applyInput$end", &l_buttons, &l_direction,
+                  &l_localPlayer );
 
-    l_returnValue =
-        _useCallback( "keyboard$applyInput$end", _activeMappedKeys );
-#endif
+    l_returnValue = _useCallback( "game$applyInput", &l_buttons, &l_direction,
+                                  &l_localPlayer );
 
     return ( l_returnValue );
 }
