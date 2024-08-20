@@ -3,7 +3,7 @@
 #include "settings_parser.h"
 
 int main( void ) {
-    if ( readSettingsFromFile( "t.ini" ) == 0 ) {
+    if ( readSettingsFromFile( "1t.ini" ) == 0 ) {
         printf( "1\n" );
 
         printSettings();
@@ -34,6 +34,17 @@ int main( void ) {
             "115 = ToggleOverlay_KeyConfig_Native\n";
 
         readSettingsFromString( l_defaultSettings );
+
+        printSettings();
+
+        const char l_defaultSettings2[] =
+            "[keyboard]\n"
+            "83 = AB\n"
+            "221 = FN1\n"
+            "82 = FN2\n"
+            "84 = START\n";
+
+        readSettingsFromString( l_defaultSettings2 );
 
         printSettings();
 
