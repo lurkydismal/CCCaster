@@ -217,9 +217,11 @@ static void parseLine( char* _text ) {
 
         const size_t l_labelIndex = getLabelIndex( l_label );
 
-        if ( l_labelIndex == UINT32_MAX ) {
-            addLabel( l_label );
+        if ( l_labelIndex != UINT32_MAX ) {
+            freeLabelByIndex( l_labelIndex );
         }
+
+        addLabel( l_label );
 
     } else {
         for ( size_t _index = 0; _index < ( l_textLength - 1 ); _index++ ) {
