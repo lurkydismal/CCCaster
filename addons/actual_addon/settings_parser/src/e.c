@@ -34,7 +34,7 @@ int main( void ) {
         printf( "Hello from process: %d\n", omp_get_thread_num() );
     }
 
-#pragma omp parallel
+#pragma omp parallel for
     for ( size_t i = 1; i < (size_t)( l_array[ 0 ] ); i++ ) {
         l_array[ i ] = (char*)mi_malloc( ( tempLength + 1 ) * sizeof( char ) );
 
@@ -82,7 +82,7 @@ int main( void ) {
     }
 #endif
 
-#pragma omp parallel
+#pragma omp parallel for
     for ( size_t i = 1; i < (size_t)( l_array[ 0 ] ); i++ ) {
         mi_free( l_array [ i ] );
     }
