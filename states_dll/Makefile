@@ -13,10 +13,11 @@ CEXTRA                = -Ofast \
 			-std=c11
 CXXEXTRA              = -Ofast \
 			-m32 \
-			-std=c++11
+			-std=c++17 \
+			-Wno-narrowing
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          =
+INCLUDE_PATH          = -I include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
