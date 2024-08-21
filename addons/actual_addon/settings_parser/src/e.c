@@ -21,24 +21,23 @@
 int main( void ) {
     printf( "being\n" );
 
-    char** l_array = (char**)mi_malloc( ARRAY_LENGTH * sizeof( char* ) );
-    ( *(size_t*)( &( l_array[ 0 ] ) ) ) = ARRAY_LENGTH;
+    char** l_array = ( char** )mi_malloc( ARRAY_LENGTH * sizeof( char* ) );
+    ( *( size_t* )( &( l_array[ 0 ] ) ) ) = ARRAY_LENGTH;
 
-    printf( "s: %lu\n", (size_t)( l_array[ 0 ] ) );
+    printf( "s: %lu\n", ( size_t )( l_array[ 0 ] ) );
 
     char temp[] = "teasdasd";
     const unsigned int tempLength = strlen( temp );
 
 #pragma omp parallel
-    {
-        printf( "Hello from process: %d\n", omp_get_thread_num() );
-    }
+    { printf( "Hello from process: %d\n", omp_get_thread_num() ); }
 
 #pragma omp parallel for
-    for ( size_t i = 1; i < (size_t)( l_array[ 0 ] ); i++ ) {
-        l_array[ i ] = (char*)mi_malloc( ( tempLength + 1 ) * sizeof( char ) );
+    for ( size_t i = 1; i < ( size_t )( l_array[ 0 ] ); i++ ) {
+        l_array[ i ] =
+            ( char* )mi_malloc( ( tempLength + 1 ) * sizeof( char ) );
 
-        char* l_buffer = (char*)mi_malloc( tempLength );
+        char* l_buffer = ( char* )mi_malloc( tempLength );
 
 #pragma omp simd
         for ( size_t j = 0; j < tempLength; j++ ) {
@@ -51,14 +50,13 @@ int main( void ) {
         mi_free( l_buffer );
     }
 
-
 #if 0
     for ( int i = 1; i < (size_t)( l_array[ 0 ] ); i++ ) {
         printf( "%s : %d\n", l_array[ i ], i );
     }
 #endif
 
-    printf( "%lu\n", (size_t)( l_array[ 0 ] ) );
+    printf( "%lu\n", ( size_t )( l_array[ 0 ] ) );
 
     ( *( size_t* )( &( l_array[ 0 ] ) ) )--;
 
@@ -69,12 +67,12 @@ int main( void ) {
 
         size_t i;
 
-        for ( i = index; i < (size_t)( l_array[ 0 ] ); i++ ) {
+        for ( i = index; i < ( size_t )( l_array[ 0 ] ); i++ ) {
             l_array[ i ] = l_array[ i + 1 ];
         }
     }
 
-    printf( "%lu\n", (size_t)( l_array[ 0 ] ) );
+    printf( "%lu\n", ( size_t )( l_array[ 0 ] ) );
 
 #if 0
     for ( int i = 1; i < (size_t)( l_array[ 0 ] ); i++ ) {
@@ -83,8 +81,8 @@ int main( void ) {
 #endif
 
 #pragma omp parallel for
-    for ( size_t i = 1; i < (size_t)( l_array[ 0 ] ); i++ ) {
-        mi_free( l_array [ i ] );
+    for ( size_t i = 1; i < ( size_t )( l_array[ 0 ] ); i++ ) {
+        mi_free( l_array[ i ] );
     }
 
     mi_free( l_array );

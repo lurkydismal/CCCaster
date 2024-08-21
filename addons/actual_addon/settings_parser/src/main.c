@@ -12,7 +12,6 @@ int main( void ) {
         changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" );
 
         writeSettingsToFile( "tc.ini" );
-
     }
 
     printf( "2\n" );

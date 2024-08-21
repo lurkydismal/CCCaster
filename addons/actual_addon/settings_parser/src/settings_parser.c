@@ -70,9 +70,10 @@ static void freeLabelByIndex( const size_t _labelIndex ) {
     }
 
     if ( *l_labelCount ) {
-        g_labels = (char**)realloc( g_labels, *l_labelCount * sizeof( char* ) );
-        g_content = (char****)realloc( g_content, *l_labelCount * sizeof( char*** ) );
-
+        g_labels =
+            ( char** )realloc( g_labels, *l_labelCount * sizeof( char* ) );
+        g_content =
+            ( char**** )realloc( g_content, *l_labelCount * sizeof( char*** ) );
     }
 #if 0
     else {

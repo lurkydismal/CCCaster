@@ -1,13 +1,14 @@
 #include <errno.h>
 #include <stdint.h>
 
-#include <map>
 #include <string>
 #include <vector>
 
+#include "bytell_map.hpp"
+
 typedef uint16_t addonCallbackFunction_t( void** );
 
-std::map< std::string, std::vector< addonCallbackFunction_t* > >
+ska::bytell_hash_map< std::string, std::vector< addonCallbackFunction_t* > >
     g_callbackFunctionAddresses;
 
 extern "C" bool addCallbacks( const char* _callbackName,
