@@ -47,7 +47,7 @@ static void freeLabelByIndex( const size_t _labelIndex ) {
         return;
     }
 
-    size_t l_keysCount = ( size_t )( g_content[ _labelIndex ][ 0 ][ 0 ] );
+    const size_t l_keysCount = ( size_t )( g_content[ _labelIndex ][ 0 ][ 0 ] );
 
     free( g_labels[ _labelIndex ] );
 
@@ -64,22 +64,38 @@ static void freeLabelByIndex( const size_t _labelIndex ) {
 
     ( *l_labelCount )--;
 
-    if ( !*l_labelCount ) {
+    for ( size_t _index = _labelIndex; _index < *l_labelCount; _index++ ) {
+        g_labels[ _index ] = g_labels[ _index + 1 ];
+        g_content[ _index ] = g_content[ _index + 1 ];
+    }
+
+    if ( *l_labelCount ) {
+        g_labels = (char**)realloc( g_labels, *l_labelCount * sizeof( char* ) );
+        g_content = (char****)realloc( g_content, *l_labelCount * sizeof( char*** ) );
+
+    }
+#if 0
+    else {
         free( g_labels );
         free( g_content );
     }
+#endif
 }
 
-static void freeLabelByLabel( const char* _label ) {
+static size_t freeLabelByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex != UINT32_MAX ) {
         freeLabelByIndex( l_labelIndex );
     }
+
+    return ( l_labelIndex );
 }
 
 static void addLabel( const char* _text ) {
     size_t* l_labelCount = getLabelCount();
+
+    const size_t l_isFreed = ( freeLabelByLabel( _text ) != UINT32_MAX );
 
     ( *l_labelCount )++;
     const size_t l_labelIndex = ( *l_labelCount - 1 );
@@ -214,12 +230,6 @@ static void parseLine( char* _text ) {
     if ( _text[ 0 ] == '[' ) {
         _text[ l_textLength - 1 ] = '\0';
         char* l_label = ( _text + 1 );
-
-        const size_t l_labelIndex = getLabelIndex( l_label );
-
-        if ( l_labelIndex != UINT32_MAX ) {
-            freeLabelByIndex( l_labelIndex );
-        }
 
         addLabel( l_label );
 
@@ -438,17 +448,25 @@ uint16_t freeSettingsTable( void ) {
 
     const size_t* l_labelCount = getLabelCount();
 
-#if 0
     while ( *l_labelCount ) {
-        freeLabelByIndex( 0 );
+        freeLabelByIndex( *l_labelCount - 1 );
     }
-#endif
 
+#if 0
     const size_t l_labelCountBackup = *l_labelCount;
 
     for ( size_t _labelIndex = 0; _labelIndex < l_labelCountBackup;
           _labelIndex++ ) {
         freeLabelByIndex( _labelIndex );
+    }
+#endif
+
+    if ( g_labels ) {
+        free( g_labels );
+    }
+
+    if ( g_content ) {
+        free( g_content );
     }
 
     if ( ( !g_labels ) && ( !g_content ) && ( !*l_labelCount ) ) {
