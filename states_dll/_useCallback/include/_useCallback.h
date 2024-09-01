@@ -1,6 +1,25 @@
 #pragma once
 
+#include <wtypes.h>
+
 #include <stdint.h>
+#include <winbase.h>
+
+#define _useCallbackInitialize()                                 \
+    do {                                                         \
+        void* l_statesDll = GetModuleHandleA( "states.dll" );    \
+                                                                 \
+        if ( !l_statesDll ) {                                    \
+            return ( 1 );                                        \
+        }                                                        \
+                                                                 \
+        g_useCallback = ( useCallbackFunction_t )GetProcAddress( \
+            l_statesDll, "useCallback" );                        \
+                                                                 \
+        if ( !g_useCallback ) {                                  \
+            return ( 1 );                                        \
+        }                                                        \
+    } while ( 0 );
 
 #define ARGUMENTS_COUNT( ... )                               \
     ( ( sizeof( ( const void*[] ){ NULL, ##__VA_ARGS__ } ) / \

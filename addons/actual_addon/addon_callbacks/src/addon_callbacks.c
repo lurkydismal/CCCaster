@@ -1,6 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <libloaderapi.h>
 #include <stdlib.h>
 
 #include "_useCallback.h"
@@ -13,18 +10,7 @@ useCallbackFunction_t g_useCallback = NULL;
 
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
-    void* l_statesDll = GetModuleHandleA( "states.dll" );
-
-    if ( !l_statesDll ) {
-        exit( 1 );
-    }
-
-    g_useCallback =
-        ( useCallbackFunction_t )GetProcAddress( l_statesDll, "useCallback" );
-
-    if ( !g_useCallback ) {
-        exit( 1 );
-    }
+    _useCallbackInitialize();
 
     return ( 0 );
 }

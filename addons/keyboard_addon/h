@@ -1,0 +1,3 @@
+addon_callbacks/src/addon_callbacks.c:12:#include "controls_parse.h"
+Makefile:25:			-I controls_parse/include \
+build.sh:15:    controls_parse/include/*.h
