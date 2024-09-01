@@ -3,14 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-size_t lengthOfSize( size_t _number ) {
+size_t lengthOfNumber( size_t _number ) {
     if ( _number == 0 ) {
         return ( 1 );
     }
 
     size_t l_length = 0;
 
-#pragma GCC ivdep
     do {
         l_length++;
         _number /= 10;
@@ -22,7 +21,7 @@ size_t lengthOfSize( size_t _number ) {
 char* stoa( size_t _number ) {
 #define BUFSIZE ( sizeof( size_t ) * 8 + 1 )
 
-    const size_t l_lengthOfNumber = lengthOfSize( _number );
+    const size_t l_lengthOfNumber = lengthOfNumber( _number );
     char* l_buffer = ( char* )malloc( l_lengthOfNumber + 1 );
     char *l_tail, *l_head = l_buffer, l_buf[ BUFSIZE ];
 
@@ -38,8 +37,6 @@ char* stoa( size_t _number ) {
     }
 
     {
-
-#pragma GCC ivdep
         for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
             ++l_characterIndex;
 
@@ -76,10 +73,8 @@ void insertIntoArray( void*** _array,
     ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
 }
 
-ssize_t findStringInArray( const char** _array, const char* _value ) {
-    const size_t l_arrayLength = (size_t)( _array[ 0 ]  );
-
-    for ( size_t _index = 1; _index < l_arrayLength; _index++ ) {
+ssize_t findStringInArray( const char** _array, const size_t _arrayLength, const char* _value ) {
+    for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
         if ( strcmp(  _array[ _index ], _value ) == 0 ) {
             return ( _index );
         }
@@ -98,8 +93,8 @@ ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size
     return ( -1 );
 }
 
-bool containsString( const char** _array, const char* _value ) {
-    return ( findStringInArray( _array, _value ) >= 0 );
+bool containsString( const char** _array, const size_t _arrayLength, const char* _value ) {
+    return ( findStringInArray( _array, _arrayLength, _value ) >= 0 );
 }
 
 bool contains( const size_t* _array, const size_t _arrayLength, const size_t _value ) {

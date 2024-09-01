@@ -10,11 +10,12 @@ EXES                  =
 
 CEXTRA                = -Ofast \
 			-m32 \
-			-std=c11
+			-std=c11 \
+			-march=native
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-fpermissive
+			-march=native
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I log/include \

@@ -10,16 +10,16 @@ EXES                  =
 
 CEXTRA                = -Ofast \
 			-m32 \
-			-std=c11
+			-std=c11 \
+			-march=native
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-fpermissive
+			-march=native
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I ../../stdfunc/include \
-			-I ../overlay_addon/native/include \
 			-I addon_callbacks/include \
 			-I controls_parse/include \
 			-I ../ \

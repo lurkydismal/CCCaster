@@ -10,10 +10,12 @@ EXES                  =
 
 CEXTRA                = -Ofast \
 			-m32 \
-			-std=c11
+			-std=c11 \
+			-march=native
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++17 \
+			-march=native \
 			-Wno-narrowing
 RCEXTRA               =
 DEFINES               =
