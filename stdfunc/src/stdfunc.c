@@ -83,6 +83,26 @@ ssize_t findStringInArray( const char** _array, const size_t _arrayLength, const
     return ( -1 );
 }
 
+static bool compareValueWithElement( const char* _value, const size_t _valueLength, const char* _element ) {
+    for ( size_t _index = 0; _index < _valueLength; _index++ ) {
+        if ( _value[ _index ] != _element[ _index ] ) {
+            return ( false );
+        }
+    }
+
+    return ( true );
+}
+
+ssize_t findArrayInArray( const char** _array, const size_t _arrayLength, const char* _value, const size_t _valueLength ) {
+    for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
+        if ( compareValueWithElement( _value, _valueLength, _array[ _index ] ) ) {
+            return ( _index );
+        }
+    }
+
+    return ( -1 );
+}
+
 ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
         if ( _array[ _index ] == _value ) {
@@ -95,6 +115,10 @@ ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size
 
 bool containsString( const char** _array, const size_t _arrayLength, const char* _value ) {
     return ( findStringInArray( _array, _arrayLength, _value ) >= 0 );
+}
+
+bool containsArray( const char** _array, const size_t _arrayLength, const char* _value, const size_t _valueLength ) {
+    return ( findArrayInArray( _array, _arrayLength, _value, _valueLength ) >= 0 );
 }
 
 bool contains( const size_t* _array, const size_t _arrayLength, const size_t _value ) {

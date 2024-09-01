@@ -190,82 +190,98 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
     _useCallback( "keyboard$applyInput$begin", _activeMappedKeys,
                   &l_localPlayer );
 
+    // Direction
     if ( l_activeMappedKeysLength ) {
-        {
-            if ( _containsString( *_activeMappedKeys, "8" ) ) {
-                l_direction = UP;
+        const char* l_directionsKeys[] = { "2", "4", "6", "8" };
+        const size_t l_directionsKeysLength =
+            ( sizeof( l_directionsKeys ) / sizeof( l_directionsKeys[ 0 ] ) );
+        const int16_t l_directionsValues[][ 2 ] = {
+            { -1, -1 }, // 1
+            { 0, -1 },  // 2
+            { 1, -1 },  // 3
+            { -1, 0 },  // 4
+            { 0, 0 },   // 5
+            { 1, 0 },   // 6
+            { -1, 1 },  // 7
+            { 0, 1 },   // 8
+            { 1, 1 }    // 9
+        };
+        const size_t l_directionsValuesLength =
+            ( sizeof( l_directionsValues ) /
+              sizeof( l_directionsValues[ 0 ] ) );
+        int16_t l_pressedDirectionValue[ 2 ] = { 0, 0 };
+        const size_t l_pressedDirectionValueLength =
+            ( sizeof( l_pressedDirectionValue ) /
+              sizeof( l_pressedDirectionValue[ 0 ] ) );
+
+        for ( size_t _index = 1; _index < ( l_directionsKeysLength + 1 );
+              _index++ ) {
+            if ( _containsString( *_activeMappedKeys,
+                                  l_directionsKeys[ _index ] ) ) {
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
+                const int16_t* l_directionValue =
+                    l_directionsValues[ ( _index * 2 ) - 1 ];
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
+
+                l_pressedDirectionValue[ 0 ] += l_directionValue[ 0 ];
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
+                l_pressedDirectionValue[ 1 ] += l_directionValue[ 1 ];
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
 
                 l_activeMappedKeysLength--;
-            }
 
-            if ( _containsString( *_activeMappedKeys, "2" ) ) {
-                if ( !l_direction ) {
-                    l_direction = DOWN;
+                if ( !l_activeMappedKeysLength ) {
+                    break;
                 }
-
-                l_activeMappedKeysLength--;
             }
         }
 
-        if ( l_activeMappedKeysLength ) {
-            {
-                const bool l_has4 = _containsString( *_activeMappedKeys, "4" );
+#if 0
+        if ( containsArray( l_directionsValues, l_directionsValuesLength,
+                            l_pressedDirectionValue,
+                            l_pressedDirectionValueLength ) ) {
+            l_direction =
+                ( findArrayInArray(
+                      l_directionsValues, l_directionsValuesLength,
+                      l_pressedDirectionValue, l_pressedDirectionValueLength ) +
+                  1 );
+        }
+#endif
+    }
 
-                if ( l_has4 ) {
-                    l_direction =
-                        ( l_direction )
-                            ? ( direction_t )( ( ( uint8_t )( l_direction ) ) -
-                                               1 )
-                            : LEFT;
+    // Button
+    if ( l_activeMappedKeysLength ) {
+        const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
+                                     "AB", "FN1", "FN2", "START" };
 
-                    l_activeMappedKeysLength--;
+        const button_t l_tempValues[] = {
+            ( ( button_t )( ( uint16_t )( A ) | ( uint16_t )( CONFIRM ) ) ),
+            ( ( button_t )( ( uint16_t )( B ) | ( uint16_t )( CANCEL ) ) ),
+            C,
+            D,
+            E,
+            AB,
+            FN1,
+            FN2,
+            START };
 
-                } else if ( _containsString( *_activeMappedKeys, "6" ) ) {
-                    if ( !l_has4 ) {
-                        l_direction =
-                            ( l_direction )
-                                ? ( direction_t )( ( ( uint8_t )( l_direction ) ) +
-                                                   1 )
-                                : RIGHT;
-                    }
+        for ( size_t _index = 0;
+              ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) ); _index++ ) {
+            const char* l_key = l_tempKeys[ _index ];
 
-                    l_activeMappedKeysLength--;
-                }
-            }
+            if ( _containsString( *_activeMappedKeys, l_key ) ) {
+                const button_t l_value = l_tempValues[ _index ];
+                l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
+                                          ( uint16_t )( l_value ) );
 
-            if ( l_activeMappedKeysLength ) {
-                const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
-                                             "AB", "FN1", "FN2", "START" };
+                l_activeMappedKeysLength--;
 
-                const button_t l_tempValues[] = {
-                    ( ( button_t )( ( uint16_t )( A ) |
-                                    ( uint16_t )( CONFIRM ) ) ),
-                    ( ( button_t )( ( uint16_t )( B ) |
-                                    ( uint16_t )( CANCEL ) ) ),
-                    C,
-                    D,
-                    E,
-                    AB,
-                    FN1,
-                    FN2,
-                    START };
-
-                for ( size_t _index = 0;
-                      ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) );
-                      _index++ ) {
-                    const char* l_key = l_tempKeys[ _index ];
-
-                    if ( _containsString( *_activeMappedKeys, l_key ) ) {
-                        const button_t l_value = l_tempValues[ _index ];
-                        l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
-                                                  ( uint16_t )( l_value ) );
-
-                        l_activeMappedKeysLength--;
-                    }
-
-                    if ( !l_activeMappedKeysLength ) {
-                        break;
-                    }
+                if ( !l_activeMappedKeysLength ) {
+                    break;
                 }
             }
         }
