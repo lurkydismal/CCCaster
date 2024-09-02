@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "_useCallback.h"
 #include "button_t.h"
@@ -192,9 +193,6 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
 
     // Direction
     if ( l_activeMappedKeysLength ) {
-        const char* l_directionsKeys[] = { "2", "4", "6", "8" };
-        const size_t l_directionsKeysLength =
-            ( sizeof( l_directionsKeys ) / sizeof( l_directionsKeys[ 0 ] ) );
         const int16_t l_directionsValues[][ 2 ] = {
             { -1, -1 }, // 1
             { 0, -1 },  // 2
@@ -214,23 +212,18 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
             ( sizeof( l_pressedDirectionValue ) /
               sizeof( l_pressedDirectionValue[ 0 ] ) );
 
-        for ( size_t _index = 1; _index < ( l_directionsKeysLength + 1 );
+        for ( size_t _index = 1; _index < ( l_activeMappedKeysLength + 1 );
               _index++ ) {
-            if ( _containsString( *_activeMappedKeys,
-                                  l_directionsKeys[ _index ] ) ) {
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
+            const size_t l_activeValue =
+                ( ( *_activeMappedKeys )[ _index ][ 0 ] - '0' );
+
+            if ( ( l_activeValue == 2 ) || ( l_activeValue == 4 ) ||
+                 ( l_activeValue == 6 ) || ( l_activeValue == 8 ) ) {
                 const int16_t* l_directionValue =
-                    l_directionsValues[ ( _index * 2 ) - 1 ];
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
+                    l_directionsValues[ l_activeValue - 1 ];
 
                 l_pressedDirectionValue[ 0 ] += l_directionValue[ 0 ];
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
                 l_pressedDirectionValue[ 1 ] += l_directionValue[ 1 ];
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
 
                 l_activeMappedKeysLength--;
 
@@ -240,17 +233,7 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
             }
         }
 
-#if 0
-        if ( containsArray( l_directionsValues, l_directionsValuesLength,
-                            l_pressedDirectionValue,
-                            l_pressedDirectionValueLength ) ) {
-            l_direction =
-                ( findArrayInArray(
-                      l_directionsValues, l_directionsValuesLength,
-                      l_pressedDirectionValue, l_pressedDirectionValueLength ) +
-                  1 );
-        }
-#endif
+        l_direction = ( findArrayInArray( l_directionsValues, l_directionsValuesLength, l_pressedDirectionValue, l_pressedDirectionValueLength ) + 1 );
     }
 
     // Button
