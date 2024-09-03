@@ -233,7 +233,8 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
             }
         }
 
-        l_direction = ( findArrayInArray( l_directionsValues, l_directionsValuesLength, l_pressedDirectionValue, l_pressedDirectionValueLength ) + 1 );
+        l_direction = ( 5 + l_pressedDirectionValue[ 0 ] +
+                        ( l_pressedDirectionValue[ 1 ] * 3 ) );
     }
 
     // Button
