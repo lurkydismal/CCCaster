@@ -204,13 +204,7 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
             { 0, 1 },   // 8
             { 1, 1 }    // 9
         };
-        const size_t l_directionsValuesLength =
-            ( sizeof( l_directionsValues ) /
-              sizeof( l_directionsValues[ 0 ] ) );
         int16_t l_pressedDirectionValue[ 2 ] = { 0, 0 };
-        const size_t l_pressedDirectionValueLength =
-            ( sizeof( l_pressedDirectionValue ) /
-              sizeof( l_pressedDirectionValue[ 0 ] ) );
 
         for ( size_t _index = 1; _index < ( l_activeMappedKeysLength + 1 );
               _index++ ) {
