@@ -191,7 +191,6 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
     _useCallback( "keyboard$applyInput$begin", _activeMappedKeys,
                   &l_localPlayer );
 
-#if 0
     // Direction
     if ( l_activeMappedKeysLength ) {
         const int16_t l_directionsValues[][ 2 ] = {
@@ -206,8 +205,11 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
             { 1, 1 }    // 9
         };
 
-#if 0
-        for ( size_t _index = 1; _index < ( l_activeMappedKeysLength + 1 );
+        l_direction = 5;
+        const size_t l_oldActiveMappedKeysLength =
+            ( l_activeMappedKeysLength + 1 );
+
+        for ( size_t _index = 1; _index < l_oldActiveMappedKeysLength;
               _index++ ) {
             const size_t l_activeValue =
                 ( ( *_activeMappedKeys )[ _index ][ 0 ] - '0' );
@@ -217,10 +219,8 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
                 const int16_t* l_directionValue =
                     l_directionsValues[ l_activeValue - 1 ];
 
-#if 0
-                l_direction = ( 5 + l_directionValue[ 0 ] +
+                l_direction = ( l_direction + l_directionValue[ 0 ] +
                                 ( l_directionValue[ 1 ] * 3 ) );
-#endif
 
                 l_activeMappedKeysLength--;
 
@@ -229,14 +229,14 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
                 }
             }
         }
-#endif
     }
-#endif
 
     // Button
     if ( l_activeMappedKeysLength ) {
         const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
                                      "AB", "FN1", "FN2", "START" };
+        const size_t l_tempKeysLength =
+            ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) );
 
         const button_t l_tempValues[] = {
             ( ( button_t )( ( uint16_t )( A ) | ( uint16_t )( CONFIRM ) ) ),
@@ -249,8 +249,7 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
             FN2,
             START };
 
-        for ( size_t _index = 0;
-              ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) ); _index++ ) {
+        for ( size_t _index = 0; l_tempKeysLength; _index++ ) {
             const char* l_key = l_tempKeys[ _index ];
 
             if ( _containsString( *_activeMappedKeys, l_key ) ) {
