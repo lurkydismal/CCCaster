@@ -134,7 +134,8 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
                                                  [ 0 ] ),
                             sizeof( l_activeMappedKeys[ 0 ] ) );
 
-#if D_PRINT_KEY
+#define D_PRINT_KEY
+#ifdef D_PRINT_KEY
                         _useCallback( "log$transaction$query", "mapped: " );
                         _useCallback(
                             "log$transaction$query",
@@ -150,7 +151,7 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
                                          ( void* )( l_keyboardLayoutValue ),
                                          sizeof( l_activeKeys[ 0 ] ) );
 
-#if D_PRINT_KEY
+#ifdef D_PRINT_KEY
                         _useCallback( "log$transaction$query", "not mapped: " );
                         _useCallback(
                             "log$transaction$query",
@@ -193,6 +194,7 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
 
     // Direction
     if ( l_activeMappedKeysLength ) {
+        printf( "ld: %d\n", l_activeMappedKeysLength );
         const int16_t l_directionsValues[][ 2 ] = {
             { -1, -1 }, // 1
             { 0, -1 },  // 2
@@ -229,6 +231,13 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
                 }
             }
         }
+
+        printf( "ld: %d\n", l_direction );
+#if 0
+        if ( l_direction == 5 ) {
+            l_direction = NEUTRAL_DIRECTION;
+        }
+#endif
     }
 
     // Button
@@ -256,6 +265,7 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
                 const button_t l_value = l_tempValues[ _index ];
                 l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
                                           ( uint16_t )( l_value ) );
+                printf( "ld: %s\n", l_key );
 
                 l_activeMappedKeysLength--;
 
@@ -264,6 +274,8 @@ uint16_t __declspec( dllexport ) keyboard$applyInput(
                 }
             }
         }
+
+        printf( "ld: %d\n", l_buttons );
     }
 
     _useCallback( "keyboard$applyInput$end", &l_buttons, &l_direction,
