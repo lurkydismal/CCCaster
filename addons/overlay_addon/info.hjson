@@ -7,12 +7,5 @@
     main: overlay.dll
     events: {
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
-        overlay$getState: overlay$getState
-        overlay$toggle: overlay$toggle
-        native$getColorForRectangle: native$getColorForRectangle
-        native$drawRectangle: native$drawRectangle
-        native$drawText: native$drawText
-        native$loadTextureFromMemory: native$loadTextureFromMemory
-        native$drawSprite: native$drawSprite
     }
 }

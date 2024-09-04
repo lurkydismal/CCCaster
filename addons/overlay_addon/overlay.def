@@ -2,10 +2,3 @@ LIBRARY overlay
 EXPORTS
 
 IDirect3D9Ex$CreateDevice
-overlay$getState
-overlay$toggle
-native$getColorForRectangle
-native$drawRectangle
-native$drawText
-native$loadTextureFromMemory
-native$drawSprite
