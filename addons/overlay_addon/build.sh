@@ -3,7 +3,7 @@
 source ../../config.sh && \
 clear && \
 mkdir -p "${ADDONS_DIR}/overlay" && \
-    i686-w64-mingw32-gcc -Ofast -m32 -s -c -onative/src/CallDraw.o  native/src/CallDraw.s && \
+    i686-w64-mingw32-gcc -Ofast -march=native -m32 -s -c -o native/src/CallDraw.o native/src/CallDraw.s && \
     i686-w64-mingw32-ar rcs -o native/src/libCallDraw.a native/src/CallDraw.o && \
     make clean && \
     make -j $(( `nproc` - 1 )) && \
