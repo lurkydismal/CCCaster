@@ -16,6 +16,8 @@
  *   3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <omp.h>
+
 #include "d3d9.h"
 
 HRESULT m_IDirect3DDevice9Ex::QueryInterface( REFIID riid, void** ppvObj ) {
@@ -1193,6 +1195,9 @@ HRESULT m_IDirect3DDevice9Ex::CheckResourceResidency(
     THIS_ IDirect3DResource9** pResourceArray,
     UINT32 NumResources ) {
     if ( pResourceArray ) {
+        bool l_invalid = false;
+
+#pragma omp simd
         for ( UINT32 i = 0; i < NumResources; i++ ) {
             if ( pResourceArray[ i ] ) {
                 switch ( pResourceArray[ i ]->GetType() ) {
@@ -1239,9 +1244,13 @@ HRESULT m_IDirect3DDevice9Ex::CheckResourceResidency(
                                 ->GetProxyInterface();
                         break;
                     default:
-                        return D3DERR_INVALIDCALL;
+                        l_invalid = true;
                 }
             }
+        }
+
+        if ( l_invalid ) {
+            return ( D3DERR_INVALIDCALL );
         }
     }
 

@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <omp.h>
 #include <stdint.h>
 
 #include <string>
@@ -18,11 +19,12 @@ extern "C" bool addCallbacks( const char* _callbackName,
     bool l_returnValue = true;
     std::vector< addonCallbackFunction_t* > l_callbacks;
 
+#pragma omp simd
     for ( size_t _functionIndex = 0; _functionIndex < _functionCount;
           _functionIndex++ ) {
-        l_callbacks.emplace_back(
-            ( reinterpret_cast< addonCallbackFunction_t* >(
-                _functionAddresses[ _functionIndex ] ) ) );
+        l_callbacks[ _functionIndex ] =
+            reinterpret_cast< addonCallbackFunction_t* >(
+                _functionAddresses[ _functionIndex ] );
     }
 
     l_returnValue =

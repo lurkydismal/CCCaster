@@ -7,10 +7,6 @@
 
 #include "_useCallback.h"
 
-#pragma comment( lib, "user32.lib" )
-#pragma comment( lib, "gdi32.lib" )
-#pragma comment( lib, "dwmapi.lib" )
-
 uint32_t g_activeFlags = 0;
 useCallbackFunction_t g_useCallback = NULL;
 

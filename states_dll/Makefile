@@ -11,12 +11,16 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native
+			-march=native \
+			-fopenmp
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++17 \
 			-march=native \
-			-Wno-narrowing
+			-fopenmp \
+			-Wno-narrowing \
+			-Wno-overflow \
+			-Wno-shift-count-overflow
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I include

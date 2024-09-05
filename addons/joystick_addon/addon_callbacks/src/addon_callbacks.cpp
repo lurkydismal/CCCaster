@@ -23,16 +23,6 @@
 #include "native.hpp"
 #include "player_t.h"
 
-#pragma comment( lib, "user32.lib" )
-#pragma comment( lib, "gdi32.lib" )
-#pragma comment( lib, "ole32.lib" )
-#pragma comment( lib, "oleaut32.lib" )
-#pragma comment( lib, "comctl32.lib" )
-#pragma comment( lib, "d3d9.lib" )
-#pragma comment( lib, "d3dx9.lib" )
-#pragma comment( lib, "dinput.lib" )
-#pragma comment( lib, "dinput8.lib" )
-
 namespace {
 
 const std::map< uint32_t, std::string > g_joystickLayout = {
