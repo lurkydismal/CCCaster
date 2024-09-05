@@ -14,10 +14,6 @@
 #include "native.hpp"
 #include "player_t.h"
 
-#pragma comment( lib, "user32.lib" )
-#pragma comment( lib, "ws2_32.lib" )
-#pragma comment( lib, "mswsock.lib" )
-
 useCallbackFunction_t g_useCallback = NULL;
 
 namespace {

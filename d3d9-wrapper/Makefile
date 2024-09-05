@@ -11,11 +11,13 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
+			-fopenmp \
 			-march=native
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
 			-march=native \
+			-fopenmp \
 			-fvisibility=hidden
 RCEXTRA               =
 DEFINES               =

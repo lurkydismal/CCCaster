@@ -6,9 +6,11 @@
 #undef min
 #undef max
 
+#include <omp.h>
+
 #include <algorithm>
+#include <map>
 #include <type_traits>
-#include <unordered_map>
 
 constexpr UINT MaxIndex = 16;
 
@@ -26,6 +28,7 @@ public:
     ~AddressLookupTable() {
         ConstructorFlag = true;
 
+#pragma omp simd
         for ( const auto& cache : g_map ) {
             for ( const auto& entry : cache ) {
                 entry.second->DeleteMe();
@@ -207,11 +210,11 @@ public:
 
         constexpr UINT CacheIndex = AddressCacheIndex< T >::CacheIndex;
 
-        auto it = std::find_if(
-            g_map[ CacheIndex ].begin(), g_map[ CacheIndex ].end(),
-            [ = ]( std::unordered_map< void*, T > Map ) -> BOOL {
-                return ( Map.second == Wrapper );
-            } );
+        auto it = std::find_if( g_map[ CacheIndex ].begin(),
+                                g_map[ CacheIndex ].end(),
+                                [ = ]( std::map< void*, T > Map ) -> BOOL {
+                                    return ( Map.second == Wrapper );
+                                } );
 
         if ( it != std::end( g_map[ CacheIndex ] ) ) {
             it = g_map[ CacheIndex ].erase( it );
@@ -221,5 +224,5 @@ public:
 private:
     BOOL ConstructorFlag = false;
     D* const pDevice;
-    std::unordered_map< void*, AddressLookupTableObject* > g_map[ MaxIndex ];
+    std::map< void*, AddressLookupTableObject* > g_map[ MaxIndex ];
 };

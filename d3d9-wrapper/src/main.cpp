@@ -10,9 +10,6 @@
 #include "d3dx9.h"
 #include "helpers.h"
 
-#pragma comment( lib, "d3dx9.lib" )
-#pragma comment( lib, "user32.lib" )
-
 static size_t l_renderCallsPerFrame = 0;
 
 Direct3DShaderValidatorCreate9Proc m_pDirect3DShaderValidatorCreate9;
