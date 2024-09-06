@@ -2,6 +2,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <omp.h>
 
 #if defined( __cplusplus )
 
@@ -22,6 +23,7 @@ uint16_t __useCallback( const char* _callbackName,
     void** l_callbackArguments =
         ( void** )malloc( _callbackArgumentsCount * sizeof( void* ) );
 
+#pragma omp simd
     for ( size_t _index = 0; _index < _callbackArgumentsCount; _index++ ) {
         l_callbackArguments[ _index ] = va_arg( l_arguments, void* );
     }

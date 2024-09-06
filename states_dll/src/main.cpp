@@ -2,7 +2,6 @@
 #include <omp.h>
 #include <stdfunc.h>
 #include <stdint.h>
-#include <string.h>
 
 #include <string>
 
@@ -24,10 +23,9 @@ extern "C" bool addCallbacks( const char* _callbackName,
     preallocateArray( ( void*** )( &l_callbacks ),
                       ( _functionCount + 1 ) * sizeof( uintptr_t ) );
 
+#pragma omp simd
     for ( size_t _functionIndex = 1; _functionIndex < ( _functionCount + 1 );
           _functionIndex++ ) {
-        printf( "%s: %d = %p : %b\n", _callbackName, _functionCount,
-                _functionAddresses[ _functionIndex - 1 ], _overwrite );
         insertIntoArrayByIndex(
             ( void*** )( &l_callbacks ), _functionIndex,
             ( void* )( reinterpret_cast< addonCallbackFunction_t* >(
@@ -65,20 +63,15 @@ extern "C" uint16_t useCallback( const char* _callbackName,
     } else {
         const size_t l_callbacksLength = arrayLength( l_callbacks );
 
+#pragma omp simd
         for ( size_t _callbackIndex = 1;
               _callbackIndex < ( l_callbacksLength + 1 ); _callbackIndex++ ) {
-            printf( "333 %s %d = %d\n", _callbackName, l_callbacksLength,
-                    _callbackIndex );
-
             const addonCallbackFunction_t* _callback =
                 l_callbacks[ _callbackIndex ];
-            printf( "222 %p : %p\n", _callback );
             const uint16_t l_result = _callback( _callbackArguments );
 
             if ( l_result ) {
                 l_returnValue = l_result;
-
-                break;
             }
         }
     }
