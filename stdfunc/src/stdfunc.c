@@ -2,6 +2,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
+
+#ifdef __cplusplus
+
+extern "C" {
+
+#endif
 
 size_t lengthOfNumber( size_t _number ) {
     if ( _number == 0 ) {
@@ -13,7 +20,7 @@ size_t lengthOfNumber( size_t _number ) {
     do {
         l_length++;
         _number /= 10;
-    } while ( _number != 0 );
+    } while ( _number );
 
     return ( l_length );
 }
@@ -36,12 +43,10 @@ char* stoa( size_t _number ) {
         goto EXIT;
     }
 
-    {
-        for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
-            ++l_characterIndex;
+    for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
+        ++l_characterIndex;
 
-            *l_tail-- = ( char )( ( _number % 10 ) + '0' );
-        }
+        *l_tail-- = ( char )( ( _number % 10 ) + '0' );
     }
 
 EXIT:
@@ -60,6 +65,10 @@ void** createArray( const size_t _elementSize ) {
     return ( l_array );
 }
 
+void preallocateArray( void*** _array, const size_t _size ) {
+    *_array = (void**)realloc( *_array, _size );
+}
+
 void insertIntoArray( void*** _array,
                              void* _value,
                              const size_t _elementSize ) {
@@ -73,54 +82,48 @@ void insertIntoArray( void*** _array,
     ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
 }
 
+void insertIntoArrayByIndex( void*** _array, const size_t _index, void* _value, const size_t _elementSize ) {
+    ( *_array )[ _index ] = _value;
+
+    ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
+}
+
 ssize_t findStringInArray( const char** _array, const size_t _arrayLength, const char* _value ) {
+    ssize_t l_index = -1;
+
+#pragma omp simd
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
         if ( strcmp(  _array[ _index ], _value ) == 0 ) {
-            return ( _index );
+            l_index = _index;
         }
     }
 
-    return ( -1 );
-}
-
-static bool compareValueWithElement( const char* _value, const size_t _valueLength, const char* _element ) {
-    for ( size_t _index = 0; _index < _valueLength; _index++ ) {
-        if ( _value[ _index ] != _element[ _index ] ) {
-            return ( false );
-        }
-    }
-
-    return ( true );
-}
-
-ssize_t findArrayInArray( const char** _array, const size_t _arrayLength, const char* _value, const size_t _valueLength ) {
-    for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
-        if ( compareValueWithElement( _value, _valueLength, _array[ _index ] ) ) {
-            return ( _index );
-        }
-    }
-
-    return ( -1 );
+    return ( l_index );
 }
 
 ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
+    ssize_t l_index = -1;
+
+#pragma omp simd
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
         if ( _array[ _index ] == _value ) {
-            return ( _index );
+            l_index = _index;
         }
     }
 
-    return ( -1 );
+    return ( l_index );
 }
 
 bool containsString( const char** _array, const size_t _arrayLength, const char* _value ) {
     return ( findStringInArray( _array, _arrayLength, _value ) >= 0 );
 }
 
-bool containsArray( const char** _array, const size_t _arrayLength, const char* _value, const size_t _valueLength ) {
-    return ( findArrayInArray( _array, _arrayLength, _value, _valueLength ) >= 0 );
-}
-
 bool contains( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
     return ( findInArray( _array, _arrayLength, _value ) >= 0 );
 }
+
+#ifdef __cplusplus
+
+}
+
+#endif

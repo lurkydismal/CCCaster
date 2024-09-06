@@ -1,3 +1,3 @@
 #!/bin/sh
-MBAA_DIR="/mnt/MBAACC - Community Edition/mbaacc2/game_info/data/MBAACC"
+MBAA_DIR="/home/shroot/Downloads/mbaacc/game_info/data/mbaacc"
 ADDONS_DIR="${MBAA_DIR}/addons"

@@ -507,10 +507,12 @@ extern "C" int WINAPI Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
 }
 
 extern "C" IDirect3D9* WINAPI Direct3DCreate9( UINT SDKVersion ) {
+#ifdef MBAA_PATCHED
     const char l_message[] = "Direct3DCreate9 ( SDKVersion )\n";
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pDirect3DCreate9 ) {
         return ( nullptr );
@@ -527,10 +529,12 @@ extern "C" IDirect3D9* WINAPI Direct3DCreate9( UINT SDKVersion ) {
 
 extern "C" HRESULT WINAPI Direct3DCreate9Ex( UINT SDKVersion,
                                              IDirect3D9Ex** ppD3D ) {
+#ifdef MBAA_PATCHED
     const char l_message[] = "Direct3DCreate9Ex ( SDKVersion, ppD3D )\n";
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pDirect3DCreate9Ex ) {
         return ( E_FAIL );

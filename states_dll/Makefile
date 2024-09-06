@@ -23,7 +23,8 @@ CXXEXTRA              = -Ofast \
 			-Wno-shift-count-overflow
 RCEXTRA               =
 DEFINES               =
-INCLUDE_PATH          = -I include
+INCLUDE_PATH          = -I include \
+			-I ../stdfunc/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
@@ -33,7 +34,7 @@ LIBRARIES             =
 ### states.dll sources and settings
 
 states_dll_MODULE = states.dll
-states_dll_C_SRCS =
+states_dll_C_SRCS = ../stdfunc/src/stdfunc.c
 states_dll_CXX_SRCS= src/main.cpp
 states_dll_RC_SRCS=
 states_dll_LDFLAGS= -shared \

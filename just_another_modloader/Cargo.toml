@@ -9,7 +9,7 @@ lto           = true
 codegen-units = 1
 incremental   = true
 panic         = "abort"
-opt-level     = "z"
+opt-level     = 3
 
 [lib]
 crate-type = [ "cdylib" ]
