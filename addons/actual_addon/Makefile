@@ -11,15 +11,17 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native
+			-march=native \
+			-fopenmp
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-march=native
+			-march=native \
+			-fopenmp
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
-			 -I ../../stdfunc/include \
+			-I ../../stdfunc/include \
 			-I addon_callbacks/include \
 			-I patch_callbacks/include \
 			-I patch_t/include \

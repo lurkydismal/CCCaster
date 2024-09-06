@@ -4,7 +4,7 @@
 int main( void ) {
     printf( "begin\n" );
 
-    size_t* tt = (size_t*)malloc( 5 * sizeof( size_t ) );
+    size_t* tt = ( size_t* )malloc( 5 * sizeof( size_t ) );
 
     size_t t = 5;
     tt[ 0 ] = t;
@@ -23,6 +23,6 @@ int main( void ) {
     free( tt );
 
     printf( "end\n" );
-    
+
     return ( 0 );
 }

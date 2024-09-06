@@ -8,9 +8,9 @@ mkdir -p "${ADDONS_DIR}/overlay" && \
     make clean && \
     make -j $(( `nproc` - 1 )) && \
     mv -f overlay.dll.so \
-    "${ADDONS_DIR}//overlay/overlay.dll" && \
+    "${ADDONS_DIR}/overlay/overlay.dll" && \
     cp -f info.hjson \
-    "${ADDONS_DIR}//overlay/." && \
+    "${ADDONS_DIR}/overlay/." && \
     clang-format --style=file \
     -i \
     addon_callbacks/src/*.c addon_callbacks/include/*.h \
