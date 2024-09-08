@@ -3,4 +3,3 @@ EXPORTS
 
 IDirect3D9Ex$CreateDevice
 mainLoop$newFrame
-keyboard$applyInput
