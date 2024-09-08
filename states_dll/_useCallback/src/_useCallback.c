@@ -1,8 +1,8 @@
 #include "_useCallback.h"
 
+#include <omp.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <omp.h>
 
 #if defined( __cplusplus )
 

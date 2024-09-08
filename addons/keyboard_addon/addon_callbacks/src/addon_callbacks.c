@@ -166,123 +166,14 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
         }
     }
 
-#undef KEY_NUMBER
+#undef KEYS_TOTAL
 
     l_returnValue = _useCallback( "keyboard$getInput$end", &l_activeMappedKeys,
                                   &l_activeKeys );
-    l_returnValue = _useCallback( "keyboard$applyInput", &l_activeMappedKeys );
+    l_returnValue = _useCallback( "game$applyInput", &l_activeMappedKeys );
 
     free( l_activeMappedKeys );
     free( l_activeKeys );
-
-    return ( l_returnValue );
-}
-
-uint16_t __declspec( dllexport ) keyboard$applyInput(
-    void** _callbackArguments ) {
-    uint16_t l_returnValue = 0;
-
-    char*** _activeMappedKeys = ( char*** )_callbackArguments[ 0 ];
-    size_t l_activeMappedKeysLength =
-        ( ( size_t )( ( *_activeMappedKeys )[ 0 ] ) - 1 );
-    direction_t l_direction = NEUTRAL_DIRECTION;
-    button_t l_buttons = NEUTRAL_BUTTON;
-    player_t l_localPlayer = FIRST;
-
-    _useCallback( "keyboard$applyInput$begin", _activeMappedKeys,
-                  &l_localPlayer );
-
-    // Direction
-    if ( l_activeMappedKeysLength ) {
-        printf( "ld: %d\n", l_activeMappedKeysLength );
-        const int16_t l_directionsValues[][ 2 ] = {
-            { -1, -1 }, // 1
-            { 0, -1 },  // 2
-            { 1, -1 },  // 3
-            { -1, 0 },  // 4
-            { 0, 0 },   // 5
-            { 1, 0 },   // 6
-            { -1, 1 },  // 7
-            { 0, 1 },   // 8
-            { 1, 1 }    // 9
-        };
-
-        l_direction = 5;
-        const size_t l_oldActiveMappedKeysLength =
-            ( l_activeMappedKeysLength + 1 );
-
-        for ( size_t _index = 1; _index < l_oldActiveMappedKeysLength;
-              _index++ ) {
-            const size_t l_activeValue =
-                ( ( *_activeMappedKeys )[ _index ][ 0 ] - '0' );
-
-            if ( ( l_activeValue == 2 ) || ( l_activeValue == 4 ) ||
-                 ( l_activeValue == 6 ) || ( l_activeValue == 8 ) ) {
-                const int16_t* l_directionValue =
-                    l_directionsValues[ l_activeValue - 1 ];
-
-                l_direction = ( l_direction + l_directionValue[ 0 ] +
-                                ( l_directionValue[ 1 ] * 3 ) );
-
-                l_activeMappedKeysLength--;
-
-                if ( !l_activeMappedKeysLength ) {
-                    break;
-                }
-            }
-        }
-
-        printf( "ld: %d\n", l_direction );
-#if 0
-        if ( l_direction == 5 ) {
-            l_direction = NEUTRAL_DIRECTION;
-        }
-#endif
-    }
-
-    // Button
-    if ( l_activeMappedKeysLength ) {
-        const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
-                                     "AB", "FN1", "FN2", "START" };
-        const size_t l_tempKeysLength =
-            ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) );
-
-        const button_t l_tempValues[] = {
-            ( ( button_t )( ( uint16_t )( A ) | ( uint16_t )( CONFIRM ) ) ),
-            ( ( button_t )( ( uint16_t )( B ) | ( uint16_t )( CANCEL ) ) ),
-            C,
-            D,
-            E,
-            AB,
-            FN1,
-            FN2,
-            START };
-
-        for ( size_t _index = 0; l_tempKeysLength; _index++ ) {
-            const char* l_key = l_tempKeys[ _index ];
-
-            if ( _containsString( *_activeMappedKeys, l_key ) ) {
-                const button_t l_value = l_tempValues[ _index ];
-                l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
-                                          ( uint16_t )( l_value ) );
-                printf( "ld: %s\n", l_key );
-
-                l_activeMappedKeysLength--;
-
-                if ( !l_activeMappedKeysLength ) {
-                    break;
-                }
-            }
-        }
-
-        printf( "ld: %d\n", l_buttons );
-    }
-
-    _useCallback( "keyboard$applyInput$end", &l_buttons, &l_direction,
-                  &l_localPlayer );
-
-    l_returnValue = _useCallback( "game$applyInput", &l_buttons, &l_direction,
-                                  &l_localPlayer );
 
     return ( l_returnValue );
 }

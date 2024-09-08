@@ -39,6 +39,8 @@ extern "C" bool addCallbacks( const char* _callbackName,
 
     if ( !l_returnValue ) {
         if ( _overwrite ) {
+            free( g_callbackFunctionAddresses[ _callbackName ] );
+
             g_callbackFunctionAddresses[ _callbackName ] = l_callbacks;
 
             l_returnValue = true;
