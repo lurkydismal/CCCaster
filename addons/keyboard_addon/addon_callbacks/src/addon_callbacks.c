@@ -81,8 +81,7 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
     if ( ( GetActiveWindow() != g_hFocusWindow ) ||
          ( g_hFocusWindow == NULL ) ) {
-        l_returnValue =
-            _useCallback( "keyboard$applyInput", &l_activeMappedKeys );
+        l_returnValue = _useCallback( "game$applyInput", &l_activeMappedKeys );
 
         return ( l_returnValue );
     }

@@ -111,11 +111,14 @@ void gameMainLoopCallback( void ) {
             case TITLE: {
                 *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
-                const button_t l_button = A;
-                const direction_t l_direction = NEUTRAL_DIRECTION;
-                const player_t l_player = FIRST;
-                _useCallback( "game$applyInput", &l_button, &l_direction,
-                              &l_player );
+                char** l_input = ( char** )createArray( sizeof( char* ) );
+
+                insertIntoArray( ( void*** )( &l_input ), ( void* )( "A" ),
+                                 sizeof( l_input[ 0 ] ) );
+
+                _useCallback( "game$applyInput", &l_input );
+
+                free( l_input );
 
                 uint16_t l_result = _useCallback( "gameMode$title" );
 
@@ -171,11 +174,14 @@ void gameMainLoopCallback( void ) {
                 }
 
                 if ( l_framesPassed % 2 ) {
-                    const button_t l_button = A;
-                    const direction_t l_direction = NEUTRAL_DIRECTION;
-                    const player_t l_player = FIRST;
-                    _useCallback( "game$applyInput", &l_button, &l_direction,
-                            &l_player );
+                    char** l_input = ( char** )createArray( sizeof( char* ) );
+
+                    insertIntoArray( ( void*** )( &l_input ), ( void* )( "A" ),
+                            sizeof( l_input[ 0 ] ) );
+
+                    _useCallback( "game$applyInput", &l_input );
+
+                    free( l_input );
                 }
 #endif
 
