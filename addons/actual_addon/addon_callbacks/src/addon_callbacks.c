@@ -130,64 +130,75 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
         l_direction = 5;
         const size_t l_oldActiveMappedKeysLength =
             ( l_activeMappedKeysLength + 1 );
-        size_t l_possibleActiveButtonsTotal =
+        size_t l_possibleActiveDirectionsTotal =
             ( ( bool )( 2 ) + ( bool )( 4 ) + ( bool )( 6 ) + ( bool )( 8 ) );
 
         l_activeMappedKeysLength =
-            ( ( size_t )( ( *_activeMappedKeys )[ 0 ] ) - 1 )
-        const size_t l_oldActiveMappedKeysLength =
-            ( l_activeMappedKeysLength + 1 );
+            ( ( size_t )( ( *_activeMappedKeys )[ 0 ] ) - 1 );
         size_t l_possibleActiveButtonsTotal = l_tempKeysLength;
 
         for ( size_t _index = 0; ( ( _index < l_oldActiveMappedKeysLength ) &&
-                                   ( l_possibleActiveButtonsTotal ) );
+                                   ( ( l_possibleActiveButtonsTotal ) ||
+                                     ( l_possibleActiveDirectionsTotal ) ) );
               _index++ ) {
-            const size_t l_activeValue =
-                ( *_activeMappedKeys )[ _index ][ 0 ];
+            const char* l_activeValue = ( *_activeMappedKeys )[ _index ];
 
-            if ( containsString( l_tempKeys, l_tempKeysLength, l_activeValue ) ) {
-                const button_t l_value = l_tempValues[ _index ];
-                l_buttons |= ( uint16_t )( l_value );
-#ifdef DPRINT
-                printf( "lk: %s\n", l_key );
-#endif
+            // Direction
+            {
+                const size_t l_activeValueAsNumber =
+                    ( l_activeValue[ 0 ] - '0' );
 
-                l_activeMappedKeysLength--;
-                l_possibleActiveButtonsTotal--;
+                if ( ( l_activeValueAsNumber == 2 ) ||
+                     ( l_activeValueAsNumber == 4 ) ||
+                     ( l_activeValueAsNumber == 6 ) ||
+                     ( l_activeValueAsNumber == 8 ) ) {
+                    const int8_t* l_directionValue =
+                        l_directionsValues[ l_activeValueAsNumber - 1 ];
 
-                if ( !l_activeMappedKeysLength ) {
-                    break;
+                    l_direction += ( l_directionValue[ 0 ] +
+                                     ( l_directionValue[ 1 ] * 3 ) );
+
+                    l_possibleActiveDirectionsTotal--;
+                    l_activeMappedKeysLength--;
+
+                    if ( !l_activeMappedKeysLength ) {
+                        break;
+                    }
                 }
-            }
 
 #ifdef DPRINT
-        printf( "lb: %d\n", l_buttons );
-#endif
-
-            const size_t l_activeValue =
-                ( ( *_activeMappedKeys )[ _index ][ 0 ] - '0' );
-
-            if ( ( l_activeValue == 2 ) || ( l_activeValue == 4 ) ||
-                 ( l_activeValue == 6 ) || ( l_activeValue == 8 ) ) {
-                const int8_t* l_directionValue =
-                    l_directionsValues[ l_activeValue - 1 ];
-
-                l_direction +=
-                    ( l_directionValue[ 0 ] + ( l_directionValue[ 1 ] * 3 ) );
-
-                l_activeMappedKeysLength--;
-                l_possibleActiveButtonsTotal--;
-            }
-        }
-
-#ifdef DPRINT
-        printf( "ld: %d\n", l_direction );
+                printf( "ld: %d\n", l_direction );
 #endif
 #if 0
-        if ( l_direction == 5 ) {
-            l_direction = NEUTRAL_DIRECTION;
-        }
+                if ( l_direction == 5 ) {
+                    l_direction = NEUTRAL_DIRECTION;
+                }
 #endif
+            }
+
+            // Buttons
+            {
+                if ( ( ssize_t l_index = containsString( l_tempKeys, l_tempKeysLength,
+                                     l_activeValue ) ) >= 0 ) {
+                    const button_t l_value = l_tempValues[ l_index ];
+                    l_buttons |= ( uint16_t )( l_value );
+#ifdef DPRINT
+                    printf( "lk: %s\n", l_key );
+#endif
+
+                    l_activeMappedKeysLength--;
+                    l_possibleActiveButtonsTotal--;
+
+                    if ( !l_activeMappedKeysLength ) {
+                        break;
+                    }
+                }
+
+#ifdef DPRINT
+                printf( "lb: %d\n", l_buttons );
+#endif
+            }
+        }
     }
 
     l_returnValue = _useCallback( "game$applyInput$end", &l_buttons,
