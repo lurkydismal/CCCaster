@@ -82,9 +82,9 @@ void gameMainLoopCallback( void ) {
                 l_currentGameModeAsText[ l_currentGameModeAsTextLength + 1 ] =
                     '\0';
 
+                _useCallback( "log$transaction$query", "gameMode$changed : " );
                 _useCallback( "log$transaction$query",
                               l_currentGameModeAsText );
-                _useCallback( "log$transaction$commit" );
 
                 free( l_currentGameModeAsText );
             }

@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,28 +22,30 @@ static void applyInput( button_t* _buttons,
                         direction_t* _direction,
                         player_t* _player ) {
     char* const l_inputsStructureAddress = *( ( char** )( 0x76E6AC ) );
-    // const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
-    // const uintptr_t l_firstPlayerButtonsOffset = 0x24;    // 36
-    // const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44
-    // const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
+#if 0
+    const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
+    const uintptr_t l_firstPlayerButtonsOffset = 0x24;    // 36
+    const uintptr_t l_secondPlayerDirectionOffset = 0x2C; // 44
+    const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
+#endif
 
-    *( uint16_t* )( l_inputsStructureAddress + 16 +
-                    ( 20 * ( ( uint8_t )*_player ) ) ) =
+    *( ( uint16_t* )( l_inputsStructureAddress + 16 +
+                      ( 20 * ( ( uint8_t )*_player ) ) ) ) =
         ( uint16_t )( *_buttons );
-    *( uint16_t* )( l_inputsStructureAddress + 4 +
-                    ( 20 * ( ( uint8_t )*_player ) ) ) =
+    *( ( uint16_t* )( l_inputsStructureAddress + 4 +
+                      ( 20 * ( ( uint8_t )*_player ) ) ) ) =
         ( uint16_t )( *_direction );
 }
 
 uint16_t __declspec( dllexport ) core$readSettingsFromString(
     void** _callbackArguments ) {
-    int16_t l_returnValue = 0;
+    uint16_t l_returnValue = 0;
 
     const char* _string = ( const char* )_callbackArguments[ 0 ];
 
     l_returnValue = readSettingsFromString( _string );
 
-    if ( l_returnValue == 0 ) {
+    if ( !l_returnValue ) {
         writeSettingsToFile( SETTINGS_FILE_PATH );
     }
 
@@ -51,7 +54,7 @@ uint16_t __declspec( dllexport ) core$readSettingsFromString(
 
 uint16_t __declspec( dllexport ) core$getSettingsContentByLabel(
     void** _callbackArguments ) {
-    int16_t l_returnValue = 0;
+    uint16_t l_returnValue = 0;
 
     char**** _returnValue = ( char**** )_callbackArguments[ 0 ];
     const char* _label = ( const char* )_callbackArguments[ 1 ];
@@ -65,7 +68,7 @@ uint16_t __declspec( dllexport ) core$getSettingsContentByLabel(
 
 uint16_t __declspec( dllexport ) core$changeSettingsKeyByLabel(
     void** _callbackArguments ) {
-    int16_t l_returnValue = 0;
+    uint16_t l_returnValue = 0;
 
     const char* const* _key = ( const char* const* )_callbackArguments[ 0 ];
     const char* const* _label = ( const char* const* )_callbackArguments[ 1 ];
@@ -73,7 +76,7 @@ uint16_t __declspec( dllexport ) core$changeSettingsKeyByLabel(
 
     l_returnValue = changeSettingsKeyByLabel( *_key, *_label, *_value );
 
-    if ( l_returnValue == 0 ) {
+    if ( !l_returnValue ) {
         writeSettingsToFile( SETTINGS_FILE_PATH );
     }
 
@@ -90,13 +93,13 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     button_t l_buttons = NEUTRAL_BUTTON;
     player_t l_localPlayer = FIRST;
 
-    _useCallback( "keyboard$applyInput$begin", _activeMappedKeys,
-                  &l_localPlayer );
+    _useCallback( "game$applyInput$begin", _activeMappedKeys, &l_localPlayer );
 
-    // Direction
     if ( l_activeMappedKeysLength ) {
-        printf( "ld: %d\n", l_activeMappedKeysLength );
-        const int16_t l_directionsValues[][ 2 ] = {
+#ifdef DPRINT
+        printf( "lamkl: %d\n", l_activeMappedKeysLength );
+#endif
+        const int8_t l_directionsValues[][ 2 ] = {
             { -1, -1 }, // 1
             { 0, -1 },  // 2
             { 1, -1 },  // 3
@@ -108,41 +111,6 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
             { 1, 1 }    // 9
         };
 
-        l_direction = 5;
-        const size_t l_oldActiveMappedKeysLength =
-            ( l_activeMappedKeysLength + 1 );
-
-        for ( size_t _index = 1; _index < l_oldActiveMappedKeysLength;
-              _index++ ) {
-            const size_t l_activeValue =
-                ( ( *_activeMappedKeys )[ _index ][ 0 ] - '0' );
-
-            if ( ( l_activeValue == 2 ) || ( l_activeValue == 4 ) ||
-                 ( l_activeValue == 6 ) || ( l_activeValue == 8 ) ) {
-                const int16_t* l_directionValue =
-                    l_directionsValues[ l_activeValue - 1 ];
-
-                l_direction = ( l_direction + l_directionValue[ 0 ] +
-                                ( l_directionValue[ 1 ] * 3 ) );
-
-                l_activeMappedKeysLength--;
-
-                if ( !l_activeMappedKeysLength ) {
-                    break;
-                }
-            }
-        }
-
-        printf( "ld: %d\n", l_direction );
-#if 0
-        if ( l_direction == 5 ) {
-            l_direction = NEUTRAL_DIRECTION;
-        }
-#endif
-    }
-
-    // Button
-    if ( l_activeMappedKeysLength ) {
         const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
                                      "AB", "FN1", "FN2", "START" };
         const size_t l_tempKeysLength =
@@ -159,27 +127,70 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
             FN2,
             START };
 
-        for ( size_t _index = 0; l_tempKeysLength; _index++ ) {
-            const char* l_key = l_tempKeys[ _index ];
+        l_direction = 5;
+        const size_t l_oldActiveMappedKeysLength =
+            ( l_activeMappedKeysLength + 1 );
+        size_t l_possibleActiveButtonsTotal =
+            ( ( bool )( 2 ) + ( bool )( 4 ) + ( bool )( 6 ) + ( bool )( 8 ) );
 
-            if ( _containsString( *_activeMappedKeys, l_key ) ) {
+        l_activeMappedKeysLength =
+            ( ( size_t )( ( *_activeMappedKeys )[ 0 ] ) - 1 )
+        const size_t l_oldActiveMappedKeysLength =
+            ( l_activeMappedKeysLength + 1 );
+        size_t l_possibleActiveButtonsTotal = l_tempKeysLength;
+
+        for ( size_t _index = 0; ( ( _index < l_oldActiveMappedKeysLength ) &&
+                                   ( l_possibleActiveButtonsTotal ) );
+              _index++ ) {
+            const size_t l_activeValue =
+                ( *_activeMappedKeys )[ _index ][ 0 ];
+
+            if ( containsString( l_tempKeys, l_tempKeysLength, l_activeValue ) ) {
                 const button_t l_value = l_tempValues[ _index ];
-                l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
-                                          ( uint16_t )( l_value ) );
-                printf( "ld: %s\n", l_key );
+                l_buttons |= ( uint16_t )( l_value );
+#ifdef DPRINT
+                printf( "lk: %s\n", l_key );
+#endif
 
                 l_activeMappedKeysLength--;
+                l_possibleActiveButtonsTotal--;
 
                 if ( !l_activeMappedKeysLength ) {
                     break;
                 }
             }
+
+#ifdef DPRINT
+        printf( "lb: %d\n", l_buttons );
+#endif
+
+            const size_t l_activeValue =
+                ( ( *_activeMappedKeys )[ _index ][ 0 ] - '0' );
+
+            if ( ( l_activeValue == 2 ) || ( l_activeValue == 4 ) ||
+                 ( l_activeValue == 6 ) || ( l_activeValue == 8 ) ) {
+                const int8_t* l_directionValue =
+                    l_directionsValues[ l_activeValue - 1 ];
+
+                l_direction +=
+                    ( l_directionValue[ 0 ] + ( l_directionValue[ 1 ] * 3 ) );
+
+                l_activeMappedKeysLength--;
+                l_possibleActiveButtonsTotal--;
+            }
         }
 
-        printf( "ld: %d\n", l_buttons );
+#ifdef DPRINT
+        printf( "ld: %d\n", l_direction );
+#endif
+#if 0
+        if ( l_direction == 5 ) {
+            l_direction = NEUTRAL_DIRECTION;
+        }
+#endif
     }
 
-    l_returnValue = _useCallback( "keyboard$applyInput$end", &l_buttons,
+    l_returnValue = _useCallback( "game$applyInput$end", &l_buttons,
                                   &l_direction, &l_localPlayer );
 
     applyInput( &l_buttons, &l_direction, &l_localPlayer );
