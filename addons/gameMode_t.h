@@ -7,7 +7,7 @@ typedef enum {
     STARTUP = 65535,
     OPENING = 3,
     TITLE = 2,
-    MAIN = 25,
+    MAIN_MENU = 25,
     CHARACTER_SELECT = 20,
     LOADING = 8,
     IN_MATCH = 1,

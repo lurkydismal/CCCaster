@@ -38,7 +38,7 @@ void extraDrawCallback( void ) {
 }
 
 void gameMainLoopCallback( void ) {
-// Frame step timer, always counting up
+    // Frame step timer, always counting up
 #define CC_WORLD_TIMER_ADDR ( 0x55D1D4 )
 
     static uint32_t l_framesPassed = 0;
@@ -72,21 +72,62 @@ void gameMainLoopCallback( void ) {
             l_currentGameMode = *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) );
 
             {
-                char* l_currentGameModeAsText = stoa( l_currentGameMode );
-                const size_t l_currentGameModeAsTextLength =
-                    strlen( l_currentGameModeAsText );
-                l_currentGameModeAsText = ( char* )realloc(
-                    l_currentGameModeAsText,
-                    ( l_currentGameModeAsTextLength + 1 + 1 ) );
-                l_currentGameModeAsText[ l_currentGameModeAsTextLength ] = '\n';
-                l_currentGameModeAsText[ l_currentGameModeAsTextLength + 1 ] =
-                    '\0';
+                char* l_currentGameModeAsString = stoa( l_currentGameMode );
+                char* l_currentGameModeAsText;
+
+                switch ( l_currentGameMode ) {
+                    case STARTUP: {
+                        l_currentGameModeAsText = "startup";
+
+                        break;
+                    }
+
+                    case OPENING: {
+                        l_currentGameModeAsText = "opening";
+
+                        break;
+                    }
+
+                    case TITLE: {
+                        l_currentGameModeAsText = "title";
+
+                        break;
+                    }
+
+                    case MAIN_MENU: {
+                        l_currentGameModeAsText = "main_menu";
+
+                        break;
+                    }
+
+                    case CHARACTER_SELECT: {
+                        l_currentGameModeAsText = "character_select";
+
+                        break;
+                    }
+
+                    case LOADING: {
+                        l_currentGameModeAsText = "loading";
+
+                        break;
+                    }
+
+                    case IN_MATCH: {
+                        l_currentGameModeAsText = "in_match";
+
+                        break;
+                    }
+                }
 
                 _useCallback( "log$transaction$query", "gameMode$changed : " );
                 _useCallback( "log$transaction$query",
+                              l_currentGameModeAsString );
+                _useCallback( "log$transaction$query", " " );
+                _useCallback( "log$transaction$query",
                               l_currentGameModeAsText );
+                _useCallback( "log$transaction$query", "\n" );
 
-                free( l_currentGameModeAsText );
+                free( l_currentGameModeAsString );
             }
 
             uint16_t l_result =
@@ -125,7 +166,7 @@ void gameMainLoopCallback( void ) {
                 break;
             }
 
-            case MAIN: {
+            case MAIN_MENU: {
 #if 0
                 *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
