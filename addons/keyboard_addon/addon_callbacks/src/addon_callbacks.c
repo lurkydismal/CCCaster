@@ -88,11 +88,12 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
     char** l_activeKeys = ( char** )createArray( sizeof( char* ) );
 
-#define KEYS_TOTAL ( 0xFE + 1 )
+#define LAST_KEY_CODE VK_OEM_CLEAR
+#define KEYS_TOTAL ( LAST_KEY_CODE + 1 )
 
-    for ( uint8_t _index = 0x0D; _index < KEYS_TOTAL; _index++ ) {
-        if ( ( _index != VK_MENU ) && ( _index != VK_SHIFT ) &&
-             ( _index != VK_CONTROL ) ) {
+    for ( uint8_t _index = 0; _index < KEYS_TOTAL; _index++ ) {
+        if ( ( _index != VK_CLEAR ) && ( _index != VK_MENU ) &&
+             ( _index != VK_SHIFT ) && ( _index != VK_CONTROL ) ) {
             if ( GetKeyState( _index ) & 0x8000 ) {
                 const size_t l_keyboardLayoutKeysLength =
                     ( sizeof( g_keyboardLayoutKeys ) /
@@ -133,7 +134,6 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
                                                  [ 0 ] ),
                             sizeof( l_activeMappedKeys[ 0 ] ) );
 
-#define D_PRINT_KEY
 #ifdef D_PRINT_KEY
                         _useCallback( "log$transaction$query", "mapped: " );
                         _useCallback(
