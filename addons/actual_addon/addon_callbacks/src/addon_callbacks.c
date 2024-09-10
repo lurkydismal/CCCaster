@@ -1,4 +1,3 @@
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,16 +10,9 @@
 
 useCallbackFunction_t g_useCallback = NULL;
 
-uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
-    void** _callbackArguments ) {
-    _useCallbackInitialize();
-
-    return ( 0 );
-}
-
-static void applyInput( button_t* _buttons,
-                        direction_t* _direction,
-                        player_t* _player ) {
+static void applyInput( button_t _buttons,
+                        direction_t _direction,
+                        player_t _player ) {
     char* const l_inputsStructureAddress = *( ( char** )( 0x76E6AC ) );
 #if 0
     const uintptr_t l_firstPlayerDirectionOffset = 0x18;  // 24
@@ -30,11 +22,18 @@ static void applyInput( button_t* _buttons,
 #endif
 
     *( ( uint16_t* )( l_inputsStructureAddress + 16 +
-                      ( 20 * ( ( uint8_t )*_player ) ) ) ) =
-        ( uint16_t )( *_buttons );
+                      ( 20 * ( ( uint8_t )_player ) ) ) ) =
+        ( uint16_t )( _buttons );
     *( ( uint16_t* )( l_inputsStructureAddress + 4 +
-                      ( 20 * ( ( uint8_t )*_player ) ) ) ) =
-        ( uint16_t )( *_direction );
+                      ( 20 * ( ( uint8_t )_player ) ) ) ) =
+        ( uint16_t )( _direction );
+}
+
+uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
+    void** _callbackArguments ) {
+    _useCallbackInitialize();
+
+    return ( 0 );
 }
 
 uint16_t __declspec( dllexport ) core$readSettingsFromString(
@@ -96,9 +95,6 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     _useCallback( "game$applyInput$begin", _activeMappedKeys, &l_localPlayer );
 
     if ( l_activeMappedKeysLength ) {
-#ifdef DPRINT
-        printf( "lamkl: %d\n", l_activeMappedKeysLength );
-#endif
         const int8_t l_directionsValues[][ 2 ] = {
             { -1, -1 }, // 1
             { 0, -1 },  // 2
@@ -133,13 +129,12 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
         size_t l_possibleActiveDirectionsTotal =
             ( ( bool )( 2 ) + ( bool )( 4 ) + ( bool )( 6 ) + ( bool )( 8 ) );
 
-        l_activeMappedKeysLength =
-            ( ( size_t )( ( *_activeMappedKeys )[ 0 ] ) - 1 );
         size_t l_possibleActiveButtonsTotal = l_tempKeysLength;
 
-        for ( size_t _index = 0; ( ( _index < l_oldActiveMappedKeysLength ) &&
+        for ( size_t _index = 1; ( ( _index < l_oldActiveMappedKeysLength ) &&
                                    ( ( l_possibleActiveButtonsTotal ) ||
-                                     ( l_possibleActiveDirectionsTotal ) ) );
+                                     ( l_possibleActiveDirectionsTotal ) ) &&
+                                   ( l_activeMappedKeysLength ) );
               _index++ ) {
             const char* l_activeValue = ( *_activeMappedKeys )[ _index ];
 
@@ -160,15 +155,8 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
 
                     l_possibleActiveDirectionsTotal--;
                     l_activeMappedKeysLength--;
-
-                    if ( !l_activeMappedKeysLength ) {
-                        break;
-                    }
                 }
 
-#ifdef DPRINT
-                printf( "ld: %d\n", l_direction );
-#endif
 #if 0
                 if ( l_direction == 5 ) {
                     l_direction = NEUTRAL_DIRECTION;
@@ -177,26 +165,20 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
             }
 
             // Buttons
-            {
-                if ( ( ssize_t l_index = containsString( l_tempKeys, l_tempKeysLength,
-                                     l_activeValue ) ) >= 0 ) {
+            if ( l_activeMappedKeysLength ) {
+                ssize_t l_index;
+
+                if ( ( l_index = findStringInArray(
+                           l_tempKeys, l_tempKeysLength, l_activeValue ) ) >=
+                     0 ) {
                     const button_t l_value = l_tempValues[ l_index ];
-                    l_buttons |= ( uint16_t )( l_value );
-#ifdef DPRINT
-                    printf( "lk: %s\n", l_key );
-#endif
 
-                    l_activeMappedKeysLength--;
+                    l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
+                                              ( uint16_t )( l_value ) );
+
                     l_possibleActiveButtonsTotal--;
-
-                    if ( !l_activeMappedKeysLength ) {
-                        break;
-                    }
+                    l_activeMappedKeysLength--;
                 }
-
-#ifdef DPRINT
-                printf( "lb: %d\n", l_buttons );
-#endif
             }
         }
     }
@@ -204,7 +186,7 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     l_returnValue = _useCallback( "game$applyInput$end", &l_buttons,
                                   &l_direction, &l_localPlayer );
 
-    applyInput( &l_buttons, &l_direction, &l_localPlayer );
+    applyInput( l_buttons, l_direction, l_localPlayer );
 
     return ( l_returnValue );
 }
