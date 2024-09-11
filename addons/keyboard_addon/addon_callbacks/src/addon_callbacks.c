@@ -72,6 +72,64 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
+static bool checkKey( uint8_t _key ) {
+    bool l_returnValue = true;
+
+    {
+        const uint8_t l_keysToIgnore[] = { VK_CLEAR, VK_MENU, VK_SHIFT,
+                                           VK_CONTROL };
+        const size_t l_keysToIgnoreLength =
+            ( sizeof( l_keysToIgnore ) / sizeof( l_keysToIgnore[ 0 ] ) );
+
+#pragma omp simd
+        for ( size_t _index = 0; _index < l_keysToIgnoreLength; _index++ ) {
+            const uint8_t l_keyToIgnore = l_keysToIgnore[ _index ];
+
+            if ( l_keyToIgnore == _key ) {
+                l_returnValue = false;
+            }
+        }
+    }
+
+    if ( !l_returnValue ) {
+        goto EXIT;
+    }
+
+    {
+        // Check Pressed 0x8000 ==
+        //  0b1000_0000_0000_0000 16bit
+        //  If the high-order bit is 1, the key is down; otherwise, it is up.
+        //  If the low-order bit is 1, the key is toggled.
+        if ( !( GetKeyState( _key ) & 0x8000 ) ) {
+            l_returnValue = false;
+        }
+    }
+
+EXIT:
+    return ( l_returnValue );
+}
+
+static ssize_t findKeyInSettings( const char* _key ) {
+    bool l_returnValue = -1;
+
+    const size_t l_mappedButtonKeysLength = arrayLength( g_settings[ 0 ] );
+
+    for ( size_t _mappedButtonKeyIndex = 1;
+          _mappedButtonKeyIndex < ( l_mappedButtonKeysLength + 1 );
+          _mappedButtonKeyIndex++ ) {
+        const char* l_value = g_settings[ _mappedButtonKeyIndex ][ 1 ];
+
+        if ( strcmp( l_value, _key ) == 0 ) {
+            l_returnValue = _mappedButtonKeyIndex;
+
+            break;
+        }
+    }
+
+EXTI:
+    return ( l_returnValue );
+}
+
 uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
@@ -90,34 +148,8 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 #define LAST_KEY_CODE VK_OEM_CLEAR
 #define KEYS_TOTAL ( LAST_KEY_CODE + 1 )
 
-    const uint8_t l_keysToIgnore[] = { VK_CLEAR, VK_MENU, VK_SHIFT,
-                                       VK_CONTROL };
-    const size_t l_keysToIgnoreLength =
-        ( sizeof( l_keysToIgnore ) / sizeof( l_keysToIgnore[ 0 ] ) );
-
     for ( uint8_t _key = 0; _key < KEYS_TOTAL; _key++ ) {
-        {
-            bool l_isIgnore = false;
-
-#pragma omp simd
-            for ( size_t _index = 0; _index < l_keysToIgnoreLength; _index++ ) {
-                const uint8_t l_keyToIgnore = l_keysToIgnore[ _index ];
-
-                if ( l_keyToIgnore == _key ) {
-                    l_isIgnore = true;
-                }
-            }
-
-            if ( l_isIgnore ) {
-                continue;
-            }
-        }
-
-        // Check Pressed 0x8000 ==
-        //  0b1000_0000_0000_0000 16bit
-        //  If the high-order bit is 1, the key is down; otherwise, it is up.
-        //  If the low-order bit is 1, the key is toggled.
-        if ( GetKeyState( _key ) & 0x8000 ) {
+        if ( checkKey( _key ) ) {
             const size_t l_keyboardLayoutKeysLength =
                 ( sizeof( g_keyboardLayoutKeys ) /
                   sizeof( g_keyboardLayoutKeys[ 0 ] ) );
@@ -129,26 +161,8 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
                         g_keyboardLayoutKeys, l_keyboardLayoutKeysLength,
                         _key ) ];
 
-                ssize_t l_mappedButtonKeyIndex = -1;
-
-                {
-                    const size_t l_mappedButtonKeysLength =
-                        arrayLength( g_settings[ 0 ] );
-
-                    for ( size_t _mappedButtonKeyIndex = 1;
-                          _mappedButtonKeyIndex <
-                          ( l_mappedButtonKeysLength + 1 );
-                          _mappedButtonKeyIndex++ ) {
-                        const char* l_value =
-                            g_settings[ _mappedButtonKeyIndex ][ 1 ];
-
-                        if ( strcmp( l_value, l_keyboardLayoutValue ) == 0 ) {
-                            l_mappedButtonKeyIndex = _mappedButtonKeyIndex;
-
-                            break;
-                        }
-                    }
-                }
+                ssize_t l_mappedButtonKeyIndex =
+                    findKeyInSettings( l_keyboardLayoutValue );
 
                 if ( l_mappedButtonKeyIndex >= 0 ) {
                     const char* l_activeMappedKey =
