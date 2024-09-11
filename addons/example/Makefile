@@ -11,11 +11,13 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native
+			-march=native \
+			-fopenmp
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-march=native
+			-march=native \
+			-fopenmp
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          =
@@ -34,7 +36,8 @@ example_dll_RC_SRCS   =
 example_dll_LDFLAGS   = -shared \
 			$(example_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-O1
 example_dll_ARFLAGS   =
 example_dll_DLL_PATH  =
 example_dll_DLLS      = odbc32 \

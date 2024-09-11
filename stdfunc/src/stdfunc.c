@@ -1,8 +1,9 @@
 #include "stdfunc.h"
 
+#include <omp.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <omp.h>
 
 #ifdef __cplusplus
 
@@ -38,7 +39,7 @@ char* stoa( size_t _number ) {
     register uint32_t l_characterIndex = 2;
 
     if ( l_lengthOfNumber == 1 ) {
-        *l_tail-- = (char)( _number + '0' );
+        *l_tail-- = ( char )( _number + '0' );
 
         goto EXIT;
     }
@@ -66,12 +67,12 @@ void** createArray( const size_t _elementSize ) {
 }
 
 void preallocateArray( void*** _array, const size_t _size ) {
-    *_array = (void**)realloc( *_array, _size );
+    *_array = ( void** )realloc( *_array, _size );
 }
 
 void insertIntoArray( void*** _array,
-                             void* _value,
-                             const size_t _elementSize ) {
+                      void* _value,
+                      const size_t _elementSize ) {
     const size_t l_arrayLength = ( size_t )( ( *_array )[ 0 ] );
 
     *_array =
@@ -82,18 +83,23 @@ void insertIntoArray( void*** _array,
     ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
 }
 
-void insertIntoArrayByIndex( void*** _array, const size_t _index, void* _value, const size_t _elementSize ) {
+void insertIntoArrayByIndex( void*** _array,
+                             const size_t _index,
+                             void* _value,
+                             const size_t _elementSize ) {
     ( *_array )[ _index ] = _value;
 
     ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
 }
 
-ssize_t findStringInArray( const char** _array, const size_t _arrayLength, const char* _value ) {
+ssize_t findStringInArray( const char** _array,
+                           const size_t _arrayLength,
+                           const char* _value ) {
     ssize_t l_index = -1;
 
 #pragma omp simd
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
-        if ( strcmp(  _array[ _index ], _value ) == 0 ) {
+        if ( strcmp( _array[ _index ], _value ) == 0 ) {
             l_index = _index;
         }
     }
@@ -101,7 +107,9 @@ ssize_t findStringInArray( const char** _array, const size_t _arrayLength, const
     return ( l_index );
 }
 
-ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
+ssize_t findInArray( const size_t* _array,
+                     const size_t _arrayLength,
+                     const size_t _value ) {
     ssize_t l_index = -1;
 
 #pragma omp simd
@@ -114,16 +122,19 @@ ssize_t findInArray( const size_t* _array, const size_t _arrayLength, const size
     return ( l_index );
 }
 
-bool containsString( const char** _array, const size_t _arrayLength, const char* _value ) {
+bool containsString( const char** _array,
+                     const size_t _arrayLength,
+                     const char* _value ) {
     return ( findStringInArray( _array, _arrayLength, _value ) >= 0 );
 }
 
-bool contains( const size_t* _array, const size_t _arrayLength, const size_t _value ) {
+bool contains( const size_t* _array,
+               const size_t _arrayLength,
+               const size_t _value ) {
     return ( findInArray( _array, _arrayLength, _value ) >= 0 );
 }
 
 #ifdef __cplusplus
-
 }
 
 #endif
