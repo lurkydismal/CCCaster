@@ -19,7 +19,7 @@ CXXEXTRA              = -Ofast \
 			-march=native \
 			-fopenmp
 RCEXTRA               =
-DEFINES               =
+DEFINES               = -D PRINT_LOG
 INCLUDE_PATH          = -I log/include \
 			-I addon_callbacks/include
 DLL_PATH              =
@@ -39,7 +39,8 @@ keyboard_dll_RC_SRCS=
 keyboard_dll_LDFLAGS= -shared \
 			$(keyboard_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-O1
 keyboard_dll_ARFLAGS=
 keyboard_dll_DLL_PATH=
 keyboard_dll_DLLS= odbc32 \

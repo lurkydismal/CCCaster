@@ -1,17 +1,19 @@
 #include "settings_parser.h"
 
 #include <ctype.h>
+#include <omp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "stdfunc.h"
 
 #define ENOKEY 126
 
 typedef enum { KEY, VALUE } content_t;
 
 static char** g_labels;
-static size_t g_labelCount = 0;
 static char**** g_content;
 /*
  * [ // [ labels ]
@@ -25,32 +27,42 @@ static char**** g_content;
  */
 
 size_t* getLabelCount( void ) {
-    return ( &g_labelCount );
+    static size_t l_labelCount = 0;
+
+    return ( &l_labelCount );
+}
+
+size_t* getLabelKeysCountByIndex( const size_t _labelIndex ) {
+    return ( ( size_t* )( &( g_content[ _labelIndex ][ 0 ][ 0 ] ) ) );
 }
 
 static size_t getLabelIndex( const char* _label ) {
     const size_t* l_labelCount = getLabelCount();
+    size_t l_labelIndex = UINT32_MAX;
 
     for ( size_t _index = 0; _index < *l_labelCount; _index++ ) {
         if ( strcmp( _label, g_labels[ _index ] ) == 0 ) {
-            return ( _index );
+            l_labelIndex = _index;
+
+            break;
         }
     }
 
-    return ( UINT32_MAX );
+    return ( l_labelIndex );
 }
 
 static void freeLabelByIndex( const size_t _labelIndex ) {
     size_t* l_labelCount = getLabelCount();
 
-    if ( !*l_labelCount ) {
+    if ( !( *l_labelCount ) ) {
         return;
     }
 
-    const size_t l_keysCount = ( size_t )( g_content[ _labelIndex ][ 0 ][ 0 ] );
+    const size_t l_keysCount = *getLabelKeysCountByIndex( _labelIndex );
 
     free( g_labels[ _labelIndex ] );
 
+#pragma omp simd
     for ( size_t _keyIndex = 1; _keyIndex < l_keysCount; _keyIndex++ ) {
         free( g_content[ _labelIndex ][ _keyIndex ][ 0 ] );
 
@@ -111,7 +123,7 @@ static void addLabel( const char* _text ) {
     g_content[ l_labelIndex ] = ( char*** )malloc( 1 * sizeof( char** ) );
     g_content[ l_labelIndex ][ 0 ] = ( char** )malloc( 1 * sizeof( char* ) );
 
-    ( *( size_t* )( &( g_content[ l_labelIndex ][ 0 ][ 0 ] ) ) ) = 1;
+    ( *getLabelKeysCountByIndex( l_labelIndex ) ) = 1;
 }
 
 static void changeKeyByIndex( const size_t _keyIndex,
@@ -447,20 +459,11 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
 uint16_t freeSettingsTable( void ) {
     uint16_t l_returnValue = 1;
 
-    const size_t* l_labelCount = getLabelCount();
-
-    while ( *l_labelCount ) {
-        freeLabelByIndex( *l_labelCount - 1 );
+#pragma omp simd
+    for ( size_t _labelCount = *( getLabelCount() ); _labelCount > 0;
+          _labelCount-- ) {
+        freeLabelByIndex( _labelCount - 1 );
     }
-
-#if 0
-    const size_t l_labelCountBackup = *l_labelCount;
-
-    for ( size_t _labelIndex = 0; _labelIndex < l_labelCountBackup;
-          _labelIndex++ ) {
-        freeLabelByIndex( _labelIndex );
-    }
-#endif
 
     if ( g_labels ) {
         free( g_labels );
@@ -470,7 +473,7 @@ uint16_t freeSettingsTable( void ) {
         free( g_content );
     }
 
-    if ( ( !g_labels ) && ( !g_content ) && ( !*l_labelCount ) ) {
+    if ( ( !g_labels ) && ( !g_content ) && ( !( *getLabelCount() ) ) ) {
         l_returnValue = 0;
     }
 

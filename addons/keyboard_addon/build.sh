@@ -11,5 +11,5 @@ mkdir -p "${ADDONS_DIR}/keyboard" && \
     "${ADDONS_DIR}/keyboard/." && \
     clang-format --style=file \
     -i \
-    addon_callbacks/src/*.c addon_callbacks/include/*.h \
+    addon_callbacks/src/*.c \
     controls_parse/include/*.h

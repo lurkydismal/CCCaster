@@ -49,6 +49,9 @@ static uint32_t loadTextureFromMemory( char* _textureBuffer,
                                        uint32_t _textureBuffer2Length,
                                        uint32_t _unknownFlags );
 
-uint32_t native$getColorForRectangle( uint8_t _red, uint8_t _green, uint8_t _blue, uint8_t _alpha ) {
+uint32_t native$getColorForRectangle( uint8_t _red,
+                                      uint8_t _green,
+                                      uint8_t _blue,
+                                      uint8_t _alpha ) {
     return ( ( _alpha << 24 ) + ( _red << 16 ) + ( _green << 8 ) + ( _blue ) );
 }

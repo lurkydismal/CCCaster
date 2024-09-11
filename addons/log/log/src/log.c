@@ -34,26 +34,30 @@ uint16_t log_commit( void ) {
             goto EXIT;
         }
 
-        const char l_logSignature[] = { 'L', 'O', 'G', ':' };
-        const size_t l_logSignatureLength = sizeof( l_logSignature );
-        const size_t l_bufferLength =
-            ( g_transactionStringLength + l_logSignatureLength );
-        char* l_buffer =
-            ( char* )malloc( ( l_bufferLength + 1 ) * sizeof( char ) );
+#if defined( PRINT_LOG )
+        {
+            const char l_logSignature[] = { 'L', 'O', 'G', ':' };
+            const size_t l_logSignatureLength = sizeof( l_logSignature );
+            const size_t l_bufferLength =
+                ( g_transactionStringLength + l_logSignatureLength );
+            char* l_buffer =
+                ( char* )malloc( ( l_bufferLength + 1 ) * sizeof( char ) );
 
-        memcpy( l_buffer, l_logSignature, l_logSignatureLength );
-        memcpy( ( l_buffer + l_logSignatureLength ), g_transactionString,
-                ( g_transactionStringLength + 1 ) );
+            memcpy( l_buffer, l_logSignature, l_logSignatureLength );
+            memcpy( ( l_buffer + l_logSignatureLength ), g_transactionString,
+                    ( g_transactionStringLength + 1 ) );
 
-        l_writtenCount =
-            fwrite( l_buffer, sizeof( l_buffer[ 0 ] ), l_bufferLength, stdout );
+            l_writtenCount = fwrite( l_buffer, sizeof( l_buffer[ 0 ] ),
+                                     l_bufferLength, stdout );
 
-        free( l_buffer );
+            free( l_buffer );
 
-        l_returnValue =
-            !( l_writtenCount == ( g_transactionStringLength + 1 ) );
+            l_returnValue =
+                !( l_writtenCount == ( g_transactionStringLength + 1 ) );
 
-        fflush( stdout );
+            fflush( stdout );
+        }
+#endif
 
     EXIT:
         g_transactionStringLength = 0;

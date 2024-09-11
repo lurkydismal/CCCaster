@@ -1,8 +1,0 @@
-LIBRARY keyboard
-EXPORTS
-
-mainLoop$newFrame
-keyboard$applyInput
-gameMode$versus
-IDirect3D9Ex$CreateDevice
-extraDrawCallback
