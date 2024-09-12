@@ -12,6 +12,10 @@
 #include "player_t.h"
 #include "stdfunc.h"
 
+#if 0
+#define PRINT_KEY
+#endif
+
 static const size_t g_keyboardLayoutKeys[] = {
     VK_ESCAPE,     VK_F1,       VK_F2,     VK_F3,       VK_F4,
     VK_F5,         VK_F6,       VK_F7,     VK_F8,       VK_F9,
@@ -73,44 +77,23 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
 }
 
 static bool checkKey( uint8_t _key ) {
-    bool l_returnValue = true;
-
-    {
-        const uint8_t l_keysToIgnore[] = { VK_CLEAR, VK_MENU, VK_SHIFT,
-                                           VK_CONTROL };
-        const size_t l_keysToIgnoreLength =
-            ( sizeof( l_keysToIgnore ) / sizeof( l_keysToIgnore[ 0 ] ) );
-
-#pragma omp simd
-        for ( size_t _index = 0; _index < l_keysToIgnoreLength; _index++ ) {
-            const uint8_t l_keyToIgnore = l_keysToIgnore[ _index ];
-
-            if ( l_keyToIgnore == _key ) {
-                l_returnValue = false;
-            }
-        }
-    }
-
-    if ( !l_returnValue ) {
-        goto EXIT;
-    }
+    bool l_returnValue = false;
 
     {
         // Check Pressed 0x8000 ==
         //  0b1000_0000_0000_0000 16bit
         //  If the high-order bit is 1, the key is down; otherwise, it is up.
         //  If the low-order bit is 1, the key is toggled.
-        if ( !( GetKeyState( _key ) & 0x8000 ) ) {
-            l_returnValue = false;
+        if ( GetKeyState( _key ) & 0x8000 ) {
+            l_returnValue = true;
         }
     }
 
-EXIT:
     return ( l_returnValue );
 }
 
 static ssize_t findKeyInSettings( const char* _key ) {
-    bool l_returnValue = -1;
+    ssize_t l_returnValue = -1;
 
     const size_t l_mappedButtonKeysLength = arrayLength( g_settings[ 0 ] );
 
@@ -145,60 +128,50 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
     char** l_activeKeys = ( char** )createArray( sizeof( char* ) );
 
-#define LAST_KEY_CODE VK_OEM_CLEAR
-#define KEYS_TOTAL ( LAST_KEY_CODE + 1 )
+    const size_t l_keyboardLayoutKeysLength =
+        ( sizeof( g_keyboardLayoutKeys ) /
+          sizeof( g_keyboardLayoutKeys[ 0 ] ) );
 
-    for ( uint8_t _key = 0; _key < KEYS_TOTAL; _key++ ) {
-        if ( checkKey( _key ) ) {
-            const size_t l_keyboardLayoutKeysLength =
-                ( sizeof( g_keyboardLayoutKeys ) /
-                  sizeof( g_keyboardLayoutKeys[ 0 ] ) );
-
-            if ( contains( g_keyboardLayoutKeys, l_keyboardLayoutKeysLength,
-                           _key ) ) {
-                const char* l_keyboardLayoutValue =
-                    g_keyboardLayoutValues[ findInArray(
-                        g_keyboardLayoutKeys, l_keyboardLayoutKeysLength,
-                        _key ) ];
-
-                ssize_t l_mappedButtonKeyIndex =
-                    findKeyInSettings( l_keyboardLayoutValue );
-
-                if ( l_mappedButtonKeyIndex >= 0 ) {
-                    const char* l_activeMappedKey =
-                        g_settings[ l_mappedButtonKeyIndex ][ 0 ];
-
-                    insertIntoArray( ( void*** )( &l_activeMappedKeys ),
-                                     ( void* )( l_activeMappedKey ),
-                                     sizeof( l_activeMappedKeys[ 0 ] ) );
-
-#ifdef D_PRINT_KEY
-                    _useCallback( "log$transaction$query", "mapped: " );
-                    _useCallback( "log$transaction$query",
-                                  l_activeMappedKeys[ arrayLength(
-                                      l_activeMappedKeys ) ] );
-                    _useCallback( "log$transaction$query", "\n" );
-                    _useCallback( "log$transaction$commit" );
-#endif
-
-                } else {
-                    insertIntoArray( ( void*** )( &l_activeKeys ),
-                                     ( void* )( l_keyboardLayoutValue ),
-                                     sizeof( l_activeKeys[ 0 ] ) );
-
-#ifdef D_PRINT_KEY
-                    _useCallback( "log$transaction$query", "not mapped: " );
-                    _useCallback( "log$transaction$query",
-                                  l_activeKeys[ arrayLength( l_activeKeys ) ] );
-                    _useCallback( "log$transaction$query", "\n" );
-                    _useCallback( "log$transaction$commit" );
-#endif
-                }
-            }
+#pragma omp simd
+    for ( uint8_t _keyIndex = 0; _keyIndex < l_keyboardLayoutKeysLength;
+          _keyIndex++ ) {
+        if ( !checkKey( g_keyboardLayoutKeys[ _keyIndex ] ) ) {
+            continue;
         }
-    }
 
-#undef KEYS_TOTAL
+        char*** l_array;
+        const char* l_key;
+
+        const char* l_keyboardLayoutValue = g_keyboardLayoutValues[ _keyIndex ];
+        ssize_t l_mappedButtonKeyIndex =
+            findKeyInSettings( l_keyboardLayoutValue );
+
+        if ( l_mappedButtonKeyIndex >= 0 ) {
+            const char* l_activeMappedKey =
+                g_settings[ l_mappedButtonKeyIndex ][ 0 ];
+
+            l_array = &l_activeMappedKeys;
+            l_key = l_activeMappedKey;
+
+        } else {
+            l_array = &l_activeKeys;
+            l_key = l_keyboardLayoutValue;
+
+#if defined( PRINT_KEY )
+            _useCallback( "log$transaction$query", "not " );
+#endif
+        }
+
+        insertIntoArray( ( void*** )( l_array ), ( void* )( l_key ),
+                         sizeof( l_key ) );
+
+#if defined( PRINT_KEY )
+        _useCallback( "log$transaction$query", "mapped: " );
+        _useCallback( "log$transaction$query", l_key );
+        _useCallback( "log$transaction$query", "\n" );
+        _useCallback( "log$transaction$commit" );
+#endif
+    }
 
     l_returnValue = _useCallback( "keyboard$getInput$end", &l_activeMappedKeys,
                                   &l_activeKeys );
