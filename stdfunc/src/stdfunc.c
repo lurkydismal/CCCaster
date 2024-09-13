@@ -2,7 +2,6 @@
 
 #include <omp.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -44,10 +43,10 @@ char* stoa( size_t _number ) {
         goto EXIT;
     }
 
-    for ( l_characterIndex = 1; _number != 0; _number /= 10 ) {
-        ++l_characterIndex;
-
+    for ( l_characterIndex = 2; l_characterIndex < l_lengthOfNumber; l_characterIndex++ ) {
         *l_tail-- = ( char )( ( _number % 10 ) + '0' );
+
+        number /= 10;
     }
 
 EXIT:
@@ -66,17 +65,19 @@ void** createArray( const size_t _elementSize ) {
     return ( l_array );
 }
 
-void preallocateArray( void*** _array, const size_t _size ) {
-    *_array = ( void** )realloc( *_array, _size );
+void preallocateArray( void*** _array, const size_t _arrayLength, const size_t _elementSize ) {
+    *_array = ( void** )realloc( *_array, ( _arrayLength * _elementSize ) );
+
+    ( *( size_t* )( &( l_array[ 0 ] ) ) ) = ( size_t )( char )( _arrayLength );
 }
 
 void insertIntoArray( void*** _array,
                       void* _value,
                       const size_t _elementSize ) {
-    const size_t l_arrayLength = ( size_t )( ( *_array )[ 0 ] );
+    const size_t l_arrayLength = arrayLength( *_array );
 
     *_array =
-        ( void** )realloc( *_array, ( l_arrayLength + 1 ) * _elementSize );
+        ( void** )realloc( *_array, ( 1 + l_arrayLength + 1 ) * _elementSize );
 
     ( *_array )[ l_arrayLength ] = _value;
 
@@ -85,11 +86,8 @@ void insertIntoArray( void*** _array,
 
 void insertIntoArrayByIndex( void*** _array,
                              const size_t _index,
-                             void* _value,
-                             const size_t _elementSize ) {
+                             void* _value ) {
     ( *_array )[ _index ] = _value;
-
-    ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
 }
 
 ssize_t findStringInArray( const char** _array,

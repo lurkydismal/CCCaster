@@ -9,7 +9,6 @@
 #define SETTINGS_BACKUP_FILE_PATH "backup_" SETTINGS_FILE_PATH
 #define MAX_LINE_LENGTH 100
 
-size_t* getLabelCount( void );
 uint16_t readSettingsFromFile( const char* _fileName );
 uint16_t readSettingsFromString( const char* _text );
 uint16_t writeSettingsToFile( const char* _fileName );

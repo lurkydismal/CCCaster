@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "_useCallback.h"
 #include "patch_callbacks.h"
 #include "patch_t.h"
 #include "settings_parser.h"
@@ -425,6 +426,11 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
         if ( readSettingsFromFile( SETTINGS_FILE_PATH ) != 0 ) {
             if ( readSettingsFromFile( SETTINGS_BACKUP_FILE_PATH ) == 0 ) {
                 writeSettingsToFile( SETTINGS_FILE_PATH );
+
+                _useCallback( "log$transaction$query", "Reading Settings From Backup File\n" );
+
+            } else {
+                _useCallback( "log$transaction$query", "Settings Backup File Not Found\n" );
             }
         }
     }
