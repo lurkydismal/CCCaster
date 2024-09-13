@@ -2,23 +2,24 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #define arrayLength( _array ) ( ( size_t )( _array[ 0 ] ) - 1 )
-#define arrayFirstElement( _array ) ( _array + 1 )
+#define arrayFirstElementPointer( _array ) ( _array + 1 )
 
 #define _findStringInArray( _array, _value )               \
     ( findStringInArrayInArray(                            \
-          ( const char** )( arrayFirstElement( _array ) ), \
+          ( const char** )( arrayFirstElementPointer( _array ) ), \
           arrayLength( _array ), _value ) +                \
       1 )
 #define _findInArray( _array, _value ) \
-    findInArray( arrayFirstElement( _array ), arrayLength( _array ), _value )
+    findInArray( arrayFirstElementPointer( _array ), arrayLength( _array ), _value )
 
 #define _containsString( _array, _value )                            \
-    containsString( ( const char** )( arrayFirstElement( _array ) ), \
+    containsString( ( const char** )( arrayFirstElementPointer( _array ) ), \
                     arrayLength( _array ), _value )
 #define _contains( _array, _value ) \
-    contains( arrayFirstElement( _array ), arrayLength( _array ), _value )
+    contains( arrayFirstElementPointer( _array ), arrayLength( _array ), _value )
 
 #ifdef __cplusplus
 
