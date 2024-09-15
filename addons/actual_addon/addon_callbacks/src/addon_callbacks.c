@@ -86,8 +86,7 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
     char*** _activeMappedKeys = ( char*** )_callbackArguments[ 0 ];
-    size_t l_activeMappedKeysLength =
-        ( ( size_t )( ( *_activeMappedKeys )[ 0 ] ) - 1 );
+    size_t l_activeMappedKeysLength = arrayLength( *_activeMappedKeys );
     direction_t l_direction = NEUTRAL_DIRECTION;
     button_t l_buttons = NEUTRAL_BUTTON;
     player_t l_localPlayer = FIRST;

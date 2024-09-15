@@ -126,6 +126,7 @@ void gameMainLoopCallback( void ) {
                 _useCallback( "log$transaction$query",
                               l_currentGameModeAsText );
                 _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
 
                 free( l_currentGameModeAsString );
             }
@@ -153,9 +154,10 @@ void gameMainLoopCallback( void ) {
                 *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
                 char** l_input = ( char** )createArray( sizeof( char* ) );
+                const char l_button[] = "A";
 
-                insertIntoArray( ( void*** )( &l_input ), ( void* )( "A" ),
-                                 sizeof( l_input[ 0 ] ) );
+                insertIntoArray( ( void*** )( &l_input ), ( void* )( l_button ),
+                                 sizeof( l_button ) );
 
                 _useCallback( "game$applyInput", &l_input );
 
