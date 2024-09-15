@@ -127,8 +127,8 @@ static void addLabel( const char* _text ) {
 }
 
 static /* inline */ void changeKeyByIndex( const size_t _keyIndex,
-                              const size_t _labelIndex,
-                              const char* _value ) {
+                                           const size_t _labelIndex,
+                                           const char* _value ) {
     char* l_value = strdup( _value );
 
     free( g_content[ _labelIndex ][ _keyIndex ][ 1 ] );
@@ -333,9 +333,7 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
             goto EXIT;
         }
 
-        {
-            changeKeyByIndex( l_keyIndex, l_labelIndex, _value );
-        }
+        { changeKeyByIndex( l_keyIndex, l_labelIndex, _value ); }
     }
 
 EXIT:
@@ -489,14 +487,14 @@ void printSettings( void ) {
     for ( size_t _labelIndex = 0; _labelIndex < l_labelCount; _labelIndex++ ) {
         const char* l_label = g_labels[ _labelIndex ];
         char*** l_content = g_content[ _labelIndex ];
-        const size_t l_keysCount =
-            arrayLength( l_content[ 0 ] );
+        const size_t l_keysCount = arrayLength( l_content[ 0 ] );
         char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
         char** const* l_contentEnd = ( l_contentFirstElement + l_keysCount );
 
         printf( "[%s] : %d %p\n", l_label, l_keysCount, l_contentEnd );
 
-        for ( char*** _elementPointer = l_contentFirstElement; _elementPointer != l_contentEnd; _elementPointer++ ) {
+        for ( char*** _elementPointer = l_contentFirstElement;
+              _elementPointer != l_contentEnd; _elementPointer++ ) {
             const char* l_key = ( *_elementPointer )[ 0 ];
             const char* l_value = ( *_elementPointer )[ 1 ];
 

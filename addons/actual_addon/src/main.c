@@ -427,10 +427,12 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
             if ( readSettingsFromFile( SETTINGS_BACKUP_FILE_PATH ) == 0 ) {
                 writeSettingsToFile( SETTINGS_FILE_PATH );
 
-                _useCallback( "log$transaction$query", "Reading Settings From Backup File\n" );
+                _useCallback( "log$transaction$query",
+                              "Reading Settings From Backup File\n" );
 
             } else {
-                _useCallback( "log$transaction$query", "Settings Backup File Not Found\n" );
+                _useCallback( "log$transaction$query",
+                              "Settings Backup File Not Found\n" );
             }
         }
     }
