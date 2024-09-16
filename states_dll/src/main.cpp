@@ -20,8 +20,8 @@ extern "C" bool addCallbacks( const char* _callbackName,
     addonCallbackFunction_t** l_callbacks;
     l_callbacks =
         ( addonCallbackFunction_t** )createArray( sizeof( uintptr_t ) );
-    preallocateArray( ( void*** )( &l_callbacks ),
-                      ( _functionCount + 1 ) * sizeof( uintptr_t ) );
+    preallocateArray( ( void*** )( &l_callbacks ), ( _functionCount + 1 ),
+                      sizeof( uintptr_t ) );
 
 #pragma omp simd
     for ( size_t _functionIndex = 1; _functionIndex < ( _functionCount + 1 );
@@ -29,8 +29,7 @@ extern "C" bool addCallbacks( const char* _callbackName,
         insertIntoArrayByIndex(
             ( void*** )( &l_callbacks ), _functionIndex,
             ( void* )( reinterpret_cast< addonCallbackFunction_t* >(
-                _functionAddresses[ _functionIndex - 1 ] ) ),
-            sizeof( uintptr_t ) );
+                _functionAddresses[ _functionIndex - 1 ] ) ) );
     }
 
     l_returnValue =
