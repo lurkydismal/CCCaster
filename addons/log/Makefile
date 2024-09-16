@@ -11,13 +11,11 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native \
-			-fopenmp
+			-march=native
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-march=native \
-			-fopenmp
+			-march=native
 RCEXTRA               =
 DEFINES               = -D PRINT_LOG
 INCLUDE_PATH          = -I log/include \

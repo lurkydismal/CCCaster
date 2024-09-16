@@ -387,6 +387,27 @@ uint16_t readSettingsFromString( const char* _text ) {
     return ( l_returnValue );
 }
 
+static void concatBeforeAndAfterString( char** _string, const char* _beforeString, const char* _afterString ) {
+    const size_t l_stringLength = strlen ( _string );
+    const size_t l_beforeStringLength = strlen ( _beforeString );
+    const size_t l_afterString = strlen ( _afterString );
+    const size_t l_totalLength = ( l_beforeStringLength + l_stringLength + l_afterString );
+
+    char* l_buffer = (char*)malloc( l_stringLength * sizeof( char ) );
+
+    memcpy( l_buffer, *_string, l_stringLength );
+
+    *_string = (char*)realloc( *_string, ( l_totalLength + 1 ) * sizeof( char ) );
+
+    memcpy( *_string, _beforeString, l_beforeStringLength );
+    memcpy( ( l_beforeStringLength + *_string ), l_buffer, l_stringLength );
+    memcpy( ( l_beforeStringLength + l_stringLength + *_string ), l_afterString, l_afterString );
+
+    ( *_string )[ l_totalLength ] = '\0';
+
+    free( l_buffer );
+}
+
 uint16_t writeSettingsToFile( const char* _fileName ) {
     uint16_t l_returnValue = 1;
 

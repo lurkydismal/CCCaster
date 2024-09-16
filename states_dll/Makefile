@@ -12,12 +12,12 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
-			-fopenmp
+			-fopenmp-simd
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++17 \
 			-march=native \
-			-fopenmp \
+			-fopenmp-simd \
 			-Wno-narrowing \
 			-Wno-overflow \
 			-Wno-shift-count-overflow
