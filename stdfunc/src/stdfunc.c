@@ -3,6 +3,8 @@
 #include <omp.h>
 #include <string.h>
 
+#define arrayLengthPointer( _array ) ( ( size_t* )( &( _array[ 0 ] ) ) )
+
 #ifdef __cplusplus
 
 extern "C" {
@@ -139,17 +141,19 @@ char* stoa( size_t _number ) {
 void** createArray( const size_t _elementSize ) {
     void** l_array = ( void** )malloc( 1 * _elementSize );
 
-    ( *( size_t* )( &( l_array[ 0 ] ) ) ) = ( size_t )( char )( 1 );
+    *arrayLengthPointer( l_array ) = ( size_t )( char )( 1 );
 
     return ( l_array );
 }
 
 void preallocateArray( void*** _array,
-                       const size_t _arrayLength,
+                       const size_t _length,
                        const size_t _elementSize ) {
-    *_array = ( void** )realloc( *_array, ( _arrayLength * _elementSize ) );
+    const size_t l_currentArrayLength = arrayLength( *_array );
 
-    ( *( size_t* )( &( _array[ 0 ] ) ) ) = ( size_t )( char )( _arrayLength );
+    *_array = ( void** )realloc( *_array, ( ( l_currentArrayLength + _length + 1 ) * _elementSize ) );
+
+    *arrayLengthPointer( *_array ) = ( size_t )( char )( l_currentArrayLength + _length + 1 );
 }
 
 void insertIntoArray( void*** _array,
@@ -162,7 +166,7 @@ void insertIntoArray( void*** _array,
 
     ( *_array )[ l_arrayLength + 1 ] = _value;
 
-    ( *( size_t* )( &( ( *_array )[ 0 ] ) ) )++;
+    ( *arrayLengthPointer( *_array ) )++;
 }
 
 void insertIntoArrayByIndex( void*** _array,

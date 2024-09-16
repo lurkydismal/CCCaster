@@ -330,11 +330,17 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
 
             *l_labelCount = l_labelCountBackup;
 
-            goto EXIT;
+            goto WRITE;
         }
 
-        { changeKeyByIndex( l_keyIndex, l_labelIndex, _value ); }
+        {
+            // Label does exist and key does exist
+            // Change key in label
+            changeKeyByIndex( l_keyIndex, l_labelIndex, _value );
+        }
     }
+WRITE:
+    writeSettingsToFile( SETTINGS_FILE_PATH );
 
 EXIT:
     return ( l_returnValue );

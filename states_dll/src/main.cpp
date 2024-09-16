@@ -20,7 +20,7 @@ extern "C" bool addCallbacks( const char* _callbackName,
     addonCallbackFunction_t** l_callbacks;
     l_callbacks =
         ( addonCallbackFunction_t** )createArray( sizeof( uintptr_t ) );
-    preallocateArray( ( void*** )( &l_callbacks ), ( _functionCount + 1 ),
+    preallocateArray( ( void*** )( &l_callbacks ), _functionCount,
                       sizeof( uintptr_t ) );
 
 #pragma omp simd
