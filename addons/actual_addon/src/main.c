@@ -326,15 +326,13 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
                                 0xEB, 0xA0 } );
 
         // Detect auto replay save
-        //  MAKE_PATCH( 0x482D9B, {
-        //      // lea ecx,[eax+000000D0]
-        //      0x8D, 0x88, 0xD0, 0x00, 0x00, 0x00,
-        //      // mov [&autoReplaySaveStatePtr],ecx
-        //      0x89, 0x0D,
-        //      INLINE_DWORD(
-        //              &g_autoReplaySaveState ),
-        //      // Rest of the code is unchanged, just shifted down
-        //      0x59, 0x5E, 0x83, 0xC4, 0x10, 0xC2, 0x04, 0x00 } );
+        MAKE_PATCH( 0x482D9B,
+                    { // lea ecx,[eax+000000D0]
+                      0x8D, 0x88, 0xD0, 0x00, 0x00, 0x00,
+                      // mov [&autoReplaySaveStatePtr],ecx
+                      0x89, 0x0D, INLINE_DWORD( &g_autoReplaySaveState ),
+                      // Rest of the code is unchanged, just shifted down
+                      0x59, 0x5E, 0x83, 0xC4, 0x10, 0xC2, 0x04, 0x00 } );
 
         // Control when to exit the game by ESC button
         MAKE_PATCH( 0x4A0070,
@@ -426,13 +424,6 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
         if ( readSettingsFromFile( SETTINGS_FILE_PATH ) != 0 ) {
             if ( readSettingsFromFile( SETTINGS_BACKUP_FILE_PATH ) == 0 ) {
                 writeSettingsToFile( SETTINGS_FILE_PATH );
-
-                _useCallback( "log$transaction$query",
-                              "Reading Settings From Backup File\n" );
-
-            } else {
-                _useCallback( "log$transaction$query",
-                              "Settings Backup File Not Found\n" );
             }
         }
     }

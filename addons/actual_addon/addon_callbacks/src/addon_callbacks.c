@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -122,13 +123,13 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
             FN2,
             START };
 
-        l_direction = 5;
         const size_t l_oldActiveMappedKeysLength =
             ( l_activeMappedKeysLength + 1 );
         size_t l_possibleActiveDirectionsTotal =
             ( ( bool )( 2 ) + ( bool )( 4 ) + ( bool )( 6 ) + ( bool )( 8 ) );
-
         size_t l_possibleActiveButtonsTotal = l_tempKeysLength;
+
+        l_direction = 5;
 
         for ( size_t _index = 1; ( ( _index < l_oldActiveMappedKeysLength ) &&
                                    ( ( l_possibleActiveButtonsTotal ) ||
