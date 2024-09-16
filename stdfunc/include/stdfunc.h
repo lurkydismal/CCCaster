@@ -30,7 +30,7 @@ extern "C" {
 
 #endif
 
-size_t lengthOfSize( size_t _number );
+size_t lengthOfNumber( size_t _number );
 int64_t power( int64_t _base, uint8_t _exponent );
 char* stoa( size_t _number );
 void** createArray( const size_t _elementSize );

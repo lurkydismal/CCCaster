@@ -1,7 +1,6 @@
 #include "stdfunc.h"
 
 #include <omp.h>
-#include <stdio.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -126,19 +125,13 @@ char* stoa( size_t _number ) {
     const size_t l_lengthOfNumber = lengthOfNumber( _number );
     char* l_buffer = ( char* )malloc( l_lengthOfNumber + 1 );
 
-    printf( "first: %d = %d\n", _number, l_lengthOfNumber );
-
 #pragma omp simd
     for ( ssize_t _characterIndex = ( l_lengthOfNumber - 1 );
           _characterIndex >= 0; _characterIndex-- ) {
-        l_buffer[ _characterIndex ] = ( char )( ( _number % ( power( 10, ( l_lengthOfNumber - ( l_lengthOfNumber - _characterIndex ) ) ) ) ) + '0' );
-        printf( "last 0: %d\n", ( l_lengthOfNumber - _characterIndex ) );
-        printf( "last: %c\n", l_buffer[ _characterIndex ] );
+        l_buffer[ _characterIndex ] = ( char )( ( ( _number / ( power( 10, ( l_lengthOfNumber - _characterIndex - 1 ) ) ) ) % 10 ) + '0' );
     }
 
     l_buffer[ l_lengthOfNumber ] = '\0';
-
-    printf( "result: %s\n", l_buffer );
 
     return ( l_buffer );
 }
