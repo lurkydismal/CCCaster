@@ -1,26 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
 
-int main( void ) {
+#include "stdfunc.h"
+
+void test( void ) {
+    fdatasync( 1 );
+
+#pragma omp parallel for
+    for ( volatile size_t _index = 0; _index < 1234567890; _index++ ) {
+        char* l_x = stoa( _index );
+
+        if ( ( _index % 10000000 ) == 0 ) {
+            write( 1, l_x, ( lengthOfNumber( _index ) + 1 ) );
+            write( 1, "\n", 2 );
+        }
+
+        free( l_x );
+    }
+}
+
+int main( int _argumentCount, char* _argumentArray[] ) {
     printf( "begin\n" );
 
-    size_t* tt = ( size_t* )malloc( 5 * sizeof( size_t ) );
-
-    size_t t = 5;
-    tt[ 0 ] = t;
-    size_t t2 = 1;
-    tt[ 1 ] = t2;
-    size_t t3 = 2;
-    tt[ 2 ] = t3;
-    size_t t4 = 3;
-    tt[ 3 ] = t4;
-    size_t t5 = 4;
-    tt[ 4 ] = t5;
-
-    size_t* ttt = tt + 4;
-    printf( "%lu\n", ttt[ 0 ] );
-
-    free( tt );
+    test();
 
     printf( "end\n" );
 
