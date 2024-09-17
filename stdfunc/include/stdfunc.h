@@ -35,9 +35,8 @@ int64_t power( int64_t _base, uint8_t _exponent );
 char* stoa( size_t _number );
 void** createArray( const size_t _elementSize );
 void preallocateArray( void*** _array,
-                       const size_t _length,
-                       const size_t _elementSize );
-void insertIntoArray( void*** _array, void* _value, const size_t _elementSize );
+                       const size_t _length );
+void insertIntoArray( void*** _array, void* _value );
 void insertIntoArrayByIndex( void*** _array,
                              const size_t _index,
                              void* _value );

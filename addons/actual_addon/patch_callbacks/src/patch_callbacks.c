@@ -1,6 +1,5 @@
 #include "patch_callbacks.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -156,8 +155,8 @@ void gameMainLoopCallback( void ) {
                 char** l_input = ( char** )createArray( sizeof( char* ) );
                 const char l_button[] = "A";
 
-                insertIntoArray( ( void*** )( &l_input ), ( void* )( l_button ),
-                                 sizeof( l_button ) );
+                insertIntoArray( ( void*** )( &l_input ),
+                                 ( void* )( l_button ) );
 
                 _useCallback( "game$applyInput", &l_input );
 
@@ -219,8 +218,7 @@ void gameMainLoopCallback( void ) {
                 if ( l_framesPassed % 2 ) {
                     char** l_input = ( char** )createArray( sizeof( char* ) );
 
-                    insertIntoArray( ( void*** )( &l_input ), ( void* )( "A" ),
-                            sizeof( l_input[ 0 ] ) );
+                    insertIntoArray( ( void*** )( &l_input ), ( void* )( "A" ) );
 
                     _useCallback( "game$applyInput", &l_input );
 

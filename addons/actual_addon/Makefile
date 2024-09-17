@@ -12,12 +12,12 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
-			-fopenmp
+			-fopenmp-simd
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
 			-march=native \
-			-fopenmp
+			-fopenmp-simd
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \

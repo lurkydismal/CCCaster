@@ -3,6 +3,8 @@
 #include "settings_parser.h"
 
 int main( void ) {
+    settingsParserInitialize();
+
     if ( readSettingsFromFile( "t.ini" ) == 0 ) {
         printf( "1\n" );
 
