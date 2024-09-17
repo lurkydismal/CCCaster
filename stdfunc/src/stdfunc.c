@@ -1,6 +1,7 @@
 #include "stdfunc.h"
 
 #include <omp.h>
+#include <stdio.h>
 #include <string.h>
 
 #define arrayLengthPointer( _array ) ( ( size_t* )( &( _array[ 0 ] ) ) )
@@ -147,26 +148,27 @@ void** createArray( const size_t _elementSize ) {
 }
 
 void preallocateArray( void*** _array,
-                       const size_t _length,
-                       const size_t _elementSize ) {
+                       const size_t _length ) {
     const size_t l_currentArrayLength = arrayLength( *_array );
 
-    *_array = ( void** )realloc( *_array, ( ( l_currentArrayLength + _length + 1 ) * _elementSize ) );
+    *_array = ( void** )realloc( *_array, ( ( l_currentArrayLength + _length + 1 ) * sizeof( ( *_array )[ 0 ] ) ) );
 
     *arrayLengthPointer( *_array ) = ( size_t )( char )( l_currentArrayLength + _length + 1 );
 }
 
 void insertIntoArray( void*** _array,
-                      void* _value,
-                      const size_t _elementSize ) {
+                      void* _value ) {
     const size_t l_arrayLength = arrayLength( *_array );
+    printf( "act 1 = %d\n", l_arrayLength );
 
     *_array =
-        ( void** )realloc( *_array, ( 1 + l_arrayLength + 1 ) * _elementSize );
+        ( void** )realloc( *_array, ( 1 + l_arrayLength + 1 ) * sizeof( ( *_array )[ 0 ] ) );
 
     ( *_array )[ l_arrayLength + 1 ] = _value;
 
+    printf( "act 2 = %d\n", arrayLength( *_array ) );
     ( *arrayLengthPointer( *_array ) )++;
+    printf( "act 3 = %d\n", arrayLength( *_array ) );
 }
 
 void insertIntoArrayByIndex( void*** _array,
