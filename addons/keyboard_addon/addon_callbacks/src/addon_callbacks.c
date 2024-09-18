@@ -1,7 +1,6 @@
 #include <omp.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include "_useCallback.h"
 #include "button_t.h"
@@ -162,8 +161,7 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 #endif
         }
 
-        insertIntoArray( ( void*** )( l_array ), ( void* )( l_key ),
-                         sizeof( l_key ) );
+        insertIntoArray( ( void*** )( l_array ), ( void* )( l_key ) );
 
 #if defined( PRINT_KEY )
         _useCallback( "log$transaction$query", "mapped: " );
