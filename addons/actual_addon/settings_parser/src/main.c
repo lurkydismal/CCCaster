@@ -10,8 +10,15 @@ int main( void ) {
 
         printSettings();
 
-        printf( "\"zaxc\", \"wqetrcw\", \"test\" %s\n", ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 ) ? "Label not found"  : "wrong result" );
-        printf( "\"qwe\", \"TestLabel\", \"testtt\" %s\n", ( changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" ) == 126 ) ? "Key not found" : "wrong result" );
+        printf( "\"zaxc\", \"wqetrcw\", \"test\" %s\n",
+                ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 )
+                    ? "Label not found"
+                    : "wrong result" );
+        printf(
+            "\"qwe\", \"TestLabel\", \"testtt\" %s\n",
+            ( changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" ) == 126 )
+                ? "Key not found"
+                : "wrong result" );
 
         writeSettingsToFile( "tc.ini" );
     }
@@ -54,9 +61,18 @@ int main( void ) {
 
     printf( "4\n" );
 
-    printf( "\"zaxc\", \"wqetrcw\", \"test\" %s\n", ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 ) ? "Label not found"  : "wrong result" );
-    printf( "\"82\", \"keyboard\", \"fn3\" %d\n", ( changeSettingsKeyByLabel( "82", "keyboard", "fn3" ) == 126 ) ? "Key not found" : "Wrong result" );
-    printf( "\"81\", \"keyboard\", \"fn4\" %d\n", ( changeSettingsKeyByLabel( "81", "keyboard", "fn4" ) == 126 ) ? "Key not found" : "Wrong result" );
+    printf( "\"zaxc\", \"wqetrcw\", \"test\" %s\n",
+            ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 )
+                ? "Label not found"
+                : "wrong result" );
+    printf( "\"82\", \"keyboard\", \"fn3\" %d\n",
+            ( changeSettingsKeyByLabel( "82", "keyboard", "fn3" ) == 126 )
+                ? "Key not found"
+                : "Wrong result" );
+    printf( "\"81\", \"keyboard\", \"fn4\" %d\n",
+            ( changeSettingsKeyByLabel( "81", "keyboard", "fn4" ) == 126 )
+                ? "Key not found"
+                : "Wrong result" );
 
     writeSettingsToFile( "tca.ini" );
 
