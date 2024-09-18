@@ -1,7 +1,6 @@
 #include "stdfunc.h"
 
 #include <omp.h>
-#include <stdio.h>
 #include <string.h>
 
 #define arrayLengthPointer( _array ) ( ( size_t* )( &( _array[ 0 ] ) ) )
@@ -159,16 +158,13 @@ void preallocateArray( void*** _array,
 void insertIntoArray( void*** _array,
                       void* _value ) {
     const size_t l_arrayLength = arrayLength( *_array );
-    printf( "act 1 = %d\n", l_arrayLength );
 
     *_array =
         ( void** )realloc( *_array, ( 1 + l_arrayLength + 1 ) * sizeof( ( *_array )[ 0 ] ) );
 
     ( *_array )[ l_arrayLength + 1 ] = _value;
 
-    printf( "act 2 = %d\n", arrayLength( *_array ) );
     ( *arrayLengthPointer( *_array ) )++;
-    printf( "act 3 = %d\n", arrayLength( *_array ) );
 }
 
 void insertIntoArrayByIndex( void*** _array,
