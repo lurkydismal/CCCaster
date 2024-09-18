@@ -10,8 +10,8 @@ int main( void ) {
 
         printSettings();
 
-        changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" );
-        changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" );
+        printf( "\"zaxc\", \"wqetrcw\", \"test\" %s\n", ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 ) ? "Label not found"  : "wrong result" );
+        printf( "\"qwe\", \"TestLabel\", \"testtt\" %s\n", ( changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" ) == 126 ) ? "Key not found" : "wrong result" );
 
         writeSettingsToFile( "tc.ini" );
     }
@@ -39,6 +39,8 @@ int main( void ) {
 
     printSettings();
 
+    printf( "3\n" );
+
     const char l_defaultSettings2[] =
         "[keyboard]\n"
         "3 = AB\n"
@@ -50,11 +52,13 @@ int main( void ) {
 
     printSettings();
 
-    printf( "%d\n", changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) );
-    printf( "%d\n", changeSettingsKeyByLabel( "82", "keyboard", "fn3" ) );
-    printf( "%d\n", changeSettingsKeyByLabel( "81", "keyboard", "fn4" ) );
+    printf( "4\n" );
 
-    writeSettingsToFile( "tc.ini" );
+    printf( "\"zaxc\", \"wqetrcw\", \"test\" %s\n", ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 ) ? "Label not found"  : "wrong result" );
+    printf( "\"82\", \"keyboard\", \"fn3\" %d\n", ( changeSettingsKeyByLabel( "82", "keyboard", "fn3" ) == 126 ) ? "Key not found" : "Wrong result" );
+    printf( "\"81\", \"keyboard\", \"fn4\" %d\n", ( changeSettingsKeyByLabel( "81", "keyboard", "fn4" ) == 126 ) ? "Key not found" : "Wrong result" );
+
+    writeSettingsToFile( "tca.ini" );
 
     freeSettingsTable();
 

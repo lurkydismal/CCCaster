@@ -290,20 +290,23 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
     {
         const size_t l_keyIndex = getKeyIndex( l_content, _key );
 
-        size_t l_keysCount = arrayLength( l_content );
+        {
+            const size_t l_contentLength = arrayLength( l_content );
+            char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
+            char** const* l_contentEnd =
+                ( l_contentFirstElement + l_contentLength );
 
 #pragma omp simd
-        for ( size_t _keyIndex = 1; _keyIndex < l_keysCount; _keyIndex++ ) {
-            char** l_pair = l_content[ _keyIndex ];
+            for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd; _pair++ ) {
+                free( ( *_pair )[ 0 ] );
 
-            free( l_pair[ 0 ] );
+                free( ( *_pair )[ 1 ] );
 
-            free( l_pair[ 1 ] );
+                free( ( *_pair ) );
+            }
 
-            free( l_pair );
+            free( l_content );
         }
-
-        free( l_content );
 
         const size_t l_labelIndex = getLabelIndex( _label );
 
@@ -522,10 +525,9 @@ void printSettings( void ) {
 
         printf( "[%s] : %d %p\n", l_label, l_contentLength, l_contentEnd );
 
-        for ( char*** _elementPointer = l_contentFirstElement;
-              _elementPointer != l_contentEnd; _elementPointer++ ) {
-            const char* l_key = ( *_elementPointer )[ 0 ];
-            const char* l_value = ( *_elementPointer )[ 1 ];
+        for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd; _pair++ ) {
+            const char* l_key = ( *_pair )[ 0 ];
+            const char* l_value = ( *_pair )[ 1 ];
 
             printf( "%s=%s\n", l_key, l_value );
         }

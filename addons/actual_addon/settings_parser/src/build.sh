@@ -10,8 +10,8 @@ clear && \
     -I ../../../../stdfunc/include \
     -march=native \
     -fopenmp-simd \
-    -m32 \
-    -fopt-info-vec=out.txt && \
-    valgrind --leak-check=full -s ./a.out && \
-    cat out.txt
+    -m32
+#   -fopt-info-vec=out.txt && \
+#   valgrind --leak-check=full -s ./a.out && \
+#   cat out.txt
     #cat out.txt  | less
