@@ -20,6 +20,84 @@ uint8_t g_SFXMute[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
 
+static char* gameModeToText( gameMode_t _gameMode ) {
+    char* l_returnValue;
+
+    switch ( _gameMode ) {
+        case STARTUP: {
+            l_returnValue = "startup";
+
+            break;
+        }
+
+        case OPENING: {
+            l_returnValue = "opening";
+
+            break;
+        }
+
+        case TITLE: {
+            l_returnValue = "title";
+
+            break;
+        }
+
+        case MAIN_MENU: {
+            l_returnValue = "main_menu";
+
+            break;
+        }
+
+        case CHARACTER_SELECT: {
+            l_returnValue = "character_select";
+
+            break;
+        }
+
+        case LOADING: {
+            l_returnValue = "loading";
+
+            break;
+        }
+
+        case IN_MATCH: {
+            l_returnValue = "in_match";
+
+            break;
+        }
+
+        case RETRY: {
+            l_returnValue = "retry";
+
+            break;
+        }
+
+        case LOADING_DEMO: {
+            l_returnValue = "loading_demo";
+
+            break;
+        }
+
+        case REPLAY: {
+            l_returnValue = "replay";
+
+            break;
+        }
+
+        case HIGH_SCORES: {
+            l_returnValue = "high_scores";
+
+            break;
+        }
+
+        default: {
+            l_returnValue = "UNKNOWN - Report this!";
+        }
+    }
+
+    return ( l_returnValue );
+}
+
 void extraTexturesCallBack( void ) {
     uint16_t l_result = _useCallback( "extraTextures" );
 }
@@ -57,12 +135,12 @@ void gameMainLoopCallback( void ) {
         }
 
         static uint32_t l_roundStartCounter = 0;
-        bool l_isNewRound = false;
 
         if ( l_roundStartCounter != g_roundStartCounter ) {
             l_roundStartCounter = g_roundStartCounter;
 
-            l_isNewRound = true;
+            uint16_t l_result = _useCallback(
+                "match$newRound", &g_roundStartCounter, &l_roundStartCounter );
         }
 
         static gameMode_t l_currentGameMode = STARTUP;
@@ -70,68 +148,20 @@ void gameMainLoopCallback( void ) {
         if ( l_currentGameMode != *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) ) ) {
             l_currentGameMode = *( ( gameMode_t* )( CC_GAME_MODE_ADDR ) );
 
-            {
-                char* l_currentGameModeAsString = stoa( l_currentGameMode );
-                char* l_currentGameModeAsText;
+            char* l_currentGameModeAsString = stoa( l_currentGameMode );
+            char* l_currentGameModeAsText = gameModeToText( l_currentGameMode );
 
-                switch ( l_currentGameMode ) {
-                    case STARTUP: {
-                        l_currentGameModeAsText = "startup";
+            _useCallback( "log$transaction$query", "gameMode$changed : " );
+            _useCallback( "log$transaction$query", l_currentGameModeAsString );
+            _useCallback( "log$transaction$query", " " );
+            _useCallback( "log$transaction$query", l_currentGameModeAsText );
+            _useCallback( "log$transaction$query", "\n" );
 
-                        break;
-                    }
-
-                    case OPENING: {
-                        l_currentGameModeAsText = "opening";
-
-                        break;
-                    }
-
-                    case TITLE: {
-                        l_currentGameModeAsText = "title";
-
-                        break;
-                    }
-
-                    case MAIN_MENU: {
-                        l_currentGameModeAsText = "main_menu";
-
-                        break;
-                    }
-
-                    case CHARACTER_SELECT: {
-                        l_currentGameModeAsText = "character_select";
-
-                        break;
-                    }
-
-                    case LOADING: {
-                        l_currentGameModeAsText = "loading";
-
-                        break;
-                    }
-
-                    case IN_MATCH: {
-                        l_currentGameModeAsText = "in_match";
-
-                        break;
-                    }
-                }
-
-                _useCallback( "log$transaction$query", "gameMode$changed : " );
-                _useCallback( "log$transaction$query",
-                              l_currentGameModeAsString );
-                _useCallback( "log$transaction$query", " " );
-                _useCallback( "log$transaction$query",
-                              l_currentGameModeAsText );
-                _useCallback( "log$transaction$query", "\n" );
-                _useCallback( "log$transaction$commit" );
-
-                free( l_currentGameModeAsString );
-            }
+            free( l_currentGameModeAsString );
 
             uint16_t l_result =
-                _useCallback( "gameMode$changed", &l_currentGameMode );
+                _useCallback( "gameMode$changed", &l_currentGameMode,
+                              l_currentGameModeAsText );
         }
 
         switch ( l_currentGameMode ) {
@@ -245,10 +275,6 @@ void gameMainLoopCallback( void ) {
 
             case IN_MATCH: {
                 uint16_t l_result = _useCallback( "gameMode$inMatch" );
-
-                if ( l_isNewRound ) {
-                    uint16_t l_result = _useCallback( "match$newRound" );
-                }
 
                 break;
             }

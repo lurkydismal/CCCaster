@@ -11,13 +11,11 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native \
-			-fopenmp
+			-march=native
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-march=native \
-			-fopenmp
+			-march=native
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
@@ -43,7 +41,8 @@ keyboard_dll_RC_SRCS=
 keyboard_dll_LDFLAGS= -shared \
 			$(keyboard_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-O1
 keyboard_dll_ARFLAGS=
 keyboard_dll_DLL_PATH=
 keyboard_dll_DLLS= odbc32 \

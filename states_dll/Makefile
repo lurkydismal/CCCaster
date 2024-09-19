@@ -18,6 +18,7 @@ CXXEXTRA              = -Ofast \
 			-std=c++17 \
 			-march=native \
 			-fopenmp-simd \
+			-fvisibility=hidden \
 			-Wno-narrowing \
 			-Wno-overflow \
 			-Wno-shift-count-overflow
@@ -40,7 +41,9 @@ states_dll_RC_SRCS=
 states_dll_LDFLAGS= -shared \
 			$(states_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-O1 \
+			-static-libstdc++
 states_dll_ARFLAGS=
 states_dll_DLL_PATH=
 states_dll_DLLS   =

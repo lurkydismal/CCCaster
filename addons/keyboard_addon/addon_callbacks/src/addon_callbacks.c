@@ -94,15 +94,18 @@ static bool checkKey( uint8_t _key ) {
 static ssize_t findKeyInSettings( const char* _key ) {
     ssize_t l_returnValue = -1;
 
-    const size_t l_mappedButtonKeysLength = arrayLength( g_settings[ 0 ] );
+    const size_t l_mappedButtonKeysLength = arrayLength( g_settings );
+    char*** l_mappedButtonKeysFirstElement =
+        arrayFirstElementPointer( g_settings );
+    char** const* l_mappedButtonKeysEnd =
+        ( l_mappedButtonKeysFirstElement + l_mappedButtonKeysLength );
 
-    for ( size_t _mappedButtonKeyIndex = 1;
-          _mappedButtonKeyIndex < ( l_mappedButtonKeysLength + 1 );
-          _mappedButtonKeyIndex++ ) {
-        const char* l_value = g_settings[ _mappedButtonKeyIndex ][ 1 ];
+    for ( char*** _pair = l_mappedButtonKeysFirstElement;
+          _pair != l_mappedButtonKeysEnd; _pair++ ) {
+        const char* l_value = ( *_pair )[ 1 ];
 
         if ( strcmp( l_value, _key ) == 0 ) {
-            l_returnValue = _mappedButtonKeyIndex;
+            l_returnValue = ( _pair - l_mappedButtonKeysFirstElement + 1 );
 
             break;
         }
@@ -131,7 +134,6 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
         ( sizeof( g_keyboardLayoutKeys ) /
           sizeof( g_keyboardLayoutKeys[ 0 ] ) );
 
-#pragma omp simd
     for ( uint8_t _keyIndex = 0; _keyIndex < l_keyboardLayoutKeysLength;
           _keyIndex++ ) {
         if ( !checkKey( g_keyboardLayoutKeys[ _keyIndex ] ) ) {
@@ -167,7 +169,6 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
         _useCallback( "log$transaction$query", "mapped: " );
         _useCallback( "log$transaction$query", l_key );
         _useCallback( "log$transaction$query", "\n" );
-        _useCallback( "log$transaction$commit" );
 #endif
     }
 

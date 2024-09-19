@@ -421,6 +421,8 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
 #undef INLINE_DWORD
 
+        settingsParserInitialize();
+
         if ( readSettingsFromFile( SETTINGS_FILE_PATH ) != 0 ) {
             if ( readSettingsFromFile( SETTINGS_BACKUP_FILE_PATH ) == 0 ) {
                 writeSettingsToFile( SETTINGS_FILE_PATH );
