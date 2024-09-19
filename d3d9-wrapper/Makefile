@@ -11,8 +11,8 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-fopenmp \
-			-march=native
+			-march=native \
+			-fopenmp
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
@@ -53,7 +53,8 @@ d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \
 			$(d3d9_dll_MODULE:.dll=.def) \
 			-m32 \
-			-s
+			-s \
+			-O1
 d3d9_dll_ARFLAGS=
 d3d9_dll_DLL_PATH=
 d3d9_dll_DLLS = odbc32 \

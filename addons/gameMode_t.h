@@ -14,5 +14,5 @@ typedef enum {
     RETRY = 5,
     LOADING_DEMO = 13,
     REPLAY = 26,
-    HIGH_SCORES = 11
+    HIGH_SCORES = 11,
 } gameMode_t;

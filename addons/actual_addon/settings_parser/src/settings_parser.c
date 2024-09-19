@@ -98,7 +98,7 @@ static void freeLabelByIndex( const size_t _labelIndex ) {
     }
 }
 
-static /* inline */ size_t freeLabelByLabel( const char* _label ) {
+static inline size_t freeLabelByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex != UINT32_MAX ) {
@@ -117,7 +117,7 @@ static void addLabel( const char* _text ) {
                      ( char*** )createArray( sizeof( char** ) ) );
 }
 
-static /* inline */ void changeKeyByIndex( const size_t _keyIndex,
+static inline void changeKeyByIndex( const size_t _keyIndex,
                                            const size_t _labelIndex,
                                            const char* _value ) {
     char* l_value = strdup( _value );
@@ -204,7 +204,7 @@ static inline void addValue( const char* _text ) {
     addContent( _text, VALUE );
 }
 
-static /* inline */ char* trim( const char* _text ) {
+static inline char* trim( const char* _text ) {
     const size_t l_textLength = strlen( _text );
 
     char* l_buffer = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
@@ -266,7 +266,7 @@ EXIT:
     free( l_trimmedText );
 }
 
-/* inline */ char*** getSettingsContentByLabel( const char* _label ) {
+inline char*** getSettingsContentByLabel( const char* _label ) {
     const size_t l_labelIndex = getLabelIndex( _label );
 
     if ( l_labelIndex == UINT32_MAX ) {
@@ -493,7 +493,7 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
     return ( l_returnValue );
 }
 
-/* inline */ uint16_t freeSettingsTable( void ) {
+uint16_t freeSettingsTable( void ) {
     uint16_t l_returnValue = 1;
 
     for ( size_t _labelsLength = arrayLength( g_labels ); _labelsLength > 0;
