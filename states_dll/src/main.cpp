@@ -3,9 +3,21 @@
 #include <stdfunc.h>
 #include <stdint.h>
 
+#if ( defined( LOG_ADD ) || defined( LOG_USE ) )
+
+#include <stdio.h>
+
+#endif
+
 #include <string>
 
 #include "bytell_map.hpp"
+
+#if ( defined( LOG_ADD ) || defined( LOG_USE ) )
+
+#define print( _text ) printf( _text "\n" )
+
+#endif
 
 typedef uint16_t addonCallbackFunction_t( void** );
 
@@ -17,11 +29,33 @@ extern "C" bool addCallbacks( const char* _callbackName,
                               const uintptr_t* _functionAddresses,
                               const bool _overwrite ) {
     bool l_returnValue = true;
+
+#if defined( LOG_ADD )
+
+    printf( "Callback [ %s ]\n", _callbackName );
+    printf( "Function count : %lu\n", _functionCount );
+    printf( "Function addresses : %p\n", _functionAddresses );
+    printf( "Overwrite : %s\n", ( _overwrite ) ? ( "true" ) : ( "false" ) );
+
+#endif
+
     addonCallbackFunction_t** l_callbacks;
     l_callbacks =
         ( addonCallbackFunction_t** )createArray( sizeof( uintptr_t ) );
 
     preallocateArray( ( void*** )( &l_callbacks ), _functionCount );
+
+#if defined( LOG_ADD )
+
+    printf( "Preallocated array with length : %lu\n" );
+
+#endif
+
+#if defined( LOG_ADD )
+
+    print( "Starting to store function addresses" );
+
+#endif
 
 #pragma omp simd
     for ( size_t _functionIndex = 1; _functionIndex < ( _functionCount + 1 );
@@ -30,14 +64,41 @@ extern "C" bool addCallbacks( const char* _callbackName,
             ( void*** )( &l_callbacks ), _functionIndex,
             ( void* )( reinterpret_cast< addonCallbackFunction_t* >(
                 _functionAddresses[ _functionIndex - 1 ] ) ) );
+
+#if defined( LOG_ADD )
+
+        printf( "Index at array : %lu\n", _functionIndex );
+        printf( "Function address : %lu\n",
+                _functionAddresses[ _functionIndex - 1 ] );
+
+#endif
     }
+
+#if defined( LOG_ADD )
+
+    print( "Starting to emplace function addresses storage in global storage" );
+
+#endif
 
     l_returnValue =
         g_callbackFunctionAddresses.emplace( _callbackName, l_callbacks )
             .second;
 
     if ( !l_returnValue ) {
+#if defined( LOG_ADD )
+
+        print( "Failed to emplace function addresses store in global storage" );
+
+#endif
+
         if ( _overwrite ) {
+#if defined( LOG_ADD )
+
+            print(
+                "Starting to overwrite function addresses in global storage" );
+
+#endif
+
             free( g_callbackFunctionAddresses[ _callbackName ] );
 
             g_callbackFunctionAddresses[ _callbackName ] = l_callbacks;

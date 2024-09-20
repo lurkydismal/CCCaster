@@ -11,11 +11,15 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native
+			-march=native \
+			-flto \
+			-funroll-loops
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-march=native
+			-march=native \
+			-flto \
+			-funroll-loops
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \

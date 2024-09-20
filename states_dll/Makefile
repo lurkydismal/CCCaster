@@ -12,18 +12,23 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
-			-fopenmp-simd
+			-flto \
+			-fopenmp-simd \
+			-funroll-loops
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++17 \
 			-march=native \
-			-fopenmp-simd \
+			-flto \
+			-fopenmp \
+			-funroll-loops \
 			-fvisibility=hidden \
 			-Wno-narrowing \
 			-Wno-overflow \
 			-Wno-shift-count-overflow
 RCEXTRA               =
-DEFINES               =
+DEFINES               = -D_GLIBCXX_PARALLEL \
+			-D LOG_ADD
 INCLUDE_PATH          = -I include \
 			-I ../stdfunc/include
 DLL_PATH              =
@@ -43,7 +48,8 @@ states_dll_LDFLAGS= -shared \
 			-m32 \
 			-s \
 			-O1 \
-			-static-libstdc++
+			-static-libstdc++ \
+			-static
 states_dll_ARFLAGS=
 states_dll_DLL_PATH=
 states_dll_DLLS   =

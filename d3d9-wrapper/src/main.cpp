@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+#if defined( LOG_BOOT )
+
+#include <stdio.h>
+
+#endif
+
 #include <string>
 
 #include "_useCallback.h"
@@ -10,7 +16,14 @@
 #include "d3dx9.h"
 #include "helpers.h"
 
+#if defined( LOG_BOOT )
+
+#define print( _text ) printf( _text "\n" )
+
+#endif
+
 static size_t l_renderCallsPerFrame = 0;
+static const size_t l_result = 0;
 
 Direct3DShaderValidatorCreate9Proc m_pDirect3DShaderValidatorCreate9;
 PSGPErrorProc m_pPSGPError;
@@ -32,7 +45,6 @@ Direct3DCreate9ExProc m_pDirect3DCreate9Ex;
 HWND g_hFocusWindow = NULL;
 HMODULE g_hWrapperModule = NULL;
 
-HMODULE g_statesDll = NULL;
 HMODULE g_d3d9dll = NULL;
 HMODULE g_justAnotherModloaderDll = NULL;
 
@@ -44,18 +56,22 @@ HRESULT m_IDirect3DDevice9Ex::Present( CONST RECT* pSourceRect,
                                        CONST RGNDATA* pDirtyRegion ) {
     l_renderCallsPerFrame = 0;
 
-#if 0
     const char l_message[] =
         "m_IDirect3DDevice9Ex Present ( pSourceRect, pDestRect, "
         "hDestWindowOverride, pDirtyRegion )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
 #endif
 
+#if 0
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$Present", pSourceRect, pDestRect,
                       hDestWindowOverride, pDirtyRegion );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -74,12 +90,18 @@ HRESULT m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
         "m_IDirect3DDevice9Ex PresentEx ( pSourceRect, pDestRect, "
         "hDestWindowOverride, pDirtyRegion, dwFlags )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
+#if 0
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$PresentEx", pSourceRect, pDestRect,
                       hDestWindowOverride, pDirtyRegion, &dwFlags );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -92,14 +114,18 @@ HRESULT m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
 HRESULT m_IDirect3DDevice9Ex::EndScene( void ) {
     l_renderCallsPerFrame++;
 
-#if 0
     const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
 #endif
 
+#if 0
     uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -132,12 +158,18 @@ HRESULT m_IDirect3D9Ex::CreateDevice(
         "IDirect3D9Ex CreateDevice ( Adapter, DeviceType, hFocusWindow, "
         "BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface)\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
+#if 0
     uint16_t l_result = _useCallback(
         "IDirect3D9Ex$CreateDevice", &Adapter, &DeviceType, &hFocusWindow,
         &BehaviorFlags, &pPresentationParameters, &ppReturnedDeviceInterface );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -151,11 +183,17 @@ HRESULT m_IDirect3DDevice9Ex::Reset(
     const char l_message[] =
         "m_IDirect3DDevice9Ex Reset ( pPresentationParameters )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
+#if 0
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$PreReset", pPresentationParameters );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -163,8 +201,10 @@ HRESULT m_IDirect3DDevice9Ex::Reset(
 
     auto hRet = ProxyInterface->Reset( pPresentationParameters );
 
+#if 0
     l_result =
         _useCallback( "IDirect3DDevice9Ex$PostReset", pPresentationParameters );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -200,13 +240,19 @@ HRESULT m_IDirect3D9Ex::CreateDeviceEx(
         "BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, "
         "ppReturnedDeviceInterface )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
+#if 0
     uint16_t l_result =
         _useCallback( "IDirect3D9Ex$CreateDeviceEx", &Adapter, &DeviceType,
                       hFocusWindow, &BehaviorFlags, pPresentationParameters,
                       pFullscreenDisplayMode, ppReturnedDeviceInterface );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -222,12 +268,18 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
         "m_IDirect3DDevice9Ex ResetEx ( pPresentationParameters, "
         "pFullscreenDisplayMode )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
+#if 0
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$PreResetEx", pPresentationParameters,
                       pFullscreenDisplayMode );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -236,8 +288,10 @@ HRESULT m_IDirect3DDevice9Ex::ResetEx(
     auto hRet = ProxyInterface->ResetEx( pPresentationParameters,
                                          pFullscreenDisplayMode );
 
+#if 0
     l_result = _useCallback( "IDirect3DDevice9Ex$PostResetEx",
                              pPresentationParameters, pFullscreenDisplayMode );
+#endif
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -270,10 +324,27 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
         case DLL_PROCESS_ATTACH: {
             g_hWrapperModule = hModule;
 
+#if defined( LOG_ALLOCATE_CONSOLE )
+            AllocConsole();
+            freopen( "CONOUT$", "w", stdout );
+#endif
+
+#if defined( LOG_BOOT )
+            print( "Starting to load d3d9.dll" );
+#endif
+
             bool l_d3d9LoadResult = loadDll( "d3d9.dll", &g_d3d9dll );
 
             if ( l_d3d9LoadResult ) {
+#if defined( LOG_BOOT )
+                print( "Loaded d3d9.dll" );
+#endif
+
                 if ( g_d3d9dll ) {
+#if defined( LOG_BOOT )
+                    print( "Starting to locate d3d9.dll functions" );
+#endif
+
 #define GET_ADDRESS( _functionName ) \
     m_p##_functionName =             \
         ( _functionName##Proc )GetProcAddress( g_d3d9dll, #_functionName );
@@ -309,27 +380,55 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
                     SetThreadExecutionState( l_executionThreadStateFlags );
                 }
 
+#if defined( LOG_BOOT )
+                print( "Starting to load just_another_modloader.dll" );
+#endif
+
                 g_justAnotherModloaderDll =
                     LoadLibraryA( "just_another_modloader.dll" );
 
                 if ( !g_justAnotherModloaderDll ) {
+#if defined( LOG_BOOT )
+                    print( "Failed to load just_another_modloader.dll" );
+#endif
+
                     exit( 1 );
                 }
 
-                g_statesDll = GetModuleHandleA( "states.dll" );
+#if defined( LOG_BOOT )
+                print( "Starting to locate states.dll" );
+#endif
 
-                if ( !g_statesDll ) {
+                HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+
+                if ( !l_statesDll ) {
+#if defined( LOG_BOOT )
+                    print( "Failed to locate states.dll" );
+#endif
+
                     exit( 1 );
                 }
+
+#if defined( LOG_BOOT )
+                print( "Starting to locate \"useCallback\" in states.dll" );
+#endif
 
                 g_useCallback = ( useCallbackFunction_t )GetProcAddress(
-                    g_statesDll, "useCallback" );
+                    l_statesDll, "useCallback" );
 
                 if ( !g_useCallback ) {
+#if defined( LOG_BOOT )
+                    print( "Failed to locate \"useCallback\" in states.dll" );
+#endif
+
                     exit( 1 );
                 }
 
             } else {
+#if defined( LOG_BOOT )
+                print( "Failed to load d3d9.dll" );
+#endif
+
                 exit( 1 );
             }
 
@@ -341,10 +440,12 @@ extern "C" BOOL WINAPI DllMain( HMODULE hModule,
 }
 
 extern "C" HRESULT WINAPI Direct3DShaderValidatorCreate9( void ) {
-#if 0
     const char l_message[] = "Direct3DShaderValidatorCreate9 ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -358,8 +459,12 @@ extern "C" HRESULT WINAPI Direct3DShaderValidatorCreate9( void ) {
 extern "C" HRESULT WINAPI PSGPError( void ) {
     const char l_message[] = "PSGPError ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pPSGPError ) {
         return ( E_FAIL );
@@ -371,8 +476,12 @@ extern "C" HRESULT WINAPI PSGPError( void ) {
 extern "C" HRESULT WINAPI PSGPSampleTexture( void ) {
     const char l_message[] = "PSGPSampleTexture ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pPSGPSampleTexture ) {
         return ( E_FAIL );
@@ -384,8 +493,12 @@ extern "C" HRESULT WINAPI PSGPSampleTexture( void ) {
 extern "C" int WINAPI D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName ) {
     const char l_message[] = "D3DPERF_BeginEvent ( col, wszName )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pD3DPERF_BeginEvent ) {
         return ( 0 );
@@ -397,8 +510,12 @@ extern "C" int WINAPI D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName ) {
 extern "C" int WINAPI D3DPERF_EndEvent( void ) {
     const char l_message[] = "D3DPERF_EndEvent ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pD3DPERF_EndEvent ) {
         return ( 0 );
@@ -410,8 +527,12 @@ extern "C" int WINAPI D3DPERF_EndEvent( void ) {
 extern "C" DWORD WINAPI D3DPERF_GetStatus( void ) {
     const char l_message[] = "D3DPERF_GetStatus ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pD3DPERF_GetStatus ) {
         return ( 0 );
@@ -423,8 +544,12 @@ extern "C" DWORD WINAPI D3DPERF_GetStatus( void ) {
 extern "C" BOOL WINAPI D3DPERF_QueryRepeatFrame( void ) {
     const char l_message[] = "D3DPERF_QueryRepeatFrame ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pD3DPERF_QueryRepeatFrame ) {
         return ( false );
@@ -436,8 +561,12 @@ extern "C" BOOL WINAPI D3DPERF_QueryRepeatFrame( void ) {
 extern "C" void WINAPI D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName ) {
     const char l_message[] = "D3DPERF_SetMarker ( col, wszName )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( m_pD3DPERF_SetMarker ) {
         return ( m_pD3DPERF_SetMarker( col, wszName ) );
@@ -447,8 +576,12 @@ extern "C" void WINAPI D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName ) {
 extern "C" void WINAPI D3DPERF_SetOptions( DWORD dwOptions ) {
     const char l_message[] = "D3DPERF_SetOptions ( dwOptions )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( m_pD3DPERF_SetOptions ) {
         return ( m_pD3DPERF_SetOptions( dwOptions ) );
@@ -458,8 +591,12 @@ extern "C" void WINAPI D3DPERF_SetOptions( DWORD dwOptions ) {
 extern "C" void WINAPI D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName ) {
     const char l_message[] = "D3DPERF_SetRegion ( col, wszName )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( m_pD3DPERF_SetRegion ) {
         return ( m_pD3DPERF_SetRegion( col, wszName ) );
@@ -469,8 +606,12 @@ extern "C" void WINAPI D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName ) {
 extern "C" HRESULT WINAPI DebugSetLevel( DWORD dw1 ) {
     const char l_message[] = "DebugSetLevel ( dw1 )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pDebugSetLevel ) {
         return ( E_FAIL );
@@ -480,10 +621,12 @@ extern "C" HRESULT WINAPI DebugSetLevel( DWORD dw1 ) {
 }
 
 extern "C" void WINAPI DebugSetMute( void ) {
-#if 0
     const char l_message[] = "DebugSetMute ()\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -496,8 +639,12 @@ extern "C" int WINAPI Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
     const char l_message[] =
         "Direct3D9EnableMaximizedWindowedModeShim ( mEnable )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
+#endif
 
     if ( !m_pDirect3D9EnableMaximizedWindowedModeShim ) {
         return ( 0 );
@@ -507,10 +654,12 @@ extern "C" int WINAPI Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
 }
 
 extern "C" IDirect3D9* WINAPI Direct3DCreate9( UINT SDKVersion ) {
-#ifdef MBAA_PATCHED
     const char l_message[] = "Direct3DCreate9 ( SDKVersion )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
 #endif
 
@@ -529,10 +678,12 @@ extern "C" IDirect3D9* WINAPI Direct3DCreate9( UINT SDKVersion ) {
 
 extern "C" HRESULT WINAPI Direct3DCreate9Ex( UINT SDKVersion,
                                              IDirect3D9Ex** ppD3D ) {
-#ifdef MBAA_PATCHED
     const char l_message[] = "Direct3DCreate9Ex ( SDKVersion, ppD3D )\n";
 
+#if 0
     _useCallback( "log$transaction$query", l_message );
+#endif
+#if 0
     _useCallback( "log$transaction$commit" );
 #endif
 
