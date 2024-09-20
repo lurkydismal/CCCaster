@@ -12,15 +12,20 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
-			-fopenmp
+			-flto \
+			-fopenmp \
+			-funroll-loops
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
 			-march=native \
+			-flto \
 			-fopenmp \
+			-funroll-loops \
 			-fvisibility=hidden
 RCEXTRA               =
-DEFINES               =
+DEFINES               = -D_GLIBCXX_PARALLEL \
+			-D LOG_BOOT
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include
 DLL_PATH              =
 DLL_IMPORTS           =
@@ -54,7 +59,9 @@ d3d9_dll_LDFLAGS= -shared \
 			$(d3d9_dll_MODULE:.dll=.def) \
 			-m32 \
 			-s \
-			-O1
+			-O1 \
+			-static-libstdc++ \
+			-static
 d3d9_dll_ARFLAGS=
 d3d9_dll_DLL_PATH=
 d3d9_dll_DLLS = odbc32 \

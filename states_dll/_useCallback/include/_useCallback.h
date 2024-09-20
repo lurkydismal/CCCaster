@@ -3,6 +3,7 @@
 #include <wtypes.h>
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <winbase.h>
 
 #define _useCallbackInitialize()                                 \

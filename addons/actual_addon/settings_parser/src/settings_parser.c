@@ -118,8 +118,8 @@ static void addLabel( const char* _text ) {
 }
 
 static inline void changeKeyByIndex( const size_t _keyIndex,
-                                           const size_t _labelIndex,
-                                           const char* _value ) {
+                                     const size_t _labelIndex,
+                                     const char* _value ) {
     char* l_value = strdup( _value );
 
     free( g_contents[ _labelIndex ][ _keyIndex ][ 1 ] );

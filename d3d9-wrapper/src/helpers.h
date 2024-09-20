@@ -1,5 +1,4 @@
-#ifndef __HELPERS_H
-#define __HELPERS_H
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -84,5 +83,3 @@ BOOL IsSystemClassNameW( LPCWSTR _classNameW ) {
 
     return ( false );
 }
-
-#endif //__HELPERS_H

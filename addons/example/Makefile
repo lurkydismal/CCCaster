@@ -11,11 +11,15 @@ EXES                  =
 CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
-			-march=native
+			-march=native \
+			-flto \
+			-frename-registers
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
-			-march=native
+			-march=native \
+			-flto \
+			-frename-registers
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          =

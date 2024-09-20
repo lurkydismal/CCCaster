@@ -245,29 +245,44 @@ unsafe fn load_addons_directory() {
     // Load event handling DLL into the game process.
     let states_h_module = LoadLibraryA(format!("states.dll\0",).as_ptr() as LPCSTR) as HMODULE;
 
-    let states_function_add_callbacks = v_address_to_function!(
-        GetProcAddress(states_h_module, ("addCallbacks\0").as_ptr() as LPCSTR) as FARPROC,
-        extern "C" fn(LPCSTR, usize, *const usize, u32)
-    );
+    if cfg!(debug_assertions) {
+        println!("states.dll : {:?}", states_h_module);
+    }
 
-    // Load callbacks into the event handling DLL.
-    thread::spawn(move || {
-        for (event_name, function_addresses) in ON_EVENT_FUNCTIONS.lock().unwrap().iter() {
-            if cfg!(debug_assertions) {
-                println!(
-                    "{} : {} -> {:#02X?}",
-                    event_name,
-                    function_addresses.len(),
-                    function_addresses.to_owned()
-                );
-            }
+    if states_h_module != NULL as HMODULE {
+        let states_function_add_callbacks = v_address_to_function!(
+            GetProcAddress(states_h_module, ("addCallbacks\0").as_ptr() as LPCSTR) as FARPROC,
+            extern "C" fn(LPCSTR, usize, *const usize, u32)
+        );
 
-            states_function_add_callbacks(
-                format!("{}\0", event_name).as_ptr() as LPCSTR,
-                function_addresses.len(),
-                function_addresses.to_owned().as_ptr(),
-                0,
-            );
+        if cfg!(debug_assertions) {
+            println!("addCallbacks : {:?}", states_function_add_callbacks);
         }
-    });
+
+        if states_function_add_callbacks != v_address_to_function!(
+            NULL,
+            extern "C" fn(LPCSTR, usize, *const usize, u32)
+        ) {
+            // Load callbacks into the event handling DLL.
+            thread::spawn(move || {
+                for (event_name, function_addresses) in ON_EVENT_FUNCTIONS.lock().unwrap().iter() {
+                    if cfg!(debug_assertions) {
+                        println!(
+                            "{} : {} -> {:#02X?}",
+                            event_name,
+                            function_addresses.len(),
+                            function_addresses.to_owned()
+                        );
+                    }
+
+                    states_function_add_callbacks(
+                        format!("{}\0", event_name).as_ptr() as LPCSTR,
+                        function_addresses.len(),
+                        function_addresses.to_owned().as_ptr(),
+                        0,
+                    );
+                }
+            });
+        }
+    }
 }
