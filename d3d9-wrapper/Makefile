@@ -25,7 +25,9 @@ CXXEXTRA              = -Ofast \
 			-fvisibility=hidden
 RCEXTRA               =
 DEFINES               = -D_GLIBCXX_PARALLEL \
-			-D LOG_BOOT
+			-D LOG_BOOT \
+			-D LOG_CALLS \
+			-D NO_CALLBACKS
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include
 DLL_PATH              =
 DLL_IMPORTS           =
