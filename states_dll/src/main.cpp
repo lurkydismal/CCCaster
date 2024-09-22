@@ -58,6 +58,7 @@ extern "C" bool addCallbacks( const char* _callbackName,
 #endif
 
 #pragma omp simd
+    // +1 for array length at the beginning of array
     for ( size_t _functionIndex = 1; _functionIndex < ( _functionCount + 1 );
           _functionIndex++ ) {
         insertIntoArrayByIndex(
@@ -110,6 +111,12 @@ extern "C" bool addCallbacks( const char* _callbackName,
         }
     }
 
+#if defined( LOG_ADD )
+
+    print( "Function addresses store emplaced in global storage" );
+
+#endif
+
     return ( l_returnValue );
 }
 
@@ -123,14 +130,38 @@ extern "C" uint16_t useCallback( const char* _callbackName,
         l_returnValue = ENODATA;
 
     } else {
+#if defined( LOG_USE )
+
+        printf( "Callback name : %s\n", _callbackName );
+        printf( "Callback arguments : %p\n", _callbackArguments );
+
+#endif
+
         const size_t l_callbacksLength = arrayLength( l_callbacks );
 
+#if defined( LOG_USE )
+
+        printf( "Callback arguments length : %lu\n", l_callbacksLength );
+
+#endif
+
+        addonCallbackFunction_t** l_callbacksFirstElement =
+            arrayFirstElementPointer( l_callbacks );
+        addonCallbackFunction_t* const* l_callbacksEnd =
+            ( l_callbacksFirstElement + l_callbacksLength );
+
+#if defined( LOG_USE )
+
+        printf( "Callback arguments first element : %p\n",
+                l_callbacksFirstElement );
+        printf( "Callback arguments end : %p\n", l_callbacksEnd );
+
+#endif
+
 #pragma omp simd
-        for ( size_t _callbackIndex = 1;
-              _callbackIndex < ( l_callbacksLength + 1 ); _callbackIndex++ ) {
-            const addonCallbackFunction_t* _callback =
-                l_callbacks[ _callbackIndex ];
-            const uint16_t l_result = _callback( _callbackArguments );
+        for ( addonCallbackFunction_t** _callback = l_callbacksFirstElement;
+              _callback != l_callbacksEnd; _callback++ ) {
+            const uint16_t l_result = ( *_callback )( _callbackArguments );
 
             if ( l_result ) {
                 l_returnValue = l_result;

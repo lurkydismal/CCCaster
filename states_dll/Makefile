@@ -12,14 +12,12 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
-			-flto \
 			-fopenmp-simd \
 			-funroll-loops
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++17 \
 			-march=native \
-			-flto \
 			-fopenmp \
 			-funroll-loops \
 			-fvisibility=hidden \
@@ -27,8 +25,7 @@ CXXEXTRA              = -Ofast \
 			-Wno-overflow \
 			-Wno-shift-count-overflow
 RCEXTRA               =
-DEFINES               = -D_GLIBCXX_PARALLEL \
-			-D LOG_ADD
+DEFINES               = -D_GLIBCXX_PARALLEL
 INCLUDE_PATH          = -I include \
 			-I ../stdfunc/include
 DLL_PATH              =

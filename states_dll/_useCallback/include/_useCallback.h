@@ -26,6 +26,7 @@
     ( ( sizeof( ( const void*[] ){ NULL, ##__VA_ARGS__ } ) / \
         sizeof( const void* ) ) -                            \
       1 )
+
 #define _useCallback( _callbackName, ... )                         \
     __useCallback( _callbackName,                                  \
                    ( const size_t )ARGUMENTS_COUNT( __VA_ARGS__ ), \

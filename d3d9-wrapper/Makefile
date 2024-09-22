@@ -19,16 +19,13 @@ CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
 			-march=native \
-			-flto \
 			-fopenmp \
 			-funroll-loops \
 			-fvisibility=hidden
 RCEXTRA               =
-DEFINES               = -D_GLIBCXX_PARALLEL \
-			-D LOG_BOOT \
-			-D LOG_CALLS \
-			-D NO_CALLBACKS
-INCLUDE_PATH          = -I ../states_dll/_useCallback/include
+DEFINES               = -D_GLIBCXX_PARALLEL
+INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
+			-I _useCallback/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
