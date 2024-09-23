@@ -24,10 +24,11 @@ typedef uint16_t addonCallbackFunction_t( void** );
 ska::bytell_hash_map< std::string, addonCallbackFunction_t** >
     g_callbackFunctionAddresses;
 
-extern "C" bool addCallbacks( const char* _callbackName,
-                              const size_t _functionCount,
-                              const uintptr_t* _functionAddresses,
-                              const bool _overwrite ) {
+extern "C" bool addCallbacks(
+    const char* _callbackName,
+    const size_t _functionCount,
+    const addonCallbackFunction_t** _functionAddresses,
+    const bool _overwrite ) {
     bool l_returnValue = true;
 
 #if defined( LOG_ADD )
@@ -49,30 +50,40 @@ extern "C" bool addCallbacks( const char* _callbackName,
 
     printf( "Preallocated array with length : %lu\n" );
 
-#endif
-
-#if defined( LOG_ADD )
-
     print( "Starting to store function addresses" );
 
 #endif
 
-#pragma omp simd
-    // +1 for array length at the beginning of array
-    for ( size_t _functionIndex = 1; _functionIndex < ( _functionCount + 1 );
-          _functionIndex++ ) {
-        insertIntoArrayByIndex(
-            ( void*** )( &l_callbacks ), _functionIndex,
-            ( void* )( reinterpret_cast< addonCallbackFunction_t* >(
-                _functionAddresses[ _functionIndex - 1 ] ) ) );
+    const size_t l_callbacksLength = arrayLength( l_callbacks );
+    addonCallbackFunction_t** l_callbacksFirstElement =
+        arrayFirstElementPointer( l_callbacks );
+    addonCallbackFunction_t* const* l_callbacksEnd =
+        ( l_callbacksFirstElement + l_callbacksLength );
+    addonCallbackFunction_t** l_callback = l_callbacksFirstElement;
+
+    addonCallbackFunction_t** l_functionAddressesFirstElement =
+        _functionAddresses;
+    addonCallbackFunction_t** l_functionAddress =
+        l_functionAddressesFirstElement;
+
+    while ( l_callback != l_callbacksEnd ) {
+#if defined( LOG_ADD )
+
+        printf( "Index at array : %lu\n",
+                ( l_callback - l_callbacksFirstElement ) );
+
+#endif
+
+        ( *l_callback ) = *l_functionAddress;
 
 #if defined( LOG_ADD )
 
-        printf( "Index at array : %lu\n", _functionIndex );
-        printf( "Function address : %lu\n",
-                _functionAddresses[ _functionIndex - 1 ] );
+        printf( "Function address : %lu\n", *l_callback );
 
 #endif
+
+        l_callback++;
+        l_functionAddress++;
     }
 
 #if defined( LOG_ADD )
@@ -164,6 +175,12 @@ extern "C" uint16_t useCallback( const char* _callbackName,
             const uint16_t l_result = ( *_callback )( _callbackArguments );
 
             if ( l_result ) {
+#if defined( LOG_USE )
+
+                printf( "Callback result : %u\n", l_result );
+
+#endif
+
                 l_returnValue = l_result;
             }
         }
