@@ -12,6 +12,7 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
+			-flto \
 			-fopenmp-simd \
 			-funroll-loops
 CXXEXTRA              = -Ofast \

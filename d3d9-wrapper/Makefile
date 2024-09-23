@@ -25,7 +25,8 @@ CXXEXTRA              = -Ofast \
 RCEXTRA               =
 DEFINES               = -D_GLIBCXX_PARALLEL
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
-			-I _useCallback/include
+			-I _useCallback/include \
+			-I Direct3DShaderValidatorCreate9/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
@@ -35,7 +36,8 @@ LIBRARIES             =
 ### d3d9.dll sources and settings
 
 d3d9_dll_MODULE= d3d9.dll
-d3d9_dll_C_SRCS= ../states_dll/_useCallback/src/_useCallback.c
+d3d9_dll_C_SRCS= Direct3DShaderValidatorCreate9/src/Direct3DShaderValidatorCreate9.c \
+		 ../states_dll/_useCallback/src/_useCallback.c
 d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DCubeTexture9.cpp \
 		   src/IDirect3DDevice9Ex.cpp \
