@@ -200,7 +200,7 @@ long m_IDirect3DDevice9Ex::ResetEx(
     return ( hRet );
 }
 
-HRESULT m_IDirect3DDevice9Ex::QueryInterface( REFIID riid, void** ppvObj ) {
+long m_IDirect3DDevice9Ex::QueryInterface( REFIID riid, void** ppvObj ) {
     if ( ( ( riid == IID_IUnknown ) || ( riid == WrapperID ) ) && ( ppvObj ) ) {
         AddRef();
 
@@ -209,7 +209,7 @@ HRESULT m_IDirect3DDevice9Ex::QueryInterface( REFIID riid, void** ppvObj ) {
         return ( S_OK );
     }
 
-    HRESULT hr = ProxyInterface->QueryInterface( riid, ppvObj );
+    long hr = ProxyInterface->QueryInterface( riid, ppvObj );
 
     if ( SUCCEEDED( hr ) ) {
         genericQueryInterface( riid, ppvObj, this );
@@ -232,13 +232,15 @@ ULONG m_IDirect3DDevice9Ex::Release( void ) {
     return ( count );
 }
 
-void m_IDirect3DDevice9Ex::SetCursorPosition( int X, int Y, DWORD Flags ) {
+void m_IDirect3DDevice9Ex::SetCursorPosition( int X,
+                                              int Y,
+                                              unsigned long Flags ) {
     return ( ProxyInterface->SetCursorPosition( X, Y, Flags ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetCursorProperties(
-    UINT XHotSpot,
-    UINT YHotSpot,
+long m_IDirect3DDevice9Ex::SetCursorProperties(
+    unsigned int XHotSpot,
+    unsigned int YHotSpot,
     IDirect3DSurface9* pCursorBitmap ) {
     if ( pCursorBitmap ) {
         pCursorBitmap = static_cast< m_IDirect3DSurface9* >( pCursorBitmap )
@@ -249,14 +251,14 @@ HRESULT m_IDirect3DDevice9Ex::SetCursorProperties(
                                                   pCursorBitmap ) );
 }
 
-BOOL m_IDirect3DDevice9Ex::ShowCursor( BOOL bShow ) {
+int m_IDirect3DDevice9Ex::ShowCursor( int bShow ) {
     return ( ProxyInterface->ShowCursor( bShow ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateAdditionalSwapChain(
+long m_IDirect3DDevice9Ex::CreateAdditionalSwapChain(
     D3DPRESENT_PARAMETERS* pPresentationParameters,
     IDirect3DSwapChain9** ppSwapChain ) {
-    HRESULT hr = ProxyInterface->CreateAdditionalSwapChain(
+    long hr = ProxyInterface->CreateAdditionalSwapChain(
         pPresentationParameters, ppSwapChain );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppSwapChain ) ) {
@@ -267,15 +269,15 @@ HRESULT m_IDirect3DDevice9Ex::CreateAdditionalSwapChain(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateCubeTexture(
-    THIS_ UINT EdgeLength,
-    UINT Levels,
-    DWORD Usage,
+long m_IDirect3DDevice9Ex::CreateCubeTexture(
+    THIS_ unsigned int EdgeLength,
+    unsigned int Levels,
+    unsigned long Usage,
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DCubeTexture9** ppCubeTexture,
     HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateCubeTexture(
+    long hr = ProxyInterface->CreateCubeTexture(
         EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppCubeTexture ) ) {
@@ -285,16 +287,16 @@ HRESULT m_IDirect3DDevice9Ex::CreateCubeTexture(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateDepthStencilSurface(
-    THIS_ UINT Width,
-    UINT Height,
+long m_IDirect3DDevice9Ex::CreateDepthStencilSurface(
+    THIS_ unsigned int Width,
+    unsigned int Height,
     D3DFORMAT Format,
     D3DMULTISAMPLE_TYPE MultiSample,
-    DWORD MultisampleQuality,
-    BOOL Discard,
+    unsigned long MultisampleQuality,
+    int Discard,
     IDirect3DSurface9** ppSurface,
     HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateDepthStencilSurface(
+    long hr = ProxyInterface->CreateDepthStencilSurface(
         Width, Height, Format, MultiSample, MultisampleQuality, Discard,
         ppSurface, pSharedHandle );
 
@@ -305,15 +307,15 @@ HRESULT m_IDirect3DDevice9Ex::CreateDepthStencilSurface(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateIndexBuffer(
-    THIS_ UINT Length,
-    DWORD Usage,
+long m_IDirect3DDevice9Ex::CreateIndexBuffer(
+    THIS_ unsigned int Length,
+    unsigned long Usage,
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DIndexBuffer9** ppIndexBuffer,
     HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateIndexBuffer(
-        Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle );
+    long hr = ProxyInterface->CreateIndexBuffer( Length, Usage, Format, Pool,
+                                                 ppIndexBuffer, pSharedHandle );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppIndexBuffer ) ) {
         *ppIndexBuffer = new m_IDirect3DIndexBuffer9( *ppIndexBuffer, this );
@@ -322,16 +324,15 @@ HRESULT m_IDirect3DDevice9Ex::CreateIndexBuffer(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateRenderTarget(
-    THIS_ UINT Width,
-    UINT Height,
-    D3DFORMAT Format,
-    D3DMULTISAMPLE_TYPE MultiSample,
-    DWORD MultisampleQuality,
-    BOOL Lockable,
-    IDirect3DSurface9** ppSurface,
-    HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateRenderTarget(
+long m_IDirect3DDevice9Ex::CreateRenderTarget( THIS_ unsigned int Width,
+                                               unsigned int Height,
+                                               D3DFORMAT Format,
+                                               D3DMULTISAMPLE_TYPE MultiSample,
+                                               unsigned long MultisampleQuality,
+                                               int Lockable,
+                                               IDirect3DSurface9** ppSurface,
+                                               HANDLE* pSharedHandle ) {
+    long hr = ProxyInterface->CreateRenderTarget(
         Width, Height, Format, MultiSample, MultisampleQuality, Lockable,
         ppSurface, pSharedHandle );
 
@@ -342,15 +343,15 @@ HRESULT m_IDirect3DDevice9Ex::CreateRenderTarget(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateTexture( THIS_ UINT Width,
-                                             UINT Height,
-                                             UINT Levels,
-                                             DWORD Usage,
-                                             D3DFORMAT Format,
-                                             D3DPOOL Pool,
-                                             IDirect3DTexture9** ppTexture,
-                                             HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateTexture(
+long m_IDirect3DDevice9Ex::CreateTexture( THIS_ unsigned int Width,
+                                          unsigned int Height,
+                                          unsigned int Levels,
+                                          unsigned long Usage,
+                                          D3DFORMAT Format,
+                                          D3DPOOL Pool,
+                                          IDirect3DTexture9** ppTexture,
+                                          HANDLE* pSharedHandle ) {
+    long hr = ProxyInterface->CreateTexture(
         Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppTexture ) ) {
@@ -360,14 +361,14 @@ HRESULT m_IDirect3DDevice9Ex::CreateTexture( THIS_ UINT Width,
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateVertexBuffer(
-    THIS_ UINT Length,
-    DWORD Usage,
-    DWORD FVF,
+long m_IDirect3DDevice9Ex::CreateVertexBuffer(
+    THIS_ unsigned int Length,
+    unsigned long Usage,
+    unsigned long FVF,
     D3DPOOL Pool,
     IDirect3DVertexBuffer9** ppVertexBuffer,
     HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateVertexBuffer(
+    long hr = ProxyInterface->CreateVertexBuffer(
         Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppVertexBuffer ) ) {
@@ -377,17 +378,17 @@ HRESULT m_IDirect3DDevice9Ex::CreateVertexBuffer(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateVolumeTexture(
-    THIS_ UINT Width,
-    UINT Height,
-    UINT Depth,
-    UINT Levels,
-    DWORD Usage,
+long m_IDirect3DDevice9Ex::CreateVolumeTexture(
+    THIS_ unsigned int Width,
+    unsigned int Height,
+    unsigned int Depth,
+    unsigned int Levels,
+    unsigned long Usage,
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DVolumeTexture9** ppVolumeTexture,
     HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateVolumeTexture(
+    long hr = ProxyInterface->CreateVolumeTexture(
         Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture,
         pSharedHandle );
 
@@ -399,13 +400,13 @@ HRESULT m_IDirect3DDevice9Ex::CreateVolumeTexture(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::BeginStateBlock( void ) {
+long m_IDirect3DDevice9Ex::BeginStateBlock( void ) {
     return ProxyInterface->BeginStateBlock();
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateStateBlock( THIS_ D3DSTATEBLOCKTYPE Type,
-                                                IDirect3DStateBlock9** ppSB ) {
-    HRESULT hr = ProxyInterface->CreateStateBlock( Type, ppSB );
+long m_IDirect3DDevice9Ex::CreateStateBlock( THIS_ D3DSTATEBLOCKTYPE Type,
+                                             IDirect3DStateBlock9** ppSB ) {
+    long hr = ProxyInterface->CreateStateBlock( Type, ppSB );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppSB ) ) {
         *ppSB = new m_IDirect3DStateBlock9( *ppSB, this );
@@ -414,9 +415,8 @@ HRESULT m_IDirect3DDevice9Ex::CreateStateBlock( THIS_ D3DSTATEBLOCKTYPE Type,
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::EndStateBlock(
-    THIS_ IDirect3DStateBlock9** ppSB ) {
-    HRESULT hr = ProxyInterface->EndStateBlock( ppSB );
+long m_IDirect3DDevice9Ex::EndStateBlock( THIS_ IDirect3DStateBlock9** ppSB ) {
+    long hr = ProxyInterface->EndStateBlock( ppSB );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppSB ) ) {
         *ppSB = ProxyAddressLookupTable->FindAddress< m_IDirect3DStateBlock9 >(
@@ -426,24 +426,24 @@ HRESULT m_IDirect3DDevice9Ex::EndStateBlock(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetClipStatus( D3DCLIPSTATUS9* pClipStatus ) {
+long m_IDirect3DDevice9Ex::GetClipStatus( D3DCLIPSTATUS9* pClipStatus ) {
     return ( ProxyInterface->GetClipStatus( pClipStatus ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetDisplayMode( THIS_ UINT iSwapChain,
-                                              D3DDISPLAYMODE* pMode ) {
+long m_IDirect3DDevice9Ex::GetDisplayMode( THIS_ unsigned int iSwapChain,
+                                           D3DDISPLAYMODE* pMode ) {
     return ( ProxyInterface->GetDisplayMode( iSwapChain, pMode ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetRenderState( D3DRENDERSTATETYPE State,
-                                              DWORD* pValue ) {
+long m_IDirect3DDevice9Ex::GetRenderState( D3DRENDERSTATETYPE State,
+                                           unsigned long* pValue ) {
     return ( ProxyInterface->GetRenderState( State, pValue ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetRenderTarget(
-    THIS_ DWORD RenderTargetIndex,
+long m_IDirect3DDevice9Ex::GetRenderTarget(
+    THIS_ unsigned long RenderTargetIndex,
     IDirect3DSurface9** ppRenderTarget ) {
-    HRESULT hr =
+    long hr =
         ProxyInterface->GetRenderTarget( RenderTargetIndex, ppRenderTarget );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppRenderTarget ) ) {
@@ -455,23 +455,22 @@ HRESULT m_IDirect3DDevice9Ex::GetRenderTarget(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetTransform( D3DTRANSFORMSTATETYPE State,
-                                            D3DMATRIX* pMatrix ) {
+long m_IDirect3DDevice9Ex::GetTransform( D3DTRANSFORMSTATETYPE State,
+                                         D3DMATRIX* pMatrix ) {
     return ( ProxyInterface->GetTransform( State, pMatrix ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetClipStatus(
-    CONST D3DCLIPSTATUS9* pClipStatus ) {
+long m_IDirect3DDevice9Ex::SetClipStatus( const D3DCLIPSTATUS9* pClipStatus ) {
     return ( ProxyInterface->SetClipStatus( pClipStatus ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetRenderState( D3DRENDERSTATETYPE State,
-                                              DWORD Value ) {
+long m_IDirect3DDevice9Ex::SetRenderState( D3DRENDERSTATETYPE State,
+                                           unsigned long Value ) {
     return ( ProxyInterface->SetRenderState( State, Value ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetRenderTarget(
-    THIS_ DWORD RenderTargetIndex,
+long m_IDirect3DDevice9Ex::SetRenderTarget(
+    THIS_ unsigned long RenderTargetIndex,
     IDirect3DSurface9* pRenderTarget ) {
     if ( pRenderTarget ) {
         pRenderTarget = static_cast< m_IDirect3DSurface9* >( pRenderTarget )
@@ -482,44 +481,44 @@ HRESULT m_IDirect3DDevice9Ex::SetRenderTarget(
         ProxyInterface->SetRenderTarget( RenderTargetIndex, pRenderTarget ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetTransform( D3DTRANSFORMSTATETYPE State,
-                                            CONST D3DMATRIX* pMatrix ) {
+long m_IDirect3DDevice9Ex::SetTransform( D3DTRANSFORMSTATETYPE State,
+                                         const D3DMATRIX* pMatrix ) {
     return ( ProxyInterface->SetTransform( State, pMatrix ) );
 }
 
-void m_IDirect3DDevice9Ex::GetGammaRamp( THIS_ UINT iSwapChain,
+void m_IDirect3DDevice9Ex::GetGammaRamp( THIS_ unsigned int iSwapChain,
                                          D3DGAMMARAMP* pRamp ) {
     return ( ProxyInterface->GetGammaRamp( iSwapChain, pRamp ) );
 }
 
-void m_IDirect3DDevice9Ex::SetGammaRamp( THIS_ UINT iSwapChain,
-                                         DWORD Flags,
-                                         CONST D3DGAMMARAMP* pRamp ) {
+void m_IDirect3DDevice9Ex::SetGammaRamp( THIS_ unsigned int iSwapChain,
+                                         unsigned long Flags,
+                                         const D3DGAMMARAMP* pRamp ) {
     return ( ProxyInterface->SetGammaRamp( iSwapChain, Flags, pRamp ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DeletePatch( UINT Handle ) {
+long m_IDirect3DDevice9Ex::DeletePatch( unsigned int Handle ) {
     return ( ProxyInterface->DeletePatch( Handle ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DrawRectPatch(
-    UINT Handle,
-    CONST float* pNumSegs,
-    CONST D3DRECTPATCH_INFO* pRectPatchInfo ) {
+long m_IDirect3DDevice9Ex::DrawRectPatch(
+    unsigned int Handle,
+    const float* pNumSegs,
+    const D3DRECTPATCH_INFO* pRectPatchInfo ) {
     return (
         ProxyInterface->DrawRectPatch( Handle, pNumSegs, pRectPatchInfo ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DrawTriPatch(
-    UINT Handle,
-    CONST float* pNumSegs,
-    CONST D3DTRIPATCH_INFO* pTriPatchInfo ) {
+long m_IDirect3DDevice9Ex::DrawTriPatch(
+    unsigned int Handle,
+    const float* pNumSegs,
+    const D3DTRIPATCH_INFO* pTriPatchInfo ) {
     return ( ProxyInterface->DrawTriPatch( Handle, pNumSegs, pTriPatchInfo ) );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetIndices(
+long m_IDirect3DDevice9Ex::GetIndices(
     THIS_ IDirect3DIndexBuffer9** ppIndexData ) {
-    HRESULT hr = ProxyInterface->GetIndices( ppIndexData );
+    long hr = ProxyInterface->GetIndices( ppIndexData );
 
     if ( ( SUCCEEDED( hr ) ) && ( ppIndexData ) ) {
         *ppIndexData =
@@ -530,7 +529,7 @@ HRESULT m_IDirect3DDevice9Ex::GetIndices(
     return ( hr );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetIndices(
+long m_IDirect3DDevice9Ex::SetIndices(
     THIS_ IDirect3DIndexBuffer9* pIndexData ) {
     if ( pIndexData ) {
         pIndexData = static_cast< m_IDirect3DIndexBuffer9* >( pIndexData )
@@ -540,20 +539,20 @@ HRESULT m_IDirect3DDevice9Ex::SetIndices(
     return ( ProxyInterface->SetIndices( pIndexData ) );
 }
 
-UINT m_IDirect3DDevice9Ex::GetAvailableTextureMem( void ) {
+unsigned int m_IDirect3DDevice9Ex::GetAvailableTextureMem( void ) {
     return ProxyInterface->GetAvailableTextureMem();
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetCreationParameters(
+long m_IDirect3DDevice9Ex::GetCreationParameters(
     D3DDEVICE_CREATION_PARAMETERS* pParameters ) {
     return ProxyInterface->GetCreationParameters( pParameters );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetDeviceCaps( D3DCAPS9* pCaps ) {
+long m_IDirect3DDevice9Ex::GetDeviceCaps( D3DCAPS9* pCaps ) {
     return ProxyInterface->GetDeviceCaps( pCaps );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetDirect3D( IDirect3D9** ppD3D9 ) {
+long m_IDirect3DDevice9Ex::GetDirect3D( IDirect3D9** ppD3D9 ) {
     if ( ppD3D9 ) {
         m_pD3DEx->AddRef();
 
@@ -564,48 +563,49 @@ HRESULT m_IDirect3DDevice9Ex::GetDirect3D( IDirect3D9** ppD3D9 ) {
     return D3DERR_INVALIDCALL;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetRasterStatus(
-    THIS_ UINT iSwapChain,
-    D3DRASTER_STATUS* pRasterStatus ) {
+long m_IDirect3DDevice9Ex::GetRasterStatus( THIS_ unsigned int iSwapChain,
+                                            D3DRASTER_STATUS* pRasterStatus ) {
     return ProxyInterface->GetRasterStatus( iSwapChain, pRasterStatus );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetLight( DWORD Index, D3DLIGHT9* pLight ) {
+long m_IDirect3DDevice9Ex::GetLight( unsigned long Index, D3DLIGHT9* pLight ) {
     return ProxyInterface->GetLight( Index, pLight );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetLightEnable( DWORD Index, BOOL* pEnable ) {
+long m_IDirect3DDevice9Ex::GetLightEnable( unsigned long Index, int* pEnable ) {
     return ProxyInterface->GetLightEnable( Index, pEnable );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetMaterial( D3DMATERIAL9* pMaterial ) {
+long m_IDirect3DDevice9Ex::GetMaterial( D3DMATERIAL9* pMaterial ) {
     return ProxyInterface->GetMaterial( pMaterial );
 }
 
-HRESULT m_IDirect3DDevice9Ex::LightEnable( DWORD LightIndex, BOOL bEnable ) {
+long m_IDirect3DDevice9Ex::LightEnable( unsigned long LightIndex,
+                                        int bEnable ) {
     return ProxyInterface->LightEnable( LightIndex, bEnable );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetLight( DWORD Index, CONST D3DLIGHT9* pLight ) {
+long m_IDirect3DDevice9Ex::SetLight( unsigned long Index,
+                                     const D3DLIGHT9* pLight ) {
     return ProxyInterface->SetLight( Index, pLight );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetMaterial( CONST D3DMATERIAL9* pMaterial ) {
+long m_IDirect3DDevice9Ex::SetMaterial( const D3DMATERIAL9* pMaterial ) {
     return ProxyInterface->SetMaterial( pMaterial );
 }
 
-HRESULT m_IDirect3DDevice9Ex::MultiplyTransform( D3DTRANSFORMSTATETYPE State,
-                                                 CONST D3DMATRIX* pMatrix ) {
+long m_IDirect3DDevice9Ex::MultiplyTransform( D3DTRANSFORMSTATETYPE State,
+                                              const D3DMATRIX* pMatrix ) {
     return ProxyInterface->MultiplyTransform( State, pMatrix );
 }
 
-HRESULT m_IDirect3DDevice9Ex::ProcessVertices(
-    THIS_ UINT SrcStartIndex,
-    UINT DestIndex,
-    UINT VertexCount,
+long m_IDirect3DDevice9Ex::ProcessVertices(
+    THIS_ unsigned int SrcStartIndex,
+    unsigned int DestIndex,
+    unsigned int VertexCount,
     IDirect3DVertexBuffer9* pDestBuffer,
     IDirect3DVertexDeclaration9* pVertexDecl,
-    DWORD Flags ) {
+    unsigned long Flags ) {
     if ( pDestBuffer ) {
         pDestBuffer = static_cast< m_IDirect3DVertexBuffer9* >( pDestBuffer )
                           ->GetProxyInterface();
@@ -622,33 +622,34 @@ HRESULT m_IDirect3DDevice9Ex::ProcessVertices(
                                             pVertexDecl, Flags );
 }
 
-HRESULT m_IDirect3DDevice9Ex::TestCooperativeLevel( void ) {
+long m_IDirect3DDevice9Ex::TestCooperativeLevel( void ) {
     return ProxyInterface->TestCooperativeLevel();
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetCurrentTexturePalette( UINT* pPaletteNumber ) {
+long m_IDirect3DDevice9Ex::GetCurrentTexturePalette(
+    unsigned int* pPaletteNumber ) {
     return ProxyInterface->GetCurrentTexturePalette( pPaletteNumber );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetPaletteEntries( UINT PaletteNumber,
-                                                 PALETTEENTRY* pEntries ) {
+long m_IDirect3DDevice9Ex::GetPaletteEntries( unsigned int PaletteNumber,
+                                              PALETTEENTRY* pEntries ) {
     return ProxyInterface->GetPaletteEntries( PaletteNumber, pEntries );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetCurrentTexturePalette( UINT PaletteNumber ) {
+long m_IDirect3DDevice9Ex::SetCurrentTexturePalette(
+    unsigned int PaletteNumber ) {
     return ProxyInterface->SetCurrentTexturePalette( PaletteNumber );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetPaletteEntries(
-    UINT PaletteNumber,
-    CONST PALETTEENTRY* pEntries ) {
+long m_IDirect3DDevice9Ex::SetPaletteEntries( unsigned int PaletteNumber,
+                                              const PALETTEENTRY* pEntries ) {
     return ProxyInterface->SetPaletteEntries( PaletteNumber, pEntries );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreatePixelShader(
-    THIS_ CONST DWORD* pFunction,
+long m_IDirect3DDevice9Ex::CreatePixelShader(
+    THIS_ const unsigned long* pFunction,
     IDirect3DPixelShader9** ppShader ) {
-    HRESULT hr = ProxyInterface->CreatePixelShader( pFunction, ppShader );
+    long hr = ProxyInterface->CreatePixelShader( pFunction, ppShader );
 
     if ( SUCCEEDED( hr ) && ppShader ) {
         *ppShader = new m_IDirect3DPixelShader9( *ppShader, this );
@@ -657,9 +658,9 @@ HRESULT m_IDirect3DDevice9Ex::CreatePixelShader(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetPixelShader(
+long m_IDirect3DDevice9Ex::GetPixelShader(
     THIS_ IDirect3DPixelShader9** ppShader ) {
-    HRESULT hr = ProxyInterface->GetPixelShader( ppShader );
+    long hr = ProxyInterface->GetPixelShader( ppShader );
 
     if ( SUCCEEDED( hr ) && ppShader ) {
         *ppShader =
@@ -670,7 +671,7 @@ HRESULT m_IDirect3DDevice9Ex::GetPixelShader(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetPixelShader(
+long m_IDirect3DDevice9Ex::SetPixelShader(
     THIS_ IDirect3DPixelShader9* pShader ) {
     if ( pShader ) {
         pShader = static_cast< m_IDirect3DPixelShader9* >( pShader )
@@ -680,59 +681,59 @@ HRESULT m_IDirect3DDevice9Ex::SetPixelShader(
     return ProxyInterface->SetPixelShader( pShader );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DrawIndexedPrimitive( THIS_ D3DPRIMITIVETYPE Type,
-                                                    INT BaseVertexIndex,
-                                                    UINT MinVertexIndex,
-                                                    UINT NumVertices,
-                                                    UINT startIndex,
-                                                    UINT primCount ) {
+long m_IDirect3DDevice9Ex::DrawIndexedPrimitive( THIS_ D3DPRIMITIVETYPE Type,
+                                                 int BaseVertexIndex,
+                                                 unsigned int MinVertexIndex,
+                                                 unsigned int NumVertices,
+                                                 unsigned int startIndex,
+                                                 unsigned int primCount ) {
     return ProxyInterface->DrawIndexedPrimitive( Type, BaseVertexIndex,
                                                  MinVertexIndex, NumVertices,
                                                  startIndex, primCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(
+long m_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(
     D3DPRIMITIVETYPE PrimitiveType,
-    UINT MinIndex,
-    UINT NumVertices,
-    UINT PrimitiveCount,
-    CONST void* pIndexData,
+    unsigned int MinIndex,
+    unsigned int NumVertices,
+    unsigned int PrimitiveCount,
+    const void* pIndexData,
     D3DFORMAT IndexDataFormat,
-    CONST void* pVertexStreamZeroData,
-    UINT VertexStreamZeroStride ) {
+    const void* pVertexStreamZeroData,
+    unsigned int VertexStreamZeroStride ) {
     return ProxyInterface->DrawIndexedPrimitiveUP(
         PrimitiveType, MinIndex, NumVertices, PrimitiveCount, pIndexData,
         IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DrawPrimitive( D3DPRIMITIVETYPE PrimitiveType,
-                                             UINT StartVertex,
-                                             UINT PrimitiveCount ) {
+long m_IDirect3DDevice9Ex::DrawPrimitive( D3DPRIMITIVETYPE PrimitiveType,
+                                          unsigned int StartVertex,
+                                          unsigned int PrimitiveCount ) {
     return ProxyInterface->DrawPrimitive( PrimitiveType, StartVertex,
                                           PrimitiveCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::DrawPrimitiveUP(
+long m_IDirect3DDevice9Ex::DrawPrimitiveUP(
     D3DPRIMITIVETYPE PrimitiveType,
-    UINT PrimitiveCount,
-    CONST void* pVertexStreamZeroData,
-    UINT VertexStreamZeroStride ) {
+    unsigned int PrimitiveCount,
+    const void* pVertexStreamZeroData,
+    unsigned int VertexStreamZeroStride ) {
     return ProxyInterface->DrawPrimitiveUP( PrimitiveType, PrimitiveCount,
                                             pVertexStreamZeroData,
                                             VertexStreamZeroStride );
 }
 
-HRESULT m_IDirect3DDevice9Ex::BeginScene( void ) {
+long m_IDirect3DDevice9Ex::BeginScene( void ) {
     return ProxyInterface->BeginScene();
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetStreamSource(
-    THIS_ UINT StreamNumber,
+long m_IDirect3DDevice9Ex::GetStreamSource(
+    THIS_ unsigned int StreamNumber,
     IDirect3DVertexBuffer9** ppStreamData,
-    UINT* OffsetInBytes,
-    UINT* pStride ) {
-    HRESULT hr = ProxyInterface->GetStreamSource( StreamNumber, ppStreamData,
-                                                  OffsetInBytes, pStride );
+    unsigned int* OffsetInBytes,
+    unsigned int* pStride ) {
+    long hr = ProxyInterface->GetStreamSource( StreamNumber, ppStreamData,
+                                               OffsetInBytes, pStride );
 
     if ( SUCCEEDED( hr ) && ppStreamData ) {
         *ppStreamData =
@@ -743,11 +744,10 @@ HRESULT m_IDirect3DDevice9Ex::GetStreamSource(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetStreamSource(
-    THIS_ UINT StreamNumber,
-    IDirect3DVertexBuffer9* pStreamData,
-    UINT OffsetInBytes,
-    UINT Stride ) {
+long m_IDirect3DDevice9Ex::SetStreamSource( THIS_ unsigned int StreamNumber,
+                                            IDirect3DVertexBuffer9* pStreamData,
+                                            unsigned int OffsetInBytes,
+                                            unsigned int Stride ) {
     if ( pStreamData ) {
         pStreamData = static_cast< m_IDirect3DVertexBuffer9* >( pStreamData )
                           ->GetProxyInterface();
@@ -757,13 +757,12 @@ HRESULT m_IDirect3DDevice9Ex::SetStreamSource(
                                             OffsetInBytes, Stride );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetBackBuffer(
-    THIS_ UINT iSwapChain,
-    UINT iBackBuffer,
-    D3DBACKBUFFER_TYPE Type,
-    IDirect3DSurface9** ppBackBuffer ) {
-    HRESULT hr = ProxyInterface->GetBackBuffer( iSwapChain, iBackBuffer, Type,
-                                                ppBackBuffer );
+long m_IDirect3DDevice9Ex::GetBackBuffer( THIS_ unsigned int iSwapChain,
+                                          unsigned int iBackBuffer,
+                                          D3DBACKBUFFER_TYPE Type,
+                                          IDirect3DSurface9** ppBackBuffer ) {
+    long hr = ProxyInterface->GetBackBuffer( iSwapChain, iBackBuffer, Type,
+                                             ppBackBuffer );
 
     if ( SUCCEEDED( hr ) && ppBackBuffer ) {
         *ppBackBuffer =
@@ -774,9 +773,9 @@ HRESULT m_IDirect3DDevice9Ex::GetBackBuffer(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetDepthStencilSurface(
+long m_IDirect3DDevice9Ex::GetDepthStencilSurface(
     IDirect3DSurface9** ppZStencilSurface ) {
-    HRESULT hr = ProxyInterface->GetDepthStencilSurface( ppZStencilSurface );
+    long hr = ProxyInterface->GetDepthStencilSurface( ppZStencilSurface );
 
     if ( SUCCEEDED( hr ) && ppZStencilSurface ) {
         *ppZStencilSurface =
@@ -787,9 +786,9 @@ HRESULT m_IDirect3DDevice9Ex::GetDepthStencilSurface(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetTexture( DWORD Stage,
-                                          IDirect3DBaseTexture9** ppTexture ) {
-    HRESULT hr = ProxyInterface->GetTexture( Stage, ppTexture );
+long m_IDirect3DDevice9Ex::GetTexture( unsigned long Stage,
+                                       IDirect3DBaseTexture9** ppTexture ) {
+    long hr = ProxyInterface->GetTexture( Stage, ppTexture );
 
     if ( SUCCEEDED( hr ) && ppTexture && *ppTexture ) {
         switch ( ( *ppTexture )->GetType() ) {
@@ -816,15 +815,14 @@ HRESULT m_IDirect3DDevice9Ex::GetTexture( DWORD Stage,
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetTextureStageState(
-    DWORD Stage,
-    D3DTEXTURESTAGESTATETYPE Type,
-    DWORD* pValue ) {
+long m_IDirect3DDevice9Ex::GetTextureStageState( unsigned long Stage,
+                                                 D3DTEXTURESTAGESTATETYPE Type,
+                                                 unsigned long* pValue ) {
     return ProxyInterface->GetTextureStageState( Stage, Type, pValue );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetTexture( DWORD Stage,
-                                          IDirect3DBaseTexture9* pTexture ) {
+long m_IDirect3DDevice9Ex::SetTexture( unsigned long Stage,
+                                       IDirect3DBaseTexture9* pTexture ) {
     if ( pTexture ) {
         switch ( pTexture->GetType() ) {
             case D3DRTYPE_TEXTURE:
@@ -847,14 +845,13 @@ HRESULT m_IDirect3DDevice9Ex::SetTexture( DWORD Stage,
     return ProxyInterface->SetTexture( Stage, pTexture );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetTextureStageState(
-    DWORD Stage,
-    D3DTEXTURESTAGESTATETYPE Type,
-    DWORD Value ) {
+long m_IDirect3DDevice9Ex::SetTextureStageState( unsigned long Stage,
+                                                 D3DTEXTURESTAGESTATETYPE Type,
+                                                 unsigned long Value ) {
     return ProxyInterface->SetTextureStageState( Stage, Type, Value );
 }
 
-HRESULT m_IDirect3DDevice9Ex::UpdateTexture(
+long m_IDirect3DDevice9Ex::UpdateTexture(
     IDirect3DBaseTexture9* pSourceTexture,
     IDirect3DBaseTexture9* pDestinationTexture ) {
     if ( pSourceTexture ) {
@@ -903,39 +900,40 @@ HRESULT m_IDirect3DDevice9Ex::UpdateTexture(
     return ProxyInterface->UpdateTexture( pSourceTexture, pDestinationTexture );
 }
 
-HRESULT m_IDirect3DDevice9Ex::ValidateDevice( DWORD* pNumPasses ) {
+long m_IDirect3DDevice9Ex::ValidateDevice( unsigned long* pNumPasses ) {
     return ProxyInterface->ValidateDevice( pNumPasses );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetClipPlane( DWORD Index, float* pPlane ) {
+long m_IDirect3DDevice9Ex::GetClipPlane( unsigned long Index, float* pPlane ) {
     return ProxyInterface->GetClipPlane( Index, pPlane );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetClipPlane( DWORD Index, CONST float* pPlane ) {
+long m_IDirect3DDevice9Ex::SetClipPlane( unsigned long Index,
+                                         const float* pPlane ) {
     return ProxyInterface->SetClipPlane( Index, pPlane );
 }
 
-HRESULT m_IDirect3DDevice9Ex::Clear( DWORD Count,
-                                     CONST D3DRECT* pRects,
-                                     DWORD Flags,
-                                     D3DCOLOR Color,
-                                     float Z,
-                                     DWORD Stencil ) {
+long m_IDirect3DDevice9Ex::Clear( unsigned long Count,
+                                  const D3DRECT* pRects,
+                                  unsigned long Flags,
+                                  D3DCOLOR Color,
+                                  float Z,
+                                  unsigned long Stencil ) {
     return ProxyInterface->Clear( Count, pRects, Flags, Color, Z, Stencil );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetViewport( D3DVIEWPORT9* pViewport ) {
+long m_IDirect3DDevice9Ex::GetViewport( D3DVIEWPORT9* pViewport ) {
     return ProxyInterface->GetViewport( pViewport );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetViewport( CONST D3DVIEWPORT9* pViewport ) {
+long m_IDirect3DDevice9Ex::SetViewport( const D3DVIEWPORT9* pViewport ) {
     return ProxyInterface->SetViewport( pViewport );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateVertexShader(
-    THIS_ CONST DWORD* pFunction,
+long m_IDirect3DDevice9Ex::CreateVertexShader(
+    THIS_ const unsigned long* pFunction,
     IDirect3DVertexShader9** ppShader ) {
-    HRESULT hr = ProxyInterface->CreateVertexShader( pFunction, ppShader );
+    long hr = ProxyInterface->CreateVertexShader( pFunction, ppShader );
 
     if ( SUCCEEDED( hr ) && ppShader ) {
         *ppShader = new m_IDirect3DVertexShader9( *ppShader, this );
@@ -944,9 +942,9 @@ HRESULT m_IDirect3DDevice9Ex::CreateVertexShader(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetVertexShader(
+long m_IDirect3DDevice9Ex::GetVertexShader(
     THIS_ IDirect3DVertexShader9** ppShader ) {
-    HRESULT hr = ProxyInterface->GetVertexShader( ppShader );
+    long hr = ProxyInterface->GetVertexShader( ppShader );
 
     if ( SUCCEEDED( hr ) && ppShader ) {
         *ppShader =
@@ -957,7 +955,7 @@ HRESULT m_IDirect3DDevice9Ex::GetVertexShader(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetVertexShader(
+long m_IDirect3DDevice9Ex::SetVertexShader(
     THIS_ IDirect3DVertexShader9* pShader ) {
     if ( pShader ) {
         pShader = static_cast< m_IDirect3DVertexShader9* >( pShader )
@@ -967,9 +965,9 @@ HRESULT m_IDirect3DDevice9Ex::SetVertexShader(
     return ProxyInterface->SetVertexShader( pShader );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateQuery( THIS_ D3DQUERYTYPE Type,
-                                           IDirect3DQuery9** ppQuery ) {
-    HRESULT hr = ProxyInterface->CreateQuery( Type, ppQuery );
+long m_IDirect3DDevice9Ex::CreateQuery( THIS_ D3DQUERYTYPE Type,
+                                        IDirect3DQuery9** ppQuery ) {
+    long hr = ProxyInterface->CreateQuery( Type, ppQuery );
 
     if ( SUCCEEDED( hr ) && ppQuery ) {
         *ppQuery = new m_IDirect3DQuery9( *ppQuery, this );
@@ -978,120 +976,124 @@ HRESULT m_IDirect3DDevice9Ex::CreateQuery( THIS_ D3DQUERYTYPE Type,
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetPixelShaderConstantB(
-    THIS_ UINT StartRegister,
-    CONST BOOL* pConstantData,
-    UINT BoolCount ) {
+long m_IDirect3DDevice9Ex::SetPixelShaderConstantB(
+    THIS_ unsigned int StartRegister,
+    const int* pConstantData,
+    unsigned int BoolCount ) {
     return ProxyInterface->SetPixelShaderConstantB( StartRegister,
                                                     pConstantData, BoolCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetPixelShaderConstantB( THIS_ UINT StartRegister,
-                                                       BOOL* pConstantData,
-                                                       UINT BoolCount ) {
+long m_IDirect3DDevice9Ex::GetPixelShaderConstantB(
+    THIS_ unsigned int StartRegister,
+    int* pConstantData,
+    unsigned int BoolCount ) {
     return ProxyInterface->GetPixelShaderConstantB( StartRegister,
                                                     pConstantData, BoolCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetPixelShaderConstantI( THIS_ UINT StartRegister,
-                                                       CONST int* pConstantData,
-                                                       UINT Vector4iCount ) {
+long m_IDirect3DDevice9Ex::SetPixelShaderConstantI(
+    THIS_ unsigned int StartRegister,
+    const int* pConstantData,
+    unsigned int Vector4iCount ) {
     return ProxyInterface->SetPixelShaderConstantI(
         StartRegister, pConstantData, Vector4iCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetPixelShaderConstantI( THIS_ UINT StartRegister,
-                                                       int* pConstantData,
-                                                       UINT Vector4iCount ) {
+long m_IDirect3DDevice9Ex::GetPixelShaderConstantI(
+    THIS_ unsigned int StartRegister,
+    int* pConstantData,
+    unsigned int Vector4iCount ) {
     return ProxyInterface->GetPixelShaderConstantI(
         StartRegister, pConstantData, Vector4iCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetPixelShaderConstantF(
-    THIS_ UINT StartRegister,
-    CONST float* pConstantData,
-    UINT Vector4fCount ) {
+long m_IDirect3DDevice9Ex::SetPixelShaderConstantF(
+    THIS_ unsigned int StartRegister,
+    const float* pConstantData,
+    unsigned int Vector4fCount ) {
     return ProxyInterface->SetPixelShaderConstantF(
         StartRegister, pConstantData, Vector4fCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetPixelShaderConstantF( THIS_ UINT StartRegister,
-                                                       float* pConstantData,
-                                                       UINT Vector4fCount ) {
+long m_IDirect3DDevice9Ex::GetPixelShaderConstantF(
+    THIS_ unsigned int StartRegister,
+    float* pConstantData,
+    unsigned int Vector4fCount ) {
     return ProxyInterface->GetPixelShaderConstantF(
         StartRegister, pConstantData, Vector4fCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetStreamSourceFreq( THIS_ UINT StreamNumber,
-                                                   UINT Divider ) {
+long m_IDirect3DDevice9Ex::SetStreamSourceFreq( THIS_ unsigned int StreamNumber,
+                                                unsigned int Divider ) {
     return ProxyInterface->SetStreamSourceFreq( StreamNumber, Divider );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetStreamSourceFreq( THIS_ UINT StreamNumber,
-                                                   UINT* Divider ) {
+long m_IDirect3DDevice9Ex::GetStreamSourceFreq( THIS_ unsigned int StreamNumber,
+                                                unsigned int* Divider ) {
     return ProxyInterface->GetStreamSourceFreq( StreamNumber, Divider );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetVertexShaderConstantB(
-    THIS_ UINT StartRegister,
-    CONST BOOL* pConstantData,
-    UINT BoolCount ) {
+long m_IDirect3DDevice9Ex::SetVertexShaderConstantB(
+    THIS_ unsigned int StartRegister,
+    const int* pConstantData,
+    unsigned int BoolCount ) {
     return ProxyInterface->SetVertexShaderConstantB( StartRegister,
                                                      pConstantData, BoolCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetVertexShaderConstantB( THIS_ UINT
-                                                            StartRegister,
-                                                        BOOL* pConstantData,
-                                                        UINT BoolCount ) {
+long m_IDirect3DDevice9Ex::GetVertexShaderConstantB(
+    THIS_ unsigned int StartRegister,
+    int* pConstantData,
+    unsigned int BoolCount ) {
     return ProxyInterface->GetVertexShaderConstantB( StartRegister,
                                                      pConstantData, BoolCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetVertexShaderConstantF(
-    THIS_ UINT StartRegister,
-    CONST float* pConstantData,
-    UINT Vector4fCount ) {
+long m_IDirect3DDevice9Ex::SetVertexShaderConstantF(
+    THIS_ unsigned int StartRegister,
+    const float* pConstantData,
+    unsigned int Vector4fCount ) {
     return ProxyInterface->SetVertexShaderConstantF(
         StartRegister, pConstantData, Vector4fCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetVertexShaderConstantF( THIS_ UINT
-                                                            StartRegister,
-                                                        float* pConstantData,
-                                                        UINT Vector4fCount ) {
+long m_IDirect3DDevice9Ex::GetVertexShaderConstantF(
+    THIS_ unsigned int StartRegister,
+    float* pConstantData,
+    unsigned int Vector4fCount ) {
     return ProxyInterface->GetVertexShaderConstantF(
         StartRegister, pConstantData, Vector4fCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetVertexShaderConstantI(
-    THIS_ UINT StartRegister,
-    CONST int* pConstantData,
-    UINT Vector4iCount ) {
+long m_IDirect3DDevice9Ex::SetVertexShaderConstantI(
+    THIS_ unsigned int StartRegister,
+    const int* pConstantData,
+    unsigned int Vector4iCount ) {
     return ProxyInterface->SetVertexShaderConstantI(
         StartRegister, pConstantData, Vector4iCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetVertexShaderConstantI( THIS_ UINT
-                                                            StartRegister,
-                                                        int* pConstantData,
-                                                        UINT Vector4iCount ) {
+long m_IDirect3DDevice9Ex::GetVertexShaderConstantI(
+    THIS_ unsigned int StartRegister,
+    int* pConstantData,
+    unsigned int Vector4iCount ) {
     return ProxyInterface->GetVertexShaderConstantI(
         StartRegister, pConstantData, Vector4iCount );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetFVF( THIS_ DWORD FVF ) {
+long m_IDirect3DDevice9Ex::SetFVF( THIS_ unsigned long FVF ) {
     return ProxyInterface->SetFVF( FVF );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetFVF( THIS_ DWORD* pFVF ) {
+long m_IDirect3DDevice9Ex::GetFVF( THIS_ unsigned long* pFVF ) {
     return ProxyInterface->GetFVF( pFVF );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateVertexDeclaration(
-    THIS_ CONST D3DVERTEXELEMENT9* pVertexElements,
+long m_IDirect3DDevice9Ex::CreateVertexDeclaration(
+    THIS_ const D3DVERTEXELEMENT9* pVertexElements,
     IDirect3DVertexDeclaration9** ppDecl ) {
-    HRESULT hr =
+    long hr =
         ProxyInterface->CreateVertexDeclaration( pVertexElements, ppDecl );
 
     if ( SUCCEEDED( hr ) && ppDecl ) {
@@ -1101,7 +1103,7 @@ HRESULT m_IDirect3DDevice9Ex::CreateVertexDeclaration(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetVertexDeclaration(
+long m_IDirect3DDevice9Ex::SetVertexDeclaration(
     THIS_ IDirect3DVertexDeclaration9* pDecl ) {
     if ( pDecl ) {
         pDecl = static_cast< m_IDirect3DVertexDeclaration9* >( pDecl )
@@ -1111,9 +1113,9 @@ HRESULT m_IDirect3DDevice9Ex::SetVertexDeclaration(
     return ProxyInterface->SetVertexDeclaration( pDecl );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetVertexDeclaration(
+long m_IDirect3DDevice9Ex::GetVertexDeclaration(
     THIS_ IDirect3DVertexDeclaration9** ppDecl ) {
-    HRESULT hr = ProxyInterface->GetVertexDeclaration( ppDecl );
+    long hr = ProxyInterface->GetVertexDeclaration( ppDecl );
 
     if ( SUCCEEDED( hr ) && ppDecl ) {
         *ppDecl = ProxyAddressLookupTable
@@ -1123,7 +1125,7 @@ HRESULT m_IDirect3DDevice9Ex::GetVertexDeclaration(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetNPatchMode( THIS_ float nSegments ) {
+long m_IDirect3DDevice9Ex::SetNPatchMode( THIS_ float nSegments ) {
     return ProxyInterface->SetNPatchMode( nSegments );
 }
 
@@ -1139,36 +1141,35 @@ unsigned int m_IDirect3DDevice9Ex::GetNumberOfSwapChains( THIS ) {
     return ProxyInterface->GetNumberOfSwapChains();
 }
 
-HRESULT m_IDirect3DDevice9Ex::EvictManagedResources( THIS ) {
+long m_IDirect3DDevice9Ex::EvictManagedResources( THIS ) {
     return ProxyInterface->EvictManagedResources();
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetSoftwareVertexProcessing(
-    THIS_ BOOL bSoftware ) {
+long m_IDirect3DDevice9Ex::SetSoftwareVertexProcessing( THIS_ int bSoftware ) {
     return ProxyInterface->SetSoftwareVertexProcessing( bSoftware );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetScissorRect( THIS_ CONST RECT* pRect ) {
+long m_IDirect3DDevice9Ex::SetScissorRect( THIS_ const RECT* pRect ) {
     return ProxyInterface->SetScissorRect( pRect );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetScissorRect( THIS_ RECT* pRect ) {
+long m_IDirect3DDevice9Ex::GetScissorRect( THIS_ RECT* pRect ) {
     return ProxyInterface->GetScissorRect( pRect );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetSamplerState( THIS_ DWORD Sampler,
-                                               D3DSAMPLERSTATETYPE Type,
-                                               DWORD* pValue ) {
+long m_IDirect3DDevice9Ex::GetSamplerState( THIS_ unsigned long Sampler,
+                                            D3DSAMPLERSTATETYPE Type,
+                                            unsigned long* pValue ) {
     return ProxyInterface->GetSamplerState( Sampler, Type, pValue );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetSamplerState( THIS_ DWORD Sampler,
-                                               D3DSAMPLERSTATETYPE Type,
-                                               DWORD Value ) {
+long m_IDirect3DDevice9Ex::SetSamplerState( THIS_ unsigned long Sampler,
+                                            D3DSAMPLERSTATETYPE Type,
+                                            unsigned long Value ) {
     return ProxyInterface->SetSamplerState( Sampler, Type, Value );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetDepthStencilSurface(
+long m_IDirect3DDevice9Ex::SetDepthStencilSurface(
     THIS_ IDirect3DSurface9* pNewZStencil ) {
     if ( pNewZStencil ) {
         pNewZStencil = static_cast< m_IDirect3DSurface9* >( pNewZStencil )
@@ -1178,14 +1179,14 @@ HRESULT m_IDirect3DDevice9Ex::SetDepthStencilSurface(
     return ProxyInterface->SetDepthStencilSurface( pNewZStencil );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(
-    THIS_ UINT Width,
-    UINT Height,
+long m_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(
+    THIS_ unsigned int Width,
+    unsigned int Height,
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DSurface9** ppSurface,
     HANDLE* pSharedHandle ) {
-    HRESULT hr = ProxyInterface->CreateOffscreenPlainSurface(
+    long hr = ProxyInterface->CreateOffscreenPlainSurface(
         Width, Height, Format, Pool, ppSurface, pSharedHandle );
 
     if ( SUCCEEDED( hr ) && ppSurface ) {
@@ -1195,9 +1196,9 @@ HRESULT m_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::ColorFill( THIS_ IDirect3DSurface9* pSurface,
-                                         CONST RECT* pRect,
-                                         D3DCOLOR color ) {
+long m_IDirect3DDevice9Ex::ColorFill( THIS_ IDirect3DSurface9* pSurface,
+                                      const RECT* pRect,
+                                      D3DCOLOR color ) {
     if ( pSurface ) {
         pSurface = static_cast< m_IDirect3DSurface9* >( pSurface )
                        ->GetProxyInterface();
@@ -1206,12 +1207,11 @@ HRESULT m_IDirect3DDevice9Ex::ColorFill( THIS_ IDirect3DSurface9* pSurface,
     return ProxyInterface->ColorFill( pSurface, pRect, color );
 }
 
-HRESULT m_IDirect3DDevice9Ex::StretchRect(
-    THIS_ IDirect3DSurface9* pSourceSurface,
-    CONST RECT* pSourceRect,
-    IDirect3DSurface9* pDestSurface,
-    CONST RECT* pDestRect,
-    D3DTEXTUREFILTERTYPE Filter ) {
+long m_IDirect3DDevice9Ex::StretchRect( THIS_ IDirect3DSurface9* pSourceSurface,
+                                        const RECT* pSourceRect,
+                                        IDirect3DSurface9* pDestSurface,
+                                        const RECT* pDestRect,
+                                        D3DTEXTUREFILTERTYPE Filter ) {
     if ( pSourceSurface ) {
         pSourceSurface = static_cast< m_IDirect3DSurface9* >( pSourceSurface )
                              ->GetProxyInterface();
@@ -1226,8 +1226,8 @@ HRESULT m_IDirect3DDevice9Ex::StretchRect(
                                         pDestSurface, pDestRect, Filter );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetFrontBufferData(
-    THIS_ UINT iSwapChain,
+long m_IDirect3DDevice9Ex::GetFrontBufferData(
+    THIS_ unsigned int iSwapChain,
     IDirect3DSurface9* pDestSurface ) {
     if ( pDestSurface ) {
         pDestSurface = static_cast< m_IDirect3DSurface9* >( pDestSurface )
@@ -1237,7 +1237,7 @@ HRESULT m_IDirect3DDevice9Ex::GetFrontBufferData(
     return ProxyInterface->GetFrontBufferData( iSwapChain, pDestSurface );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetRenderTargetData(
+long m_IDirect3DDevice9Ex::GetRenderTargetData(
     THIS_ IDirect3DSurface9* pRenderTarget,
     IDirect3DSurface9* pDestSurface ) {
     if ( pRenderTarget ) {
@@ -1253,11 +1253,11 @@ HRESULT m_IDirect3DDevice9Ex::GetRenderTargetData(
     return ProxyInterface->GetRenderTargetData( pRenderTarget, pDestSurface );
 }
 
-HRESULT m_IDirect3DDevice9Ex::UpdateSurface(
+long m_IDirect3DDevice9Ex::UpdateSurface(
     THIS_ IDirect3DSurface9* pSourceSurface,
-    CONST RECT* pSourceRect,
+    const RECT* pSourceRect,
     IDirect3DSurface9* pDestinationSurface,
-    CONST POINT* pDestPoint ) {
+    const POINT* pDestPoint ) {
     if ( pSourceSurface ) {
         pSourceSurface = static_cast< m_IDirect3DSurface9* >( pSourceSurface )
                              ->GetProxyInterface();
@@ -1273,14 +1273,13 @@ HRESULT m_IDirect3DDevice9Ex::UpdateSurface(
                                           pDestinationSurface, pDestPoint );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetDialogBoxMode( THIS_ BOOL bEnableDialogs ) {
+long m_IDirect3DDevice9Ex::SetDialogBoxMode( THIS_ int bEnableDialogs ) {
     return ProxyInterface->SetDialogBoxMode( bEnableDialogs );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetSwapChain(
-    THIS_ UINT iSwapChain,
-    IDirect3DSwapChain9** ppSwapChain ) {
-    HRESULT hr = ProxyInterface->GetSwapChain( iSwapChain, ppSwapChain );
+long m_IDirect3DDevice9Ex::GetSwapChain( THIS_ unsigned int iSwapChain,
+                                         IDirect3DSwapChain9** ppSwapChain ) {
+    long hr = ProxyInterface->GetSwapChain( iSwapChain, ppSwapChain );
 
     if ( SUCCEEDED( hr ) && ppSwapChain ) {
         *ppSwapChain =
@@ -1291,23 +1290,22 @@ HRESULT m_IDirect3DDevice9Ex::GetSwapChain(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetConvolutionMonoKernel( THIS_ UINT width,
-                                                        UINT height,
-                                                        float* rows,
-                                                        float* columns ) {
+long m_IDirect3DDevice9Ex::SetConvolutionMonoKernel( THIS_ unsigned int width,
+                                                     unsigned int height,
+                                                     float* rows,
+                                                     float* columns ) {
     return ProxyInterface->SetConvolutionMonoKernel( width, height, rows,
                                                      columns );
 }
 
-HRESULT m_IDirect3DDevice9Ex::ComposeRects(
-    THIS_ IDirect3DSurface9* pSrc,
-    IDirect3DSurface9* pDst,
-    IDirect3DVertexBuffer9* pSrcRectDescs,
-    UINT NumRects,
-    IDirect3DVertexBuffer9* pDstRectDescs,
-    D3DCOMPOSERECTSOP Operation,
-    int Xoffset,
-    int Yoffset ) {
+long m_IDirect3DDevice9Ex::ComposeRects( THIS_ IDirect3DSurface9* pSrc,
+                                         IDirect3DSurface9* pDst,
+                                         IDirect3DVertexBuffer9* pSrcRectDescs,
+                                         unsigned int NumRects,
+                                         IDirect3DVertexBuffer9* pDstRectDescs,
+                                         D3DCOMPOSERECTSOP Operation,
+                                         int Xoffset,
+                                         int Yoffset ) {
     if ( pSrc ) {
         pSrc = static_cast< m_IDirect3DSurface9* >( pSrc )->GetProxyInterface();
     }
@@ -1333,23 +1331,23 @@ HRESULT m_IDirect3DDevice9Ex::ComposeRects(
                                          Yoffset );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetGPUThreadPriority( THIS_ INT* pPriority ) {
+long m_IDirect3DDevice9Ex::GetGPUThreadPriority( THIS_ int* pPriority ) {
     return ProxyInterface->GetGPUThreadPriority( pPriority );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetGPUThreadPriority( THIS_ INT Priority ) {
+long m_IDirect3DDevice9Ex::SetGPUThreadPriority( THIS_ int Priority ) {
     return ProxyInterface->SetGPUThreadPriority( Priority );
 }
 
-HRESULT m_IDirect3DDevice9Ex::WaitForVBlank( THIS_ UINT iSwapChain ) {
+long m_IDirect3DDevice9Ex::WaitForVBlank( THIS_ unsigned int iSwapChain ) {
     return ProxyInterface->WaitForVBlank( iSwapChain );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CheckResourceResidency(
+long m_IDirect3DDevice9Ex::CheckResourceResidency(
     THIS_ IDirect3DResource9** pResourceArray,
-    UINT32 NumResources ) {
+    unsigned int NumResources ) {
     if ( pResourceArray ) {
-        for ( UINT32 i = 0; i < NumResources; i++ ) {
+        for ( unsigned int i = 0; i < NumResources; i++ ) {
             if ( pResourceArray[ i ] ) {
                 switch ( pResourceArray[ i ]->GetType() ) {
                     case D3DRTYPE_SURFACE:
@@ -1405,31 +1403,31 @@ HRESULT m_IDirect3DDevice9Ex::CheckResourceResidency(
                                                    NumResources );
 }
 
-HRESULT m_IDirect3DDevice9Ex::SetMaximumFrameLatency( THIS_ UINT MaxLatency ) {
+long m_IDirect3DDevice9Ex::SetMaximumFrameLatency(
+    THIS_ unsigned int MaxLatency ) {
     return ProxyInterface->SetMaximumFrameLatency( MaxLatency );
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetMaximumFrameLatency(
-    THIS_ UINT* pMaxLatency ) {
+long m_IDirect3DDevice9Ex::GetMaximumFrameLatency(
+    THIS_ unsigned int* pMaxLatency ) {
     return ProxyInterface->GetMaximumFrameLatency( pMaxLatency );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CheckDeviceState(
-    THIS_ HWND hDestinationWindow ) {
+long m_IDirect3DDevice9Ex::CheckDeviceState( THIS_ HWND hDestinationWindow ) {
     return ProxyInterface->CheckDeviceState( hDestinationWindow );
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateRenderTargetEx(
-    THIS_ UINT Width,
-    UINT Height,
+long m_IDirect3DDevice9Ex::CreateRenderTargetEx(
+    THIS_ unsigned int Width,
+    unsigned int Height,
     D3DFORMAT Format,
     D3DMULTISAMPLE_TYPE MultiSample,
-    DWORD MultisampleQuality,
-    BOOL Lockable,
+    unsigned long MultisampleQuality,
+    int Lockable,
     IDirect3DSurface9** ppSurface,
     HANDLE* pSharedHandle,
-    DWORD Usage ) {
-    HRESULT hr = ProxyInterface->CreateRenderTargetEx(
+    unsigned long Usage ) {
+    long hr = ProxyInterface->CreateRenderTargetEx(
         Width, Height, Format, MultiSample, MultisampleQuality, Lockable,
         ppSurface, pSharedHandle, Usage );
 
@@ -1440,15 +1438,15 @@ HRESULT m_IDirect3DDevice9Ex::CreateRenderTargetEx(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(
-    THIS_ UINT Width,
-    UINT Height,
+long m_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(
+    THIS_ unsigned int Width,
+    unsigned int Height,
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DSurface9** ppSurface,
     HANDLE* pSharedHandle,
-    DWORD Usage ) {
-    HRESULT hr = ProxyInterface->CreateOffscreenPlainSurfaceEx(
+    unsigned long Usage ) {
+    long hr = ProxyInterface->CreateOffscreenPlainSurfaceEx(
         Width, Height, Format, Pool, ppSurface, pSharedHandle, Usage );
 
     if ( SUCCEEDED( hr ) && ppSurface ) {
@@ -1458,17 +1456,17 @@ HRESULT m_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(
-    THIS_ UINT Width,
-    UINT Height,
+long m_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(
+    THIS_ unsigned int Width,
+    unsigned int Height,
     D3DFORMAT Format,
     D3DMULTISAMPLE_TYPE MultiSample,
-    DWORD MultisampleQuality,
-    BOOL Discard,
+    unsigned long MultisampleQuality,
+    int Discard,
     IDirect3DSurface9** ppSurface,
     HANDLE* pSharedHandle,
-    DWORD Usage ) {
-    HRESULT hr = ProxyInterface->CreateDepthStencilSurfaceEx(
+    unsigned long Usage ) {
+    long hr = ProxyInterface->CreateDepthStencilSurfaceEx(
         Width, Height, Format, MultiSample, MultisampleQuality, Discard,
         ppSurface, pSharedHandle, Usage );
 
@@ -1479,9 +1477,8 @@ HRESULT m_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(
     return hr;
 }
 
-HRESULT m_IDirect3DDevice9Ex::GetDisplayModeEx(
-    THIS_ UINT iSwapChain,
-    D3DDISPLAYMODEEX* pMode,
-    D3DDISPLAYROTATION* pRotation ) {
+long m_IDirect3DDevice9Ex::GetDisplayModeEx( THIS_ unsigned int iSwapChain,
+                                             D3DDISPLAYMODEEX* pMode,
+                                             D3DDISPLAYROTATION* pRotation ) {
     return ProxyInterface->GetDisplayModeEx( iSwapChain, pMode, pRotation );
 }

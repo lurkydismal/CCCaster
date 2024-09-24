@@ -1,7 +1,7 @@
 #include "d3d9.h"
 
 void genericQueryInterface( REFIID riid,
-                            LPVOID* ppvObj,
+                            void** ppvObj,
                             m_IDirect3DDevice9Ex* m_pDeviceEx ) {
     if ( !ppvObj || !*ppvObj || !m_pDeviceEx ) {
         return;
@@ -11,8 +11,8 @@ void genericQueryInterface( REFIID riid,
         IDirect3D9* pD3D9 = nullptr;
         if ( SUCCEEDED( m_pDeviceEx->GetDirect3D( &pD3D9 ) ) && pD3D9 ) {
             IDirect3D9* pD3D9wrapper = nullptr;
-            if ( SUCCEEDED( pD3D9->QueryInterface(
-                     riid, ( LPVOID* )&pD3D9wrapper ) ) &&
+            if ( SUCCEEDED(
+                     pD3D9->QueryInterface( riid, ( void** )&pD3D9wrapper ) ) &&
                  pD3D9wrapper ) {
                 pD3D9wrapper->Release();
             }
@@ -24,7 +24,7 @@ void genericQueryInterface( REFIID riid,
     if ( riid == IID_IDirect3DDevice9 || riid == IID_IDirect3DDevice9Ex ) {
         IDirect3DDevice9* pD3DDevice9 = nullptr;
         if ( SUCCEEDED( m_pDeviceEx->QueryInterface(
-                 riid, ( LPVOID* )&pD3DDevice9 ) ) &&
+                 riid, ( void** )&pD3DDevice9 ) ) &&
              pD3DDevice9 ) {
             pD3DDevice9->Release();
         }
