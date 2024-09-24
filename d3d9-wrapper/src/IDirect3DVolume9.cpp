@@ -18,11 +18,11 @@ HRESULT m_IDirect3DVolume9::QueryInterface( THIS_ REFIID riid, void** ppvObj ) {
     return hr;
 }
 
-ULONG m_IDirect3DVolume9::AddRef( THIS ) {
+unsigned long m_IDirect3DVolume9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DVolume9::Release( THIS ) {
+unsigned long m_IDirect3DVolume9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -40,14 +40,14 @@ HRESULT m_IDirect3DVolume9::GetDevice( THIS_ IDirect3DDevice9** ppDevice ) {
 
 HRESULT m_IDirect3DVolume9::SetPrivateData( THIS_ REFGUID refguid,
                                             CONST void* pData,
-                                            DWORD SizeOfData,
-                                            DWORD Flags ) {
+                                            unsigned long SizeOfData,
+                                            unsigned long Flags ) {
     return ProxyInterface->SetPrivateData( refguid, pData, SizeOfData, Flags );
 }
 
 HRESULT m_IDirect3DVolume9::GetPrivateData( THIS_ REFGUID refguid,
                                             void* pData,
-                                            DWORD* pSizeOfData ) {
+                                            unsigned long* pSizeOfData ) {
     return ProxyInterface->GetPrivateData( refguid, pData, pSizeOfData );
 }
 
@@ -72,7 +72,7 @@ HRESULT m_IDirect3DVolume9::GetDesc( THIS_ D3DVOLUME_DESC* pDesc ) {
 
 HRESULT m_IDirect3DVolume9::LockBox( THIS_ D3DLOCKED_BOX* pLockedVolume,
                                      CONST D3DBOX* pBox,
-                                     DWORD Flags ) {
+                                     unsigned long Flags ) {
     return ProxyInterface->LockBox( pLockedVolume, pBox, Flags );
 }
 

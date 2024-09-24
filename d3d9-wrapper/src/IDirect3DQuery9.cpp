@@ -18,11 +18,11 @@ HRESULT m_IDirect3DQuery9::QueryInterface( THIS_ REFIID riid, void** ppvObj ) {
     return hr;
 }
 
-ULONG m_IDirect3DQuery9::AddRef( THIS ) {
+unsigned long m_IDirect3DQuery9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DQuery9::Release( THIS ) {
+unsigned long m_IDirect3DQuery9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -42,16 +42,16 @@ D3DQUERYTYPE m_IDirect3DQuery9::GetType( THIS ) {
     return ProxyInterface->GetType();
 }
 
-DWORD m_IDirect3DQuery9::GetDataSize( THIS ) {
+unsigned long m_IDirect3DQuery9::GetDataSize( THIS ) {
     return ProxyInterface->GetDataSize();
 }
 
-HRESULT m_IDirect3DQuery9::Issue( THIS_ DWORD dwIssueFlags ) {
+HRESULT m_IDirect3DQuery9::Issue( THIS_ unsigned long dwIssueFlags ) {
     return ProxyInterface->Issue( dwIssueFlags );
 }
 
 HRESULT m_IDirect3DQuery9::GetData( THIS_ void* pData,
-                                    DWORD dwSize,
-                                    DWORD dwGetDataFlags ) {
+                                    unsigned long dwSize,
+                                    unsigned long dwGetDataFlags ) {
     return ProxyInterface->GetData( pData, dwSize, dwGetDataFlags );
 }

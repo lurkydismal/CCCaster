@@ -22,11 +22,11 @@ HRESULT m_IDirect3DVolumeTexture9::QueryInterface( THIS_ REFIID riid,
     return hr;
 }
 
-ULONG m_IDirect3DVolumeTexture9::AddRef( THIS ) {
+unsigned long m_IDirect3DVolumeTexture9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DVolumeTexture9::Release( THIS ) {
+unsigned long m_IDirect3DVolumeTexture9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -45,14 +45,14 @@ HRESULT m_IDirect3DVolumeTexture9::GetDevice(
 
 HRESULT m_IDirect3DVolumeTexture9::SetPrivateData( THIS_ REFGUID refguid,
                                                    CONST void* pData,
-                                                   DWORD SizeOfData,
-                                                   DWORD Flags ) {
+                                                   unsigned long SizeOfData,
+                                                   unsigned long Flags ) {
     return ProxyInterface->SetPrivateData( refguid, pData, SizeOfData, Flags );
 }
 
 HRESULT m_IDirect3DVolumeTexture9::GetPrivateData( THIS_ REFGUID refguid,
                                                    void* pData,
-                                                   DWORD* pSizeOfData ) {
+                                                   unsigned long* pSizeOfData ) {
     return ProxyInterface->GetPrivateData( refguid, pData, pSizeOfData );
 }
 
@@ -60,11 +60,11 @@ HRESULT m_IDirect3DVolumeTexture9::FreePrivateData( THIS_ REFGUID refguid ) {
     return ProxyInterface->FreePrivateData( refguid );
 }
 
-DWORD m_IDirect3DVolumeTexture9::SetPriority( THIS_ DWORD PriorityNew ) {
+unsigned long m_IDirect3DVolumeTexture9::SetPriority( THIS_ unsigned long PriorityNew ) {
     return ProxyInterface->SetPriority( PriorityNew );
 }
 
-DWORD m_IDirect3DVolumeTexture9::GetPriority( THIS ) {
+unsigned long m_IDirect3DVolumeTexture9::GetPriority( THIS ) {
     return ProxyInterface->GetPriority();
 }
 
@@ -76,15 +76,15 @@ D3DRESOURCETYPE m_IDirect3DVolumeTexture9::GetType( THIS ) {
     return ProxyInterface->GetType();
 }
 
-DWORD m_IDirect3DVolumeTexture9::SetLOD( THIS_ DWORD LODNew ) {
+unsigned long m_IDirect3DVolumeTexture9::SetLOD( THIS_ unsigned long LODNew ) {
     return ProxyInterface->SetLOD( LODNew );
 }
 
-DWORD m_IDirect3DVolumeTexture9::GetLOD( THIS ) {
+unsigned long m_IDirect3DVolumeTexture9::GetLOD( THIS ) {
     return ProxyInterface->GetLOD();
 }
 
-DWORD m_IDirect3DVolumeTexture9::GetLevelCount( THIS ) {
+unsigned long m_IDirect3DVolumeTexture9::GetLevelCount( THIS ) {
     return ProxyInterface->GetLevelCount();
 }
 
@@ -101,13 +101,13 @@ void m_IDirect3DVolumeTexture9::GenerateMipSubLevels( THIS ) {
     return ProxyInterface->GenerateMipSubLevels();
 }
 
-HRESULT m_IDirect3DVolumeTexture9::GetLevelDesc( THIS_ UINT Level,
+HRESULT m_IDirect3DVolumeTexture9::GetLevelDesc( THIS_ unsigned int Level,
                                                  D3DVOLUME_DESC* pDesc ) {
     return ProxyInterface->GetLevelDesc( Level, pDesc );
 }
 
 HRESULT m_IDirect3DVolumeTexture9::GetVolumeLevel(
-    THIS_ UINT Level,
+    THIS_ unsigned int Level,
     IDirect3DVolume9** ppVolumeLevel ) {
     HRESULT hr = ProxyInterface->GetVolumeLevel( Level, ppVolumeLevel );
 
@@ -120,14 +120,14 @@ HRESULT m_IDirect3DVolumeTexture9::GetVolumeLevel(
     return hr;
 }
 
-HRESULT m_IDirect3DVolumeTexture9::LockBox( THIS_ UINT Level,
+HRESULT m_IDirect3DVolumeTexture9::LockBox( THIS_ unsigned int Level,
                                             D3DLOCKED_BOX* pLockedVolume,
                                             CONST D3DBOX* pBox,
-                                            DWORD Flags ) {
+                                            unsigned long Flags ) {
     return ProxyInterface->LockBox( Level, pLockedVolume, pBox, Flags );
 }
 
-HRESULT m_IDirect3DVolumeTexture9::UnlockBox( THIS_ UINT Level ) {
+HRESULT m_IDirect3DVolumeTexture9::UnlockBox( THIS_ unsigned int Level ) {
     return ProxyInterface->UnlockBox( Level );
 }
 

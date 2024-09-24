@@ -22,8 +22,8 @@ public:
 
     /*** IUnknown methods ***/
     STDMETHOD( QueryInterface )( THIS_ REFIID riid, void** ppvObj );
-    STDMETHOD_( ULONG, AddRef )( THIS );
-    STDMETHOD_( ULONG, Release )( THIS );
+    STDMETHOD_( unsigned long, AddRef )( THIS );
+    STDMETHOD_( unsigned long, Release )( THIS );
 
     /*** IDirect3DSwapChain9 methods ***/
     STDMETHOD( Present )
@@ -31,10 +31,10 @@ public:
       CONST RECT* pDestRect,
       HWND hDestWindowOverride,
       CONST RGNDATA* pDirtyRegion,
-      DWORD dwFlags );
+      unsigned long dwFlags );
     STDMETHOD( GetFrontBufferData )( THIS_ IDirect3DSurface9* pDestSurface );
     STDMETHOD( GetBackBuffer )
-    ( THIS_ UINT iBackBuffer,
+    ( THIS_ unsigned int iBackBuffer,
       D3DBACKBUFFER_TYPE Type,
       IDirect3DSurface9** ppBackBuffer );
     STDMETHOD( GetRasterStatus )( THIS_ D3DRASTER_STATUS* pRasterStatus );
@@ -42,7 +42,7 @@ public:
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( GetPresentParameters )
     ( THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters );
-    STDMETHOD( GetLastPresentCount )( THIS_ UINT* pLastPresentCount );
+    STDMETHOD( GetLastPresentCount )( THIS_ unsigned int* pLastPresentCount );
     STDMETHOD( GetPresentStats )
     ( THIS_ D3DPRESENTSTATS* pPresentationStatistics );
     STDMETHOD( GetDisplayModeEx )

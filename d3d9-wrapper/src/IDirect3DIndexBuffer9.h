@@ -18,22 +18,22 @@ public:
 
     /*** IUnknown methods ***/
     STDMETHOD( QueryInterface )( THIS_ REFIID riid, void** ppvObj );
-    STDMETHOD_( ULONG, AddRef )( THIS );
-    STDMETHOD_( ULONG, Release )( THIS );
+    STDMETHOD_( unsigned long, AddRef )( THIS );
+    STDMETHOD_( unsigned long, Release )( THIS );
 
     /*** IDirect3DResource9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags );
+    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
     STDMETHOD( GetPrivateData )
-    ( THIS_ REFGUID refguid, void* pData, DWORD* pSizeOfData );
+    ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
-    STDMETHOD_( DWORD, SetPriority )( THIS_ DWORD PriorityNew );
-    STDMETHOD_( DWORD, GetPriority )( THIS );
+    STDMETHOD_( unsigned long, SetPriority )( THIS_ unsigned long PriorityNew );
+    STDMETHOD_( unsigned long, GetPriority )( THIS );
     STDMETHOD_( void, PreLoad )( THIS );
     STDMETHOD_( D3DRESOURCETYPE, GetType )( THIS );
     STDMETHOD( Lock )
-    ( THIS_ UINT OffsetToLock, UINT SizeToLock, void** ppbData, DWORD Flags );
+    ( THIS_ unsigned int OffsetToLock, unsigned int SizeToLock, void** ppbData, unsigned long Flags );
     STDMETHOD( Unlock )( THIS );
     STDMETHOD( GetDesc )( THIS_ D3DINDEXBUFFER_DESC* pDesc );
 };

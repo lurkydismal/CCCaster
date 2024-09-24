@@ -22,11 +22,11 @@ HRESULT m_IDirect3DCubeTexture9::QueryInterface( THIS_ REFIID riid,
     return ( hr );
 }
 
-ULONG m_IDirect3DCubeTexture9::AddRef( THIS ) {
+unsigned long m_IDirect3DCubeTexture9::AddRef( THIS ) {
     return ( ProxyInterface->AddRef() );
 }
 
-ULONG m_IDirect3DCubeTexture9::Release( THIS ) {
+unsigned long m_IDirect3DCubeTexture9::Release( THIS ) {
     return ( ProxyInterface->Release() );
 }
 
@@ -45,15 +45,15 @@ HRESULT m_IDirect3DCubeTexture9::GetDevice(
 
 HRESULT m_IDirect3DCubeTexture9::SetPrivateData( THIS_ REFGUID refguid,
                                                  CONST void* pData,
-                                                 DWORD SizeOfData,
-                                                 DWORD Flags ) {
+                                                 unsigned long SizeOfData,
+                                                 unsigned long Flags ) {
     return (
         ProxyInterface->SetPrivateData( refguid, pData, SizeOfData, Flags ) );
 }
 
 HRESULT m_IDirect3DCubeTexture9::GetPrivateData( THIS_ REFGUID refguid,
                                                  void* pData,
-                                                 DWORD* pSizeOfData ) {
+                                                 unsigned long* pSizeOfData ) {
     return ( ProxyInterface->GetPrivateData( refguid, pData, pSizeOfData ) );
 }
 
@@ -61,11 +61,11 @@ HRESULT m_IDirect3DCubeTexture9::FreePrivateData( THIS_ REFGUID refguid ) {
     return ( ProxyInterface->FreePrivateData( refguid ) );
 }
 
-DWORD m_IDirect3DCubeTexture9::SetPriority( THIS_ DWORD PriorityNew ) {
+unsigned long m_IDirect3DCubeTexture9::SetPriority( THIS_ unsigned long PriorityNew ) {
     return ( ProxyInterface->SetPriority( PriorityNew ) );
 }
 
-DWORD m_IDirect3DCubeTexture9::GetPriority( THIS ) {
+unsigned long m_IDirect3DCubeTexture9::GetPriority( THIS ) {
     return ( ProxyInterface->GetPriority() );
 }
 
@@ -77,15 +77,15 @@ D3DRESOURCETYPE m_IDirect3DCubeTexture9::GetType( THIS ) {
     return ( ProxyInterface->GetType() );
 }
 
-DWORD m_IDirect3DCubeTexture9::SetLOD( THIS_ DWORD LODNew ) {
+unsigned long m_IDirect3DCubeTexture9::SetLOD( THIS_ unsigned long LODNew ) {
     return ( ProxyInterface->SetLOD( LODNew ) );
 }
 
-DWORD m_IDirect3DCubeTexture9::GetLOD( THIS ) {
+unsigned long m_IDirect3DCubeTexture9::GetLOD( THIS ) {
     return ( ProxyInterface->GetLOD() );
 }
 
-DWORD m_IDirect3DCubeTexture9::GetLevelCount( THIS ) {
+unsigned long m_IDirect3DCubeTexture9::GetLevelCount( THIS ) {
     return ( ProxyInterface->GetLevelCount() );
 }
 
@@ -102,14 +102,14 @@ void m_IDirect3DCubeTexture9::GenerateMipSubLevels( THIS ) {
     return ( ProxyInterface->GenerateMipSubLevels() );
 }
 
-HRESULT m_IDirect3DCubeTexture9::GetLevelDesc( THIS_ UINT Level,
+HRESULT m_IDirect3DCubeTexture9::GetLevelDesc( THIS_ unsigned int Level,
                                                D3DSURFACE_DESC* pDesc ) {
     return ( ProxyInterface->GetLevelDesc( Level, pDesc ) );
 }
 
 HRESULT m_IDirect3DCubeTexture9::GetCubeMapSurface(
     THIS_ D3DCUBEMAP_FACES FaceType,
-    UINT Level,
+    unsigned int Level,
     IDirect3DSurface9** ppCubeMapSurface ) {
     HRESULT hr =
         ProxyInterface->GetCubeMapSurface( FaceType, Level, ppCubeMapSurface );
@@ -124,16 +124,16 @@ HRESULT m_IDirect3DCubeTexture9::GetCubeMapSurface(
 }
 
 HRESULT m_IDirect3DCubeTexture9::LockRect( THIS_ D3DCUBEMAP_FACES FaceType,
-                                           UINT Level,
+                                           unsigned int Level,
                                            D3DLOCKED_RECT* pLockedRect,
                                            CONST RECT* pRect,
-                                           DWORD Flags ) {
+                                           unsigned long Flags ) {
     return ( ProxyInterface->LockRect( FaceType, Level, pLockedRect, pRect,
                                        Flags ) );
 }
 
 HRESULT m_IDirect3DCubeTexture9::UnlockRect( THIS_ D3DCUBEMAP_FACES FaceType,
-                                             UINT Level ) {
+                                             unsigned int Level ) {
     return ( ProxyInterface->UnlockRect( FaceType, Level ) );
 }
 

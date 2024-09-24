@@ -17,14 +17,14 @@ public:
 
     /*** IUnknown methods ***/
     STDMETHOD( QueryInterface )( THIS_ REFIID riid, void** ppvObj );
-    STDMETHOD_( ULONG, AddRef )( THIS );
-    STDMETHOD_( ULONG, Release )( THIS );
+    STDMETHOD_( unsigned long, AddRef )( THIS );
+    STDMETHOD_( unsigned long, Release )( THIS );
 
     /*** IDirect3DQuery9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD_( D3DQUERYTYPE, GetType )( THIS );
-    STDMETHOD_( DWORD, GetDataSize )( THIS );
-    STDMETHOD( Issue )( THIS_ DWORD dwIssueFlags );
+    STDMETHOD_( unsigned long, GetDataSize )( THIS );
+    STDMETHOD( Issue )( THIS_ unsigned long dwIssueFlags );
     STDMETHOD( GetData )
-    ( THIS_ void* pData, DWORD dwSize, DWORD dwGetDataFlags );
+    ( THIS_ void* pData, unsigned long dwSize, unsigned long dwGetDataFlags );
 };

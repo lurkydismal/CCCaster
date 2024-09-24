@@ -18,24 +18,24 @@ public:
 
     /*** IUnknown methods ***/
     STDMETHOD( QueryInterface )( THIS_ REFIID riid, void** ppvObj );
-    STDMETHOD_( ULONG, AddRef )( THIS );
-    STDMETHOD_( ULONG, Release )( THIS );
+    STDMETHOD_( unsigned long, AddRef )( THIS );
+    STDMETHOD_( unsigned long, Release )( THIS );
 
     /*** IDirect3DResource9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags );
+    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
     STDMETHOD( GetPrivateData )
-    ( THIS_ REFGUID refguid, void* pData, DWORD* pSizeOfData );
+    ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
-    STDMETHOD_( DWORD, SetPriority )( THIS_ DWORD PriorityNew );
-    STDMETHOD_( DWORD, GetPriority )( THIS );
+    STDMETHOD_( unsigned long, SetPriority )( THIS_ unsigned long PriorityNew );
+    STDMETHOD_( unsigned long, GetPriority )( THIS );
     STDMETHOD_( void, PreLoad )( THIS );
     STDMETHOD_( D3DRESOURCETYPE, GetType )( THIS );
     STDMETHOD( GetContainer )( THIS_ REFIID riid, void** ppContainer );
     STDMETHOD( GetDesc )( THIS_ D3DSURFACE_DESC* pDesc );
     STDMETHOD( LockRect )
-    ( THIS_ D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags );
+    ( THIS_ D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, unsigned long Flags );
     STDMETHOD( UnlockRect )( THIS );
     STDMETHOD( GetDC )( THIS_ HDC* phdc );
     STDMETHOD( ReleaseDC )( THIS_ HDC hdc );

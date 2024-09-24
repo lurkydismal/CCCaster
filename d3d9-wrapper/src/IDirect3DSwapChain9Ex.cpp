@@ -20,11 +20,11 @@ HRESULT m_IDirect3DSwapChain9Ex::QueryInterface( THIS_ REFIID riid,
     return hr;
 }
 
-ULONG m_IDirect3DSwapChain9Ex::AddRef( THIS ) {
+unsigned long m_IDirect3DSwapChain9Ex::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DSwapChain9Ex::Release( THIS ) {
+unsigned long m_IDirect3DSwapChain9Ex::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -32,7 +32,7 @@ HRESULT m_IDirect3DSwapChain9Ex::Present( THIS_ CONST RECT* pSourceRect,
                                           CONST RECT* pDestRect,
                                           HWND hDestWindowOverride,
                                           CONST RGNDATA* pDirtyRegion,
-                                          DWORD dwFlags ) {
+                                          unsigned long dwFlags ) {
     return ProxyInterface->Present( pSourceRect, pDestRect, hDestWindowOverride,
                                     pDirtyRegion, dwFlags );
 }
@@ -48,7 +48,7 @@ HRESULT m_IDirect3DSwapChain9Ex::GetFrontBufferData(
 }
 
 HRESULT m_IDirect3DSwapChain9Ex::GetBackBuffer(
-    THIS_ UINT BackBuffer,
+    THIS_ unsigned int BackBuffer,
     D3DBACKBUFFER_TYPE Type,
     IDirect3DSurface9** ppBackBuffer ) {
     HRESULT hr =
@@ -91,7 +91,7 @@ HRESULT m_IDirect3DSwapChain9Ex::GetPresentParameters(
 }
 
 HRESULT m_IDirect3DSwapChain9Ex::GetLastPresentCount(
-    THIS_ UINT* pLastPresentCount ) {
+    THIS_ unsigned int* pLastPresentCount ) {
     return ProxyInterface->GetLastPresentCount( pLastPresentCount );
 }
 
