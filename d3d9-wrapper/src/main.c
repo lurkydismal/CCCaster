@@ -143,6 +143,7 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
             SetThreadExecutionState( l_executionThreadStateFlags );
 
+#if 0
 #if defined( LOG_BOOT )
 
             print( "Starting to load just_another_modloader.dll" );
@@ -202,6 +203,7 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
             }
 
 #endif // ! NO_CALLBACKS
+#endif
 
         } else {
 #if defined( LOG_BOOT )
@@ -212,6 +214,13 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
             l_returnValue = false;
         }
+
+#if defined( LOG_ALLOCATE_CONSOLE )
+
+        getchar();
+
+#endif
+
     }
 
     return ( l_returnValue );
