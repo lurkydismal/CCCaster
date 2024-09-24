@@ -5,7 +5,8 @@
 
 D3DPERF_SetMarkerProc m_pD3DPERF_SetMarker;
 
-void __attribute__( ( stdcall ) ) D3DPERF_SetMarker( D3DCOLOR _color, LPCWSTR _eventName ) {
+void __attribute__( ( stdcall ) ) D3DPERF_SetMarker( D3DCOLOR _color,
+                                                     LPCWSTR _eventName ) {
 #if defined( LOG_EXPORTED_CALLS )
 
     const char l_message[] = "D3DPERF_SetMarker ( %d, %s )\n";

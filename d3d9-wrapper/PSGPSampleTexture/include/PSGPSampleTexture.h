@@ -2,7 +2,7 @@
 
 #include "d3d9.h"
 
-typedef long( __attribute__( ( stdcall ) )* PSGPSampleTextureProc )( void );
+typedef long( __attribute__( ( stdcall ) ) * PSGPSampleTextureProc )( void );
 
 extern PSGPSampleTextureProc m_pPSGPSampleTexture;
 

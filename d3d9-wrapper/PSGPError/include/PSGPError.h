@@ -2,7 +2,7 @@
 
 #include "d3d9.h"
 
-typedef long( __attribute__( ( stdcall ) )* PSGPErrorProc )( void );
+typedef long( __attribute__( ( stdcall ) ) * PSGPErrorProc )( void );
 
 extern PSGPErrorProc m_pPSGPError;
 

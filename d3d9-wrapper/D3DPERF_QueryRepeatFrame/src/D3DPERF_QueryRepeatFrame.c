@@ -23,4 +23,3 @@ int __attribute__( ( stdcall ) ) D3DPERF_QueryRepeatFrame( void ) {
 
     return ( m_pD3DPERF_QueryRepeatFrame() );
 }
-

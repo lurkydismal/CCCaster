@@ -1,12 +1,13 @@
 #include "Direct3DCreate9Ex.h"
 
+#include "../../src/IDirect3D9Ex.h"
 #include "_useCallback.h"
 #include "_useCallback.hpp"
-#include "../../src/IDirect3D9Ex.h"
 
 Direct3DCreate9ExProc m_pDirect3DCreate9Ex;
 
-long __attribute__( ( stdcall ) ) Direct3DCreate9Ex( unsigned int SDKVersion, IDirect3D9Ex** ppD3D ) {
+long __attribute__( ( stdcall ) ) Direct3DCreate9Ex( unsigned int SDKVersion,
+                                                     IDirect3D9Ex** ppD3D ) {
 #if defined( LOG_EXPORTED_CALLS )
 
     const char l_message[] = "Direct3DCreate9Ex ( %lu, %p )\n";

@@ -5,7 +5,8 @@
 
 D3DPERF_SetRegionProc m_pD3DPERF_SetRegion;
 
-void __attribute__( ( stdcall ) ) D3DPERF_SetRegion( D3DCOLOR _color, LPCWSTR _eventName ) {
+void __attribute__( ( stdcall ) ) D3DPERF_SetRegion( D3DCOLOR _color,
+                                                     LPCWSTR _eventName ) {
 #if defined( LOG_EXPORTED_CALLS )
 
     const char l_message[] = "D3DPERF_SetRegion ( %d, %s )\n";

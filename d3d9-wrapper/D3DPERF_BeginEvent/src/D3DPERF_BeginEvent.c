@@ -5,9 +5,8 @@
 
 D3DPERF_BeginEventProc m_pD3DPERF_BeginEvent;
 
-int __attribute__( ( stdcall ) ) D3DPERF_BeginEvent(
-    D3DCOLOR _color,
-    LPCWSTR _eventName ) {
+int __attribute__( ( stdcall ) ) D3DPERF_BeginEvent( D3DCOLOR _color,
+                                                     LPCWSTR _eventName ) {
 #if defined( LOG_EXPORTED_CALLS )
 
     const char l_message[] = "D3DPERF_BeginEvent ( %d, %s )\n";
