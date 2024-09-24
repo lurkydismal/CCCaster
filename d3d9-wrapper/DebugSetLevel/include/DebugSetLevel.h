@@ -2,7 +2,8 @@
 
 #include "d3d9.h"
 
-typedef long( __attribute__( ( stdcall ) )* DebugSetLevelProc )( unsigned long );
+typedef long( __attribute__( ( stdcall ) ) *
+              DebugSetLevelProc )( unsigned long );
 
 extern DebugSetLevelProc m_pDebugSetLevel;
 

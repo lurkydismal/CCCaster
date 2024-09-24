@@ -2,7 +2,7 @@
 
 #include "d3d9.h"
 
-typedef void( __attribute__( ( stdcall ) )* DebugSetMuteProc )( void );
+typedef void( __attribute__( ( stdcall ) ) * DebugSetMuteProc )( void );
 
 extern DebugSetMuteProc m_pDebugSetMute;
 

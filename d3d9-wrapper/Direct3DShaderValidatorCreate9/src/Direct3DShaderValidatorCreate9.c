@@ -5,8 +5,8 @@
 
 Direct3DShaderValidatorCreate9Proc m_pDirect3DShaderValidatorCreate9;
 
-long __declspec( dllexport ) __attribute__( ( stdcall ) ) Direct3DShaderValidatorCreate9(
-    void ) {
+long __declspec( dllexport ) __attribute__( ( stdcall ) )
+Direct3DShaderValidatorCreate9( void ) {
 #if defined( LOG_EXPORTED_CALLS )
 
     const char l_message[] = "Direct3DShaderValidatorCreate9 ()\n";

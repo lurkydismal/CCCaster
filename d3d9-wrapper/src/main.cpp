@@ -28,17 +28,12 @@
 #include "PSGPSampleTexture.h"
 #include "_useCallback.h"
 #include "_useCallback.hpp"
-#include "d3d9.h"
-#include "d3dx9.h"
-#include "helpers.h"
 
 #if defined( LOG_BOOT )
 
 #define print( _text ) printf( _text "\n" )
 
 #endif // LOG_BOOT
-
-static size_t l_renderCallsPerFrame = 0;
 
 useCallbackFunction_t g_useCallback = NULL;
 HMODULE g_d3d9dll = NULL;
@@ -61,9 +56,9 @@ static inline bool loadDll( const char* _DLLName, HMODULE* _moduleHandle ) {
     return ( l_returnValue );
 }
 
-extern "C" BOOL __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
-                                                      unsigned long dwReason,
-                                                      LPVOID lpReserved ) {
+extern "C" int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
+                                                     unsigned long dwReason,
+                                                     void* lpReserved ) {
     switch ( dwReason ) {
         case DLL_PROCESS_ATTACH: {
 #if defined( LOG_ALLOCATE_CONSOLE )
@@ -135,6 +130,7 @@ extern "C" BOOL __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
 
                     SetThreadExecutionState( l_executionThreadStateFlags );
                 }
+
 #if defined( LOG_BOOT )
 
                 print( "Starting to load just_another_modloader.dll" );
@@ -209,229 +205,4 @@ extern "C" BOOL __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
     }
 
     return ( true );
-}
-
-long m_IDirect3DDevice9Ex::Present( CONST RECT* pSourceRect,
-                                    CONST RECT* pDestRect,
-                                    HWND hDestWindowOverride,
-                                    CONST RGNDATA* pDirtyRegion ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "m_IDirect3DDevice9Ex Present ( pSourceRect, pDestRect, "
-        "hDestWindowOverride, pDirtyRegion )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-    uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$Present", pSourceRect, pDestRect,
-                      hDestWindowOverride, pDirtyRegion );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-#endif // LOG_EXPORTED_CALLS
-
-    l_renderCallsPerFrame = 0;
-
-    return ( ProxyInterface->Present( pSourceRect, pDestRect,
-                                      hDestWindowOverride, pDirtyRegion ) );
-}
-
-long m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
-                                      CONST RECT* pDestRect,
-                                      HWND hDestWindowOverride,
-                                      CONST RGNDATA* pDirtyRegion,
-                                      unsigned long dwFlags ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "m_IDirect3DDevice9Ex PresentEx ( pSourceRect, pDestRect, "
-        "hDestWindowOverride, pDirtyRegion, dwFlags )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$PresentEx", pSourceRect, pDestRect,
-                      hDestWindowOverride, pDirtyRegion, &dwFlags );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    return ( ProxyInterface->PresentEx(
-        pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags ) );
-}
-
-long m_IDirect3DDevice9Ex::EndScene( void ) {
-    l_renderCallsPerFrame++;
-
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    return ( ProxyInterface->EndScene() );
-}
-
-long m_IDirect3D9Ex::CreateDevice(
-    unsigned int Adapter,
-    D3DDEVTYPE DeviceType,
-    HWND hFocusWindow,
-    unsigned long BehaviorFlags,
-    D3DPRESENT_PARAMETERS* pPresentationParameters,
-    IDirect3DDevice9** ppReturnedDeviceInterface ) {
-    long hr = ProxyInterface->CreateDevice(
-        Adapter, DeviceType, hFocusWindow, BehaviorFlags,
-        pPresentationParameters, ppReturnedDeviceInterface );
-
-    if ( SUCCEEDED( hr ) && ppReturnedDeviceInterface ) {
-        *ppReturnedDeviceInterface = new m_IDirect3DDevice9Ex(
-            ( IDirect3DDevice9Ex* )*ppReturnedDeviceInterface, this,
-            IID_IDirect3DDevice9 );
-    }
-
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "IDirect3D9Ex CreateDevice ( Adapter, DeviceType, hFocusWindow, "
-        "BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface)\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    uint16_t l_result = _useCallback(
-        "IDirect3D9Ex$CreateDevice", &Adapter, &DeviceType, &hFocusWindow,
-        &BehaviorFlags, &pPresentationParameters, &ppReturnedDeviceInterface );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    return ( hr );
-}
-
-long m_IDirect3DDevice9Ex::Reset(
-    D3DPRESENT_PARAMETERS* pPresentationParameters ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "m_IDirect3DDevice9Ex Reset ( pPresentationParameters )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$PreReset", pPresentationParameters );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    auto hRet = ProxyInterface->Reset( pPresentationParameters );
-
-    l_result =
-        _useCallback( "IDirect3DDevice9Ex$PostReset", pPresentationParameters );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    return ( hRet );
-}
-
-long m_IDirect3D9Ex::CreateDeviceEx(
-    THIS_ unsigned int Adapter,
-    D3DDEVTYPE DeviceType,
-    HWND hFocusWindow,
-    unsigned long BehaviorFlags,
-    D3DPRESENT_PARAMETERS* pPresentationParameters,
-    D3DDISPLAYMODEEX* pFullscreenDisplayMode,
-    IDirect3DDevice9Ex** ppReturnedDeviceInterface ) {
-    long hr = ProxyInterface->CreateDeviceEx(
-        Adapter, DeviceType, hFocusWindow, BehaviorFlags,
-        pPresentationParameters, pFullscreenDisplayMode,
-        ppReturnedDeviceInterface );
-
-    if ( SUCCEEDED( hr ) && ppReturnedDeviceInterface ) {
-        *ppReturnedDeviceInterface = new m_IDirect3DDevice9Ex(
-            *ppReturnedDeviceInterface, this, IID_IDirect3DDevice9Ex );
-    }
-
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "IDirect3D9Ex CreateDeviceEx ( Adapter, DeviceType, hFocusWindow, "
-        "BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, "
-        "ppReturnedDeviceInterface )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    uint16_t l_result =
-        _useCallback( "IDirect3D9Ex$CreateDeviceEx", &Adapter, &DeviceType,
-                      hFocusWindow, &BehaviorFlags, pPresentationParameters,
-                      pFullscreenDisplayMode, ppReturnedDeviceInterface );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    return ( hr );
-}
-
-long m_IDirect3DDevice9Ex::ResetEx(
-    THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters,
-    D3DDISPLAYMODEEX* pFullscreenDisplayMode ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "m_IDirect3DDevice9Ex ResetEx ( pPresentationParameters, "
-        "pFullscreenDisplayMode )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    uint16_t l_result =
-        _useCallback( "IDirect3DDevice9Ex$PreResetEx", pPresentationParameters,
-                      pFullscreenDisplayMode );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    auto hRet = ProxyInterface->ResetEx( pPresentationParameters,
-                                         pFullscreenDisplayMode );
-
-    l_result = _useCallback( "IDirect3DDevice9Ex$PostResetEx",
-                             pPresentationParameters, pFullscreenDisplayMode );
-
-    if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
-        return ( E_FAIL );
-    }
-
-    return ( hRet );
 }

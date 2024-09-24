@@ -6,7 +6,8 @@
 Direct3D9EnableMaximizedWindowedModeShimProc
     m_pDirect3D9EnableMaximizedWindowedModeShim;
 
-int __attribute__( ( stdcall ) ) Direct3D9EnableMaximizedWindowedModeShim( int _enable ) {
+int __attribute__( ( stdcall ) ) Direct3D9EnableMaximizedWindowedModeShim(
+    int _enable ) {
 #if defined( LOG_EXPORTED_CALLS )
 
     const char l_message[] =
