@@ -20,11 +20,11 @@ HRESULT m_IDirect3DStateBlock9::QueryInterface( THIS_ REFIID riid,
     return hr;
 }
 
-ULONG m_IDirect3DStateBlock9::AddRef( THIS ) {
+unsigned long m_IDirect3DStateBlock9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DStateBlock9::Release( THIS ) {
+unsigned long m_IDirect3DStateBlock9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 

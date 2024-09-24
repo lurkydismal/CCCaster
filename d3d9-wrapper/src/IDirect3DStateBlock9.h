@@ -18,8 +18,8 @@ public:
 
     /*** IUnknown methods ***/
     STDMETHOD( QueryInterface )( THIS_ REFIID riid, void** ppvObj );
-    STDMETHOD_( ULONG, AddRef )( THIS );
-    STDMETHOD_( ULONG, Release )( THIS );
+    STDMETHOD_( unsigned long, AddRef )( THIS );
+    STDMETHOD_( unsigned long, Release )( THIS );
 
     /*** IDirect3DStateBlock9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );

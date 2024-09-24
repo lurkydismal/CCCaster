@@ -218,12 +218,12 @@ long m_IDirect3DDevice9Ex::QueryInterface( REFIID riid, void** ppvObj ) {
     return ( hr );
 }
 
-ULONG m_IDirect3DDevice9Ex::AddRef( void ) {
+unsigned long m_IDirect3DDevice9Ex::AddRef( void ) {
     return ( ProxyInterface->AddRef() );
 }
 
-ULONG m_IDirect3DDevice9Ex::Release( void ) {
-    ULONG count = ProxyInterface->Release();
+unsigned long m_IDirect3DDevice9Ex::Release( void ) {
+    unsigned long count = ProxyInterface->Release();
 
     if ( count == 0 ) {
         delete this;

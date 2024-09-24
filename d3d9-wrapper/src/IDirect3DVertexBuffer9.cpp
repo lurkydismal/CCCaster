@@ -21,11 +21,11 @@ HRESULT m_IDirect3DVertexBuffer9::QueryInterface( THIS_ REFIID riid,
     return hr;
 }
 
-ULONG m_IDirect3DVertexBuffer9::AddRef( THIS ) {
+unsigned long m_IDirect3DVertexBuffer9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DVertexBuffer9::Release( THIS ) {
+unsigned long m_IDirect3DVertexBuffer9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -44,14 +44,14 @@ HRESULT m_IDirect3DVertexBuffer9::GetDevice(
 
 HRESULT m_IDirect3DVertexBuffer9::SetPrivateData( THIS_ REFGUID refguid,
                                                   CONST void* pData,
-                                                  DWORD SizeOfData,
-                                                  DWORD Flags ) {
+                                                  unsigned long SizeOfData,
+                                                  unsigned long Flags ) {
     return ProxyInterface->SetPrivateData( refguid, pData, SizeOfData, Flags );
 }
 
 HRESULT m_IDirect3DVertexBuffer9::GetPrivateData( THIS_ REFGUID refguid,
                                                   void* pData,
-                                                  DWORD* pSizeOfData ) {
+                                                  unsigned long* pSizeOfData ) {
     return ProxyInterface->GetPrivateData( refguid, pData, pSizeOfData );
 }
 
@@ -59,11 +59,11 @@ HRESULT m_IDirect3DVertexBuffer9::FreePrivateData( THIS_ REFGUID refguid ) {
     return ProxyInterface->FreePrivateData( refguid );
 }
 
-DWORD m_IDirect3DVertexBuffer9::SetPriority( THIS_ DWORD PriorityNew ) {
+unsigned long m_IDirect3DVertexBuffer9::SetPriority( THIS_ unsigned long PriorityNew ) {
     return ProxyInterface->SetPriority( PriorityNew );
 }
 
-DWORD m_IDirect3DVertexBuffer9::GetPriority( THIS ) {
+unsigned long m_IDirect3DVertexBuffer9::GetPriority( THIS ) {
     return ProxyInterface->GetPriority();
 }
 
@@ -75,10 +75,10 @@ D3DRESOURCETYPE m_IDirect3DVertexBuffer9::GetType( THIS ) {
     return ProxyInterface->GetType();
 }
 
-HRESULT m_IDirect3DVertexBuffer9::Lock( THIS_ UINT OffsetToLock,
-                                        UINT SizeToLock,
+HRESULT m_IDirect3DVertexBuffer9::Lock( THIS_ unsigned int OffsetToLock,
+                                        unsigned int SizeToLock,
                                         void** ppbData,
-                                        DWORD Flags ) {
+                                        unsigned long Flags ) {
     return ProxyInterface->Lock( OffsetToLock, SizeToLock, ppbData, Flags );
 }
 

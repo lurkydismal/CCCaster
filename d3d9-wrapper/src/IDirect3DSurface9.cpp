@@ -21,11 +21,11 @@ HRESULT m_IDirect3DSurface9::QueryInterface( THIS_ REFIID riid,
     return hr;
 }
 
-ULONG m_IDirect3DSurface9::AddRef( THIS ) {
+unsigned long m_IDirect3DSurface9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DSurface9::Release( THIS ) {
+unsigned long m_IDirect3DSurface9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -43,14 +43,14 @@ HRESULT m_IDirect3DSurface9::GetDevice( THIS_ IDirect3DDevice9** ppDevice ) {
 
 HRESULT m_IDirect3DSurface9::SetPrivateData( THIS_ REFGUID refguid,
                                              CONST void* pData,
-                                             DWORD SizeOfData,
-                                             DWORD Flags ) {
+                                             unsigned long SizeOfData,
+                                             unsigned long Flags ) {
     return ProxyInterface->SetPrivateData( refguid, pData, SizeOfData, Flags );
 }
 
 HRESULT m_IDirect3DSurface9::GetPrivateData( THIS_ REFGUID refguid,
                                              void* pData,
-                                             DWORD* pSizeOfData ) {
+                                             unsigned long* pSizeOfData ) {
     return ProxyInterface->GetPrivateData( refguid, pData, pSizeOfData );
 }
 
@@ -58,11 +58,11 @@ HRESULT m_IDirect3DSurface9::FreePrivateData( THIS_ REFGUID refguid ) {
     return ProxyInterface->FreePrivateData( refguid );
 }
 
-DWORD m_IDirect3DSurface9::SetPriority( THIS_ DWORD PriorityNew ) {
+unsigned long m_IDirect3DSurface9::SetPriority( THIS_ unsigned long PriorityNew ) {
     return ProxyInterface->SetPriority( PriorityNew );
 }
 
-DWORD m_IDirect3DSurface9::GetPriority( THIS ) {
+unsigned long m_IDirect3DSurface9::GetPriority( THIS ) {
     return ProxyInterface->GetPriority();
 }
 
@@ -91,7 +91,7 @@ HRESULT m_IDirect3DSurface9::GetDesc( THIS_ D3DSURFACE_DESC* pDesc ) {
 
 HRESULT m_IDirect3DSurface9::LockRect( THIS_ D3DLOCKED_RECT* pLockedRect,
                                        CONST RECT* pRect,
-                                       DWORD Flags ) {
+                                       unsigned long Flags ) {
     return ProxyInterface->LockRect( pLockedRect, pRect, Flags );
 }
 

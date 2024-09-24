@@ -3,7 +3,7 @@
 #include "d3d9.h"
 
 typedef HRESULT( __attribute__( ( stdcall ) ) *
-                 Direct3DCreate9ExProc )( UINT, IDirect3D9Ex** );
+                 Direct3DCreate9ExProc )( unsigned int, IDirect3D9Ex** );
 
 extern Direct3DCreate9ExProc m_pDirect3DCreate9Ex;
 

@@ -12,12 +12,12 @@ HRESULT m_IDirect3D9Ex::QueryInterface( REFIID riid, void** ppvObj ) {
     return ( ProxyInterface->QueryInterface( riid, ppvObj ) );
 }
 
-ULONG m_IDirect3D9Ex::AddRef( void ) {
+unsigned long m_IDirect3D9Ex::AddRef( void ) {
     return ( ProxyInterface->AddRef() );
 }
 
-ULONG m_IDirect3D9Ex::Release( void ) {
-    ULONG count = ProxyInterface->Release();
+unsigned long m_IDirect3D9Ex::Release( void ) {
+    unsigned long count = ProxyInterface->Release();
 
     if ( count == 0 ) {
         delete this;
@@ -44,7 +44,7 @@ HRESULT m_IDirect3D9Ex::GetAdapterDisplayMode( unsigned int Adapter,
 
 HRESULT m_IDirect3D9Ex::GetAdapterIdentifier(
     unsigned int Adapter,
-    DWORD Flags,
+    unsigned long Flags,
     D3DADAPTER_IDENTIFIER9* pIdentifier ) {
     return (
         ProxyInterface->GetAdapterIdentifier( Adapter, Flags, pIdentifier ) );
@@ -82,7 +82,7 @@ HRESULT m_IDirect3D9Ex::CheckDepthStencilMatch( unsigned int Adapter,
 HRESULT m_IDirect3D9Ex::CheckDeviceFormat( unsigned int Adapter,
                                            D3DDEVTYPE DeviceType,
                                            D3DFORMAT AdapterFormat,
-                                           DWORD Usage,
+                                           unsigned long Usage,
                                            D3DRESOURCETYPE RType,
                                            D3DFORMAT CheckFormat ) {
     return ( ProxyInterface->CheckDeviceFormat(
@@ -95,7 +95,7 @@ HRESULT m_IDirect3D9Ex::CheckDeviceMultiSampleType(
     D3DFORMAT SurfaceFormat,
     int Windowed,
     D3DMULTISAMPLE_TYPE MultiSampleType,
-    DWORD* pQualityLevels ) {
+    unsigned long* pQualityLevels ) {
     return ( ProxyInterface->CheckDeviceMultiSampleType(
         Adapter, DeviceType, SurfaceFormat, Windowed, MultiSampleType,
         pQualityLevels ) );
@@ -119,7 +119,7 @@ HRESULT m_IDirect3D9Ex::CheckDeviceFormatConversion( THIS_ unsigned int Adapter,
 }
 
 // HRESULT m_IDirect3D9Ex::CreateDevice(unsigned int Adapter, D3DDEVTYPE
-// DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS
+// DeviceType, HWND hFocusWindow, unsigned long BehaviorFlags, D3DPRESENT_PARAMETERS
 // *pPresentationParameters, IDirect3DDevice9 **ppReturnedDeviceInterface)
 //{
 //	HRESULT hr = ProxyInterface->CreateDevice(Adapter, DeviceType,
@@ -159,7 +159,7 @@ HRESULT m_IDirect3D9Ex::GetAdapterDisplayModeEx(
 }
 
 // HRESULT m_IDirect3D9Ex::CreateDeviceEx(THIS_ unsigned int Adapter, D3DDEVTYPE
-// DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS*
+// DeviceType, HWND hFocusWindow, unsigned long BehaviorFlags, D3DPRESENT_PARAMETERS*
 // pPresentationParameters, D3DDISPLAYMODEEX* pFullscreenDisplayMode,
 // IDirect3DDevice9Ex** ppReturnedDeviceInterface)
 //{

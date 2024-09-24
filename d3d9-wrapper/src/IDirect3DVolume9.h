@@ -18,19 +18,19 @@ public:
 
     /*** IUnknown methods ***/
     STDMETHOD( QueryInterface )( THIS_ REFIID riid, void** ppvObj );
-    STDMETHOD_( ULONG, AddRef )( THIS );
-    STDMETHOD_( ULONG, Release )( THIS );
+    STDMETHOD_( unsigned long, AddRef )( THIS );
+    STDMETHOD_( unsigned long, Release )( THIS );
 
     /*** IDirect3DVolume9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags );
+    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
     STDMETHOD( GetPrivateData )
-    ( THIS_ REFGUID refguid, void* pData, DWORD* pSizeOfData );
+    ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
     STDMETHOD( GetContainer )( THIS_ REFIID riid, void** ppContainer );
     STDMETHOD( GetDesc )( THIS_ D3DVOLUME_DESC* pDesc );
     STDMETHOD( LockBox )
-    ( THIS_ D3DLOCKED_BOX* pLockedVolume, CONST D3DBOX* pBox, DWORD Flags );
+    ( THIS_ D3DLOCKED_BOX* pLockedVolume, CONST D3DBOX* pBox, unsigned long Flags );
     STDMETHOD( UnlockBox )( THIS );
 };

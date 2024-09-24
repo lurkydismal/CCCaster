@@ -20,11 +20,11 @@ HRESULT m_IDirect3DVertexShader9::QueryInterface( THIS_ REFIID riid,
     return hr;
 }
 
-ULONG m_IDirect3DVertexShader9::AddRef( THIS ) {
+unsigned long m_IDirect3DVertexShader9::AddRef( THIS ) {
     return ProxyInterface->AddRef();
 }
 
-ULONG m_IDirect3DVertexShader9::Release( THIS ) {
+unsigned long m_IDirect3DVertexShader9::Release( THIS ) {
     return ProxyInterface->Release();
 }
 
@@ -42,6 +42,6 @@ HRESULT m_IDirect3DVertexShader9::GetDevice(
 }
 
 HRESULT m_IDirect3DVertexShader9::GetFunction( THIS_ void* pData,
-                                               UINT* pSizeOfData ) {
+                                               unsigned int* pSizeOfData ) {
     return ProxyInterface->GetFunction( pData, pSizeOfData );
 }
