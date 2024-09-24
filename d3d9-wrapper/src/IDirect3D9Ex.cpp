@@ -119,8 +119,9 @@ HRESULT m_IDirect3D9Ex::CheckDeviceFormatConversion( THIS_ unsigned int Adapter,
 }
 
 // HRESULT m_IDirect3D9Ex::CreateDevice(unsigned int Adapter, D3DDEVTYPE
-// DeviceType, HWND hFocusWindow, unsigned long BehaviorFlags, D3DPRESENT_PARAMETERS
-// *pPresentationParameters, IDirect3DDevice9 **ppReturnedDeviceInterface)
+// DeviceType, HWND hFocusWindow, unsigned long BehaviorFlags,
+// D3DPRESENT_PARAMETERS *pPresentationParameters, IDirect3DDevice9
+// **ppReturnedDeviceInterface)
 //{
 //	HRESULT hr = ProxyInterface->CreateDevice(Adapter, DeviceType,
 // hFocusWindow, BehaviorFlags, pPresentationParameters,
@@ -159,9 +160,9 @@ HRESULT m_IDirect3D9Ex::GetAdapterDisplayModeEx(
 }
 
 // HRESULT m_IDirect3D9Ex::CreateDeviceEx(THIS_ unsigned int Adapter, D3DDEVTYPE
-// DeviceType, HWND hFocusWindow, unsigned long BehaviorFlags, D3DPRESENT_PARAMETERS*
-// pPresentationParameters, D3DDISPLAYMODEEX* pFullscreenDisplayMode,
-// IDirect3DDevice9Ex** ppReturnedDeviceInterface)
+// DeviceType, HWND hFocusWindow, unsigned long BehaviorFlags,
+// D3DPRESENT_PARAMETERS* pPresentationParameters, D3DDISPLAYMODEEX*
+// pFullscreenDisplayMode, IDirect3DDevice9Ex** ppReturnedDeviceInterface)
 //{
 //	HRESULT hr = ProxyInterface->CreateDeviceEx(Adapter, DeviceType,
 // hFocusWindow, BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode,

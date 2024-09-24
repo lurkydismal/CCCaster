@@ -24,7 +24,10 @@ public:
     /*** IDirect3DResource9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
+    ( THIS_ REFGUID refguid,
+      CONST void* pData,
+      unsigned long SizeOfData,
+      unsigned long Flags );
     STDMETHOD( GetPrivateData )
     ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
@@ -35,7 +38,9 @@ public:
     STDMETHOD( GetContainer )( THIS_ REFIID riid, void** ppContainer );
     STDMETHOD( GetDesc )( THIS_ D3DSURFACE_DESC* pDesc );
     STDMETHOD( LockRect )
-    ( THIS_ D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, unsigned long Flags );
+    ( THIS_ D3DLOCKED_RECT* pLockedRect,
+      CONST RECT* pRect,
+      unsigned long Flags );
     STDMETHOD( UnlockRect )( THIS );
     STDMETHOD( GetDC )( THIS_ HDC* phdc );
     STDMETHOD( ReleaseDC )( THIS_ HDC hdc );

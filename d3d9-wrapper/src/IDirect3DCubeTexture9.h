@@ -28,7 +28,10 @@ public:
     /*** IDirect3DBaseTexture9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
+    ( THIS_ REFGUID refguid,
+      CONST void* pData,
+      unsigned long SizeOfData,
+      unsigned long Flags );
     STDMETHOD( GetPrivateData )
     ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
@@ -42,7 +45,8 @@ public:
     STDMETHOD( SetAutoGenFilterType )( THIS_ D3DTEXTUREFILTERTYPE FilterType );
     STDMETHOD_( D3DTEXTUREFILTERTYPE, GetAutoGenFilterType )( THIS );
     STDMETHOD_( void, GenerateMipSubLevels )( THIS );
-    STDMETHOD( GetLevelDesc )( THIS_ unsigned int Level, D3DSURFACE_DESC* pDesc );
+    STDMETHOD( GetLevelDesc )
+    ( THIS_ unsigned int Level, D3DSURFACE_DESC* pDesc );
     STDMETHOD( GetCubeMapSurface )
     ( THIS_ D3DCUBEMAP_FACES FaceType,
       unsigned int Level,
@@ -53,7 +57,8 @@ public:
       D3DLOCKED_RECT* pLockedRect,
       CONST RECT* pRect,
       unsigned long Flags );
-    STDMETHOD( UnlockRect )( THIS_ D3DCUBEMAP_FACES FaceType, unsigned int Level );
+    STDMETHOD( UnlockRect )
+    ( THIS_ D3DCUBEMAP_FACES FaceType, unsigned int Level );
     STDMETHOD( AddDirtyRect )
     ( THIS_ D3DCUBEMAP_FACES FaceType, CONST RECT* pDirtyRect );
 };

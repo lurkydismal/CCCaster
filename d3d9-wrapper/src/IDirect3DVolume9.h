@@ -24,13 +24,18 @@ public:
     /*** IDirect3DVolume9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
+    ( THIS_ REFGUID refguid,
+      CONST void* pData,
+      unsigned long SizeOfData,
+      unsigned long Flags );
     STDMETHOD( GetPrivateData )
     ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
     STDMETHOD( GetContainer )( THIS_ REFIID riid, void** ppContainer );
     STDMETHOD( GetDesc )( THIS_ D3DVOLUME_DESC* pDesc );
     STDMETHOD( LockBox )
-    ( THIS_ D3DLOCKED_BOX* pLockedVolume, CONST D3DBOX* pBox, unsigned long Flags );
+    ( THIS_ D3DLOCKED_BOX* pLockedVolume,
+      CONST D3DBOX* pBox,
+      unsigned long Flags );
     STDMETHOD( UnlockBox )( THIS );
 };

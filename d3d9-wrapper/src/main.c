@@ -108,7 +108,7 @@ static inline void hookD3D9( HMODULE _d3d9dll ) {
 }
 
 int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
-                                              uint32_t _reason,
+                                              unsigned long _reason,
                                               void* _ ) {
     bool l_returnValue = true;
 

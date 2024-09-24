@@ -24,7 +24,10 @@ public:
     /*** IDirect3DResource9 methods ***/
     STDMETHOD( GetDevice )( THIS_ IDirect3DDevice9** ppDevice );
     STDMETHOD( SetPrivateData )
-    ( THIS_ REFGUID refguid, CONST void* pData, unsigned long SizeOfData, unsigned long Flags );
+    ( THIS_ REFGUID refguid,
+      CONST void* pData,
+      unsigned long SizeOfData,
+      unsigned long Flags );
     STDMETHOD( GetPrivateData )
     ( THIS_ REFGUID refguid, void* pData, unsigned long* pSizeOfData );
     STDMETHOD( FreePrivateData )( THIS_ REFGUID refguid );
@@ -33,7 +36,10 @@ public:
     STDMETHOD_( void, PreLoad )( THIS );
     STDMETHOD_( D3DRESOURCETYPE, GetType )( THIS );
     STDMETHOD( Lock )
-    ( THIS_ unsigned int OffsetToLock, unsigned int SizeToLock, void** ppbData, unsigned long Flags );
+    ( THIS_ unsigned int OffsetToLock,
+      unsigned int SizeToLock,
+      void** ppbData,
+      unsigned long Flags );
     STDMETHOD( Unlock )( THIS );
     STDMETHOD( GetDesc )( THIS_ D3DVERTEXBUFFER_DESC* pDesc );
 };
