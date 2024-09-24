@@ -1,4 +1,4 @@
-#include "D3DPERF_BeginEventProc.h"
+#include "D3DPERF_BeginEvent.h"
 
 #include "_useCallback.h"
 #include "_useCallback.hpp"

@@ -28,9 +28,4 @@ uint16_t __useCallback( const char* _callbackName,
     return ( 0 );
 }
 
-#else // NO_CALLBACKS
-
-// _useCallback result variable
-const size_t l_result = 0;
-
 #endif // NO_CALLBACKS

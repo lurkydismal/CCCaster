@@ -1,5 +1,7 @@
 #include "D3DPERF_QueryRepeatFrame.h"
 
+#include <stdbool.h>
+
 #include "_useCallback.h"
 #include "_useCallback.hpp"
 

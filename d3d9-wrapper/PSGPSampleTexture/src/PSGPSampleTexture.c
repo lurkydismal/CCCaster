@@ -1,4 +1,4 @@
-#include "PSGPSampleTextureProc.h"
+#include "PSGPSampleTexture.h"
 
 #include "_useCallback.h"
 #include "_useCallback.hpp"

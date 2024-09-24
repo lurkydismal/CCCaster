@@ -1,4 +1,4 @@
-#include "PSGPErrorProc.h"
+#include "PSGPError.h"
 
 #include "_useCallback.h"
 #include "_useCallback.hpp"
