@@ -24,9 +24,23 @@ CXXEXTRA              = -Ofast \
 			-fvisibility=hidden
 RCEXTRA               =
 DEFINES               = -D_GLIBCXX_PARALLEL
-INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
-			-I _useCallback/include \
-			-I Direct3DShaderValidatorCreate9/include
+INCLUDE_PATH          = -I _useCallback/include \
+			-I D3DPERF_BeginEvent/include \
+			-I D3DPERF_EndEvent/include \
+			-I D3DPERF_GetStatus/include \
+			-I D3DPERF_QueryRepeatFrame/include \
+			-I D3DPERF_SetMarker/include \
+			-I D3DPERF_SetOptions/include \
+			-I D3DPERF_SetRegion/include \
+			-I DebugSetLevel/include \
+			-I DebugSetMute/include \
+			-I Direct3D9EnableMaximizedWindowedModeShim/include \
+			-I Direct3DCreate9/include \
+			-I Direct3DCreate9Ex/include \
+			-I Direct3DShaderValidatorCreate9/include \
+			-I PSGPError/include \
+			-I PSGPSampleTexture/include \
+			-I ../states_dll/_useCallback/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
@@ -36,7 +50,19 @@ LIBRARIES             =
 ### d3d9.dll sources and settings
 
 d3d9_dll_MODULE= d3d9.dll
-d3d9_dll_C_SRCS= Direct3DShaderValidatorCreate9/src/Direct3DShaderValidatorCreate9.c \
+d3d9_dll_C_SRCS= D3DPERF_BeginEvent/src/D3DPERF_BeginEvent.c \
+		 D3DPERF_EndEvent/src/D3DPERF_EndEvent.c \
+		 D3DPERF_GetStatus/src/D3DPERF_GetStatus.c \
+		 D3DPERF_QueryRepeatFrame/src/D3DPERF_QueryRepeatFrame.c \
+		 D3DPERF_SetMarker/src/D3DPERF_SetMarker.c \
+		 D3DPERF_SetOptions/src/D3DPERF_SetOptions.c \
+		 D3DPERF_SetRegion/src/D3DPERF_SetRegion.c \
+		 DebugSetLevel/src/DebugSetLevel.c \
+		 DebugSetMute/src/DebugSetMute.c \
+		 Direct3D9EnableMaximizedWindowedModeShim/src/Direct3D9EnableMaximizedWindowedModeShim.c \
+		 Direct3DShaderValidatorCreate9/src/Direct3DShaderValidatorCreate9.c \
+		 PSGPError/src/PSGPError.c \
+		 PSGPSampleTexture/src/PSGPSampleTexture.c \
 		 ../states_dll/_useCallback/src/_useCallback.c
 d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DCubeTexture9.cpp \
@@ -54,6 +80,8 @@ d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DVolume9.cpp \
 		   src/IDirect3DVolumeTexture9.cpp \
 		   src/InterfaceQuery.cpp \
+		   Direct3DCreate9/src/Direct3DCreate9.cpp \
+		   Direct3DCreate9Ex/src/Direct3DCreate9Ex.cpp \
 		   src/main.cpp
 d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \

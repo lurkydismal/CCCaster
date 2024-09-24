@@ -22,10 +22,6 @@ class m_IDirect3DVolumeTexture9;
 
 #include "AddressLookupTable.h"
 
-typedef int( WINAPI* Direct3D9EnableMaximizedWindowedModeShimProc )( BOOL );
-typedef IDirect3D9*( WINAPI* Direct3DCreate9Proc )( UINT );
-typedef HRESULT( WINAPI* Direct3DCreate9ExProc )( UINT, IDirect3D9Ex** );
-
 void genericQueryInterface( REFIID riid,
                             LPVOID* ppvObj,
                             m_IDirect3DDevice9Ex* m_pDeviceEx );

@@ -1,4 +1,4 @@
-#include "D3DPERF_GetStatusProc.h"
+#include "D3DPERF_GetStatus.h"
 
 #include "_useCallback.h"
 #include "_useCallback.hpp"

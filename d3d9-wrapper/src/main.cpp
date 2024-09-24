@@ -11,7 +11,21 @@
 
 #include <string>
 
+#include "D3DPERF_BeginEvent.h"
+#include "D3DPERF_EndEvent.h"
+#include "D3DPERF_GetStatus.h"
+#include "D3DPERF_QueryRepeatFrame.h"
+#include "D3DPERF_SetMarker.h"
+#include "D3DPERF_SetOptions.h"
+#include "D3DPERF_SetRegion.h"
+#include "DebugSetLevel.h"
+#include "DebugSetMute.h"
+#include "Direct3D9EnableMaximizedWindowedModeShim.h"
+#include "Direct3DCreate9.h"
+#include "Direct3DCreate9Ex.h"
 #include "Direct3DShaderValidatorCreate9.h"
+#include "PSGPError.h"
+#include "PSGPSampleTexture.h"
 #include "_useCallback.h"
 #include "_useCallback.hpp"
 #include "d3d9.h"
@@ -26,82 +40,9 @@
 
 static size_t l_renderCallsPerFrame = 0;
 
-Direct3D9EnableMaximizedWindowedModeShimProc
-    m_pDirect3D9EnableMaximizedWindowedModeShim;
-Direct3DCreate9Proc m_pDirect3DCreate9;
-Direct3DCreate9ExProc m_pDirect3DCreate9Ex;
-
 useCallbackFunction_t g_useCallback = NULL;
 HMODULE g_d3d9dll = NULL;
 HMODULE g_justAnotherModloaderDll = NULL;
-
-extern "C" int __attribute__( ( stdcall ) )
-Direct3D9EnableMaximizedWindowedModeShim( BOOL mEnable ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "Direct3D9EnableMaximizedWindowedModeShim ( %d )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    if ( !m_pDirect3D9EnableMaximizedWindowedModeShim ) {
-        return ( 0 );
-    }
-
-    return ( m_pDirect3D9EnableMaximizedWindowedModeShim( mEnable ) );
-}
-
-extern "C" IDirect3D9* __attribute__( ( stdcall ) ) Direct3DCreate9(
-    unsigned int SDKVersion ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] = "Direct3DCreate9 ( %lu )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    if ( !m_pDirect3DCreate9 ) {
-        return ( nullptr );
-    }
-
-    IDirect3D9* pD3D9 = m_pDirect3DCreate9( SDKVersion );
-
-    if ( pD3D9 ) {
-        return ( new m_IDirect3D9Ex( ( IDirect3D9Ex* )pD3D9, IID_IDirect3D9 ) );
-    }
-
-    return ( nullptr );
-}
-
-extern "C" long __attribute__( ( stdcall ) ) Direct3DCreate9Ex(
-    unsigned int SDKVersion,
-    IDirect3D9Ex** ppD3D ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] = "Direct3DCreate9Ex ( %lu, %p )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
-    if ( !m_pDirect3DCreate9Ex ) {
-        return ( E_FAIL );
-    }
-
-    long hr = m_pDirect3DCreate9Ex( SDKVersion, ppD3D );
-
-    if ( SUCCEEDED( hr ) && ppD3D ) {
-        *ppD3D = new m_IDirect3D9Ex( *ppD3D, IID_IDirect3D9Ex );
-    }
-
-    return ( hr );
-}
 
 static inline bool loadDll( const char* _DLLName, HMODULE* _moduleHandle ) {
     bool l_returnValue = true;
@@ -313,10 +254,11 @@ long m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
+#endif // LOG_EXPORTED_CALLS
+
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$PresentEx", pSourceRect, pDestRect,
                       hDestWindowOverride, pDirtyRegion, &dwFlags );
-#endif // LOG_EXPORTED_CALLS
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -329,16 +271,16 @@ long m_IDirect3DDevice9Ex::PresentEx( THIS_ CONST RECT* pSourceRect,
 long m_IDirect3DDevice9Ex::EndScene( void ) {
     l_renderCallsPerFrame++;
 
-    const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
-
 #if defined( LOG_EXPORTED_CALLS )
+
+    const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
 
-    uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
-
 #endif // LOG_EXPORTED_CALLS
+
+    uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
 
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
@@ -364,11 +306,11 @@ long m_IDirect3D9Ex::CreateDevice(
             IID_IDirect3DDevice9 );
     }
 
+#if defined( LOG_EXPORTED_CALLS )
+
     const char l_message[] =
         "IDirect3D9Ex CreateDevice ( Adapter, DeviceType, hFocusWindow, "
         "BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface)\n";
-
-#if defined( LOG_EXPORTED_CALLS )
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
@@ -388,10 +330,10 @@ long m_IDirect3D9Ex::CreateDevice(
 
 long m_IDirect3DDevice9Ex::Reset(
     D3DPRESENT_PARAMETERS* pPresentationParameters ) {
+#if defined( LOG_EXPORTED_CALLS )
+
     const char l_message[] =
         "m_IDirect3DDevice9Ex Reset ( pPresentationParameters )\n";
-
-#if defined( LOG_EXPORTED_CALLS )
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
@@ -435,12 +377,12 @@ long m_IDirect3D9Ex::CreateDeviceEx(
             *ppReturnedDeviceInterface, this, IID_IDirect3DDevice9Ex );
     }
 
+#if defined( LOG_EXPORTED_CALLS )
+
     const char l_message[] =
         "IDirect3D9Ex CreateDeviceEx ( Adapter, DeviceType, hFocusWindow, "
         "BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, "
         "ppReturnedDeviceInterface )\n";
-
-#if defined( LOG_EXPORTED_CALLS )
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
@@ -462,11 +404,11 @@ long m_IDirect3D9Ex::CreateDeviceEx(
 long m_IDirect3DDevice9Ex::ResetEx(
     THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters,
     D3DDISPLAYMODEEX* pFullscreenDisplayMode ) {
+#if defined( LOG_EXPORTED_CALLS )
+
     const char l_message[] =
         "m_IDirect3DDevice9Ex ResetEx ( pPresentationParameters, "
         "pFullscreenDisplayMode )\n";
-
-#if defined( LOG_EXPORTED_CALLS )
 
     _useCallback( "log$transaction$query", l_message );
     _useCallback( "log$transaction$commit" );
