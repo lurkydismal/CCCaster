@@ -61,7 +61,8 @@ HRESULT m_IDirect3DCubeTexture9::FreePrivateData( THIS_ REFGUID refguid ) {
     return ( ProxyInterface->FreePrivateData( refguid ) );
 }
 
-unsigned long m_IDirect3DCubeTexture9::SetPriority( THIS_ unsigned long PriorityNew ) {
+unsigned long m_IDirect3DCubeTexture9::SetPriority(
+    THIS_ unsigned long PriorityNew ) {
     return ( ProxyInterface->SetPriority( PriorityNew ) );
 }
 

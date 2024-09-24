@@ -50,9 +50,10 @@ HRESULT m_IDirect3DVolumeTexture9::SetPrivateData( THIS_ REFGUID refguid,
     return ProxyInterface->SetPrivateData( refguid, pData, SizeOfData, Flags );
 }
 
-HRESULT m_IDirect3DVolumeTexture9::GetPrivateData( THIS_ REFGUID refguid,
-                                                   void* pData,
-                                                   unsigned long* pSizeOfData ) {
+HRESULT m_IDirect3DVolumeTexture9::GetPrivateData(
+    THIS_ REFGUID refguid,
+    void* pData,
+    unsigned long* pSizeOfData ) {
     return ProxyInterface->GetPrivateData( refguid, pData, pSizeOfData );
 }
 
@@ -60,7 +61,8 @@ HRESULT m_IDirect3DVolumeTexture9::FreePrivateData( THIS_ REFGUID refguid ) {
     return ProxyInterface->FreePrivateData( refguid );
 }
 
-unsigned long m_IDirect3DVolumeTexture9::SetPriority( THIS_ unsigned long PriorityNew ) {
+unsigned long m_IDirect3DVolumeTexture9::SetPriority(
+    THIS_ unsigned long PriorityNew ) {
     return ProxyInterface->SetPriority( PriorityNew );
 }
 

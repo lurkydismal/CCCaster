@@ -33,12 +33,16 @@ public:
     STDMETHOD( EvictManagedResources )( THIS );
     STDMETHOD( GetDirect3D )( THIS_ IDirect3D9** ppD3D9 );
     STDMETHOD( GetDeviceCaps )( THIS_ D3DCAPS9* pCaps );
-    STDMETHOD( GetDisplayMode )( THIS_ unsigned int iSwapChain, D3DDISPLAYMODE* pMode );
+    STDMETHOD( GetDisplayMode )
+    ( THIS_ unsigned int iSwapChain, D3DDISPLAYMODE* pMode );
     STDMETHOD( GetCreationParameters )
     ( THIS_ D3DDEVICE_CREATION_PARAMETERS* pParameters );
     STDMETHOD( SetCursorProperties )
-    ( THIS_ unsigned int XHotSpot, unsigned int YHotSpot, IDirect3DSurface9* pCursorBitmap );
-    STDMETHOD_( void, SetCursorPosition )( THIS_ int X, int Y, unsigned long Flags );
+    ( THIS_ unsigned int XHotSpot,
+      unsigned int YHotSpot,
+      IDirect3DSurface9* pCursorBitmap );
+    STDMETHOD_( void, SetCursorPosition )
+    ( THIS_ int X, int Y, unsigned long Flags );
     STDMETHOD_( int, ShowCursor )( THIS_ int bShow );
     STDMETHOD( CreateAdditionalSwapChain )
     ( THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters,
@@ -61,7 +65,9 @@ public:
     ( THIS_ unsigned int iSwapChain, D3DRASTER_STATUS* pRasterStatus );
     STDMETHOD( SetDialogBoxMode )( THIS_ int bEnableDialogs );
     STDMETHOD_( void, SetGammaRamp )
-    ( THIS_ unsigned int iSwapChain, unsigned long Flags, CONST D3DGAMMARAMP* pRamp );
+    ( THIS_ unsigned int iSwapChain,
+      unsigned long Flags,
+      CONST D3DGAMMARAMP* pRamp );
     STDMETHOD_( void, GetGammaRamp )
     ( THIS_ unsigned int iSwapChain, D3DGAMMARAMP* pRamp );
     STDMETHOD( CreateTexture )
@@ -153,7 +159,8 @@ public:
     STDMETHOD( SetRenderTarget )
     ( THIS_ unsigned long RenderTargetIndex, IDirect3DSurface9* pRenderTarget );
     STDMETHOD( GetRenderTarget )
-    ( THIS_ unsigned long RenderTargetIndex, IDirect3DSurface9** ppRenderTarget );
+    ( THIS_ unsigned long RenderTargetIndex,
+      IDirect3DSurface9** ppRenderTarget );
     STDMETHOD( SetDepthStencilSurface )
     ( THIS_ IDirect3DSurface9* pNewZStencil );
     STDMETHOD( GetDepthStencilSurface )
@@ -183,7 +190,8 @@ public:
     STDMETHOD( GetLightEnable )( THIS_ unsigned long Index, int* pEnable );
     STDMETHOD( SetClipPlane )( THIS_ unsigned long Index, CONST float* pPlane );
     STDMETHOD( GetClipPlane )( THIS_ unsigned long Index, float* pPlane );
-    STDMETHOD( SetRenderState )( THIS_ D3DRENDERSTATETYPE State, unsigned long Value );
+    STDMETHOD( SetRenderState )
+    ( THIS_ D3DRENDERSTATETYPE State, unsigned long Value );
     STDMETHOD( GetRenderState )
     ( THIS_ D3DRENDERSTATETYPE State, unsigned long* pValue );
     STDMETHOD( CreateStateBlock )
@@ -197,13 +205,21 @@ public:
     STDMETHOD( SetTexture )
     ( THIS_ unsigned long Stage, IDirect3DBaseTexture9* pTexture );
     STDMETHOD( GetTextureStageState )
-    ( THIS_ unsigned long Stage, D3DTEXTURESTAGESTATETYPE Type, unsigned long* pValue );
+    ( THIS_ unsigned long Stage,
+      D3DTEXTURESTAGESTATETYPE Type,
+      unsigned long* pValue );
     STDMETHOD( SetTextureStageState )
-    ( THIS_ unsigned long Stage, D3DTEXTURESTAGESTATETYPE Type, unsigned long Value );
+    ( THIS_ unsigned long Stage,
+      D3DTEXTURESTAGESTATETYPE Type,
+      unsigned long Value );
     STDMETHOD( GetSamplerState )
-    ( THIS_ unsigned long Sampler, D3DSAMPLERSTATETYPE Type, unsigned long* pValue );
+    ( THIS_ unsigned long Sampler,
+      D3DSAMPLERSTATETYPE Type,
+      unsigned long* pValue );
     STDMETHOD( SetSamplerState )
-    ( THIS_ unsigned long Sampler, D3DSAMPLERSTATETYPE Type, unsigned long Value );
+    ( THIS_ unsigned long Sampler,
+      D3DSAMPLERSTATETYPE Type,
+      unsigned long Value );
     STDMETHOD( ValidateDevice )( THIS_ unsigned long* pNumPasses );
     STDMETHOD( SetPaletteEntries )
     ( THIS_ unsigned int PaletteNumber, CONST PALETTEENTRY* pEntries );
@@ -267,15 +283,25 @@ public:
       CONST float* pConstantData,
       unsigned int Vector4fCount );
     STDMETHOD( GetVertexShaderConstantF )
-    ( THIS_ unsigned int StartRegister, float* pConstantData, unsigned int Vector4fCount );
+    ( THIS_ unsigned int StartRegister,
+      float* pConstantData,
+      unsigned int Vector4fCount );
     STDMETHOD( SetVertexShaderConstantI )
-    ( THIS_ unsigned int StartRegister, CONST int* pConstantData, unsigned int Vector4iCount );
+    ( THIS_ unsigned int StartRegister,
+      CONST int* pConstantData,
+      unsigned int Vector4iCount );
     STDMETHOD( GetVertexShaderConstantI )
-    ( THIS_ unsigned int StartRegister, int* pConstantData, unsigned int Vector4iCount );
+    ( THIS_ unsigned int StartRegister,
+      int* pConstantData,
+      unsigned int Vector4iCount );
     STDMETHOD( SetVertexShaderConstantB )
-    ( THIS_ unsigned int StartRegister, CONST int* pConstantData, unsigned int BoolCount );
+    ( THIS_ unsigned int StartRegister,
+      CONST int* pConstantData,
+      unsigned int BoolCount );
     STDMETHOD( GetVertexShaderConstantB )
-    ( THIS_ unsigned int StartRegister, int* pConstantData, unsigned int BoolCount );
+    ( THIS_ unsigned int StartRegister,
+      int* pConstantData,
+      unsigned int BoolCount );
     STDMETHOD( SetStreamSource )
     ( THIS_ unsigned int StreamNumber,
       IDirect3DVertexBuffer9* pStreamData,
@@ -286,8 +312,10 @@ public:
       IDirect3DVertexBuffer9** ppStreamData,
       unsigned int* pOffsetInBytes,
       unsigned int* pStride );
-    STDMETHOD( SetStreamSourceFreq )( THIS_ unsigned int StreamNumber, unsigned int Setting );
-    STDMETHOD( GetStreamSourceFreq )( THIS_ unsigned int StreamNumber, unsigned int* pSetting );
+    STDMETHOD( SetStreamSourceFreq )
+    ( THIS_ unsigned int StreamNumber, unsigned int Setting );
+    STDMETHOD( GetStreamSourceFreq )
+    ( THIS_ unsigned int StreamNumber, unsigned int* pSetting );
     STDMETHOD( SetIndices )( THIS_ IDirect3DIndexBuffer9* pIndexData );
     STDMETHOD( GetIndices )( THIS_ IDirect3DIndexBuffer9** ppIndexData );
     STDMETHOD( CreatePixelShader )
@@ -299,15 +327,25 @@ public:
       CONST float* pConstantData,
       unsigned int Vector4fCount );
     STDMETHOD( GetPixelShaderConstantF )
-    ( THIS_ unsigned int StartRegister, float* pConstantData, unsigned int Vector4fCount );
+    ( THIS_ unsigned int StartRegister,
+      float* pConstantData,
+      unsigned int Vector4fCount );
     STDMETHOD( SetPixelShaderConstantI )
-    ( THIS_ unsigned int StartRegister, CONST int* pConstantData, unsigned int Vector4iCount );
+    ( THIS_ unsigned int StartRegister,
+      CONST int* pConstantData,
+      unsigned int Vector4iCount );
     STDMETHOD( GetPixelShaderConstantI )
-    ( THIS_ unsigned int StartRegister, int* pConstantData, unsigned int Vector4iCount );
+    ( THIS_ unsigned int StartRegister,
+      int* pConstantData,
+      unsigned int Vector4iCount );
     STDMETHOD( SetPixelShaderConstantB )
-    ( THIS_ unsigned int StartRegister, CONST int* pConstantData, unsigned int BoolCount );
+    ( THIS_ unsigned int StartRegister,
+      CONST int* pConstantData,
+      unsigned int BoolCount );
     STDMETHOD( GetPixelShaderConstantB )
-    ( THIS_ unsigned int StartRegister, int* pConstantData, unsigned int BoolCount );
+    ( THIS_ unsigned int StartRegister,
+      int* pConstantData,
+      unsigned int BoolCount );
     STDMETHOD( DrawRectPatch )
     ( THIS_ unsigned int Handle,
       CONST float* pNumSegs,
@@ -320,7 +358,10 @@ public:
     STDMETHOD( CreateQuery )
     ( THIS_ D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery );
     STDMETHOD( SetConvolutionMonoKernel )
-    ( THIS_ unsigned int width, unsigned int height, float* rows, float* columns );
+    ( THIS_ unsigned int width,
+      unsigned int height,
+      float* rows,
+      float* columns );
     STDMETHOD( ComposeRects )
     ( THIS_ IDirect3DSurface9* pSrc,
       IDirect3DSurface9* pDst,
@@ -340,7 +381,7 @@ public:
     STDMETHOD( SetGPUThreadPriority )( THIS_ INT Priority );
     STDMETHOD( WaitForVBlank )( THIS_ unsigned int iSwapChain );
     STDMETHOD( CheckResourceResidency )
-    ( THIS_ IDirect3DResource9** pResourceArray, unsigned int32 NumResources );
+    ( THIS_ IDirect3DResource9** pResourceArray, unsigned int NumResources );
     STDMETHOD( SetMaximumFrameLatency )( THIS_ unsigned int MaxLatency );
     STDMETHOD( GetMaximumFrameLatency )( THIS_ unsigned int* pMaxLatency );
     STDMETHOD( CheckDeviceState )( THIS_ HWND hDestinationWindow );
