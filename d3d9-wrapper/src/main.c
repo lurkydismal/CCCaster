@@ -2,14 +2,13 @@
 #include <windows.h>
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #if defined( LOG_BOOT )
 
 #include <stdio.h>
 
 #endif // LOG_BOOT
-
-#include <string>
 
 #include "D3DPERF_BeginEvent.h"
 #include "D3DPERF_EndEvent.h"
@@ -35,9 +34,7 @@
 
 #endif // LOG_BOOT
 
-useCallbackFunction_t g_useCallback = NULL;
-HMODULE g_d3d9dll = NULL;
-HMODULE g_justAnotherModloaderDll = NULL;
+useCallbackFunction_t g_useCallback;
 
 static inline bool loadDll( const char* _DLLName, HMODULE* _moduleHandle ) {
     bool l_returnValue = true;
@@ -56,7 +53,7 @@ static inline bool loadDll( const char* _DLLName, HMODULE* _moduleHandle ) {
     return ( l_returnValue );
 }
 
-extern "C" int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
+int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
                                                      unsigned long dwReason,
                                                      void* lpReserved ) {
     switch ( dwReason ) {
@@ -74,7 +71,8 @@ extern "C" int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
 
 #endif // LOG_BOOT
 
-            bool l_d3d9LoadResult = loadDll( "d3d9.dll", &g_d3d9dll );
+            HMODULE l_d3d9dll = NULL;
+            bool l_d3d9LoadResult = loadDll( "d3d9.dll", &l_d3d9dll );
 
             if ( l_d3d9LoadResult ) {
 #if defined( LOG_BOOT )
@@ -83,7 +81,7 @@ extern "C" int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
 
 #endif // LOG_BOOT
 
-                if ( g_d3d9dll ) {
+                if ( l_d3d9dll ) {
 #if defined( LOG_BOOT )
 
                     print( "Starting to locate d3d9.dll functions" );
@@ -92,7 +90,7 @@ extern "C" int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
 
 #define GET_ADDRESS( _functionName ) \
     m_p##_functionName =             \
-        ( _functionName##Proc )GetProcAddress( g_d3d9dll, #_functionName );
+        ( _functionName##Proc )GetProcAddress( l_d3d9dll, #_functionName );
 
                     GET_ADDRESS( Direct3DShaderValidatorCreate9 )
                     GET_ADDRESS( PSGPError )
@@ -137,10 +135,10 @@ extern "C" int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
 
 #endif // LOG_BOOT
 
-                g_justAnotherModloaderDll =
+                HMODULE l_justAnotherModloaderDll =
                     LoadLibraryA( "just_another_modloader.dll" );
 
-                if ( !g_justAnotherModloaderDll ) {
+                if ( !l_justAnotherModloaderDll ) {
 #if defined( LOG_BOOT )
 
                     print( "Failed to load just_another_modloader.dll" );

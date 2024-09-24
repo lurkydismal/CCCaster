@@ -63,6 +63,7 @@ d3d9_dll_C_SRCS= D3DPERF_BeginEvent/src/D3DPERF_BeginEvent.c \
 		 Direct3DShaderValidatorCreate9/src/Direct3DShaderValidatorCreate9.c \
 		 PSGPError/src/PSGPError.c \
 		 PSGPSampleTexture/src/PSGPSampleTexture.c \
+		 src/main.c \
 		 ../states_dll/_useCallback/src/_useCallback.c
 d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DCubeTexture9.cpp \
@@ -81,8 +82,7 @@ d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DVolumeTexture9.cpp \
 		   src/InterfaceQuery.cpp \
 		   Direct3DCreate9/src/Direct3DCreate9.cpp \
-		   Direct3DCreate9Ex/src/Direct3DCreate9Ex.cpp \
-		   src/main.cpp
+		   Direct3DCreate9Ex/src/Direct3DCreate9Ex.cpp
 d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \
 			$(d3d9_dll_MODULE:.dll=.def) \
