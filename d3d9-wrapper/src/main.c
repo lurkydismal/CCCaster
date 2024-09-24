@@ -34,173 +34,185 @@
 
 #endif // LOG_BOOT
 
+#define ATTACH 1
+
 useCallbackFunction_t g_useCallback;
 
-static inline bool loadDll( const char* _DLLName, HMODULE* _moduleHandle ) {
-    bool l_returnValue = true;
-    char path[ MAX_PATH ];
+static inline HMODULE loadSystemDll( const char* _DllName ) {
+    HMODULE l_returnValue = NULL;
+    char* l_systemDirectoryPath = (char*)malloc( MAX_PATH );
 
-    GetSystemDirectoryA( path, MAX_PATH );
-    strcat( path, "/" );
-    strcat( path, _DLLName );
+    GetSystemDirectoryA( l_systemDirectoryPath, MAX_PATH );
 
-    *_moduleHandle = LoadLibraryA( path );
+    const size_t l_systemDirectoryPathLength = strlen( l_systemDirectoryPath );
+    const size_t l_DllNameLength = strlen( _DllName );
 
-    if ( !( *_moduleHandle ) ) {
-        l_returnValue = false;
+    l_systemDirectoryPath = (char*)realloc( l_systemDirectoryPath, ( l_systemDirectoryPathLength + 1 + l_DllNameLength + 1 ) );
+
+    if ( ( l_systemDirectoryPathLength + 1 ) < MAX_PATH ) {
+        {
+            char* l_stringWriteIndex = ( l_systemDirectoryPath + l_systemDirectoryPathLength );
+
+            memcpy( l_stringWriteIndex, "/", 1 );
+
+            l_stringWriteIndex += 1;
+
+            memcpy( l_stringWriteIndex, _DllName, l_DllNameLength );
+
+            l_stringWriteIndex += l_DllNameLength;
+
+            *l_stringWriteIndex = '\0';
+
+        }
+
+        l_returnValue = LoadLibraryA( l_systemDirectoryPath );
     }
+
+    free( l_systemDirectoryPath );
 
     return ( l_returnValue );
 }
 
-int __attribute__( ( stdcall ) ) DllMain( HMODULE hModule,
-                                                     unsigned long dwReason,
-                                                     void* lpReserved ) {
-    switch ( dwReason ) {
-        case DLL_PROCESS_ATTACH: {
-#if defined( LOG_ALLOCATE_CONSOLE )
-
-            AllocConsole();
-            freopen( "CONOUT$", "w", stdout );
-
-#endif // LOG_ALLOCATE_CONSOLE
-
+static inline void hookD3D9( HMODULE _d3d9dll ) {
 #if defined( LOG_BOOT )
 
-            print( "Starting to load d3d9.dll" );
-
-#endif // LOG_BOOT
-
-            HMODULE l_d3d9dll = NULL;
-            bool l_d3d9LoadResult = loadDll( "d3d9.dll", &l_d3d9dll );
-
-            if ( l_d3d9LoadResult ) {
-#if defined( LOG_BOOT )
-
-                print( "Loaded d3d9.dll" );
-
-#endif // LOG_BOOT
-
-                if ( l_d3d9dll ) {
-#if defined( LOG_BOOT )
-
-                    print( "Starting to locate d3d9.dll functions" );
+    print( "Starting to locate d3d9.dll functions" );
 
 #endif // LOG_BOOT
 
 #define GET_ADDRESS( _functionName ) \
     m_p##_functionName =             \
-        ( _functionName##Proc )GetProcAddress( l_d3d9dll, #_functionName );
+    ( _functionName##Proc )GetProcAddress( _d3d9dll, #_functionName );
 
-                    GET_ADDRESS( Direct3DShaderValidatorCreate9 )
-                    GET_ADDRESS( PSGPError )
-                    GET_ADDRESS( PSGPSampleTexture )
-                    GET_ADDRESS( D3DPERF_BeginEvent )
-                    GET_ADDRESS( D3DPERF_EndEvent )
-                    GET_ADDRESS( D3DPERF_GetStatus )
-                    GET_ADDRESS( D3DPERF_QueryRepeatFrame )
-                    GET_ADDRESS( D3DPERF_SetMarker )
-                    GET_ADDRESS( D3DPERF_SetOptions )
-                    GET_ADDRESS( D3DPERF_SetRegion )
-                    GET_ADDRESS( DebugSetLevel )
-                    GET_ADDRESS( DebugSetMute )
-                    GET_ADDRESS( Direct3D9EnableMaximizedWindowedModeShim )
-                    GET_ADDRESS( Direct3DCreate9 )
-                    GET_ADDRESS( Direct3DCreate9Ex )
-
-#undef Transtelecom
+    GET_ADDRESS( Direct3DShaderValidatorCreate9 )
+        GET_ADDRESS( PSGPError )
+        GET_ADDRESS( PSGPSampleTexture )
+        GET_ADDRESS( D3DPERF_BeginEvent )
+        GET_ADDRESS( D3DPERF_EndEvent )
+        GET_ADDRESS( D3DPERF_GetStatus )
+        GET_ADDRESS( D3DPERF_QueryRepeatFrame )
+        GET_ADDRESS( D3DPERF_SetMarker )
+        GET_ADDRESS( D3DPERF_SetOptions )
+        GET_ADDRESS( D3DPERF_SetRegion )
+        GET_ADDRESS( DebugSetLevel )
+        GET_ADDRESS( DebugSetMute )
+        GET_ADDRESS( Direct3D9EnableMaximizedWindowedModeShim )
+        GET_ADDRESS( Direct3DCreate9 )
+        GET_ADDRESS( Direct3DCreate9Ex )
 
 #if defined( LOG_BOOT )
 
-                    print( "Functions from d3d9.dll successfully hooked" );
+        print( "Functions from d3d9.dll successfully hooked" );
 
 #endif // LOG_BOOT
-                }
+}
 
-                // Wake mode for OS >= Windows Vista
-                uint32_t l_executionThreadStateFlags =
-                    ( ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED |
-                      ES_AWAYMODE_REQUIRED );
+int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
+                                              uint32_t _reason,
+                                              void* _ ) {
+    bool l_returnValue = true;
 
-                if ( !SetThreadExecutionState( l_executionThreadStateFlags ) ) {
-                    // Wake mode for OS < Windows Vista
-                    l_executionThreadStateFlags ^= ES_AWAYMODE_REQUIRED;
+    if ( _reason == ATTACH ) {
+#if defined( LOG_ALLOCATE_CONSOLE )
 
-                    SetThreadExecutionState( l_executionThreadStateFlags );
-                }
+        AllocConsole();
+        freopen( "CONOUT$", "w", stdout );
+
+#endif // LOG_ALLOCATE_CONSOLE
 
 #if defined( LOG_BOOT )
 
-                print( "Starting to load just_another_modloader.dll" );
+        print( "Starting to load d3d9.dll" );
 
 #endif // LOG_BOOT
 
-                HMODULE l_justAnotherModloaderDll =
-                    LoadLibraryA( "just_another_modloader.dll" );
+        HMODULE l_d3d9dll = loadSystemDll( "d3d9.dll" );
 
-                if ( !l_justAnotherModloaderDll ) {
+        if ( l_d3d9dll ) {
 #if defined( LOG_BOOT )
 
-                    print( "Failed to load just_another_modloader.dll" );
+            print( "Loaded d3d9.dll" );
 
 #endif // LOG_BOOT
 
-                    exit( 1 );
-                }
+            hookD3D9( l_d3d9dll );
+
+            // ES_DISPLAY_REQUIRED - Forces the display to be on by resetting the display idle timer.
+            // ES_SYSTEM_REQUIRED - Forces the system to be in the working state by resetting the system idle timer.
+            uint32_t l_executionThreadStateFlags = ( ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED );
+
+            SetThreadExecutionState( l_executionThreadStateFlags );
 
 #if defined( LOG_BOOT )
 
-                print( "Starting to locate states.dll" );
+            print( "Starting to load just_another_modloader.dll" );
 
 #endif // LOG_BOOT
 
-                HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+            HMODULE l_justAnotherModloaderDll =
+                LoadLibraryA( "just_another_modloader.dll" );
 
-                if ( !l_statesDll ) {
+            if ( !l_justAnotherModloaderDll ) {
 #if defined( LOG_BOOT )
 
-                    print( "Failed to locate states.dll" );
+                print( "Failed to load just_another_modloader.dll" );
 
 #endif // LOG_BOOT
 
-                    exit( 1 );
-                }
+                l_returnValue = false;
+            }
+
+#if defined( LOG_BOOT )
+
+            print( "Starting to locate states.dll" );
+
+#endif // LOG_BOOT
+
+            HMODULE l_statesDll = GetModuleHandleA( "states.dll" );
+
+            if ( !l_statesDll ) {
+#if defined( LOG_BOOT )
+
+                print( "Failed to locate states.dll" );
+
+#endif // LOG_BOOT
+
+                l_returnValue = false;
+            }
 
 #if !defined( NO_CALLBACKS )
 
 #if defined( LOG_BOOT )
 
-                print( "Starting to locate \"useCallback\" in states.dll" );
+            print( "Starting to locate \"useCallback\" in states.dll" );
 
 #endif // LOG_BOOT
 
-                g_useCallback = ( useCallbackFunction_t )GetProcAddress(
+            g_useCallback = ( useCallbackFunction_t )GetProcAddress(
                     l_statesDll, "useCallback" );
 
-                if ( !g_useCallback ) {
+            if ( !g_useCallback ) {
 #if defined( LOG_BOOT )
 
-                    print( "Failed to locate \"useCallback\" in states.dll" );
+                print( "Failed to locate \"useCallback\" in states.dll" );
 
 #endif // LOG_BOOT
 
-                    exit( 1 );
-                }
-#endif // ! NO_CALLBACKS
-
-            } else {
-#if defined( LOG_BOOT )
-
-                print( "Failed to load d3d9.dll" );
-
-#endif // LOG_BOOT
-
-                exit( 1 );
+                l_returnValue = false;
             }
 
-            break;
+#endif // ! NO_CALLBACKS
+
+        } else {
+#if defined( LOG_BOOT )
+
+            print( "Failed to load d3d9.dll" );
+
+#endif // LOG_BOOT
+
+            l_returnValue = false;
         }
     }
 
-    return ( true );
+    return ( l_returnValue );
 }
