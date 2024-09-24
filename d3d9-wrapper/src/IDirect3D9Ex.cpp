@@ -26,40 +26,40 @@ ULONG m_IDirect3D9Ex::Release( void ) {
     return ( count );
 }
 
-HRESULT m_IDirect3D9Ex::EnumAdapterModes( THIS_ UINT Adapter,
+HRESULT m_IDirect3D9Ex::EnumAdapterModes( THIS_ unsigned int Adapter,
                                           D3DFORMAT Format,
-                                          UINT Mode,
+                                          unsigned int Mode,
                                           D3DDISPLAYMODE* pMode ) {
     return ( ProxyInterface->EnumAdapterModes( Adapter, Format, Mode, pMode ) );
 }
 
-UINT m_IDirect3D9Ex::GetAdapterCount( void ) {
+unsigned int m_IDirect3D9Ex::GetAdapterCount( void ) {
     return ( ProxyInterface->GetAdapterCount() );
 }
 
-HRESULT m_IDirect3D9Ex::GetAdapterDisplayMode( UINT Adapter,
+HRESULT m_IDirect3D9Ex::GetAdapterDisplayMode( unsigned int Adapter,
                                                D3DDISPLAYMODE* pMode ) {
     return ( ProxyInterface->GetAdapterDisplayMode( Adapter, pMode ) );
 }
 
 HRESULT m_IDirect3D9Ex::GetAdapterIdentifier(
-    UINT Adapter,
+    unsigned int Adapter,
     DWORD Flags,
     D3DADAPTER_IDENTIFIER9* pIdentifier ) {
     return (
         ProxyInterface->GetAdapterIdentifier( Adapter, Flags, pIdentifier ) );
 }
 
-UINT m_IDirect3D9Ex::GetAdapterModeCount( THIS_ UINT Adapter,
-                                          D3DFORMAT Format ) {
+unsigned int m_IDirect3D9Ex::GetAdapterModeCount( THIS_ unsigned int Adapter,
+                                                  D3DFORMAT Format ) {
     return ( ProxyInterface->GetAdapterModeCount( Adapter, Format ) );
 }
 
-HMONITOR m_IDirect3D9Ex::GetAdapterMonitor( UINT Adapter ) {
+HMONITOR m_IDirect3D9Ex::GetAdapterMonitor( unsigned int Adapter ) {
     return ( ProxyInterface->GetAdapterMonitor( Adapter ) );
 }
 
-HRESULT m_IDirect3D9Ex::GetDeviceCaps( UINT Adapter,
+HRESULT m_IDirect3D9Ex::GetDeviceCaps( unsigned int Adapter,
                                        D3DDEVTYPE DeviceType,
                                        D3DCAPS9* pCaps ) {
     return ( ProxyInterface->GetDeviceCaps( Adapter, DeviceType, pCaps ) );
@@ -69,7 +69,7 @@ HRESULT m_IDirect3D9Ex::RegisterSoftwareDevice( void* pInitializeFunction ) {
     return ( ProxyInterface->RegisterSoftwareDevice( pInitializeFunction ) );
 }
 
-HRESULT m_IDirect3D9Ex::CheckDepthStencilMatch( UINT Adapter,
+HRESULT m_IDirect3D9Ex::CheckDepthStencilMatch( unsigned int Adapter,
                                                 D3DDEVTYPE DeviceType,
                                                 D3DFORMAT AdapterFormat,
                                                 D3DFORMAT RenderTargetFormat,
@@ -79,7 +79,7 @@ HRESULT m_IDirect3D9Ex::CheckDepthStencilMatch( UINT Adapter,
         DepthStencilFormat ) );
 }
 
-HRESULT m_IDirect3D9Ex::CheckDeviceFormat( UINT Adapter,
+HRESULT m_IDirect3D9Ex::CheckDeviceFormat( unsigned int Adapter,
                                            D3DDEVTYPE DeviceType,
                                            D3DFORMAT AdapterFormat,
                                            DWORD Usage,
@@ -90,10 +90,10 @@ HRESULT m_IDirect3D9Ex::CheckDeviceFormat( UINT Adapter,
 }
 
 HRESULT m_IDirect3D9Ex::CheckDeviceMultiSampleType(
-    THIS_ UINT Adapter,
+    THIS_ unsigned int Adapter,
     D3DDEVTYPE DeviceType,
     D3DFORMAT SurfaceFormat,
-    BOOL Windowed,
+    int Windowed,
     D3DMULTISAMPLE_TYPE MultiSampleType,
     DWORD* pQualityLevels ) {
     return ( ProxyInterface->CheckDeviceMultiSampleType(
@@ -101,16 +101,16 @@ HRESULT m_IDirect3D9Ex::CheckDeviceMultiSampleType(
         pQualityLevels ) );
 }
 
-HRESULT m_IDirect3D9Ex::CheckDeviceType( UINT Adapter,
+HRESULT m_IDirect3D9Ex::CheckDeviceType( unsigned int Adapter,
                                          D3DDEVTYPE CheckType,
                                          D3DFORMAT DisplayFormat,
                                          D3DFORMAT BackBufferFormat,
-                                         BOOL Windowed ) {
+                                         int Windowed ) {
     return ( ProxyInterface->CheckDeviceType( Adapter, CheckType, DisplayFormat,
                                               BackBufferFormat, Windowed ) );
 }
 
-HRESULT m_IDirect3D9Ex::CheckDeviceFormatConversion( THIS_ UINT Adapter,
+HRESULT m_IDirect3D9Ex::CheckDeviceFormatConversion( THIS_ unsigned int Adapter,
                                                      D3DDEVTYPE DeviceType,
                                                      D3DFORMAT SourceFormat,
                                                      D3DFORMAT TargetFormat ) {
@@ -118,8 +118,8 @@ HRESULT m_IDirect3D9Ex::CheckDeviceFormatConversion( THIS_ UINT Adapter,
         Adapter, DeviceType, SourceFormat, TargetFormat ) );
 }
 
-// HRESULT m_IDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType,
-// HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS
+// HRESULT m_IDirect3D9Ex::CreateDevice(unsigned int Adapter, D3DDEVTYPE
+// DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS
 // *pPresentationParameters, IDirect3DDevice9 **ppReturnedDeviceInterface)
 //{
 //	HRESULT hr = ProxyInterface->CreateDevice(Adapter, DeviceType,
@@ -136,29 +136,29 @@ HRESULT m_IDirect3D9Ex::CheckDeviceFormatConversion( THIS_ UINT Adapter,
 //	return hr;
 // }
 
-UINT m_IDirect3D9Ex::GetAdapterModeCountEx(
-    THIS_ UINT Adapter,
-    CONST D3DDISPLAYMODEFILTER* pFilter ) {
+unsigned int m_IDirect3D9Ex::GetAdapterModeCountEx(
+    THIS_ unsigned int Adapter,
+    const D3DDISPLAYMODEFILTER* pFilter ) {
     return ( ProxyInterface->GetAdapterModeCountEx( Adapter, pFilter ) );
 }
 
-HRESULT m_IDirect3D9Ex::EnumAdapterModesEx( THIS_ UINT Adapter,
-                                            CONST D3DDISPLAYMODEFILTER* pFilter,
-                                            UINT Mode,
+HRESULT m_IDirect3D9Ex::EnumAdapterModesEx( THIS_ unsigned int Adapter,
+                                            const D3DDISPLAYMODEFILTER* pFilter,
+                                            unsigned int Mode,
                                             D3DDISPLAYMODEEX* pMode ) {
     return (
         ProxyInterface->EnumAdapterModesEx( Adapter, pFilter, Mode, pMode ) );
 }
 
 HRESULT m_IDirect3D9Ex::GetAdapterDisplayModeEx(
-    THIS_ UINT Adapter,
+    THIS_ unsigned int Adapter,
     D3DDISPLAYMODEEX* pMode,
     D3DDISPLAYROTATION* pRotation ) {
     return (
         ProxyInterface->GetAdapterDisplayModeEx( Adapter, pMode, pRotation ) );
 }
 
-// HRESULT m_IDirect3D9Ex::CreateDeviceEx(THIS_ UINT Adapter, D3DDEVTYPE
+// HRESULT m_IDirect3D9Ex::CreateDeviceEx(THIS_ unsigned int Adapter, D3DDEVTYPE
 // DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS*
 // pPresentationParameters, D3DDISPLAYMODEEX* pFullscreenDisplayMode,
 // IDirect3DDevice9Ex** ppReturnedDeviceInterface)
@@ -177,6 +177,7 @@ HRESULT m_IDirect3D9Ex::GetAdapterDisplayModeEx(
 //	return hr;
 // }
 
-HRESULT m_IDirect3D9Ex::GetAdapterLUID( THIS_ UINT Adapter, LUID* pLUID ) {
+HRESULT m_IDirect3D9Ex::GetAdapterLUID( THIS_ unsigned int Adapter,
+                                        LUID* pLUID ) {
     return ( ProxyInterface->GetAdapterLUID( Adapter, pLUID ) );
 }

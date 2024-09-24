@@ -21,11 +21,6 @@ class m_IDirect3DVolume9;
 class m_IDirect3DVolumeTexture9;
 
 #include "AddressLookupTable.h"
-
-void genericQueryInterface( REFIID riid,
-                            LPVOID* ppvObj,
-                            m_IDirect3DDevice9Ex* m_pDeviceEx );
-
 #include "IDirect3D9Ex.h"
 #include "IDirect3DCubeTexture9.h"
 #include "IDirect3DDevice9Ex.h"
@@ -41,3 +36,4 @@ void genericQueryInterface( REFIID riid,
 #include "IDirect3DVertexShader9.h"
 #include "IDirect3DVolume9.h"
 #include "IDirect3DVolumeTexture9.h"
+#include "InterfaceQuery.h"

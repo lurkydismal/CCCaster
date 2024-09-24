@@ -12,7 +12,7 @@
 #include <map>
 #include <type_traits>
 
-constexpr UINT MaxIndex = 16;
+#define MAX_INDEX 16
 
 class AddressLookupTableObject {
 public:
@@ -38,7 +38,7 @@ public:
 
     template < class T, class Enable = void >
     struct AddressCacheIndex {
-        static constexpr UINT CacheIndex = 0;
+        static constexpr unsigned int CacheIndex = 0;
     };
 
     template < class T >
@@ -46,7 +46,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3D9Ex >::value >::type > {
-        static constexpr UINT CacheIndex = 1;
+        static constexpr unsigned int CacheIndex = 1;
     };
 
     template < class T >
@@ -54,7 +54,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DDevice9Ex >::value >::type > {
-        static constexpr UINT CacheIndex = 2;
+        static constexpr unsigned int CacheIndex = 2;
     };
 
     template < class T >
@@ -62,7 +62,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DCubeTexture9 >::value >::type > {
-        static constexpr UINT CacheIndex = 3;
+        static constexpr unsigned int CacheIndex = 3;
     };
 
     template < class T >
@@ -70,7 +70,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DIndexBuffer9 >::value >::type > {
-        static constexpr UINT CacheIndex = 4;
+        static constexpr unsigned int CacheIndex = 4;
     };
 
     template < class T >
@@ -78,7 +78,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DPixelShader9 >::value >::type > {
-        static constexpr UINT CacheIndex = 5;
+        static constexpr unsigned int CacheIndex = 5;
     };
 
     template < class T >
@@ -86,7 +86,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DQuery9 >::value >::type > {
-        static constexpr UINT CacheIndex = 6;
+        static constexpr unsigned int CacheIndex = 6;
     };
 
     template < class T >
@@ -94,7 +94,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DStateBlock9 >::value >::type > {
-        static constexpr UINT CacheIndex = 7;
+        static constexpr unsigned int CacheIndex = 7;
     };
 
     template < class T >
@@ -102,7 +102,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DSurface9 >::value >::type > {
-        static constexpr UINT CacheIndex = 8;
+        static constexpr unsigned int CacheIndex = 8;
     };
 
     template < class T >
@@ -110,7 +110,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DSwapChain9Ex >::value >::type > {
-        static constexpr UINT CacheIndex = 9;
+        static constexpr unsigned int CacheIndex = 9;
     };
 
     template < class T >
@@ -118,7 +118,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DTexture9 >::value >::type > {
-        static constexpr UINT CacheIndex = 10;
+        static constexpr unsigned int CacheIndex = 10;
     };
 
     template < class T >
@@ -126,7 +126,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DVertexBuffer9 >::value >::type > {
-        static constexpr UINT CacheIndex = 11;
+        static constexpr unsigned int CacheIndex = 11;
     };
 
     template < class T >
@@ -134,7 +134,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DVertexDeclaration9 >::value >::type > {
-        static constexpr UINT CacheIndex = 12;
+        static constexpr unsigned int CacheIndex = 12;
     };
 
     template < class T >
@@ -142,7 +142,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DVertexShader9 >::value >::type > {
-        static constexpr UINT CacheIndex = 13;
+        static constexpr unsigned int CacheIndex = 13;
     };
 
     template < class T >
@@ -150,7 +150,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DVolume9 >::value >::type > {
-        static constexpr UINT CacheIndex = 14;
+        static constexpr unsigned int CacheIndex = 14;
     };
 
     template < class T >
@@ -158,7 +158,7 @@ public:
         T,
         typename std::enable_if<
             std::is_same< T, m_IDirect3DVolumeTexture9 >::value >::type > {
-        static constexpr UINT CacheIndex = 15;
+        static constexpr unsigned int CacheIndex = 15;
     };
 
     m_IDirect3DSwapChain9Ex* CreateInterface( void* Proxy, REFIID riid ) {
@@ -177,7 +177,7 @@ public:
             return ( nullptr );
         }
 
-        constexpr UINT CacheIndex = AddressCacheIndex< T >::CacheIndex;
+        constexpr unsigned int CacheIndex = AddressCacheIndex< T >::CacheIndex;
 
         auto it = g_map[ CacheIndex ].find( Proxy );
 
@@ -195,7 +195,7 @@ public:
 
     template < typename T >
     void SaveAddress( T* Wrapper, void* Proxy ) {
-        constexpr UINT CacheIndex = AddressCacheIndex< T >::CacheIndex;
+        constexpr unsigned int CacheIndex = AddressCacheIndex< T >::CacheIndex;
 
         if ( Wrapper && Proxy ) {
             g_map[ CacheIndex ][ Proxy ] = Wrapper;
@@ -208,11 +208,11 @@ public:
             return;
         }
 
-        constexpr UINT CacheIndex = AddressCacheIndex< T >::CacheIndex;
+        constexpr unsigned int CacheIndex = AddressCacheIndex< T >::CacheIndex;
 
         auto it = std::find_if( g_map[ CacheIndex ].begin(),
                                 g_map[ CacheIndex ].end(),
-                                [ = ]( std::map< void*, T > Map ) -> BOOL {
+                                [ = ]( std::map< void*, T > Map ) -> int {
                                     return ( Map.second == Wrapper );
                                 } );
 
@@ -222,7 +222,7 @@ public:
     }
 
 private:
-    BOOL ConstructorFlag = false;
+    int ConstructorFlag = false;
     D* const pDevice;
-    std::map< void*, AddressLookupTableObject* > g_map[ MaxIndex ];
+    std::map< void*, AddressLookupTableObject* > g_map[ MAX_INDEX ];
 };
