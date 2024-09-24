@@ -10,15 +10,6 @@ long m_IDirect3DDevice9Ex::Present( const RECT* pSourceRect,
                                     const RECT* pDestRect,
                                     HWND hDestWindowOverride,
                                     const RGNDATA* pDirtyRegion ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "m_IDirect3DDevice9Ex Present ( pSourceRect, pDestRect, "
-        "hDestWindowOverride, pDirtyRegion )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$Present", pSourceRect, pDestRect,
                       hDestWindowOverride, pDirtyRegion );
@@ -26,8 +17,6 @@ long m_IDirect3DDevice9Ex::Present( const RECT* pSourceRect,
     if ( ( l_result != 0 ) && ( l_result != ENODATA ) ) {
         return ( E_FAIL );
     }
-
-#endif // LOG_EXPORTED_CALLS
 
     l_renderCallsPerFrame = 0;
 
@@ -40,17 +29,6 @@ long m_IDirect3DDevice9Ex::PresentEx( THIS_ const RECT* pSourceRect,
                                       HWND hDestWindowOverride,
                                       const RGNDATA* pDirtyRegion,
                                       unsigned long dwFlags ) {
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] =
-        "m_IDirect3DDevice9Ex PresentEx ( pSourceRect, pDestRect, "
-        "hDestWindowOverride, pDirtyRegion, dwFlags )\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
-
     uint16_t l_result =
         _useCallback( "IDirect3DDevice9Ex$PresentEx", pSourceRect, pDestRect,
                       hDestWindowOverride, pDirtyRegion, &dwFlags );
@@ -65,15 +43,6 @@ long m_IDirect3DDevice9Ex::PresentEx( THIS_ const RECT* pSourceRect,
 
 long m_IDirect3DDevice9Ex::EndScene( void ) {
     l_renderCallsPerFrame++;
-
-#if defined( LOG_EXPORTED_CALLS )
-
-    const char l_message[] = "m_IDirect3DDevice9Ex EndScene ()\n";
-
-    _useCallback( "log$transaction$query", l_message );
-    _useCallback( "log$transaction$commit" );
-
-#endif // LOG_EXPORTED_CALLS
 
     uint16_t l_result = _useCallback( "IDirect3DDevice9Ex$EndScene" );
 
