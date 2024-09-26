@@ -1,10 +1,9 @@
+#include <wtypes.h>
+
 #include <stdbool.h>
+#include <wincon.h>
 
 #include "log.h"
-
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
 
 #define ATTACH 1
 
