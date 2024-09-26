@@ -1,9 +1,8 @@
-#include "addon_callbacks.h"
-
 #include "_useCallback.h"
+#include "overlay.h"
 #include "stdfunc.h"
 
-useCallbackFunction_t g_useCallback = NULL;
+useCallbackFunction_t g_useCallback;
 
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
@@ -15,6 +14,68 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
 uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
+    char* _overlayName = ( char* )_callbackArguments[ 0 ];
+    char* _overlayDefaultHotkey = ( char* )_callbackArguments[ 1 ];
+    char* _overlay = ( char* )_callbackArguments[ 2 ];
+    uintptr_t* _overlayValueReferences = ( uintptr_t* )_callbackArguments[ 3 ];
+
+    char*** l_overlay;
+
+    if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
+                                         &l_overlay, _overlayName ) ) != 0 ) {
+        goto EXIT;
+    }
+
+    const char* l_overlayItems;
+
+    {
+        char*** l_content = l_overlay;
+        const size_t l_contentLength = arrayLength( l_content );
+        char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
+        char** const* l_contentEnd =
+            ( l_contentFirstElement + l_contentLength );
+
+        for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
+              _pair++ ) {
+            const char* l_key = ( *_pair )[ 0 ];
+            const char* l_value = ( *_pair )[ 1 ];
+
+            if ( l_key == "overlay" ) {
+                l_overlayItems = l_value;
+
+                break;
+            }
+        }
+    }
+
+    if ( !l_overlayItems ) {
+        goto EXIT;
+    }
+
+    {
+        const size_t l_overlayItemsCount = 0;
+
+        char* l_text = strdup( _text );
+
+        const char l_delimiter[] = "\n";
+        char* l_line = strtok( l_text, l_delimiter );
+
+        while ( l_line ) {
+            parseLine( l_line );
+
+            l_line = strtok( NULL, l_delimiter );
+        }
+
+        free( l_text );
+    }
+
+#if 0
+    if ( ( l_returnValue = overlayRegister( _overlayName, ( const char* const* const* )l_overlay, _overlayValueReferences, _overlayDefaultHotkey ) ) != 0 ) {
+        goto EXIT;
+    }
+#endif
+
+EXIT:
     return ( l_returnValue );
 }
 
