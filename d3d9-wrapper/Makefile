@@ -24,7 +24,8 @@ CXXEXTRA              = -Ofast \
 			-fvisibility=hidden
 RCEXTRA               =
 DEFINES               = -D_GLIBCXX_PARALLEL
-INCLUDE_PATH          = -I _useCallback/include \
+INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
+			-I _useCallback/include \
 			-I D3DPERF_BeginEvent/include \
 			-I D3DPERF_EndEvent/include \
 			-I D3DPERF_GetStatus/include \
@@ -39,8 +40,7 @@ INCLUDE_PATH          = -I _useCallback/include \
 			-I Direct3DCreate9Ex/include \
 			-I Direct3DShaderValidatorCreate9/include \
 			-I PSGPError/include \
-			-I PSGPSampleTexture/include \
-			-I ../states_dll/_useCallback/include
+			-I PSGPSampleTexture/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
@@ -65,7 +65,9 @@ d3d9_dll_C_SRCS= D3DPERF_BeginEvent/src/D3DPERF_BeginEvent.c \
 		 PSGPSampleTexture/src/PSGPSampleTexture.c \
 		 src/main.c \
 		 ../states_dll/_useCallback/src/_useCallback.c
-d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
+d3d9_dll_CXX_SRCS= Direct3DCreate9/src/Direct3DCreate9.cpp \
+		   Direct3DCreate9Ex/src/Direct3DCreate9Ex.cpp \
+		   src/IDirect3D9Ex.cpp \
 		   src/IDirect3DCubeTexture9.cpp \
 		   src/IDirect3DDevice9Ex.cpp \
 		   src/IDirect3DIndexBuffer9.cpp \
@@ -80,28 +82,26 @@ d3d9_dll_CXX_SRCS= src/IDirect3D9Ex.cpp \
 		   src/IDirect3DVertexShader9.cpp \
 		   src/IDirect3DVolume9.cpp \
 		   src/IDirect3DVolumeTexture9.cpp \
-		   src/InterfaceQuery.cpp \
-		   Direct3DCreate9/src/Direct3DCreate9.cpp \
-		   Direct3DCreate9Ex/src/Direct3DCreate9Ex.cpp
+		   src/InterfaceQuery.cpp
 d3d9_dll_RC_SRCS=
 d3d9_dll_LDFLAGS= -shared \
-			$(d3d9_dll_MODULE:.dll=.def) \
-			-m32 \
-			-s \
-			-O1 \
-			-static-libstdc++ \
-			-static
+		  $(d3d9_dll_MODULE:.dll=.def) \
+		  -m32 \
+		  -s \
+		  -O1 \
+		  -static-libstdc++ \
+		  -static
 d3d9_dll_ARFLAGS=
 d3d9_dll_DLL_PATH=
 d3d9_dll_DLLS = odbc32 \
-			ole32 \
-			oleaut32 \
-			winspool \
-			odbccp32
+		ole32 \
+		oleaut32 \
+		winspool \
+		odbccp32
 d3d9_dll_LIBRARY_PATH=
 d3d9_dll_LIBRARIES= uuid \
-			d3dx9 \
-			user32
+		    d3dx9 \
+		    user32
 
 d3d9_dll_OBJS = $(d3d9_dll_C_SRCS:.c=.o) \
 			$(d3d9_dll_CXX_SRCS:.cpp=.o) \

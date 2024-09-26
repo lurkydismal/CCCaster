@@ -12,18 +12,21 @@ CEXTRA                = -Ofast \
 			-m32 \
 			-std=c11 \
 			-march=native \
-			-fopenmp
+			-flto \
+			-fopenmp-simd \
+			-funroll-loops
 CXXEXTRA              = -Ofast \
 			-m32 \
 			-std=c++11 \
 			-march=native \
-			-fopenmp
+			-fopenmp-simd \
+			-funroll-loops
 RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
+			-I ../../stdfunc/include \
 			-I addon_callbacks/include \
-			-I native/include \
-			-I ../../
+			-I native/include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          = -L native/src
@@ -35,25 +38,20 @@ LIBRARIES             = -lCallDraw
 overlay_dll_MODULE= overlay.dll
 overlay_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
 		    native/src/native.c \
+		    ../../stdfunc/src/stdfunc.c \
 		    ../../states_dll/_useCallback/src/_useCallback.c
 overlay_dll_CXX_SRCS=
 overlay_dll_RC_SRCS=
 overlay_dll_LDFLAGS= -shared \
-			$(overlay_dll_MODULE:.dll=.def) \
-			-m32 \
-			-s \
-			-O1
+		     $(overlay_dll_MODULE:.dll=.def) \
+		     -m32 \
+		     -s \
+		     -O1
 overlay_dll_ARFLAGS=
 overlay_dll_DLL_PATH=
-overlay_dll_DLLS= odbc32 \
-			ole32 \
-			oleaut32 \
-			winspool \
-			odbccp32
+overlay_dll_DLLS=
 overlay_dll_LIBRARY_PATH=
-overlay_dll_LIBRARIES= uuid \
-        gdi32 \
-		        dwmapi
+overlay_dll_LIBRARIES=
 
 
 overlay_dll_OBJS= $(overlay_dll_C_SRCS:.c=.o) \
