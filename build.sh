@@ -9,7 +9,7 @@ ln -s $( locate -Nwl1 libgcc_s_dw2-1.dll ) "$MBAA_DIR/libgcc_s_dw2-1.dll"
 ln -s $( locate -Nwl1 libwinpthread-1.dll ) "$MBAA_DIR/libwinpthread-1.dll"
 
 cd $SCRIPT_DIRECTORY/d3d9-wrapper && ./build.sh
-cd $SCRIPT_DIRECTORY/just_another_modloader && ./build_release.sh
+cd $SCRIPT_DIRECTORY/just_another_modloader && cargo update && ./build_release.sh
 cd $SCRIPT_DIRECTORY/states_dll && ./build.sh
 
 cd $SCRIPT_DIRECTORY/addons && ./build.sh
