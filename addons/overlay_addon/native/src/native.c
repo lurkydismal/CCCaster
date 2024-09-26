@@ -6,7 +6,7 @@
       |         |
       C --------D
 */
-static uint32_t drawRectangle( uint32_t _x,
+uint32_t drawRectangle( uint32_t _x,
                                uint32_t _y,
                                uint32_t _width,
                                uint32_t _height,
@@ -16,7 +16,7 @@ static uint32_t drawRectangle( uint32_t _x,
                                uint32_t _d,
                                uint32_t _layerIndex );
 
-static uint32_t drawText( uint32_t _width,
+uint32_t drawText( uint32_t _width,
                           uint32_t _height,
                           uint32_t _x,
                           uint32_t _y,
@@ -29,7 +29,7 @@ static uint32_t drawText( uint32_t _width,
                           uint32_t _layerIndex,
                           char* _out );
 
-static uint32_t drawSprite( uint32_t _width,
+uint32_t drawSprite( uint32_t _width,
                             uint32_t _directXDevice,
                             uintptr_t _textureAddress,
                             uint32_t _x,
@@ -43,7 +43,7 @@ static uint32_t drawSprite( uint32_t _width,
                             uint32_t _unknown,
                             uint32_t _layerIndex );
 
-static uint32_t loadTextureFromMemory( char* _textureBuffer,
+uint32_t loadTextureFromMemory( char* _textureBuffer,
                                        uint32_t _textureBufferLength,
                                        char* _textureBuffer2,
                                        uint32_t _textureBuffer2Length,

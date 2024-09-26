@@ -8,7 +8,7 @@
 #include "settings_parser.h"
 #include "stdfunc.h"
 
-useCallbackFunction_t g_useCallback = NULL;
+useCallbackFunction_t g_useCallback;
 
 static void applyInput( button_t _buttons,
                         direction_t _direction,

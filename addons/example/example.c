@@ -1,6 +1,13 @@
 #if defined( _WIN32 )
 
-#include <windows.h>
+#include <wtypes.h>
+
+#include <winuser.h>
+
+#define MESSAGE_BOX( _text )                 \
+    MessageBoxA( NULL, _text, /* box text */ \
+                 "on",        /* box name */ \
+                 0 )
 
 #else // _WIN32
 
@@ -9,11 +16,6 @@
 #endif // _WIN32
 
 #include <stdint.h>
-
-#define MESSAGE_BOX( _text )                 \
-    MessageBoxA( NULL, _text, /* box text */ \
-                 "on",        /* box name */ \
-                 0 )
 
 int16_t __declspec( dllexport ) onGameStarted( void** _callbackArguments ) {
     int16_t l_returnValue = 0;

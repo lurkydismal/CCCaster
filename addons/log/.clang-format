@@ -106,6 +106,10 @@ IncludeCategories:
     Priority:        1
     SortPriority:    0
     CaseSensitive:   false
+  - Regex:           '^<wtypes.h>'
+    Priority:        1
+    SortPriority:    0
+    CaseSensitive:   false
   - Regex:           '^<ext/.*\.h>'
     Priority:        3
     SortPriority:    0

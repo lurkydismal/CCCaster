@@ -25,7 +25,7 @@ RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I ../../stdfunc/include \
-			-I addon_callbacks/include \
+			-I overlay/include \
 			-I native/include
 DLL_PATH              =
 DLL_IMPORTS           =
@@ -37,6 +37,7 @@ LIBRARIES             = -lCallDraw
 
 overlay_dll_MODULE= overlay.dll
 overlay_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
+		    overlay/src/overlay.c \
 		    native/src/native.c \
 		    ../../stdfunc/src/stdfunc.c \
 		    ../../states_dll/_useCallback/src/_useCallback.c
