@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if defined( LOG_BOOT )
+#if ( defined( LOG_BOOT ) || defined( NO_CALLBACKS ) || defined( LOG_ALLOCATE_CONSOLE ) )
 
 #include <stdio.h>
 
@@ -143,7 +143,6 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
             SetThreadExecutionState( l_executionThreadStateFlags );
 
-#if 0
 #if defined( LOG_BOOT )
 
             print( "Starting to load just_another_modloader.dll" );
@@ -203,7 +202,6 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
             }
 
 #endif // ! NO_CALLBACKS
-#endif
 
         } else {
 #if defined( LOG_BOOT )

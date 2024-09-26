@@ -2,3 +2,4 @@ LIBRARY overlay
 EXPORTS
 
 IDirect3D9Ex$CreateDevice
+overlay$register

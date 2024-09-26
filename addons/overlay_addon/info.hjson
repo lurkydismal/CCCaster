@@ -7,5 +7,6 @@
     main: overlay.dll
     events: {
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
+        overlay$register: overlay$register
     }
 }

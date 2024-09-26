@@ -15,8 +15,12 @@ int32_t __attribute( ( stdcall ) ) DllMain( void* _handle,
     bool l_returnValue = true;
 
     if ( _reason == ATTACH ) {
+#if defined( PRINT_LOG )
+
         AllocConsole();
         freopen( "CONOUT$", "w", stdout );
+
+#endif
 
         g_fileDescriptor = fopen( LOG_FILE_NAME "." LOG_FILE_EXTENSION, "w" );
 

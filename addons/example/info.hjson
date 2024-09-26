@@ -6,8 +6,9 @@
     source: reserved
     main: example.dll
     events: {
-        onGameStarted: onGameStarted
-        onHosted: onHosted
-        onConnection: onConnection
+        # Callback name   Exported name
+        onGameStarted   : onGameStarted
+        onHosted        : onHosted
+        onConnection    : onConnection
     }
 }
