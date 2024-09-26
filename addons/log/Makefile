@@ -39,19 +39,15 @@ keyboard_dll_C_SRCS= src/main.c \
 keyboard_dll_CXX_SRCS=
 keyboard_dll_RC_SRCS=
 keyboard_dll_LDFLAGS= -shared \
-			$(keyboard_dll_MODULE:.dll=.def) \
-			-m32 \
-			-s \
-			-O1
+		      $(keyboard_dll_MODULE:.dll=.def) \
+		      -m32 \
+		      -s \
+		      -O1
 keyboard_dll_ARFLAGS=
 keyboard_dll_DLL_PATH=
-keyboard_dll_DLLS= odbc32 \
-			ole32 \
-			oleaut32 \
-			winspool \
-			odbccp32
+keyboard_dll_DLLS=
 keyboard_dll_LIBRARY_PATH=
-keyboard_dll_LIBRARIES= uuid
+keyboard_dll_LIBRARIES=
 
 keyboard_dll_OBJS= $(keyboard_dll_C_SRCS:.c=.o) \
 			$(keyboard_dll_CXX_SRCS:.cpp=.o) \

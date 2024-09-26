@@ -50,19 +50,15 @@ actual_addon_dll_C_SRCS= src/main.c \
 actual_addon_dll_CXX_SRCS=
 actual_addon_dll_RC_SRCS=
 actual_addon_dll_LDFLAGS= -shared \
-			$(actual_addon_dll_MODULE:.dll=.def) \
-			-m32 \
-			-s \
-			-O1
+			  $(actual_addon_dll_MODULE:.dll=.def) \
+			  -m32 \
+			  -s \
+			  -O1
 actual_addon_dll_ARFLAGS=
 actual_addon_dll_DLL_PATH=
-actual_addon_dll_DLLS = odbc32 \
-			ole32 \
-			oleaut32 \
-			winspool \
-			odbccp32
+actual_addon_dll_DLLS =
 actual_addon_dll_LIBRARY_PATH=
-actual_addon_dll_LIBRARIES= uuid
+actual_addon_dll_LIBRARIES=
 
 actual_addon_dll_OBJS = $(actual_addon_dll_C_SRCS:.c=.o) \
 			$(actual_addon_dll_CXX_SRCS:.cpp=.o) \

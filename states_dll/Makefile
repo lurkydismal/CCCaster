@@ -27,8 +27,8 @@ CXXEXTRA              = -Ofast \
 			-Wno-shift-count-overflow
 RCEXTRA               =
 DEFINES               = -D_GLIBCXX_PARALLEL
-INCLUDE_PATH          = -I include \
-			-I ../stdfunc/include
+INCLUDE_PATH          = -I ../stdfunc/include \
+			-I include
 DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
@@ -42,12 +42,12 @@ states_dll_C_SRCS = ../stdfunc/src/stdfunc.c
 states_dll_CXX_SRCS= src/main.cpp
 states_dll_RC_SRCS=
 states_dll_LDFLAGS= -shared \
-			$(states_dll_MODULE:.dll=.def) \
-			-m32 \
-			-s \
-			-O1 \
-			-static-libstdc++ \
-			-static
+		    $(states_dll_MODULE:.dll=.def) \
+		    -m32 \
+		    -s \
+		    -O1 \
+		    -static-libstdc++ \
+		    -static
 states_dll_ARFLAGS=
 states_dll_DLL_PATH=
 states_dll_DLLS   =

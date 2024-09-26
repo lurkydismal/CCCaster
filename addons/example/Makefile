@@ -42,13 +42,9 @@ example_dll_LDFLAGS   = -shared \
 			-O1
 example_dll_ARFLAGS   =
 example_dll_DLL_PATH  =
-example_dll_DLLS      = odbc32 \
-			ole32 \
-			oleaut32 \
-			winspool \
-			odbccp32
+example_dll_DLLS      =
 example_dll_LIBRARY_PATH=
-example_dll_LIBRARIES = uuid
+example_dll_LIBRARIES =
 
 example_dll_OBJS      = $(example_dll_C_SRCS:.c=.o) \
 			$(example_dll_CXX_SRCS:.cpp=.o) \
