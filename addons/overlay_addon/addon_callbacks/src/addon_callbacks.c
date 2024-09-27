@@ -14,69 +14,142 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
 uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
+    _useCallback( "log$transaction$query", "Starting to register overlay\n" );
+
     char* _overlayName = ( char* )_callbackArguments[ 0 ];
+
+    {
+        _useCallback( "log$transaction$query", "Overlay name : \"" );
+        _useCallback( "log$transaction$query", _overlayName );
+        _useCallback( "log$transaction$query", "\"\n" );
+    }
+
     char* _overlayDefaultHotkey = ( char* )_callbackArguments[ 1 ];
+
+    {
+        _useCallback( "log$transaction$query", "Overlay default hotkey : \"" );
+        _useCallback( "log$transaction$query", _overlayDefaultHotkey );
+        _useCallback( "log$transaction$query", "\"\n" );
+    }
+
     char* _overlay = ( char* )_callbackArguments[ 2 ];
+
+    {
+        _useCallback( "log$transaction$query", "Overlay : {\n" );
+        _useCallback( "log$transaction$query", _overlay );
+        _useCallback( "log$transaction$query", "\n}\n" );
+    }
+
     uintptr_t* _overlayValueReferences = ( uintptr_t* )_callbackArguments[ 3 ];
 
-    char*** l_overlay;
+    {
+        char* l_overlayValueReferencesPointerAsText =
+            stoa( ( size_t )_overlayValueReferences );
 
-    if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
-                                         &l_overlay, _overlayName ) ) != 0 ) {
-        goto EXIT;
+        _useCallback( "log$transaction$query",
+                      "Overlay reference values pointer : \"" );
+        _useCallback( "log$transaction$query",
+                      l_overlayValueReferencesPointerAsText );
+        _useCallback( "log$transaction$query", "\"\n" );
+
+        free( l_overlayValueReferencesPointerAsText );
     }
 
     const char* l_overlayItems;
 
     {
-        char*** l_content = l_overlay;
-        const size_t l_contentLength = arrayLength( l_content );
-        char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
-        char** const* l_contentEnd =
-            ( l_contentFirstElement + l_contentLength );
+        char*** l_overlay;
 
-        for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-              _pair++ ) {
-            const char* l_key = ( *_pair )[ 0 ];
-            const char* l_value = ( *_pair )[ 1 ];
+        if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
+                                             &l_overlay, _overlayName ) ) !=
+             0 ) {
+            goto EXIT;
+        }
 
-            if ( l_key == "overlay" ) {
-                l_overlayItems = l_value;
+        {
+            char*** l_content = l_overlay;
+            const size_t l_contentLength = arrayLength( l_content );
+            char*** l_contentFirstElement =
+                arrayFirstElementPointer( l_content );
+            char** const* l_contentEnd =
+                ( l_contentFirstElement + l_contentLength );
 
-                break;
+            for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
+                  _pair++ ) {
+                const char* l_key = ( *_pair )[ 0 ];
+                const char* l_value = ( *_pair )[ 1 ];
+
+                if ( strcmp( l_key, "overlay" ) == 0 ) {
+                    l_overlayItems = l_value;
+
+                    break;
+                }
             }
         }
     }
 
     if ( !l_overlayItems ) {
+        l_returnValue = 1;
+
         goto EXIT;
     }
 
     {
-        const size_t l_overlayItemsCount = 0;
+        char** l_overlayItemsContent = ( char** )createArray( sizeof( char* ) );
 
-        char* l_text = strdup( _text );
+        {
+            char* l_text = strdup( l_overlayItems );
+            const char l_delimiter[] = ",";
+            char* l_splitted = strtok( l_text, l_delimiter );
 
-        const char l_delimiter[] = "\n";
-        char* l_line = strtok( l_text, l_delimiter );
+            while ( l_splitted ) {
+                insertIntoArray( ( void*** )&l_overlayItemsContent,
+                                 strdup( l_splitted ) );
 
-        while ( l_line ) {
-            parseLine( l_line );
+                l_splitted = strtok( NULL, l_delimiter );
+            }
 
-            l_line = strtok( NULL, l_delimiter );
+            free( l_text );
         }
 
-        free( l_text );
+        if ( ( l_returnValue = overlayRegister(
+                   _overlayName, ( const char* const* )l_overlayItemsContent,
+                   ( const char* )_overlay, _overlayValueReferences,
+                   _overlayDefaultHotkey ) ) != 0 ) {
+            goto EXIT;
+        }
+
+        {
+            char** l_content = l_overlayItemsContent;
+            const size_t l_contentLength = arrayLength( l_content );
+            char** l_contentFirstElement =
+                arrayFirstElementPointer( l_content );
+            char* const* l_contentEnd =
+                ( l_contentFirstElement + l_contentLength );
+
+            for ( char** _item = l_contentFirstElement; _item != l_contentEnd;
+                  _item++ ) {
+                free( _item );
+            }
+        }
+
+        free( l_overlayItemsContent );
     }
 
-#if 0
-    if ( ( l_returnValue = overlayRegister( _overlayName, ( const char* const* const* )l_overlay, _overlayValueReferences, _overlayDefaultHotkey ) ) != 0 ) {
-        goto EXIT;
-    }
-#endif
+EXIT: {
+    {
+        char* l_returnValueAsText = stoa( l_returnValue );
 
-EXIT:
+        _useCallback( "log$transaction$query",
+                      "Finished registering overlay with code : " );
+        _useCallback( "log$transaction$query", l_returnValueAsText );
+        _useCallback( "log$transaction$query", "\n" );
+
+        free( l_returnValueAsText );
+    }
+
     return ( l_returnValue );
+}
 }
 
 #if 0

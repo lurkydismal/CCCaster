@@ -379,6 +379,34 @@ char* stoa( size_t _number ) {
     return ( l_buffer );
 }
 
+size_t concatBeforeAndAfterString( char** _string,
+                                   const char* _beforeString,
+                                   const char* _afterString ) {
+    const size_t l_stringLength = strlen( *_string );
+    const size_t l_beforeStringLength = strlen( _beforeString );
+    const size_t l_afterStringLegnth = strlen( _afterString );
+    const size_t l_totalLength =
+        ( l_beforeStringLength + l_stringLength + l_afterStringLegnth );
+
+    char* l_buffer = ( char* )malloc( l_stringLength * sizeof( char ) );
+
+    memcpy( l_buffer, *_string, l_stringLength );
+
+    *_string =
+        ( char* )realloc( *_string, ( l_totalLength + 1 ) * sizeof( char ) );
+
+    memcpy( *_string, _beforeString, l_beforeStringLength );
+    memcpy( ( l_beforeStringLength + *_string ), l_buffer, l_stringLength );
+    memcpy( ( l_beforeStringLength + l_stringLength + *_string ), _afterString,
+            l_afterStringLegnth );
+
+    ( *_string )[ l_totalLength ] = '\0';
+
+    free( l_buffer );
+
+    return ( l_totalLength );
+}
+
 void** createArray( const size_t _elementSize ) {
     void** l_array = ( void** )malloc( 1 * _elementSize );
 

@@ -9,7 +9,7 @@
 #define arrayFirstElementPointer( _array ) ( _array + 1 )
 
 #define _findStringInArray( _array, _value )                      \
-    ( findStringInArrayInArray(                                   \
+    ( findStringInArray(                                   \
           ( const char** )( arrayFirstElementPointer( _array ) ), \
           arrayLength( _array ), _value ) +                       \
       1 )
@@ -33,6 +33,9 @@ extern "C" {
 size_t lengthOfNumber( size_t _number );
 int64_t power( int64_t _base, uint8_t _exponent );
 char* stoa( size_t _number );
+size_t concatBeforeAndAfterString( char** _string,
+                                   const char* _beforeString,
+                                   const char* _afterString );
 void** createArray( const size_t _elementSize );
 void preallocateArray( void*** _array, const size_t _length );
 void insertIntoArray( void*** _array, void* _value );
