@@ -34,7 +34,7 @@ static inline char* trim( const char* _text ) {
 static void parseLayout( const char* _overlayName,
                          const char* const* _overlayItems,
                          const char* _overlay ) {
-    char** l_overlay = (char**)createArray( sizeof( char* ) );
+    char** l_overlay = ( char** )createArray( sizeof( char* ) );
 
     {
         char* l_text = strdup( _overlay );
@@ -52,17 +52,43 @@ static void parseLayout( const char* _overlayName,
                 if ( !l_textLength ) {
                     goto PARSE_EXIT;
                 }
+                _useCallback( "log$transaction$query", "TEST3\n" );
+                _useCallback( "log$transaction$commit" );
 
-                l_buffer = (char*)realloc( l_buffer, ( l_bufferLength + l_textLength + 1 ) );
-                memcpy( ( l_buffer + l_bufferLength ), strdup( l_line ), l_textLength );
+                l_buffer = ( char* )realloc(
+                    l_buffer, ( l_bufferLength + l_textLength + 1 ) );
+                _useCallback( "log$transaction$query", "TEST10\n" );
+                _useCallback( "log$transaction$commit" );
+                memcpy( ( l_buffer + l_bufferLength ), l_trimmedText,
+                        l_textLength );
+                _useCallback( "log$transaction$query", "TEST4\n" );
+                _useCallback( "log$transaction$commit" );
                 l_bufferLength += l_textLength;
                 l_buffer[ l_bufferLength ] = '\n';
+                l_bufferLength++;
+                _useCallback( "log$transaction$query", "TEST5\n" );
+                _useCallback( "log$transaction$commit" );
+                _useCallback( "log$transaction$query", l_buffer );
+                _useCallback( "log$transaction$query", "\n" );
+                _useCallback( "log$transaction$commit" );
 
+#if 0
                 if ( l_trimmedText[ 0 ] == '[' ) {
-                    addLabel( l_label );
-                }
+                    l_buffer[ l_bufferLength ] = '\0';
 
-PARSE_EXIT:
+                    insertIntoArray( ( void*** )&l_overlay,
+                                     strdup( l_buffer ) );
+                    _useCallback( "log$transaction$query", l_buffer );
+                    _useCallback( "log$transaction$query", "\n" );
+                    _useCallback( "log$transaction$commit" );
+
+                    free( l_buffer );
+
+                    l_bufferLength = 0;
+                }
+#endif
+
+            PARSE_EXIT:
                 free( l_trimmedText );
             }
 
@@ -127,6 +153,7 @@ PARSE_EXIT:
             _useCallback( "log$transaction$query", l_buffer );
             _useCallback( "log$transaction$query", "\n" );
 
+#if 0
             if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
                         "keyboard" ) != 0 ) {
                 _useCallback( "log$transaction$query", "TRUE\n" );
@@ -134,6 +161,7 @@ PARSE_EXIT:
            } else {
                 _useCallback( "log$transaction$query", "FALSE\n" );
            }
+#endif
 
             free( l_buffer );
         }
