@@ -55,6 +55,7 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
         free( l_overlayValueReferencesPointerAsText );
     }
 
+    bool l_isAnyItems = false;
     const char* l_overlayItems;
 
     {
@@ -80,7 +81,9 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
                 const char* l_value = ( *_pair )[ 1 ];
 
                 if ( strcmp( l_key, "overlay" ) == 0 ) {
+                    _useCallback( "log$transaction$query", "TEST212\n" );
                     l_overlayItems = l_value;
+                    l_isAnyItems = true;
 
                     break;
                 }
@@ -88,11 +91,14 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
         }
     }
 
-    if ( !l_overlayItems ) {
+    if ( !l_isAnyItems ) {
+        _useCallback( "log$transaction$query", "TEST130\n" );
         l_returnValue = 1;
 
         goto EXIT;
     }
+
+    _useCallback( "log$transaction$query", "TEST123\n" );
 
     {
         char** l_overlayItemsContent = ( char** )createArray( sizeof( char* ) );

@@ -11,14 +11,14 @@
         void* l_statesDll = GetModuleHandleA( "states.dll" );    \
                                                                  \
         if ( !l_statesDll ) {                                    \
-            exit ( 1 );                                        \
+            exit( 1 );                                           \
         }                                                        \
                                                                  \
         g_useCallback = ( useCallbackFunction_t )GetProcAddress( \
             l_statesDll, "useCallback" );                        \
                                                                  \
         if ( !g_useCallback ) {                                  \
-            exit ( 1 );                                        \
+            exit( 1 );                                           \
         }                                                        \
     } while ( 0 );
 
