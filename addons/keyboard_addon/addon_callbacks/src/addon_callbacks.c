@@ -79,12 +79,10 @@ uint16_t __declspec( dllexport ) gameMode$opening( void** _callbackArguments ) {
     static bool l_isNeedToRegisterOverlay = false;
 
     if ( !l_isNeedToRegisterOverlay ) {
-        const uint16_t l_returnValue = _useCallback(
-            "overlay$register", "keyboard", "F4", "[text]\ncontent=huh", NULL );
+        _useCallback( "overlay$register", "keyboard", "F4",
+                      "[text]\ncontent=huh", NULL );
 
-        if ( ( l_returnValue == 0 ) || ( l_returnValue == ENODATA ) ) {
-            l_isNeedToRegisterOverlay = true;
-        }
+        l_isNeedToRegisterOverlay = true;
     }
 
     return ( 0 );

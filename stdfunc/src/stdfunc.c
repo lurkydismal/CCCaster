@@ -288,7 +288,7 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
         255,
     };
 
-    int64_t result = 1;
+    int64_t l_returnValue = 1;
 
     switch ( l_highestBitSet[ _exponent ] ) {
         case 255: // we use 255 as an overflow marker and return 0 on
@@ -305,7 +305,7 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
 
         case 6: {
             if ( _exponent & 1 ) {
-                result *= _base;
+                l_returnValue *= _base;
             }
 
             _exponent >>= 1;
@@ -314,7 +314,7 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
 
         case 5: {
             if ( _exponent & 1 ) {
-                result *= _base;
+                l_returnValue *= _base;
             }
 
             _exponent >>= 1;
@@ -323,7 +323,7 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
 
         case 4: {
             if ( _exponent & 1 ) {
-                result *= _base;
+                l_returnValue *= _base;
             }
 
             _exponent >>= 1;
@@ -332,7 +332,7 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
 
         case 3: {
             if ( _exponent & 1 ) {
-                result *= _base;
+                l_returnValue *= _base;
             }
 
             _exponent >>= 1;
@@ -341,7 +341,7 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
 
         case 2: {
             if ( _exponent & 1 ) {
-                result *= _base;
+                l_returnValue *= _base;
             }
 
             _exponent >>= 1;
@@ -350,12 +350,12 @@ int64_t power( int64_t _base, uint8_t _exponent ) {
 
         case 1: {
             if ( _exponent & 1 ) {
-                result *= _base;
+                l_returnValue *= _base;
             }
         }
 
         default: {
-            return ( result );
+            return ( l_returnValue );
         }
     }
 }
