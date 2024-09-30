@@ -1,6 +1,6 @@
 #include "overlay.h"
 
-#if 0
+#if 1
 #include "_useCallback.h"
 #endif
 
@@ -41,6 +41,7 @@ static inline char* trim( const char* _text ) {
 static void parseLayout( const char* _overlayName,
                          const char* const* _overlayItems,
                          const char* _overlay ) {
+    char** l_overlayLabels = ( char** )createArray( sizeof( char* ) );
     char** l_overlay = ( char** )createArray( sizeof( char* ) );
 
     // Fill resort settings for overlay
@@ -138,6 +139,9 @@ static void parseLayout( const char* _overlayName,
                                                                 "]" );
                                 printf( "LABEL %u %s\n", l_labelLength,
                                         l_label );
+
+                                insertIntoArray( &l_overlayLabels,
+                                                 strdup( l_label ) );
 
                                 l_buffer = ( char* )realloc(
                                     l_buffer, ( l_labelLength + 1 ) );
@@ -264,13 +268,21 @@ static void parseLayout( const char* _overlayName,
                         concatBeforeAndAfterString( &l_label, "[", "]" );
                     printf( "LABEL2 %u %s\n", l_labelLength, l_label );
 
-#if 0
+#if 1
                     // Register for rendering
                     {
                         char*** l_itemSettings;
 
                         if ( _useCallback( "core$getSettingsContentByLabel",
                                            &l_itemSettings, l_label ) != 0 ) {
+                            char* l_itemDefaultSettings;
+
+                            _useCallback( "core$readSettingsFromString",
+                                          l_itemDefaultSettings );
+
+                            _useCallback( "core$getSettingsContentByLabel",
+                                          &l_itemSettings, "keyboard" );
+
                             printf( "TRUE\n" );
 
                         } else {
@@ -290,6 +302,25 @@ static void parseLayout( const char* _overlayName,
 
         free( l_itemNames );
         free( l_itemCounts );
+    }
+
+    {
+        char** l_content = l_overlayLabels;
+        const size_t l_contentLength = arrayLength( l_content );
+        char* const* l_contentFirstElement =
+            arrayFirstElementPointer( l_content );
+        char* const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
+
+        for ( char* const* _item = l_contentFirstElement; _item != l_contentEnd;
+              _item++ ) {
+            printf( "{\n", *_item );
+            printf( "%s", *_item );
+            printf( "}\n", *_item );
+
+            free( *_item );
+        }
+
+        free( l_overlayLabels );
     }
 
     {
