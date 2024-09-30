@@ -140,7 +140,7 @@ static void parseLayout( const char* _overlayName,
                                 printf( "LABEL %u %s\n", l_labelLength,
                                         l_label );
 
-                                insertIntoArray( &l_overlayLabels,
+                                insertIntoArray( ( void*** )&l_overlayLabels,
                                                  strdup( l_label ) );
 
                                 l_buffer = ( char* )realloc(
@@ -276,6 +276,14 @@ static void parseLayout( const char* _overlayName,
                         if ( _useCallback( "core$getSettingsContentByLabel",
                                            &l_itemSettings, l_label ) != 0 ) {
                             char* l_itemDefaultSettings;
+
+                            const size_t l_itemDefaultSettingsIndex =
+                                _findStringInArray( l_overlayLabels, l_label );
+
+                            if ( l_itemDefaultSettingsIndex >= 1 ) {
+                                l_itemDefaultSettings =
+                                    l_overlay[ l_itemDefaultSettingsIndex ];
+                            }
 
                             _useCallback( "core$readSettingsFromString",
                                           l_itemDefaultSettings );
