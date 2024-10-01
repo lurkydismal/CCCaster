@@ -1,5 +1,10 @@
 #include "native.h"
 
+#include "stdfunc.h"
+
+char* g_elementTypesAsString[] = { "rectangle", "text", "sprite", NULL };
+element_t* g_elementsToRender;
+
 /*
       A ------- B
       |         |
@@ -49,9 +54,10 @@ uint32_t loadTextureFromMemory( char* _textureBuffer,
                                 uint32_t _textureBuffer2Length,
                                 uint32_t _unknownFlags );
 
-uint32_t native$getColorForRectangle( uint8_t _red,
-                                      uint8_t _green,
-                                      uint8_t _blue,
-                                      uint8_t _alpha ) {
-    return ( ( _alpha << 24 ) + ( _red << 16 ) + ( _green << 8 ) + ( _blue ) );
+uint32_t getColorForRectangle( uint8_t _red,
+                               uint8_t _green,
+                               uint8_t _blue,
+                               uint8_t _alpha ) {
+    return ( ( _alpha << ( 8 * 3 ) ) + ( _red << ( 8 * 2 ) ) +
+             ( _green << ( 8 * 1 ) ) + ( _blue ) );
 }

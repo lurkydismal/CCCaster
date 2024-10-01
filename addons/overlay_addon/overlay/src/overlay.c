@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "native.h"
 #include "stdfunc.h"
 
 static inline char* trim( const char* _text ) {
@@ -264,11 +265,12 @@ static void parseLayout( const char* _overlayName,
                                                 l_overlayNameWithUnderscore,
                                                 l_itemIndexAsText );
 
-                    const size_t l_labelLength =
-                        concatBeforeAndAfterString( &l_label, "[", "]" );
-                    printf( "LABEL2 %u %s\n", l_labelLength, l_label );
+                    free( l_itemIndexAsText );
 
-#if 1
+                    char* l_labelWithBrackets = strdup( l_label );
+                    concatBeforeAndAfterString( &l_labelWithBrackets, "[",
+                                                "]" );
+
                     // Register for rendering
                     {
                         char*** l_itemSettings;
@@ -278,7 +280,8 @@ static void parseLayout( const char* _overlayName,
                             char* l_itemDefaultSettings;
 
                             const size_t l_itemDefaultSettingsIndex =
-                                _findStringInArray( l_overlayLabels, l_label );
+                                _findStringInArray( l_overlayLabels,
+                                                    l_labelWithBrackets );
 
                             if ( l_itemDefaultSettingsIndex >= 1 ) {
                                 l_itemDefaultSettings =
@@ -289,17 +292,97 @@ static void parseLayout( const char* _overlayName,
                                           l_itemDefaultSettings );
 
                             _useCallback( "core$getSettingsContentByLabel",
-                                          &l_itemSettings, "keyboard" );
+                                          &l_itemSettings, l_label );
+                        }
 
-                            printf( "TRUE\n" );
+                        free( l_labelWithBrackets );
 
-                        } else {
-                            printf( "FALSE\n" );
+                        {
+                            element_t l_element = DEFAULT_ELEMENT_PARAMETERS;
+
+                            {
+                                {
+                                    char** l_content = g_elementTypesAsString;
+                                    const size_t l_contentLength =
+                                        arrayLength( l_content );
+                                    char* const* l_contentFirstElement =
+                                        l_content;
+                                    char* const* l_contentEnd =
+                                        ( l_contentFirstElement +
+                                          l_contentLength );
+
+                                    for ( char* const* _type =
+                                              l_contentFirstElement;
+                                          ( ( _type != l_contentEnd ) &&
+                                            ( *_type != NULL ) );
+                                          _type++ ) {
+                                        if ( strcmp( *_type, *_item ) == 0 ) {
+                                            l_element.type =
+                                                ( _type -
+                                                  l_contentFirstElement );
+
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            {
+                                char*** l_content = l_itemSettings;
+                                const size_t l_contentLength =
+                                    arrayLength( l_content );
+                                char** const* l_contentFirstElement =
+                                    arrayFirstElementPointer( l_content );
+                                char** const* l_contentEnd =
+                                    ( l_contentFirstElement + l_contentLength );
+
+                                for ( char** const* _pair =
+                                          l_contentFirstElement;
+                                      _pair != l_contentEnd; _pair++ ) {
+                                    char* l_key = ( *_pair )[ 0 ];
+                                    char* l_value = ( *_pair )[ 1 ];
+
+                                    if ( strcmp( l_key, "x" ) == 0 ) {
+                                        l_element.coordinates.x =
+                                            atol( l_value );
+
+                                    } else if ( strcmp( l_key, "y" ) == 0 ) {
+                                        l_element.coordinates.y =
+                                            atol( l_value );
+
+                                    } else if ( strcmp( l_key, "width" ) ==
+                                                0 ) {
+                                        l_element.size.width = atol( l_value );
+
+                                    } else if ( strcmp( l_key, "height" ) ==
+                                                0 ) {
+                                        l_element.size.height = atol( l_value );
+
+                                    } else if ( strcmp( l_key, "red" ) == 0 ) {
+                                        l_element.red = atol( l_value );
+
+                                    } else if ( strcmp( l_key, "green" ) ==
+                                                0 ) {
+                                        l_element.green = atol( l_value );
+
+                                    } else if ( strcmp( l_key, "blue" ) == 0 ) {
+                                        l_element.blue = atol( l_value );
+
+                                    } else if ( strcmp( l_key, "alpha" ) ==
+                                                0 ) {
+                                        l_element.alpha = atol( l_value );
+
+                                    } else if ( strcmp( l_key, "text" ) == 0 ) {
+                                        // TODO: strdup
+                                        l_element.text = l_value;
+                                    }
+                                }
+                            }
+
+                            insertIntoArray( ( void*** )&g_elementsToRender,
+                                             &l_element );
                         }
                     }
-#endif
-
-                    free( l_itemIndexAsText );
                 }
 
                 free( l_overlayNameWithUnderscore );
@@ -359,6 +442,7 @@ uint16_t overlayRegister( const char* _overlayName,
     uint16_t l_returnValue = 0;
 
     parseLayout( _overlayName, _overlayItems, _overlay );
+    registerHotkey( _overlayName, _overlayDefaultHotkey );
 
     return ( l_returnValue );
 }

@@ -79,8 +79,8 @@ uint16_t __declspec( dllexport ) gameMode$opening( void** _callbackArguments ) {
     static bool l_isNeedToRegisterOverlay = false;
 
     if ( !l_isNeedToRegisterOverlay ) {
-        _useCallback( "overlay$register", "keyboard", "F4",
-                      "[text]\ncontent=huh", NULL );
+        _useCallback( "overlay$register", "keyboard", "F4", "[text]\ntext=huh",
+                      NULL );
 
         l_isNeedToRegisterOverlay = true;
     }
