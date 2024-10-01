@@ -1,4 +1,5 @@
 #include "_useCallback.h"
+#include "native.h"
 #include "overlay.h"
 #include "stdfunc.h"
 
@@ -7,6 +8,8 @@ useCallbackFunction_t g_useCallback;
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     _useCallbackInitialize();
+
+    g_elementsToRender = ( element_t* )createArray( sizeof( element_t ) );
 
     return ( 0 );
 }
@@ -152,6 +155,13 @@ EXIT: {
 
     return ( l_returnValue );
 }
+}
+
+uint16_t __declspec( dllexport ) keyboard$getInput$end(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
+    return ( l_returnValue );
 }
 
 #if 0
