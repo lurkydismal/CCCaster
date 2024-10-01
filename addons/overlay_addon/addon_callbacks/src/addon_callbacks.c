@@ -14,89 +14,66 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
+/*
+ * char*      overlayName
+ * char*      elementsDefaultOrder
+ * char*      elementsDefaultSettings
+ * uintptr_t* elementsCallbackVariableReferences
+ * char*      overlayDefaultHotkey
+ */
 uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
+    char* _overlayName;
+    char* _elementsDefaultOrder;
+    char* _elementsDefaultSettings;
+    uintptr_t* _elementsCallbackVariableReferences;
+    char* _overlayDefaultHotkey;
 
     _useCallback( "log$transaction$query", "Starting to register overlay\n" );
 
-    char* _overlayName = ( char* )_callbackArguments[ 0 ];
-
+    // Get arguments
     {
-        _useCallback( "log$transaction$query", "Overlay name : \"" );
-        _useCallback( "log$transaction$query", _overlayName );
-        _useCallback( "log$transaction$query", "\"\n" );
-    }
-
-    char* _overlayDefaultHotkey = ( char* )_callbackArguments[ 1 ];
-
-    {
-        _useCallback( "log$transaction$query", "Overlay default hotkey : \"" );
-        _useCallback( "log$transaction$query", _overlayDefaultHotkey );
-        _useCallback( "log$transaction$query", "\"\n" );
-    }
-
-    char* _overlay = ( char* )_callbackArguments[ 2 ];
-
-    {
-        _useCallback( "log$transaction$query", "Overlay : {\n" );
-        _useCallback( "log$transaction$query", _overlay );
-        _useCallback( "log$transaction$query", "\n}\n" );
-    }
-
-    uintptr_t* _overlayValueReferences = ( uintptr_t* )_callbackArguments[ 3 ];
-
-    {
-        char* l_overlayValueReferencesPointerAsText =
-            stoa( ( size_t )_overlayValueReferences );
-
-        _useCallback( "log$transaction$query",
-                      "Overlay reference values pointer : \"" );
-        _useCallback( "log$transaction$query",
-                      l_overlayValueReferencesPointerAsText );
-        _useCallback( "log$transaction$query", "\"\n" );
-
-        free( l_overlayValueReferencesPointerAsText );
-    }
-
-    bool l_isAnyItems = false;
-    const char* l_overlayItems;
-
-    {
-        char*** l_overlay;
-
-        if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
-                                             &l_overlay, _overlayName ) ) !=
-             0 ) {
-            goto EXIT;
-        }
-
+        _overlayName = ( char* )_callbackArguments[ 0 ];
         {
-            char*** l_content = l_overlay;
-            const size_t l_contentLength = arrayLength( l_content );
-            char*** l_contentFirstElement =
-                arrayFirstElementPointer( l_content );
-            char** const* l_contentEnd =
-                ( l_contentFirstElement + l_contentLength );
-
-            for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-                  _pair++ ) {
-                const char* l_key = ( *_pair )[ 0 ];
-                const char* l_value = ( *_pair )[ 1 ];
-
-                if ( strcmp( l_key, "overlay" ) == 0 ) {
-                    l_overlayItems = l_value;
-                    l_isAnyItems = true;
-
-                    break;
-                }
-            }
+            _useCallback( "log$transaction$query", "Overlay name : \"" );
+            _useCallback( "log$transaction$query", _overlayName );
+            _useCallback( "log$transaction$query", "\"\n" );
         }
-    }
 
-    if ( !l_isAnyItems ) {
-        l_returnValue = 1;
+        _elementsDefaultOrder = ( char* )_callbackArguments[ 1 ];
+        {
+            _useCallback( "log$transaction$query", "Elements default order : {\n" );
+            _useCallback( "log$transaction$query", _elementsDefaultOrder );
+            _useCallback( "log$transaction$query", "\n}\n" );
+        }
 
-        goto EXIT;
+        _elementsDefaultSettings = ( char* )_callbackArguments[ 2 ];
+        {
+            _useCallback( "log$transaction$query", "Elements default settings : {\n" );
+            _useCallback( "log$transaction$query", _elementsDefaultSettings );
+            _useCallback( "log$transaction$query", "\n}\n" );
+        }
+
+        _elementsCallbackVariableReferences = ( uintptr_t* )_callbackArguments[ 3 ];
+        {
+            char* l_elementsCallbackVariableReferencesAsText =
+                stoa( ( size_t )_elementsCallbackVariableReferences );
+
+            _useCallback( "log$transaction$query",
+                    "Elements callback variables references : \"" );
+            _useCallback( "log$transaction$query",
+                    l_elementsCallbackVariableReferencesAsText );
+            _useCallback( "log$transaction$query", "\"\n" );
+
+            free( l_overlayValueReferencesPointerAsText );
+        }
+
+        _overlayDefaultHotkey = ( char* )_callbackArguments[ 4 ];
+        {
+            _useCallback( "log$transaction$query", "Overlay default hotkey : \"" );
+            _useCallback( "log$transaction$query", _overlayDefaultHotkey );
+            _useCallback( "log$transaction$query", "\"\n" );
+        }
     }
 
     {
@@ -141,7 +118,6 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
         free( l_overlayItemsContent );
     }
 
-EXIT: {
     {
         char* l_returnValueAsText = stoa( l_returnValue );
 
@@ -154,7 +130,6 @@ EXIT: {
     }
 
     return ( l_returnValue );
-}
 }
 
 uint16_t __declspec( dllexport ) keyboard$getInput$end(
