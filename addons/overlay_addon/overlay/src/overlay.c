@@ -213,195 +213,138 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
     return ( l_returnValue );
 }
 
-static void registerElementsForRender( const char* _overlayName,
-        const char* const* _elementLabels,
-        const char* const* _elementOrder,
-const char* const* _elementSettings ) {
+static uint16_t registerElementsForRender(
+    const char* _overlayName,
+    const char* const* _elementsLabels,
+    const char* const* _elementsOrder,
+    const char* const* _elementsSettings ) {
+    uint16_t l_returnValue = 0;
+
     // Go over items in order
     // And register those for rendering
     size_t* l_itemCounts = ( size_t* )createArray( sizeof( size_t ) );
     char** l_itemNames = ( char** )createArray( sizeof( char* ) );
 
-    const char* const* l_content = _overlayItems;
-    const size_t l_contentLength = arrayLength( l_content );
-    const char* const* l_contentFirstElement =
-        arrayFirstElementPointer( l_content );
-    const char* const* l_contentEnd =
-        ( l_contentFirstElement + l_contentLength );
+    {
+        const char* const* l_content = _elementsLabels;
+        const size_t l_contentLength = arrayLength( l_content );
+        const char* const* l_contentFirstElement =
+            arrayFirstElementPointer( l_content );
+        const char* const* l_contentEnd =
+            ( l_contentFirstElement + l_contentLength );
 
-    for ( const char* const* _item = l_contentFirstElement;
-            _item != l_contentEnd; _item++ ) {
-        const size_t l_textLength = strlen( *_item );
+        for ( const char* const* _label = l_contentFirstElement;
+              _label != l_contentEnd; _label++ ) {
+            printf( "LABE %s\n", *_label );
 
-        char* l_label =
-            ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
-
-        memcpy( l_label, ( *_item ), ( l_textLength + 1 ) );
-
-        {
-            const size_t l_overlayNameLength = strlen( _overlayName );
-            char* l_overlayNameWithUnderscore = ( char* )malloc(
-                    ( l_overlayNameLength + 1 + 1 ) * sizeof( char ) );
-
-            memcpy( l_overlayNameWithUnderscore, _overlayName,
-                    l_overlayNameLength );
-
-            l_overlayNameWithUnderscore[ l_overlayNameLength ] = '_';
-            l_overlayNameWithUnderscore[ l_overlayNameLength + 1 ] = '\0';
-
+            // Register for rendering
             {
-                size_t l_itemCount;
-                const ssize_t l_itemNameIndex =
-                    _findStringInArray( l_itemNames, *_item );
+                char*** l_itemSettings;
 
-                if ( l_itemNameIndex >= 1 ) {
-                    ( l_itemCounts[ l_itemNameIndex ] )++;
+                if ( _useCallback( "core$getSettingsContentByLabel",
+                                   &l_itemSettings, *_label ) != 0 ) {
+                    const char* l_itemDefaultSettings;
 
-                    l_itemCount = l_itemCounts[ l_itemNameIndex ];
+                    const size_t l_itemDefaultSettingsIndex =
+                        _findStringInArray( _elementsLabels, *_label );
 
-                } else {
-                    insertIntoArray( ( void*** )&l_itemNames,
-                            ( void* )( *_item ) );
-                    insertIntoArray( ( void*** )&l_itemCounts, ( void* )1 );
-
-                    l_itemCount = 1;
-                }
-
-                const size_t l_itemIndex = ( l_itemCount - 1 );
-                char* l_itemIndexAsText = stoa( l_itemIndex );
-
-                concatBeforeAndAfterString( &l_label,
-                        l_overlayNameWithUnderscore,
-                        l_itemIndexAsText );
-
-                free( l_itemIndexAsText );
-
-                char* l_labelWithBrackets = strdup( l_label );
-                concatBeforeAndAfterString( &l_labelWithBrackets, "[",
-                        "]" );
-
-                // Register for rendering
-                {
-                    char*** l_itemSettings;
-
-                    if ( _useCallback( "core$getSettingsContentByLabel",
-                                &l_itemSettings, l_label ) != 0 ) {
-                        char* l_itemDefaultSettings;
-
-                        const size_t l_itemDefaultSettingsIndex =
-                            _findStringInArray( l_overlayLabels,
-                                    l_labelWithBrackets );
-
-                        if ( l_itemDefaultSettingsIndex >= 1 ) {
-                            l_itemDefaultSettings =
-                                l_overlay[ l_itemDefaultSettingsIndex ];
-                        }
-
-                        _useCallback( "core$readSettingsFromString",
-                                l_itemDefaultSettings );
-
-                        _useCallback( "core$getSettingsContentByLabel",
-                                &l_itemSettings, l_label );
+                    if ( l_itemDefaultSettingsIndex >= 1 ) {
+                        l_itemDefaultSettings =
+                            _elementsSettings[ l_itemDefaultSettingsIndex ];
                     }
 
-                    free( l_labelWithBrackets );
+                    _useCallback( "core$readSettingsFromString",
+                                  l_itemDefaultSettings );
+
+                    _useCallback( "core$getSettingsContentByLabel",
+                                  &l_itemSettings, *_label );
+                }
+
+                printf( "LABE %s\n", *_label );
+                {
+                    element_t l_element = DEFAULT_ELEMENT_PARAMETERS;
 
                     {
-                        element_t l_element = DEFAULT_ELEMENT_PARAMETERS;
-
                         {
-                            {
-                                char** l_content = g_elementTypesAsString;
-                                const size_t l_contentLength =
-                                    arrayLength( l_content );
-                                char* const* l_contentFirstElement =
-                                    l_content;
-                                char* const* l_contentEnd =
-                                    ( l_contentFirstElement +
-                                      l_contentLength );
-
-                                for ( char* const* _type =
-                                        l_contentFirstElement;
-                                        ( ( _type != l_contentEnd ) &&
-                                          ( *_type != NULL ) );
-                                        _type++ ) {
-                                    if ( strcmp( *_type, *_item ) == 0 ) {
-                                        l_element.type =
-                                            ( _type -
-                                              l_contentFirstElement );
-
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        {
-                            char*** l_content = l_itemSettings;
+                            char** l_content = g_elementTypesAsString;
                             const size_t l_contentLength =
                                 arrayLength( l_content );
-                            char** const* l_contentFirstElement =
-                                arrayFirstElementPointer( l_content );
-                            char** const* l_contentEnd =
+                            char* const* l_contentFirstElement = l_content;
+                            char* const* l_contentEnd =
                                 ( l_contentFirstElement + l_contentLength );
 
-                            for ( char** const* _pair =
-                                    l_contentFirstElement;
-                                    _pair != l_contentEnd; _pair++ ) {
-                                char* l_key = ( *_pair )[ 0 ];
-                                char* l_value = ( *_pair )[ 1 ];
+                            for ( char* const* _type = l_contentFirstElement;
+                                  ( ( _type != l_contentEnd ) &&
+                                    ( *_type != NULL ) );
+                                  _type++ ) {
+                                if ( strcmp( *_type, *_label ) == 0 ) {
+                                    l_element.type =
+                                        ( _type - l_contentFirstElement );
 
-                                if ( strcmp( l_key, "x" ) == 0 ) {
-                                    l_element.coordinates.x =
-                                        atol( l_value );
-
-                                } else if ( strcmp( l_key, "y" ) == 0 ) {
-                                    l_element.coordinates.y =
-                                        atol( l_value );
-
-                                } else if ( strcmp( l_key, "width" ) ==
-                                        0 ) {
-                                    l_element.size.width = atol( l_value );
-
-                                } else if ( strcmp( l_key, "height" ) ==
-                                        0 ) {
-                                    l_element.size.height = atol( l_value );
-
-                                } else if ( strcmp( l_key, "red" ) == 0 ) {
-                                    l_element.red = atol( l_value );
-
-                                } else if ( strcmp( l_key, "green" ) ==
-                                        0 ) {
-                                    l_element.green = atol( l_value );
-
-                                } else if ( strcmp( l_key, "blue" ) == 0 ) {
-                                    l_element.blue = atol( l_value );
-
-                                } else if ( strcmp( l_key, "alpha" ) ==
-                                        0 ) {
-                                    l_element.alpha = atol( l_value );
-
-                                } else if ( strcmp( l_key, "text" ) == 0 ) {
-                                    // TODO: strdup
-                                    l_element.text = l_value;
+                                    break;
                                 }
                             }
                         }
-
-                        insertIntoArray( ( void*** )&g_elementsToRender,
-                                &l_element );
                     }
+
+                    printf( "LABE %s\n", *_label );
+                    {
+                        char*** l_content = l_itemSettings;
+                        const size_t l_contentLength = arrayLength( l_content );
+                        char** const* l_contentFirstElement =
+                            arrayFirstElementPointer( l_content );
+                        char** const* l_contentEnd =
+                            ( l_contentFirstElement + l_contentLength );
+
+                        for ( char** const* _pair = l_contentFirstElement;
+                              _pair != l_contentEnd; _pair++ ) {
+                            char* l_key = ( *_pair )[ 0 ];
+                            char* l_value = ( *_pair )[ 1 ];
+
+                            if ( strcmp( l_key, "x" ) == 0 ) {
+                                l_element.coordinates.x = atol( l_value );
+
+                            } else if ( strcmp( l_key, "y" ) == 0 ) {
+                                l_element.coordinates.y = atol( l_value );
+
+                            } else if ( strcmp( l_key, "width" ) == 0 ) {
+                                l_element.size.width = atol( l_value );
+
+                            } else if ( strcmp( l_key, "height" ) == 0 ) {
+                                l_element.size.height = atol( l_value );
+
+                            } else if ( strcmp( l_key, "red" ) == 0 ) {
+                                l_element.red = atol( l_value );
+
+                            } else if ( strcmp( l_key, "green" ) == 0 ) {
+                                l_element.green = atol( l_value );
+
+                            } else if ( strcmp( l_key, "blue" ) == 0 ) {
+                                l_element.blue = atol( l_value );
+
+                            } else if ( strcmp( l_key, "alpha" ) == 0 ) {
+                                l_element.alpha = atol( l_value );
+
+                            } else if ( strcmp( l_key, "text" ) == 0 ) {
+                                // TODO: strdup
+                                l_element.text = l_value;
+                            }
+                        }
+                    }
+
+                    printf( "LABE %s\n", *_label );
+                    insertIntoArray( ( void*** )&g_elementsToRender,
+                                     &l_element );
                 }
             }
-
-            free( l_overlayNameWithUnderscore );
         }
-
-        free( l_label );
     }
 
+    printf( "LABE s\n" );
     free( l_itemNames );
     free( l_itemCounts );
+
+    return ( l_returnValue );
 }
 
 static uint16_t freeElementsSettings( char*** _elementsLabels,
@@ -468,7 +411,9 @@ uint16_t overlayRegister( const char* _overlayName,
     }
 
     if ( ( l_returnValue = registerElementsForRender(
-               _overlayName, l_elementsLabels, _elementsOrder, l_elementsSettings ) ) != 0 ) {
+               _overlayName, ( const char* const* )l_elementsLabels,
+               _elementsOrder, ( const char* const* )l_elementsSettings ) ) !=
+         0 ) {
         l_returnValue = 1;
 
         goto FREE_LABELS;
