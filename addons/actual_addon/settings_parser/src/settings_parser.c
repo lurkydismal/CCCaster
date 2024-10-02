@@ -210,17 +210,16 @@ static inline char* trim( const char* _text ) {
     char* l_buffer = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
     size_t l_bufferLength = 0;
 
-    for ( size_t _index = 0; _index < l_textLength; _index++ ) {
-        const char l_symbol = _text[ _index ];
-
-        if ( isspace( l_symbol ) ) {
+    for ( const char* _symbol = _text; _symbol < ( _text + l_textLength );
+          _symbol++ ) {
+        if ( isspace( *_symbol ) ) {
             continue;
 
-        } else if ( l_symbol == '#' ) {
+        } else if ( *_symbol == '#' ) {
             break;
         }
 
-        l_buffer[ l_bufferLength ] = l_symbol;
+        l_buffer[ l_bufferLength ] = *_symbol;
         l_bufferLength++;
     }
 

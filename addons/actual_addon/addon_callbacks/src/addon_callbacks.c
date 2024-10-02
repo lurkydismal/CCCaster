@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "_useCallback.h"
@@ -69,11 +70,11 @@ uint16_t __declspec( dllexport ) core$changeSettingsKeyByLabel(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-    const char* const* _key = ( const char* const* )_callbackArguments[ 0 ];
-    const char* const* _label = ( const char* const* )_callbackArguments[ 1 ];
-    const char* const* _value = ( const char* const* )_callbackArguments[ 2 ];
+    const char* _key = ( const char* )_callbackArguments[ 0 ];
+    const char* _label = ( const char* )_callbackArguments[ 1 ];
+    const char* _value = ( const char* )_callbackArguments[ 2 ];
 
-    l_returnValue = changeSettingsKeyByLabel( *_key, *_label, *_value );
+    l_returnValue = changeSettingsKeyByLabel( _key, _label, _value );
 
     if ( !l_returnValue ) {
         writeSettingsToFile( SETTINGS_FILE_PATH );
