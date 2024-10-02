@@ -5,6 +5,28 @@
 
 useCallbackFunction_t g_useCallback;
 
+static ssize_t findKeyInSettings( char*** _settings, const char* _key ) {
+    ssize_t l_returnValue = -1;
+
+    char** const* l_content = _settings;
+    const size_t l_contentLength = arrayLength( l_content );
+    char** const* l_contentFirstElement = arrayFirstElementPointer( l_content );
+    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
+
+    for ( char** const* _pair = l_contentFirstElement; _pair != l_contentEnd;
+          _pair++ ) {
+        const char* l_value = ( *_pair )[ 1 ];
+
+        if ( strcmp( l_value, _key ) == 0 ) {
+            l_returnValue = ( _pair - l_contentFirstElement + 1 );
+
+            break;
+        }
+    }
+
+    return ( l_returnValue );
+}
+
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     _useCallbackInitialize();
@@ -23,17 +45,17 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
  */
 uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    char* _overlayName;
-    char* _elementsDefaultOrder;
-    char* _elementsDefaultSettings;
-    uintptr_t* _elementsCallbackVariableReferences;
-    char* _overlayDefaultHotkey;
+    const char* _overlayName;
+    const char* _elementsDefaultOrder;
+    const char* _elementsDefaultSettings;
+    const uintptr_t* _elementsCallbackVariableReferences;
+    const char* _overlayDefaultHotkey;
 
     _useCallback( "log$transaction$query", "Starting to register overlay\n" );
 
     // Get arguments
     {
-        _overlayName = ( char* )_callbackArguments[ 0 ];
+        _overlayName = ( const char* )_callbackArguments[ 0 ];
         {
             _useCallback( "log$transaction$query", "Overlay name : \"" );
             _useCallback( "log$transaction$query", _overlayName );
@@ -42,50 +64,81 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
 
         _elementsDefaultOrder = ( char* )_callbackArguments[ 1 ];
         {
-            _useCallback( "log$transaction$query", "Elements default order : {\n" );
+            _useCallback( "log$transaction$query",
+                          "Elements default order : {\n" );
             _useCallback( "log$transaction$query", _elementsDefaultOrder );
             _useCallback( "log$transaction$query", "\n}\n" );
         }
 
         _elementsDefaultSettings = ( char* )_callbackArguments[ 2 ];
         {
-            _useCallback( "log$transaction$query", "Elements default settings : {\n" );
+            _useCallback( "log$transaction$query",
+                          "Elements default settings : {\n" );
             _useCallback( "log$transaction$query", _elementsDefaultSettings );
             _useCallback( "log$transaction$query", "\n}\n" );
         }
 
-        _elementsCallbackVariableReferences = ( uintptr_t* )_callbackArguments[ 3 ];
+        _elementsCallbackVariableReferences =
+            ( uintptr_t* )_callbackArguments[ 3 ];
         {
             char* l_elementsCallbackVariableReferencesAsText =
                 stoa( ( size_t )_elementsCallbackVariableReferences );
 
             _useCallback( "log$transaction$query",
-                    "Elements callback variables references : \"" );
+                          "Elements callback variables references : \"" );
             _useCallback( "log$transaction$query",
-                    l_elementsCallbackVariableReferencesAsText );
+                          l_elementsCallbackVariableReferencesAsText );
             _useCallback( "log$transaction$query", "\"\n" );
 
-            free( l_overlayValueReferencesPointerAsText );
+            free( l_elementsCallbackVariableReferencesAsText );
         }
 
         _overlayDefaultHotkey = ( char* )_callbackArguments[ 4 ];
         {
-            _useCallback( "log$transaction$query", "Overlay default hotkey : \"" );
+            _useCallback( "log$transaction$query",
+                          "Overlay default hotkey : \"" );
             _useCallback( "log$transaction$query", _overlayDefaultHotkey );
             _useCallback( "log$transaction$query", "\"\n" );
         }
     }
 
     {
-        char** l_overlayItemsContent = ( char** )createArray( sizeof( char* ) );
+        const char** l_elementsOrder =
+            ( const char** )createArray( sizeof( const char* ) );
+        const char* l_elementsOrderString;
 
         {
-            char* l_text = strdup( l_overlayItems );
+            char*** l_settings;
+
+            if ( _useCallback( "core$getSettingsContentByLabel", &l_settings,
+                               _overlayName ) != 0 ) {
+                l_returnValue = 1;
+
+            } else {
+                const ssize_t l_elementsOrderIndex =
+                    findKeyInSettings( l_settings, "overlay_items_order" );
+
+                if ( l_elementsOrderIndex >= 0 ) {
+                    l_elementsOrderString =
+                        l_settings[ l_elementsOrderIndex ][ 1 ];
+
+                } else {
+                    _useCallback( "core$changeSettingsKeyByLabel",
+                                  "overlay_items_order", _overlayName,
+                                  _elementsDefaultOrder );
+
+                    l_elementsOrderString = _elementsDefaultOrder;
+                }
+            }
+        }
+
+        {
+            char* l_text = strdup( l_elementsOrderString );
             const char l_delimiter[] = ",";
             char* l_splitted = strtok( l_text, l_delimiter );
 
             while ( l_splitted ) {
-                insertIntoArray( ( void*** )&l_overlayItemsContent,
+                insertIntoArray( ( void*** )&l_elementsOrder,
                                  strdup( l_splitted ) );
 
                 l_splitted = strtok( NULL, l_delimiter );
@@ -94,28 +147,28 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
             free( l_text );
         }
 
-        if ( ( l_returnValue = overlayRegister(
-                   _overlayName, ( const char* const* )l_overlayItemsContent,
-                   ( const char* )_overlay, _overlayValueReferences,
-                   _overlayDefaultHotkey ) ) != 0 ) {
-            goto EXIT;
+        if ( arrayLength( l_elementsOrder ) ) {
+            l_returnValue = overlayRegister(
+                _overlayName, ( const char* const* )l_elementsOrder,
+                _elementsDefaultSettings, _elementsCallbackVariableReferences,
+                _overlayDefaultHotkey );
         }
 
         {
-            char** l_content = l_overlayItemsContent;
+            const char** l_content = l_elementsOrder;
             const size_t l_contentLength = arrayLength( l_content );
-            char** l_contentFirstElement =
+            const char** l_contentFirstElement =
                 arrayFirstElementPointer( l_content );
-            char* const* l_contentEnd =
+            const char* const* l_contentEnd =
                 ( l_contentFirstElement + l_contentLength );
 
-            for ( char** _item = l_contentFirstElement; _item != l_contentEnd;
-                  _item++ ) {
+            for ( const char** _item = l_contentFirstElement;
+                  _item != l_contentEnd; _item++ ) {
                 free( _item );
             }
         }
 
-        free( l_overlayItemsContent );
+        free( l_elementsOrder );
     }
 
     {

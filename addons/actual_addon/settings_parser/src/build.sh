@@ -11,8 +11,8 @@ clear && \
     -march=native \
     -funroll-loops \
     -fopenmp-simd \
-    -m32 \
-    -fprofile-use
+    -m32
+    #-fprofile-use
     #-fprofile-generate
     #-Og -g -pg \
 #   -fopt-info-vec=out.txt && \

@@ -65,11 +65,11 @@ int main( void ) {
             ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 )
                 ? "Label not found"
                 : "wrong result" );
-    printf( "\"82\", \"keyboard\", \"fn3\" %d\n",
+    printf( "\"82\", \"keyboard\", \"fn3\" %s\n",
             ( changeSettingsKeyByLabel( "82", "keyboard", "fn3" ) == 126 )
                 ? "Key not found"
                 : "Wrong result" );
-    printf( "\"81\", \"keyboard\", \"fn4\" %d\n",
+    printf( "\"81\", \"keyboard\", \"fn4\" %s\n",
             ( changeSettingsKeyByLabel( "81", "keyboard", "fn4" ) == 126 )
                 ? "Key not found"
                 : "Wrong result" );
