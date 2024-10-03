@@ -46,7 +46,10 @@ typedef struct {
     char* text;
 } element_t;
 
-extern element_t* g_elementsToRender;
+extern element_t** g_elementsToRender;
+
+extern char** g_overlayHotkeys;
+extern char** g_overlayNames;
 
 uint32_t getColorForRectangle( uint8_t _red,
                                uint8_t _green,

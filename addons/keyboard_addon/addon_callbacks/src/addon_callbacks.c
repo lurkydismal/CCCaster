@@ -104,30 +104,6 @@ static bool checkKey( uint8_t _key ) {
     return ( l_returnValue );
 }
 
-static ssize_t findKeyInSettings( const char* _key ) {
-    ssize_t l_returnValue = -1;
-
-    const size_t l_mappedButtonKeysLength = arrayLength( g_settings );
-    char*** l_mappedButtonKeysFirstElement =
-        arrayFirstElementPointer( g_settings );
-    char** const* l_mappedButtonKeysEnd =
-        ( l_mappedButtonKeysFirstElement + l_mappedButtonKeysLength );
-
-    for ( char*** _pair = l_mappedButtonKeysFirstElement;
-          _pair != l_mappedButtonKeysEnd; _pair++ ) {
-        const char* l_value = ( *_pair )[ 1 ];
-
-        if ( strcmp( l_value, _key ) == 0 ) {
-            l_returnValue = ( _pair - l_mappedButtonKeysFirstElement + 1 );
-
-            break;
-        }
-    }
-
-EXTI:
-    return ( l_returnValue );
-}
-
 uint16_t __declspec( dllexport ) mainLoop$newFrame(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
@@ -158,7 +134,7 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
         const char* l_keyboardLayoutValue = g_keyboardLayoutValues[ _keyIndex ];
         ssize_t l_mappedButtonKeyIndex =
-            findKeyInSettings( l_keyboardLayoutValue );
+            findKeyInSettings( g_settings, l_keyboardLayoutValue );
 
         if ( l_mappedButtonKeyIndex >= 0 ) {
             const char* l_activeMappedKey =

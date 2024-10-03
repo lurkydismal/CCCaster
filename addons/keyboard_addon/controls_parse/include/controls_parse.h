@@ -16,5 +16,4 @@ extern char*** g_settings;
       "AB = S\n"         \
       "FN1 = ]\n"        \
       "FN2 = R\n"        \
-      "START = T\n"      \
-      "ToggleOverlay_KeyConfig_Native = F4\n" )
+      "START = T\n" )
