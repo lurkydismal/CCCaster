@@ -3,7 +3,9 @@
 #include "stdfunc.h"
 
 char* g_elementTypesAsString[] = { "rectangle", "text", "sprite", NULL };
-element_t* g_elementsToRender;
+element_t** g_elementsToRender;
+char** g_overlayHotkeys;
+char** g_overlayNames;
 
 /*
       A ------- B

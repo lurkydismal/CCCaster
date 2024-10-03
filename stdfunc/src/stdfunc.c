@@ -443,15 +443,38 @@ void insertIntoArrayByIndex( void*** _array,
     ( *_array )[ _index ] = _value;
 }
 
+ssize_t findKeyInSettings( char*** _settings, const char* _key ) {
+    ssize_t l_index = -1;
+
+    char** const* l_content = _settings;
+    const size_t l_contentLength = arrayLength( l_content );
+    char** const* l_contentFirstElement = arrayFirstElementPointer( l_content );
+    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
+
+    for ( char** const* _pair = l_contentFirstElement; _pair != l_contentEnd;
+          _pair++ ) {
+        const char* l_value = ( *_pair )[ 1 ];
+
+        if ( strcmp( l_value, _key ) == 0 ) {
+            l_index = ( _pair - l_contentFirstElement + 1 );
+
+            break;
+        }
+    }
+
+    return ( l_index );
+}
+
 ssize_t findStringInArray( const char** _array,
                            const size_t _arrayLength,
                            const char* _value ) {
     ssize_t l_index = -1;
 
-#pragma omp simd
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
         if ( strcmp( _array[ _index ], _value ) == 0 ) {
             l_index = _index;
+
+            break;
         }
     }
 
@@ -463,14 +486,20 @@ ssize_t findInArray( const size_t* _array,
                      const size_t _value ) {
     ssize_t l_index = -1;
 
-#pragma omp simd
     for ( size_t _index = 0; _index < _arrayLength; _index++ ) {
         if ( _array[ _index ] == _value ) {
             l_index = _index;
+
+            break;
         }
     }
 
     return ( l_index );
+}
+
+bool containsKeyInSettings( char*** _settings,
+                     const char* _value ) {
+    return ( findKeyInSettings( _settings, _value ) >= 0 );
 }
 
 bool containsString( const char** _array,

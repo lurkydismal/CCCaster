@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "_useCallback.h"
 #include "native.h"
 #include "overlay.h"
@@ -5,33 +7,13 @@
 
 useCallbackFunction_t g_useCallback;
 
-static ssize_t findKeyInSettings( char*** _settings, const char* _key ) {
-    ssize_t l_returnValue = -1;
-
-    char** const* l_content = _settings;
-    const size_t l_contentLength = arrayLength( l_content );
-    char** const* l_contentFirstElement = arrayFirstElementPointer( l_content );
-    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
-
-    for ( char** const* _pair = l_contentFirstElement; _pair != l_contentEnd;
-          _pair++ ) {
-        const char* l_value = ( *_pair )[ 1 ];
-
-        if ( strcmp( l_value, _key ) == 0 ) {
-            l_returnValue = ( _pair - l_contentFirstElement + 1 );
-
-            break;
-        }
-    }
-
-    return ( l_returnValue );
-}
-
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     _useCallbackInitialize();
 
-    g_elementsToRender = ( element_t* )createArray( sizeof( element_t ) );
+    g_elementsToRender = ( element_t** )createArray( sizeof( element_t* ) );
+    g_overlayHotkeys = ( char** )createArray( sizeof( char* ) );
+    g_overlayNames = ( char** )createArray( sizeof( char* ) );
 
     return ( 0 );
 }
@@ -110,11 +92,9 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
         {
             char*** l_settings;
 
-            if ( _useCallback( "core$getSettingsContentByLabel", &l_settings,
-                               _overlayName ) != 0 ) {
-                l_returnValue = 1;
-
-            } else {
+            if ( ( l_returnValue =
+                       _useCallback( "core$getSettingsContentByLabel",
+                                     &l_settings, _overlayName ) ) == 0 ) {
                 const ssize_t l_elementsOrderIndex =
                     findKeyInSettings( l_settings, "overlay_items_order" );
 
@@ -193,107 +173,6 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
 }
 
 #if 0
-uint16_t __declspec( dllexport ) keyboard$getInput$end(
-    void** _callbackArguments ) {
-    if ( g_framesPassed > 7 ) {
-        if ( g_activeFlagsOverlay & OVERLAY_IS_MAPPING_KEY ) {
-            std::set< std::string >* _activeMappedKeys =
-                ( std::set< std::string >* )_callbackArguments[ 0 ];
-            std::set< uint8_t >* _activeKeys =
-                ( std::set< uint8_t >* )_callbackArguments[ 1 ];
-
-            if ( _activeMappedKeys->find( "B" ) != _activeMappedKeys->end() ) {
-                g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
-
-                g_framesPassed = 0;
-            }
-
-            if ( !_activeKeys->empty() ) {
-                if ( g_keyboardLayout.find( *( _activeKeys->begin() ) ) !=
-                     g_keyboardLayout.end() ) {
-                    uint16_t l_index = 0;
-
-                    for ( const auto& _item : g_jsonControlsKeyboard.items() ) {
-                        if ( l_index == g_menuCursorIndex ) {
-                            g_jsonControlsKeyboard[ std::to_string(
-                                *( _activeKeys->begin() ) ) ] =
-                                _item.value().template get< std::string >();
-
-                            g_jsonControlsKeyboard.erase( _item.key() );
-
-                            const std::string l_controlsConfigFileName =
-                                ( std::string(
-                                      CONTROLS_PREFERENCES_FILE_NAME ) +
-                                  std::string( "." ) +
-                                  std::string(
-                                      CONTROLS_PREFERENCES_FILE_EXTENSION ) );
-
-                            json l_jsonControls = {
-                                { "keyboard", g_jsonControlsKeyboard },
-                            };
-
-                            std::string buffer =
-                                l_jsonControls.dump( 4 ) + std::string( "\n" );
-
-                            writeFile( l_controlsConfigFileName.c_str(),
-                                       buffer.c_str() );
-
-                            break;
-                        }
-
-                        l_index++;
-                    }
-                }
-
-                g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
-
-                g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
-
-                g_framesPassed = 0;
-            }
-
-        } else if ( g_activeFlagsOverlay & SHOW_NATIVE ) {
-            std::set< std::string >* _activeMappedKeys =
-                ( std::set< std::string >* )_callbackArguments[ 0 ];
-
-            if ( _activeMappedKeys->find( "8" ) != _activeMappedKeys->end() ) {
-                g_menuCursorIndex--;
-
-                if ( g_menuCursorIndex >
-                     ( g_jsonControlsKeyboard.size() - 1 ) ) {
-                    g_menuCursorIndex = ( g_jsonControlsKeyboard.size() - 1 );
-                }
-
-                g_framesPassed = 0;
-            } else if ( _activeMappedKeys->find( "2" ) !=
-                        _activeMappedKeys->end() ) {
-                g_menuCursorIndex++;
-
-                if ( g_menuCursorIndex >
-                     ( g_jsonControlsKeyboard.size() - 1 ) ) {
-                    g_menuCursorIndex = 0;
-                }
-
-                g_framesPassed = 0;
-            }
-
-            if ( _activeMappedKeys->find( "A" ) != _activeMappedKeys->end() ) {
-                g_activeFlagsOverlay |= OVERLAY_IS_MAPPING_KEY;
-
-                g_framesPassed = 0;
-
-            } else if ( _activeMappedKeys->find( "B" ) !=
-                        _activeMappedKeys->end() ) {
-                g_activeFlagsOverlay &= ~OVERLAY_IS_MAPPING_KEY;
-
-                g_framesPassed = 0;
-            }
-        }
-    }
-
-    return ( 0 );
-}
-
 uint16_t __declspec( dllexport ) extraDrawCallback(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;

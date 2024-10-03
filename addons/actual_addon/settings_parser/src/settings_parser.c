@@ -335,8 +335,10 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
             changeKeyByIndex( l_keyIndex, l_labelIndex, _value );
         }
     }
+
 WRITE:
     writeSettingsToFile( SETTINGS_FILE_PATH );
+    writeSettingsToFile( SETTINGS_BACKUP_FILE_PATH );
 
 EXIT:
     return ( l_returnValue );
@@ -378,8 +380,16 @@ uint16_t readSettingsFromString( const char* _text ) {
 
     free( l_text );
 
-    l_returnValue = writeSettingsToFile( SETTINGS_BACKUP_FILE_PATH );
+    if ( ( l_returnValue = writeSettingsToFile( SETTINGS_FILE_PATH ) ) != 0 ) {
+        goto EXIT;
+    }
 
+    if ( ( l_returnValue = writeSettingsToFile( SETTINGS_BACKUP_FILE_PATH ) ) !=
+         0 ) {
+        goto EXIT;
+    }
+
+EXIT:
     return ( l_returnValue );
 }
 

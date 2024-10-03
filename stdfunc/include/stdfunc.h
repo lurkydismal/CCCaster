@@ -42,6 +42,7 @@ void insertIntoArray( void*** _array, void* _value );
 void insertIntoArrayByIndex( void*** _array,
                              const size_t _index,
                              void* _value );
+ssize_t findKeyInSettings( char*** _settings, const char* _key );
 ssize_t findStringInArray( const char** _array,
                            const size_t _arrayLength,
                            const char* _value );
