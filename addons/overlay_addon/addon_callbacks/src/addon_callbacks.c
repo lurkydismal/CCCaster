@@ -169,6 +169,9 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
+    char*** _activeMappedKeys = ( char*** )_callbackArguments[ 0 ];
+    char*** _activeKeys = ( char*** )_callbackArguments[ 1 ];
+
     return ( l_returnValue );
 }
 
