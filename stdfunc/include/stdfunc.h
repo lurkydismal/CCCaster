@@ -9,7 +9,7 @@
 #define arrayFirstElementPointer( _array ) ( _array + 1 )
 
 #define _findStringInArray( _array, _value )                      \
-    ( findStringInArray(                                   \
+    ( findStringInArray(                                          \
           ( const char** )( arrayFirstElementPointer( _array ) ), \
           arrayLength( _array ), _value ) +                       \
       1 )
@@ -42,7 +42,9 @@ void insertIntoArray( void*** _array, void* _value );
 void insertIntoArrayByIndex( void*** _array,
                              const size_t _index,
                              void* _value );
+void freeSettingsContent( char*** _content );
 ssize_t findKeyInSettings( char*** _settings, const char* _key );
+ssize_t findValueInSettings( char*** _settings, const char* _value );
 ssize_t findStringInArray( const char** _array,
                            const size_t _arrayLength,
                            const char* _value );

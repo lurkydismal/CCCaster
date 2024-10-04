@@ -143,6 +143,8 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
             SetThreadExecutionState( l_executionThreadStateFlags );
 
+#if !defined( NO_CALLBACKS )
+
 #if defined( LOG_BOOT )
 
             print( "Starting to load just_another_modloader.dll" );
@@ -180,8 +182,6 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
                 l_returnValue = false;
             }
 
-#if !defined( NO_CALLBACKS )
-
 #if defined( LOG_BOOT )
 
             print( "Starting to locate \"useCallback\" in states.dll" );
@@ -200,6 +200,12 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
 
                 l_returnValue = false;
             }
+
+#if defined( LOG_BOOT )
+
+            print( "Located \"useCallback\" in states.dll" );
+
+#endif // LOG_BOOT
 
 #endif // ! NO_CALLBACKS
 

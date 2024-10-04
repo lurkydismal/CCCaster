@@ -279,6 +279,7 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
                                    const char* _label,
                                    const char* _value ) {
     uint16_t l_returnValue = 0;
+    printf( "CHANGE %s %s %s\n", _key, _label, _value );
 
     char*** l_content = getSettingsContentByLabel( _label );
 
@@ -291,25 +292,7 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
     {
         const size_t l_keyIndex = getKeyIndex( l_content, _key );
 
-        {
-            const size_t l_contentLength = arrayLength( l_content );
-            char*** l_contentFirstElement =
-                arrayFirstElementPointer( l_content );
-            char** const* l_contentEnd =
-                ( l_contentFirstElement + l_contentLength );
-
-#pragma omp simd
-            for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-                  _pair++ ) {
-                free( ( *_pair )[ 0 ] );
-
-                free( ( *_pair )[ 1 ] );
-
-                free( ( *_pair ) );
-            }
-
-            free( l_content );
-        }
+        freeSettingsContent( l_content );
 
         const size_t l_labelIndex = getLabelIndex( _label );
 

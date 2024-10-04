@@ -169,7 +169,6 @@ extern "C" uint16_t useCallback( const char* _callbackName,
 
 #endif
 
-#pragma omp simd
         for ( addonCallbackFunction_t** _callback = l_callbacksFirstElement;
               _callback != l_callbacksEnd; _callback++ ) {
             const uint16_t l_result = ( *_callback )( _callbackArguments );

@@ -14,6 +14,13 @@ extern "C" {
 uint16_t __useCallback( const char* _callbackName,
                         const size_t _callbackArgumentsCount,
                         ... ) {
+#if defined( LOG_USE )
+
+    printf( "Callback name : %s\n", _callbackName );
+    printf( "Callback arguments length : %lu\n", _callbackArgumentsCount );
+
+#endif
+
     if ( !_callbackArgumentsCount ) {
         return ( g_useCallback( _callbackName, NULL ) );
     }
