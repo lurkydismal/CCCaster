@@ -2,16 +2,22 @@
 
 #if defined( NO_CALLBACKS )
 
-#undef __useCallback
+#if defined( _useCallback )
 
-#include <string>
-#include <vector>
+#undef _useCallback
+
+#endif // _useCallback
+
+#define _useCallback( _text, ... ) {}
+
+#if 0
+
+#include <stdarg.h>
+#include <stdio.h>
 
 uint16_t __useCallback( const char* _callbackName,
                         const size_t _callbackArgumentsCount,
                         ... ) {
-    std::string l_text;
-
     if ( _callbackName == "log$transaction$query" ) {
         va_list l_arguments;
         va_start( l_arguments, _callbackArgumentsCount );
@@ -23,9 +29,9 @@ uint16_t __useCallback( const char* _callbackName,
         va_end( l_arguments );
     }
 
-    printf( l_text.c_str() );
-
     return ( 0 );
 }
+
+#endif
 
 #endif // NO_CALLBACKS

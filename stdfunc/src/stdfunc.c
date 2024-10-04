@@ -443,7 +443,48 @@ void insertIntoArrayByIndex( void*** _array,
     ( *_array )[ _index ] = _value;
 }
 
+void freeSettingsContent( char*** _content ) {
+    char*** l_content = _content;
+    const size_t l_contentLength = arrayLength( l_content );
+    char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
+    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
+
+#pragma omp simd
+    for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
+          _pair++ ) {
+        free( ( *_pair )[ 0 ] );
+
+        free( ( *_pair )[ 1 ] );
+
+        free( ( *_pair ) );
+    }
+
+    free( l_content );
+}
+
 ssize_t findKeyInSettings( char*** _settings, const char* _key ) {
+    ssize_t l_index = -1;
+
+    char** const* l_content = _settings;
+    const size_t l_contentLength = arrayLength( l_content );
+    char** const* l_contentFirstElement = arrayFirstElementPointer( l_content );
+    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
+
+    for ( char** const* _pair = l_contentFirstElement; _pair != l_contentEnd;
+          _pair++ ) {
+        const char* l_key = ( *_pair )[ 0 ];
+
+        if ( strcmp( l_key, _key ) == 0 ) {
+            l_index = ( _pair - l_contentFirstElement + 1 );
+
+            break;
+        }
+    }
+
+    return ( l_index );
+}
+
+ssize_t findValueInSettings( char*** _settings, const char* _value ) {
     ssize_t l_index = -1;
 
     char** const* l_content = _settings;
@@ -455,7 +496,7 @@ ssize_t findKeyInSettings( char*** _settings, const char* _key ) {
           _pair++ ) {
         const char* l_value = ( *_pair )[ 1 ];
 
-        if ( strcmp( l_value, _key ) == 0 ) {
+        if ( strcmp( l_value, _value ) == 0 ) {
             l_index = ( _pair - l_contentFirstElement + 1 );
 
             break;
@@ -497,8 +538,7 @@ ssize_t findInArray( const size_t* _array,
     return ( l_index );
 }
 
-bool containsKeyInSettings( char*** _settings,
-                     const char* _value ) {
+bool containsKeyInSettings( char*** _settings, const char* _value ) {
     return ( findKeyInSettings( _settings, _value ) >= 0 );
 }
 

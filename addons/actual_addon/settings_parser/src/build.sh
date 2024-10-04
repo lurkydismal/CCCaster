@@ -4,6 +4,7 @@ clear && \
     gcc \
     main.c \
     -Ofast \
+    -g \
     settings_parser.c \
     ../../../../stdfunc/src/stdfunc.c \
     -I ../include \

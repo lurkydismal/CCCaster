@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "settings_parser.h"
 
@@ -14,11 +15,38 @@ int main( void ) {
                 ( changeSettingsKeyByLabel( "zaxc", "wqetrcw", "test" ) == 1 )
                     ? "Label not found"
                     : "wrong result" );
+
+        char*** l_settings = getSettingsContentByLabel( "TestLabel" );
+
+        printf( "Settings qwe: %s\n", l_settings[ 2 ][ 1 ] );
+
         printf(
             "\"qwe\", \"TestLabel\", \"testtt\" %s\n",
             ( changeSettingsKeyByLabel( "qwe", "TestLabel", "testtt" ) == 126 )
                 ? "Key not found"
                 : "wrong result" );
+
+        printf( "Settings qwe: %s\n", l_settings[ 2 ][ 1 ] );
+
+        {
+            char*** l_content = l_settings;
+            const size_t l_contentLength = ( ( size_t )( l_content[ 0 ] ) - 1 );
+            char*** l_contentFirstElement = ( l_content + 1 );
+            char** const* l_contentEnd =
+                ( l_contentFirstElement + l_contentLength );
+
+#pragma omp simd
+            for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
+                  _pair++ ) {
+                free( ( *_pair )[ 0 ] );
+
+                free( ( *_pair )[ 1 ] );
+
+                free( ( *_pair ) );
+            }
+
+            free( l_content );
+        }
 
         writeSettingsToFile( "tc.ini" );
     }

@@ -134,7 +134,7 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
         const char* l_keyboardLayoutValue = g_keyboardLayoutValues[ _keyIndex ];
         ssize_t l_mappedButtonKeyIndex =
-            findKeyInSettings( g_settings, l_keyboardLayoutValue );
+            findValueInSettings( g_settings, l_keyboardLayoutValue );
 
         if ( l_mappedButtonKeyIndex >= 0 ) {
             const char* l_activeMappedKey =
