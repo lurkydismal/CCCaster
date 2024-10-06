@@ -8,5 +8,5 @@ clear && \
     "${MBAA_DIR}/states.dll" && \
     clang-format --style=file \
     -i \
-    src/*.cpp include/*.hpp \
+    src/*.cpp \
     _useCallback/src/*.c _useCallback/include/*.h

@@ -9,5 +9,6 @@
         IDirect3D9Ex$CreateDevice: IDirect3D9Ex$CreateDevice
         mainLoop$newFrame: mainLoop$newFrame
         gameMode$opening: gameMode$opening
+        keyboard$reloadSettings: keyboard$reloadSettings
     }
 }

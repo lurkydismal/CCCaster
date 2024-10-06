@@ -9,17 +9,8 @@
 
 #endif
 
-#include <string>
-
-#if defined( USE_BYTELL_HASH_MAP )
-
-#include "bytell_hash_map.hpp"
-
-#else
-
 #include <map>
-
-#endif
+#include <string>
 
 #if ( defined( LOG_ADD ) || defined( LOG_USE ) )
 
@@ -29,17 +20,8 @@
 
 typedef uint16_t addonCallbackFunction_t( void** );
 
-#if defined( USE_BYTELL_HASH_MAP )
-
-static ska::bytell_hash_map< std::string, addonCallbackFunction_t** >
-    g_callbackFunctionAddresses;
-
-#else
-
 static std::map< std::string, addonCallbackFunction_t** >
     g_callbackFunctionAddresses;
-
-#endif
 
 extern "C" bool addCallbacks(
     const char* _callbackName,
