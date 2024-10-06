@@ -11,10 +11,6 @@
 #include "player_t.h"
 #include "stdfunc.h"
 
-#if 0
-#define PRINT_KEY
-#endif
-
 static const size_t g_keyboardLayoutKeys[] = {
     VK_ESCAPE,     VK_F1,       VK_F2,     VK_F3,       VK_F4,
     VK_F5,         VK_F6,       VK_F7,     VK_F8,       VK_F9,
@@ -50,7 +46,7 @@ static const char* g_keyboardLayoutValues[] = {
 
 static HWND g_hFocusWindow;
 useCallbackFunction_t g_useCallback;
-char*** g_settings;
+char*** g_settings = NULL;
 
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
@@ -64,13 +60,7 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
 
     _useCallbackInitialize();
 
-    if ( _useCallback( "core$getSettingsContentByLabel", &g_settings,
-                       "keyboard" ) != 0 ) {
-        _useCallback( "core$readSettingsFromString", DEFAULT_SETTINGS );
-
-        _useCallback( "core$getSettingsContentByLabel", &g_settings,
-                      "keyboard" );
-    }
+    _useCallback( "keyboard$reloadSettings" );
 
     return ( 0 );
 }
@@ -147,14 +137,14 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
             l_array = &l_activeKeys;
             l_key = l_keyboardLayoutValue;
 
-#if defined( PRINT_KEY )
+#if defined( LOG_KEY )
             _useCallback( "log$transaction$query", "not " );
 #endif
         }
 
         insertIntoArray( ( void*** )( l_array ), ( void* )( l_key ) );
 
-#if defined( PRINT_KEY )
+#if defined( LOG_KEY )
         _useCallback( "log$transaction$query", "mapped: " );
         _useCallback( "log$transaction$query", l_key );
         _useCallback( "log$transaction$query", "\n" );
@@ -167,6 +157,25 @@ uint16_t __declspec( dllexport ) mainLoop$newFrame(
 
     free( l_activeMappedKeys );
     free( l_activeKeys );
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) keyboard$reloadSettings(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
+    if ( g_settings != NULL ) {
+        freeSettingsContent( g_settings );
+    }
+
+    if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
+                                         &g_settings, "keyboard" ) ) != 0 ) {
+        _useCallback( "core$readSettingsFromString", DEFAULT_SETTINGS );
+
+        _useCallback( "core$getSettingsContentByLabel", &g_settings,
+                      "keyboard" );
+    }
 
     return ( l_returnValue );
 }

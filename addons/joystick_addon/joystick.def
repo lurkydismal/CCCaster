@@ -1,9 +1,0 @@
-LIBRARY joystick
-EXPORTS
-
-mainLoop$newFrame
-joystick$getInput$end
-joystick$applyInput
-gameMode$versus
-IDirect3D9Ex$CreateDevice
-extraDrawCallback

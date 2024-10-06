@@ -520,9 +520,12 @@ static uint16_t registerHotkey( const char* _overlayName,
                         l_settings, l_overlayHotkeyNameMangled );
 
                     if ( l_overlayHotkeyIndex == -1 ) {
-                        _useCallback( "core$changeSettingsKeyByLabel",
-                                      l_overlayHotkeyNameMangled, _overlayName,
-                                      _overlayDefaultHotkey );
+                        if ( _useCallback( "core$changeSettingsKeyByLabel",
+                                           l_overlayHotkeyNameMangled,
+                                           "keyboard",
+                                           _overlayDefaultHotkey ) != 1 ) {
+                            _useCallback( "keyboard$reloadSettings" );
+                        }
                     }
 
                     freeSettingsContent( l_settings );
