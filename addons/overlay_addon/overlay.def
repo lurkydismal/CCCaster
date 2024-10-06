@@ -3,5 +3,5 @@ EXPORTS
 
 IDirect3D9Ex$CreateDevice
 keyboard$getInput$end
-extraDrawCallback
+game$frame$extraDraw
 overlay$register

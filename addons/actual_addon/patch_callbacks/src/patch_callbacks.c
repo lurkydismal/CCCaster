@@ -100,19 +100,19 @@ static char* gameModeToText( gameMode_t _gameMode ) {
 }
 
 void extraTexturesCallBack( void ) {
-    uint16_t l_result = _useCallback( "extraTextures" );
+    uint16_t l_result = _useCallback( "game$extraTextures" );
 }
 
 void characterSelectColorsCallback( void ) {
-    uint16_t l_result = _useCallback( "characterSelectColors" );
+    uint16_t l_result = _useCallback( "game$characterSelect$colors" );
 }
 
 void loadingColorsCallback( void ) {
-    uint16_t l_result = _useCallback( "loadingColors" );
+    uint16_t l_result = _useCallback( "game$loading$colors" );
 }
 
 void extraDrawCallback( void ) {
-    uint16_t l_result = _useCallback( "extraDraw" );
+    uint16_t l_result = _useCallback( "game$frame$extraDraw" );
 }
 
 void gameMainLoopCallback( void ) {
