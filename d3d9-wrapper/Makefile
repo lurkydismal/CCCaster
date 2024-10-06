@@ -23,8 +23,7 @@ CXXEXTRA              = -Ofast \
 			-funroll-loops \
 			-fvisibility=hidden
 RCEXTRA               =
-DEFINES               = -D_GLIBCXX_PARALLEL \
-			-D LOG_ALLOCATE_CONSOLE
+DEFINES               = -D_GLIBCXX_PARALLEL
 INCLUDE_PATH          = -I ../states_dll/_useCallback/include \
 			-I _useCallback/include \
 			-I D3DPERF_BeginEvent/include \

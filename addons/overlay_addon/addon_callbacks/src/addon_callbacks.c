@@ -23,7 +23,6 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-#if 0
     static size_t l_frameCounter = 0;
 
     if ( l_frameCounter ) {
@@ -73,25 +72,20 @@ NOT_MAPPED:
     }
 
 EXIT:
-#if 0
     if ( l_frameCounter ) {
         l_frameCounter--;
     }
-#endif
-#endif
 
     return ( l_returnValue );
 }
 
-uint16_t __declspec( dllexport ) extraDrawCallback(
+uint16_t __declspec( dllexport ) game$frame$extraDraw(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-#if 0
     if ( g_overlayToRender != NULL ) {
         printf( "TEST\n" );
     }
-#endif
 
     return ( l_returnValue );
 }

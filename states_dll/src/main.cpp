@@ -11,7 +11,15 @@
 
 #include <string>
 
-#include "bytell_map.hpp"
+#if defined( USE_BYTELL_HASH_MAP )
+
+#include "bytell_hash_map.hpp"
+
+#else
+
+#include <map>
+
+#endif
 
 #if ( defined( LOG_ADD ) || defined( LOG_USE ) )
 
@@ -21,8 +29,17 @@
 
 typedef uint16_t addonCallbackFunction_t( void** );
 
-ska::bytell_hash_map< std::string, addonCallbackFunction_t** >
+#if defined( USE_BYTELL_HASH_MAP )
+
+static ska::bytell_hash_map< std::string, addonCallbackFunction_t** >
     g_callbackFunctionAddresses;
+
+#else
+
+static std::map< std::string, addonCallbackFunction_t** >
+    g_callbackFunctionAddresses;
+
+#endif
 
 extern "C" bool addCallbacks(
     const char* _callbackName,
@@ -134,10 +151,9 @@ extern "C" bool addCallbacks(
 extern "C" uint16_t useCallback( const char* _callbackName,
                                  void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    const addonCallbackFunction_t** l_callbacks =
-        g_callbackFunctionAddresses.find( _callbackName )->second;
+    const auto l_callbacks = g_callbackFunctionAddresses.find( _callbackName );
 
-    if ( ( size_t )l_callbacks == std::numeric_limits< size_t >::max() ) {
+    if ( l_callbacks == g_callbackFunctionAddresses.end() ) {
         l_returnValue = ENODATA;
 
     } else {
@@ -148,7 +164,7 @@ extern "C" uint16_t useCallback( const char* _callbackName,
 
 #endif
 
-        const size_t l_callbacksLength = arrayLength( l_callbacks );
+        const size_t l_callbacksLength = arrayLength( l_callbacks->second );
 
 #if defined( LOG_USE )
 
@@ -157,7 +173,7 @@ extern "C" uint16_t useCallback( const char* _callbackName,
 #endif
 
         addonCallbackFunction_t** l_callbacksFirstElement =
-            arrayFirstElementPointer( l_callbacks );
+            arrayFirstElementPointer( l_callbacks->second );
         addonCallbackFunction_t* const* l_callbacksEnd =
             ( l_callbacksFirstElement + l_callbacksLength );
 
