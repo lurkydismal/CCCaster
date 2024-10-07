@@ -331,16 +331,16 @@ static uint16_t registerElementsForRender(
                                     l_element.size.height = atol( l_value );
 
                                 } else if ( strcmp( l_key, "red" ) == 0 ) {
-                                    l_element.red = atol( l_value );
+                                    l_element.a.red = atol( l_value );
 
                                 } else if ( strcmp( l_key, "green" ) == 0 ) {
-                                    l_element.green = atol( l_value );
+                                    l_element.a.green = atol( l_value );
 
                                 } else if ( strcmp( l_key, "blue" ) == 0 ) {
-                                    l_element.blue = atol( l_value );
+                                    l_element.a.blue = atol( l_value );
 
                                 } else if ( strcmp( l_key, "alpha" ) == 0 ) {
-                                    l_element.alpha = atol( l_value );
+                                    l_element.a.alpha = atol( l_value );
 
                                 } else if ( strcmp( l_key, "text" ) == 0 ) {
                                     l_element.text = l_value;
