@@ -54,6 +54,8 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
             }
 
             l_frameCounter = 30;
+
+            goto EXIT;
         }
     }
 
@@ -233,6 +235,13 @@ uint16_t __declspec( dllexport ) overlay$draw$rectangle(
     const uint32_t l_c = getColorForRectangle( l_element->c );
     const uint32_t l_d = getColorForRectangle( l_element->d );
 
+#if 0
+    printf( "rectangle x%u y%u w%u h%u a%u b%u c%u d%u l%u\n",
+            l_element->coordinates.x, l_element->coordinates.y,
+            l_element->size.width, l_element->size.height, l_a, l_b, l_c, l_d,
+            l_element->layer );
+#endif
+
     drawRectangle( l_element->coordinates.x, l_element->coordinates.y,
                    l_element->size.width, l_element->size.height, l_a, l_b, l_c,
                    l_d, l_element->layer );
@@ -245,6 +254,15 @@ uint16_t __declspec( dllexport ) overlay$draw$text(
     uint16_t l_returnValue = 0;
     const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
     char* l_out;
+
+#if 0
+    printf( "text %u %u %d %d %s %u %u %u %u %u %u %p\n", l_element->size.width,
+            l_element->size.height, l_element->coordinates.x,
+            l_element->coordinates.y, l_element->text, l_element->a.alpha,
+            l_element->shade.first, l_element->shade.second,
+            l_element->fontAddress, l_element->letterSpacing, l_element->layer,
+            l_out );
+#endif
 
     drawText( l_element->size.width, l_element->size.height,
               l_element->coordinates.x, l_element->coordinates.y,

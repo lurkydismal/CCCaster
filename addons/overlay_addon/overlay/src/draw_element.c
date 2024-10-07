@@ -18,26 +18,25 @@ uint16_t drawElement( const element_t* _element ) {
 
     switch ( _element->type ) {
         case RECTANGLE: {
-            l_returnValue =
-                _useCallback( "overlay$draw$rectangle", &l_element );
+            l_returnValue = _useCallback( "overlay$draw$rectangle", l_element );
 
             break;
         }
 
         case TEXT: {
-            l_returnValue = _useCallback( "overlay$draw$text", &l_element );
+            l_returnValue = _useCallback( "overlay$draw$text", l_element );
 
             break;
         }
 
         case SPRITE: {
-            l_returnValue = _useCallback( "overlay$draw$sprite", &l_element );
+            l_returnValue = _useCallback( "overlay$draw$sprite", l_element );
 
             break;
         }
 
         default: {
-            l_returnValue = _useCallback( "overlay$draw$unknown", &l_element );
+            l_returnValue = _useCallback( "overlay$draw$unknown", l_element );
         }
     }
 

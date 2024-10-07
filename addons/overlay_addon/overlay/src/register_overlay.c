@@ -331,19 +331,146 @@ static uint16_t registerElementsForRender(
                                     l_element.size.height = atol( l_value );
 
                                 } else if ( strcmp( l_key, "red" ) == 0 ) {
-                                    l_element.a.red = atol( l_value );
+                                    const uint8_t l_red = atol( l_value );
+
+                                    l_element.a.red = l_red;
+
+                                    if ( l_element.type == RECTANGLE ) {
+                                        l_element.b.red = l_red;
+                                        l_element.c.red = l_red;
+                                        l_element.d.red = l_red;
+                                    }
+
+                                } else if ( strcmp( l_key, "a_red" ) == 0 ) {
+                                    const uint8_t l_red = atol( l_value );
+
+                                    l_element.a.red = l_red;
+
+                                } else if ( strcmp( l_key, "b_red" ) == 0 ) {
+                                    const uint8_t l_red = atol( l_value );
+
+                                    l_element.b.red = l_red;
+
+                                } else if ( strcmp( l_key, "c_red" ) == 0 ) {
+                                    const uint8_t l_red = atol( l_value );
+
+                                    l_element.c.red = l_red;
+
+                                } else if ( strcmp( l_key, "d_red" ) == 0 ) {
+                                    const uint8_t l_red = atol( l_value );
+
+                                    l_element.d.red = l_red;
 
                                 } else if ( strcmp( l_key, "green" ) == 0 ) {
-                                    l_element.a.green = atol( l_value );
+                                    const uint8_t l_green = atol( l_value );
+
+                                    l_element.a.green = l_green;
+
+                                    if ( l_element.type == RECTANGLE ) {
+                                        l_element.b.green = l_green;
+                                        l_element.c.green = l_green;
+                                        l_element.d.green = l_green;
+                                    }
+
+                                } else if ( strcmp( l_key, "a_green" ) == 0 ) {
+                                    const uint8_t l_green = atol( l_value );
+
+                                    l_element.a.green = l_green;
+
+                                } else if ( strcmp( l_key, "b_green" ) == 0 ) {
+                                    const uint8_t l_green = atol( l_value );
+
+                                    l_element.b.green = l_green;
+
+                                } else if ( strcmp( l_key, "c_green" ) == 0 ) {
+                                    const uint8_t l_green = atol( l_value );
+
+                                    l_element.c.green = l_green;
+
+                                } else if ( strcmp( l_key, "d_green" ) == 0 ) {
+                                    const uint8_t l_green = atol( l_value );
+
+                                    l_element.d.green = l_green;
 
                                 } else if ( strcmp( l_key, "blue" ) == 0 ) {
-                                    l_element.a.blue = atol( l_value );
+                                    const uint8_t l_blue = atol( l_value );
+
+                                    l_element.a.blue = l_blue;
+
+                                    if ( l_element.type == RECTANGLE ) {
+                                        l_element.b.blue = l_blue;
+                                        l_element.c.blue = l_blue;
+                                        l_element.d.blue = l_blue;
+                                    }
+
+                                } else if ( strcmp( l_key, "a_blue" ) == 0 ) {
+                                    const uint8_t l_blue = atol( l_value );
+
+                                    l_element.a.blue = l_blue;
+
+                                } else if ( strcmp( l_key, "b_blue" ) == 0 ) {
+                                    const uint8_t l_blue = atol( l_value );
+
+                                    l_element.b.blue = l_blue;
+
+                                } else if ( strcmp( l_key, "c_blue" ) == 0 ) {
+                                    const uint8_t l_blue = atol( l_value );
+
+                                    l_element.c.blue = l_blue;
+
+                                } else if ( strcmp( l_key, "d_blue" ) == 0 ) {
+                                    const uint8_t l_blue = atol( l_value );
+
+                                    l_element.d.blue = l_blue;
 
                                 } else if ( strcmp( l_key, "alpha" ) == 0 ) {
-                                    l_element.a.alpha = atol( l_value );
+                                    const uint8_t l_alpha = atol( l_value );
+
+                                    l_element.a.alpha = l_alpha;
+
+                                    if ( l_element.type == RECTANGLE ) {
+                                        l_element.b.alpha = l_alpha;
+                                        l_element.c.alpha = l_alpha;
+                                        l_element.d.alpha = l_alpha;
+                                    }
+
+                                } else if ( strcmp( l_key, "a_alpha" ) == 0 ) {
+                                    const uint8_t l_alpha = atol( l_value );
+
+                                    l_element.a.alpha = l_alpha;
+
+                                } else if ( strcmp( l_key, "b_alpha" ) == 0 ) {
+                                    const uint8_t l_alpha = atol( l_value );
+
+                                    l_element.b.alpha = l_alpha;
+
+                                } else if ( strcmp( l_key, "c_alpha" ) == 0 ) {
+                                    const uint8_t l_alpha = atol( l_value );
+
+                                    l_element.c.alpha = l_alpha;
+
+                                } else if ( strcmp( l_key, "d_alpha" ) == 0 ) {
+                                    const uint8_t l_alpha = atol( l_value );
+
+                                    l_element.d.alpha = l_alpha;
 
                                 } else if ( strcmp( l_key, "text" ) == 0 ) {
                                     l_element.text = l_value;
+
+                                } else if ( strcmp( l_key, "shade_first" ) ==
+                                            0 ) {
+                                    l_element.shade.first = atol( l_value );
+
+                                } else if ( strcmp( l_key, "shade_second" ) ==
+                                            0 ) {
+                                    l_element.shade.second = atol( l_value );
+
+                                } else if ( strcmp( l_key, "letter_spacing" ) ==
+                                            0 ) {
+                                    l_element.letterSpacing = atol( l_value );
+
+                                } else if ( strcmp( l_key, "layer" ) == 0 ) {
+                                    l_element.layer = atol( l_value );
                                 }
                             }
 
