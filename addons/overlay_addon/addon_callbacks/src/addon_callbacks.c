@@ -36,33 +36,24 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
         goto NOT_MAPPED;
     }
 
-    {
-        char* const* l_content = g_overlayHotkeys;
-        const size_t l_contentLength = arrayLength( l_content );
-        char* const* l_contentFirstElement =
-            arrayFirstElementPointer( l_content );
-        char* const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
+    FOR_ARRAY( char* const*, g_overlayHotkeys ) {
+        if ( _containsString( *_activeMappedKeys, *_element ) ) {
+            printf( "KEY TRUE  %s\n", *_element );
 
-        for ( char* const* _overlayHotkey = l_contentFirstElement;
-              _overlayHotkey < l_contentEnd; _overlayHotkey++ ) {
-            if ( _containsString( *_activeMappedKeys, *_overlayHotkey ) ) {
-                printf( "KEY TRUE  %s\n", *_overlayHotkey );
+            if ( g_overlayToRender == NULL ) {
+                g_overlayToRender = arrayFirstElementPointer(
+                    g_overlaysToRender )[ _element - arrayFirstElementPointer(
+                                                         g_overlayHotkeys ) ];
 
-                if ( g_overlayToRender == NULL ) {
-                    g_overlayToRender = arrayFirstElementPointer(
-                        g_overlaysToRender )[ _overlayHotkey -
-                                              l_contentFirstElement ];
+                printf(
+                    "%s\n",
+                    arrayFirstElementPointer( g_overlayToRender )[ 0 ]->text );
 
-                    printf( "%s\n",
-                            arrayFirstElementPointer( g_overlayToRender )[ 0 ]
-                                ->text );
-
-                } else {
-                    g_overlayToRender = NULL;
-                }
-
-                l_frameCounter = 30;
+            } else {
+                g_overlayToRender = NULL;
             }
+
+            l_frameCounter = 30;
         }
     }
 
@@ -206,19 +197,9 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
                 _overlayName, ( const char* const* )l_elementsOrder,
                 _elementsDefaultSettings, _elementsCallbackVariableReferences,
                 _overlayDefaultHotkey );
-        }
 
-        {
-            const char** l_content = l_elementsOrder;
-            const size_t l_contentLength = arrayLength( l_content );
-            const char** l_contentFirstElement =
-                arrayFirstElementPointer( l_content );
-            const char* const* l_contentEnd =
-                ( l_contentFirstElement + l_contentLength );
-
-            for ( const char** _item = l_contentFirstElement;
-                  _item != l_contentEnd; _item++ ) {
-                free( _item );
+            FOR_ARRAY( const char**, l_elementsOrder ) {
+                free( _element );
             }
         }
 

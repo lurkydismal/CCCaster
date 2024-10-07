@@ -53,36 +53,22 @@ extern "C" bool addCallbacks(
 
 #endif
 
-    const size_t l_callbacksLength = arrayLength( l_callbacks );
-    addonCallbackFunction_t** l_callbacksFirstElement =
-        arrayFirstElementPointer( l_callbacks );
-    addonCallbackFunction_t* const* l_callbacksEnd =
-        ( l_callbacksFirstElement + l_callbacksLength );
-    addonCallbackFunction_t** l_callback = l_callbacksFirstElement;
-
-    addonCallbackFunction_t** l_functionAddressesFirstElement =
-        _functionAddresses;
-    addonCallbackFunction_t** l_functionAddress =
-        l_functionAddressesFirstElement;
-
-    while ( l_callback != l_callbacksEnd ) {
+    FOR_ARRAY( addonCallbackFunction_t**, l_callbacks ) {
+        const size_t l_index =
+            ( _element - arrayFirstElementPointer( l_callbacks ) );
 #if defined( LOG_ADD )
 
-        printf( "Index at array : %lu\n",
-                ( l_callback - l_callbacksFirstElement ) );
+        printf( "Index at array : %lu\n", l_index );
 
 #endif
 
-        ( *l_callback ) = *l_functionAddress;
+        *_element = _functionAddresses[ l_index ];
 
 #if defined( LOG_ADD )
 
-        printf( "Function address : %lu\n", *l_callback );
+        printf( "Function address : %lu\n", *_element );
 
 #endif
-
-        l_callback++;
-        l_functionAddress++;
     }
 
 #if defined( LOG_ADD )
@@ -143,33 +129,19 @@ extern "C" uint16_t useCallback( const char* _callbackName,
 
         printf( "Callback name : %s\n", _callbackName );
         printf( "Callback arguments : %p\n", _callbackArguments );
+        printf( "Callback arguments length : %lu\n",
+                arrayLength( l_callbacks->second ) );
 
 #endif
 
-        const size_t l_callbacksLength = arrayLength( l_callbacks->second );
-
+        FOR_ARRAY( addonCallbackFunction_t**, l_callbacks->second ) {
 #if defined( LOG_USE )
 
-        printf( "Callback arguments length : %lu\n", l_callbacksLength );
+            printf( "Callback : %p\n", *_element );
 
 #endif
 
-        addonCallbackFunction_t** l_callbacksFirstElement =
-            arrayFirstElementPointer( l_callbacks->second );
-        addonCallbackFunction_t* const* l_callbacksEnd =
-            ( l_callbacksFirstElement + l_callbacksLength );
-
-#if defined( LOG_USE )
-
-        printf( "Callback arguments first element : %p\n",
-                l_callbacksFirstElement );
-        printf( "Callback arguments end : %p\n", l_callbacksEnd );
-
-#endif
-
-        for ( addonCallbackFunction_t** _callback = l_callbacksFirstElement;
-              _callback != l_callbacksEnd; _callback++ ) {
-            const uint16_t l_result = ( *_callback )( _callbackArguments );
+            const uint16_t l_result = ( *_element )( _callbackArguments );
 
             if ( l_result ) {
 #if defined( LOG_USE )

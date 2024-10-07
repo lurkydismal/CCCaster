@@ -11,6 +11,8 @@ extern "C" {
 
 #endif
 
+enum SETTINGS_ITEM_TYPE { KEY, VALUE };
+
 size_t lengthOfNumber( size_t _number ) {
     if ( _number == 0 ) {
         return ( 1 );
@@ -444,66 +446,42 @@ void insertIntoArrayByIndex( void*** _array,
 }
 
 void freeSettingsContent( char*** _content ) {
-    char*** l_content = _content;
-    const size_t l_contentLength = arrayLength( l_content );
-    char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
-    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
-
 #pragma omp simd
-    for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-          _pair++ ) {
-        free( ( *_pair )[ 0 ] );
+    FOR_ARRAY( char***, _content ) {
+        free( ( *_element )[ 0 ] );
 
-        free( ( *_pair )[ 1 ] );
+        free( ( *_element )[ 1 ] );
 
-        free( ( *_pair ) );
+        free( ( *_element ) );
     }
 
-    free( l_content );
+    free( _content );
+}
+
+static ssize_t inline findInSettings( char** const* _settings,
+                                      const char* _text,
+                                      const enum SETTINGS_ITEM_TYPE _type ) {
+    ssize_t l_index = -1;
+
+    FOR_ARRAY( char** const*, _settings ) {
+        const char* l_text = ( *_element )[ 0 ];
+
+        if ( strcmp( l_text, _text ) == 0 ) {
+            l_index = ( _element - arrayFirstElementPointer( _settings ) + 1 );
+
+            break;
+        }
+    }
+
+    return ( l_index );
 }
 
 ssize_t findKeyInSettings( char*** _settings, const char* _key ) {
-    ssize_t l_index = -1;
-
-    char** const* l_content = _settings;
-    const size_t l_contentLength = arrayLength( l_content );
-    char** const* l_contentFirstElement = arrayFirstElementPointer( l_content );
-    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
-
-    for ( char** const* _pair = l_contentFirstElement; _pair != l_contentEnd;
-          _pair++ ) {
-        const char* l_key = ( *_pair )[ 0 ];
-
-        if ( strcmp( l_key, _key ) == 0 ) {
-            l_index = ( _pair - l_contentFirstElement + 1 );
-
-            break;
-        }
-    }
-
-    return ( l_index );
+    return ( findInSettings( _settings, _key, KEY ) );
 }
 
 ssize_t findValueInSettings( char*** _settings, const char* _value ) {
-    ssize_t l_index = -1;
-
-    char** const* l_content = _settings;
-    const size_t l_contentLength = arrayLength( l_content );
-    char** const* l_contentFirstElement = arrayFirstElementPointer( l_content );
-    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
-
-    for ( char** const* _pair = l_contentFirstElement; _pair != l_contentEnd;
-          _pair++ ) {
-        const char* l_value = ( *_pair )[ 1 ];
-
-        if ( strcmp( l_value, _value ) == 0 ) {
-            l_index = ( _pair - l_contentFirstElement + 1 );
-
-            break;
-        }
-    }
-
-    return ( l_index );
+    return ( findInSettings( _settings, _value, VALUE ) );
 }
 
 ssize_t findStringInArray( const char** _array,

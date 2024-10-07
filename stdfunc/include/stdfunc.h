@@ -7,12 +7,14 @@
 
 #define arrayLength( _array ) ( ( size_t )( _array[ 0 ] ) - 1 )
 #define arrayFirstElementPointer( _array ) ( _array + 1 )
+#define arrayLastElementPointer( _array ) ( arrayFirstElementPointer( _array ) + arrayLength( _array ) )
 
 #define _findStringInArray( _array, _value )                      \
     ( findStringInArray(                                          \
           ( const char** )( arrayFirstElementPointer( _array ) ), \
           arrayLength( _array ), _value ) +                       \
       1 )
+
 #define _findInArray( _array, _value )                                      \
     findInArray( arrayFirstElementPointer( _array ), arrayLength( _array ), \
                  _value )
@@ -20,9 +22,20 @@
 #define _containsString( _array, _value )                                   \
     containsString( ( const char** )( arrayFirstElementPointer( _array ) ), \
                     arrayLength( _array ), _value )
+
 #define _contains( _array, _value )                                      \
     contains( arrayFirstElementPointer( _array ), arrayLength( _array ), \
               _value )
+
+#define FOR( _type, _array )       \
+    for ( _type _element = _array;           \
+          _element < ( _array + ( sizeof( _array ) / sizeof( _array[ 0 ] ) ) ); _element++ )
+
+#define FOR_ARRAY( _type, _array )                                        \
+    for ( _type _element = arrayFirstElementPointer( _array );            \
+          _element <                                                      \
+          arrayLastElementPointer( _array ); \
+          _element++ )
 
 #ifdef __cplusplus
 

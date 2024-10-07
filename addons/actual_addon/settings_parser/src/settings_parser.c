@@ -33,14 +33,11 @@ void settingsParserInitialize( void ) {
 
 static size_t getLabelIndex( const char* _labelName ) {
     size_t l_labelIndex = UINT32_MAX;
-    char** l_labelsFirstElement = arrayFirstElementPointer( g_labels );
-    const size_t l_labelsLength = arrayLength( g_labels );
-    char* const* l_labelsEnd = ( l_labelsFirstElement + l_labelsLength );
 
-    for ( char** _label = l_labelsFirstElement; _label != l_labelsEnd;
-          _label++ ) {
-        if ( strcmp( _labelName, *_label ) == 0 ) {
-            l_labelIndex = ( _label - l_labelsFirstElement + 1 );
+    FOR_ARRAY( char**, g_labels ) {
+        if ( strcmp( *_element, _labelName ) == 0 ) {
+            l_labelIndex =
+                ( _element - arrayFirstElementPointer( g_labels ) + 1 );
 
             break;
         }
@@ -64,19 +61,14 @@ static void freeLabelByIndex( const size_t _labelIndex ) {
 
     {
         char*** l_content = g_contents[ _labelIndex ];
-        const size_t l_contentLength = arrayLength( l_content );
-        char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
-        char** const* l_contentEnd =
-            ( l_contentFirstElement + l_contentLength );
 
 #pragma omp simd
-        for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-              _pair++ ) {
-            free( ( *_pair )[ 0 ] );
+        FOR_ARRAY( char***, l_content ) {
+            free( ( *_element )[ 0 ] );
 
-            free( ( *_pair )[ 1 ] );
+            free( ( *_element )[ 1 ] );
 
-            free( *_pair );
+            free( *_element );
         }
 
         free( l_content );
@@ -176,26 +168,6 @@ static void addContent( const char* _text, const content_t _contentType ) {
     }
 }
 
-static size_t getKeyIndex( char*** _content, const char* _key ) {
-    size_t l_keyIndex = UINT32_MAX;
-    char*** l_contentFirstElement = arrayFirstElementPointer( _content );
-    const size_t l_contentLength = arrayLength( _content );
-    char** const* l_contentEnd = ( l_contentFirstElement + l_contentLength );
-
-    for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-          _pair++ ) {
-        const char* l_key = ( *_pair )[ 0 ];
-
-        if ( strcmp( _key, l_key ) == 0 ) {
-            l_keyIndex = ( _pair - l_contentFirstElement + 1 );
-
-            break;
-        }
-    }
-
-    return ( l_keyIndex );
-}
-
 static void addKey( const char* _text ) {
     addContent( _text, KEY );
 }
@@ -290,7 +262,7 @@ uint16_t changeSettingsKeyByLabel( const char* _key,
     }
 
     {
-        const size_t l_keyIndex = getKeyIndex( l_content, _key );
+        const size_t l_keyIndex = findKeyInSettings( l_content, _key );
 
         freeSettingsContent( l_content );
 
@@ -410,39 +382,29 @@ uint16_t writeSettingsToFile( const char* _fileName ) {
     FILE* l_fileHandle = fopen( _fileName, "w" );
 
     if ( l_fileHandle ) {
-        char** l_labelsFirstElement = arrayFirstElementPointer( g_labels );
-        const size_t l_labelsLength = arrayLength( g_labels );
-        char* const* l_labelsEnd = ( l_labelsFirstElement + l_labelsLength );
-
 #pragma omp simd
-        for ( char** _label = l_labelsFirstElement; _label != l_labelsEnd;
-              _label++ ) {
-            const size_t l_labelIndex = ( _label - l_labelsFirstElement );
+        FOR_ARRAY( char**, g_labels ) {
+            const size_t l_labelIndex =
+                ( _element - arrayFirstElementPointer( g_labels ) );
 
             // Label
             {
                 const bool l_isNotFirstLabel = ( l_labelIndex );
 
                 safeConcatBeforeAndAfterStringAndWriteToFile(
-                    *_label, ( ( l_isNotFirstLabel ) ? ( "\n[" ) : ( "[" ) ),
+                    *_element, ( ( l_isNotFirstLabel ) ? ( "\n[" ) : ( "[" ) ),
                     "]\n", l_fileHandle );
             }
 
             char*** l_content = g_contents[ l_labelIndex + 1 ];
-            size_t l_contentLength = arrayLength( l_content );
-            char*** l_contentFirstElement =
-                arrayFirstElementPointer( l_content );
-            char** const* l_contentEnd =
-                ( l_contentFirstElement + l_contentLength );
 
-            for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-                  _pair++ ) {
-                const char* l_key = ( *_pair )[ 0 ];
+            FOR_ARRAY( char***, l_content ) {
+                const char* l_key = ( *_element )[ 0 ];
 
                 safeConcatBeforeAndAfterStringAndWriteToFile( l_key, "", " =",
                                                               l_fileHandle );
 
-                const char* l_value = ( *_pair )[ 1 ];
+                const char* l_value = ( *_element )[ 1 ];
 
                 safeConcatBeforeAndAfterStringAndWriteToFile(
                     l_value, " ", "\n", l_fileHandle );
@@ -487,19 +449,14 @@ void printSettings( void ) {
           _labelIndex++ ) {
         const char* l_label = g_labels[ _labelIndex + 1 ];
         char*** l_content = g_contents[ _labelIndex + 1 ];
-        const size_t l_contentLength = arrayLength( l_content );
-        char*** l_contentFirstElement = arrayFirstElementPointer( l_content );
-        char** const* l_contentEnd =
-            ( l_contentFirstElement + l_contentLength );
 
-        printf( "[%s] : %d %p\n", l_label, l_contentLength, l_contentEnd );
+        printf( "[%s] : %u items\n", l_label, arrayLength( l_content ) );
 
-        for ( char*** _pair = l_contentFirstElement; _pair != l_contentEnd;
-              _pair++ ) {
-            const char* l_key = ( *_pair )[ 0 ];
-            const char* l_value = ( *_pair )[ 1 ];
+        FOR_ARRAY( char***, l_content ) {
+            const char* l_key = ( *_element )[ 0 ];
+            const char* l_value = ( *_element )[ 1 ];
 
-            printf( "%s=%s\n", l_key, l_value );
+            printf( "\"%s\" = \"%s\"\n", l_key, l_value );
         }
     }
 }
