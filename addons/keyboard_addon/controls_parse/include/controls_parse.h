@@ -17,3 +17,25 @@ extern char*** g_settings;
       "FN1 = ]\n"        \
       "FN2 = R\n"        \
       "START = T\n" )
+
+#define DEFAULT_ELEMENTS_ORDER "text,rectangle"
+
+#define DEFAULT_ELEMENTS_SETTINGS \
+    ( "[text]\n"                  \
+      "text = TEST\n"             \
+      "x = 200\n"                 \
+      "y = 200\n"                 \
+      "height = 50\n"             \
+      "width = 50\n"              \
+      "alpha = 255\n"             \
+      "shade_first = 1\n"         \
+      "layer = 1\n"               \
+      "[rectangle]\n"             \
+      "x = 200\n"                 \
+      "y = 200\n"                 \
+      "height = 150\n"            \
+      "width = 150\n"             \
+      "a_red = 255\n"             \
+      "d_green = 255\n"           \
+      "alpha = 255\n"             \
+      "layer = 1\n" )
