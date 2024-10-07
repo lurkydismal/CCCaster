@@ -33,7 +33,7 @@ struct size {
 
 enum elementType { RECTANGLE, TEXT, SPRITE, NONE };
 
-extern char* g_elementTypesAsString[];
+extern char* g_elementTypesAsString[ 4 ];
 
 typedef struct {
     enum elementType type;
