@@ -37,7 +37,9 @@ LIBRARIES             = -lCallDraw
 
 overlay_dll_MODULE= overlay.dll
 overlay_dll_C_SRCS= addon_callbacks/src/addon_callbacks.c \
+		    overlay/src/overlay.c \
 		    overlay/src/register_overlay.c \
+		    overlay/src/draw_element.c \
 		    native/src/native.c \
 		    ../../stdfunc/src/stdfunc.c \
 		    ../../states_dll/_useCallback/src/_useCallback.c

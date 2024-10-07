@@ -5,3 +5,6 @@ IDirect3D9Ex$CreateDevice
 keyboard$getInput$end
 game$frame$extraDraw
 overlay$register
+overlay$draw$rectangle
+overlay$draw$text
+overlay$draw$sprite

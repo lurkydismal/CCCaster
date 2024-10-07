@@ -75,7 +75,9 @@ uint16_t __declspec( dllexport ) game$frame$extraDraw(
     uint16_t l_returnValue = 0;
 
     if ( g_overlayToRender != NULL ) {
-        printf( "TEST\n" );
+        FOR_ARRAY( element_t**, g_overlayToRender ) {
+            drawElement( *_element );
+        }
     }
 
     return ( l_returnValue );
@@ -217,6 +219,46 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
 
         free( l_returnValueAsText );
     }
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) overlay$draw$rectangle(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+
+    const uint32_t l_a = getColorForRectangle( l_element->a );
+    const uint32_t l_b = getColorForRectangle( l_element->b );
+    const uint32_t l_c = getColorForRectangle( l_element->c );
+    const uint32_t l_d = getColorForRectangle( l_element->d );
+
+    drawRectangle( l_element->coordinates.x, l_element->coordinates.y,
+                   l_element->size.width, l_element->size.height, l_a, l_b, l_c,
+                   l_d, l_element->layer );
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) overlay$draw$text(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+    char* l_out;
+
+    drawText( l_element->size.width, l_element->size.height,
+              l_element->coordinates.x, l_element->coordinates.y,
+              l_element->text, l_element->a.alpha, l_element->shade.first,
+              l_element->shade.second, l_element->fontAddress,
+              l_element->letterSpacing, l_element->layer, l_out );
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) overlay$draw$sprite(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
 
     return ( l_returnValue );
 }
