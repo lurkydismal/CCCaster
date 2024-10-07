@@ -464,7 +464,7 @@ static ssize_t inline findInSettings( char** const* _settings,
     ssize_t l_index = -1;
 
     FOR_ARRAY( char** const*, _settings ) {
-        const char* l_text = ( *_element )[ 0 ];
+        const char* l_text = ( *_element )[ _type ];
 
         if ( strcmp( l_text, _text ) == 0 ) {
             l_index = ( _element - arrayFirstElementPointer( _settings ) + 1 );
