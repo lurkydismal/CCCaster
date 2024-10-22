@@ -556,59 +556,55 @@ static uint16_t registerHotkey( const char* _overlayName,
     uint16_t l_returnValue = 0;
 
     printf( "R HK2 %s\n", _overlayDefaultHotkey );
-    {
-        const char l_overlayHotkeyName[] = "overlay_toggle_key";
-        const size_t l_overlayHotkeyNameLength = strlen( l_overlayHotkeyName );
-        const size_t l_overlayNameLength = strlen( _overlayName );
-        const size_t l_overlayHotkeyNameMangledTotalLength =
-            ( l_overlayHotkeyNameLength + 1 + l_overlayNameLength );
-        char* l_overlayHotkeyNameMangled = ( char* )malloc(
+    const char l_overlayHotkeyName[] = "overlay_toggle_key";
+    const size_t l_overlayHotkeyNameLength = strlen( l_overlayHotkeyName );
+    const size_t l_overlayNameLength = strlen( _overlayName );
+    const size_t l_overlayHotkeyNameMangledTotalLength =
+        ( l_overlayHotkeyNameLength + 1 + l_overlayNameLength );
+    char* l_overlayHotkeyNameMangled = ( char* )malloc(
             ( l_overlayHotkeyNameMangledTotalLength + 1 ) * sizeof( char ) );
-        size_t l_overlayHotkeyNameMangledLength = 0;
+    size_t l_overlayHotkeyNameMangledLength = 0;
 
-        memcpy( l_overlayHotkeyNameMangled, l_overlayHotkeyName,
-                l_overlayHotkeyNameLength );
-        l_overlayHotkeyNameMangledLength += l_overlayHotkeyNameLength;
+    memcpy( l_overlayHotkeyNameMangled, l_overlayHotkeyName,
+            l_overlayHotkeyNameLength );
+    l_overlayHotkeyNameMangledLength += l_overlayHotkeyNameLength;
 
-        l_overlayHotkeyNameMangled[ l_overlayHotkeyNameMangledLength ] = '_';
-        l_overlayHotkeyNameMangledLength += 1;
+    l_overlayHotkeyNameMangled[ l_overlayHotkeyNameMangledLength ] = '_';
+    l_overlayHotkeyNameMangledLength += 1;
 
-        memcpy(
+    memcpy(
             ( l_overlayHotkeyNameMangled + l_overlayHotkeyNameMangledLength ),
             _overlayName, l_overlayNameLength );
-        l_overlayHotkeyNameMangledLength += l_overlayNameLength;
+    l_overlayHotkeyNameMangledLength += l_overlayNameLength;
 
-        l_overlayHotkeyNameMangled[ l_overlayHotkeyNameMangledLength ] = '\0';
-        l_overlayHotkeyNameMangledLength += 1;
+    l_overlayHotkeyNameMangled[ l_overlayHotkeyNameMangledLength ] = '\0';
+    l_overlayHotkeyNameMangledLength += 1;
 
-        {
-            {
-                char*** l_settings;
+    {
+        char*** l_settings;
 
-                if ( ( l_returnValue =
-                           _useCallback( "core$getSettingsContentByLabel",
-                                         &l_settings, _overlayName ) ) == 0 ) {
-                    const ssize_t l_overlayHotkeyIndex = findKeyInSettings(
-                        l_settings, l_overlayHotkeyNameMangled );
+        if ( ( l_returnValue =
+                    _useCallback( "core$getSettingsContentByLabel",
+                        &l_settings, _overlayName ) ) == 0 ) {
+            const ssize_t l_overlayHotkeyIndex = findKeyInSettings(
+                    l_settings, l_overlayHotkeyNameMangled );
 
-                    if ( l_overlayHotkeyIndex == -1 ) {
-                        if ( _useCallback( "core$changeSettingsKeyByLabel",
-                                           l_overlayHotkeyNameMangled,
-                                           "keyboard",
-                                           _overlayDefaultHotkey ) != 1 ) {
-                            _useCallback( "keyboard$reloadSettings" );
-                        }
-                    }
-
-                    freeSettingsContent( l_settings );
+            if ( l_overlayHotkeyIndex == -1 ) {
+                if ( _useCallback( "core$changeSettingsKeyByLabel",
+                            l_overlayHotkeyNameMangled,
+                            "keyboard",
+                            _overlayDefaultHotkey ) != 1 ) {
+                    _useCallback( "keyboard$reloadSettings" );
                 }
             }
 
-            printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );
-            insertIntoArray( ( void*** )&g_overlayHotkeys,
-                             l_overlayHotkeyNameMangled );
+            freeSettingsContent( l_settings );
         }
     }
+
+    printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );
+    insertIntoArray( ( void*** )&g_overlayHotkeys,
+            l_overlayHotkeyNameMangled );
 
     return ( l_returnValue );
 }
