@@ -92,7 +92,7 @@ static char* gameModeToText( gameMode_t _gameMode ) {
         }
 
         default: {
-            l_returnValue = "UNKNOWN - Report this!";
+            l_returnValue = "UNKNOWN";
         }
     }
 
@@ -166,12 +166,6 @@ void gameMainLoopCallback( void ) {
         }
 
         switch ( l_currentGameMode ) {
-            case STARTUP: {
-                uint16_t l_result = _useCallback( "gameMode$startup" );
-
-                break;
-            }
-
             case OPENING: {
                 *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
 
@@ -198,86 +192,16 @@ void gameMainLoopCallback( void ) {
                 break;
             }
 
-            case MAIN_MENU: {
-#if 0
-                *( ( uint32_t* )( CC_SKIP_FRAMES_ADDR ) ) = 1;
+            default: {
+                char* l_gameModeCallbackName =
+                    gameModeToText( l_currentGameMode );
 
-                {
-                    static patch_t forceGotoGameModePatch;
+                concatBeforeAndAfterString( &l_gameModeCallbackName,
+                                            "gameMode$", "" );
 
-                    if ( !( forceGotoGameModePatch.bytesBackupLength ) ) {
-                        {
-                            // Force the game to go to a certain mode
-                            // jmp 0042B4B6
-                            MAKE_PATCH_WITH_RETURN( forceGotoGameModePatch,
-                                                    0x42B475, { 0xEB, 0x3F } );
+                uint16_t l_result = _useCallback( l_gameModeCallbackName );
 
-                            uint16_t l_result =
-                                _useCallback( "gameMode$versus" );
-                        }
-
-                        {
-                            // jmp 0042B4D3
-                            MAKE_PATCH_WITH_RETURN( forceGotoGameModePatch,
-                                                    0x42B475, { 0xEB, 0x5C } );
-
-                            uint16_t l_result =
-                                _useCallback( "gameMode$versusCPU" );
-                        }
-
-                        {
-                            // jmp 0042B499
-                            MAKE_PATCH_WITH_RETURN( forceGotoGameModePatch,
-                                                    0x42B475, { 0xEB, 0x22 } );
-
-                            uint16_t l_result =
-                                _useCallback( "gameMode$training" );
-                        }
-
-                        {
-                            // jmp 0042B541
-                            MAKE_PATCH_WITH_RETURN(
-                                forceGotoGameModePatch, 0x42B475,
-                                { 0xE9, 0xC7, 0x00, 0x00, 0x00 } );
-
-                            uint16_t l_result =
-                                _useCallback( "gameMode$replay" );
-                        }
-                    }
-                }
-
-                if ( l_framesPassed % 2 ) {
-                    char** l_input = ( char** )createArray( sizeof( char* ) );
-
-                    insertIntoArray( ( void*** )( &l_input ), ( void* )( "A" ) );
-
-                    _useCallback( "game$applyInput", &l_input );
-
-                    free( l_input );
-                }
-#endif
-
-                uint16_t l_result = _useCallback( "gameMode$main" );
-
-                break;
-            }
-
-            case CHARACTER_SELECT: {
-                uint16_t l_result = _useCallback( "gameMode$characterSelect" );
-
-                break;
-            }
-
-            case LOADING: {
-                uint16_t l_result = _useCallback( "gameMode$loading" );
-
-                break;
-            }
-
-            case IN_MATCH: {
-                uint16_t l_result = _useCallback( "gameMode$inMatch" );
-
-                break;
+                free( l_gameModeCallbackName );
             }
         }
     }
