@@ -194,14 +194,7 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
         free( l_text );
     }
 
-    // Free l_labels
-    {
-        FOR_ARRAY( char* const*, l_labels ) {
-            free( *_element );
-        }
-
-        free( l_labels );
-    }
+    FREE_ARRAY( char* const*, l_labels );
 
     free( l_labelCounts );
 
@@ -502,14 +495,7 @@ static uint16_t registerElementsForRender(
 
     insertIntoArray( ( void*** )&g_overlaysToRender, l_overlay );
 
-    // Free l_labels
-    {
-        FOR_ARRAY( char* const*, l_labels ) {
-            free( *_element );
-        }
-
-        free( l_labels );
-    }
+    FREE_ARRAY( char* const*, l_labels );
 
     free( l_labelCounts );
 
@@ -520,33 +506,8 @@ static uint16_t freeElementsSettings( char*** _elementsLabels,
                                       char*** _elementsSettings ) {
     uint16_t l_returnValue = 0;
 
-    // Free labels
-    {
-        char** l_content = *_elementsLabels;
-
-        FOR_ARRAY( char* const*, *_elementsLabels ) {
-            printf( "{\n", *_element );
-            printf( "%s\n", *_element );
-            printf( "}\n", *_element );
-
-            free( *_element );
-        }
-
-        free( *_elementsLabels );
-    }
-
-    // Free settings
-    {
-        FOR_ARRAY( char* const*, *_elementsSettings ) {
-            printf( "{\n", *_element );
-            printf( "%s", *_element );
-            printf( "}\n", *_element );
-
-            free( *_element );
-        }
-
-        free( *_elementsSettings );
-    }
+    FREE_ARRAY( char* const*, *_elementsLabels );
+    FREE_ARRAY( char* const*, *_elementsSettings );
 
     return ( l_returnValue );
 }
@@ -556,44 +517,26 @@ static uint16_t registerHotkey( const char* _overlayName,
     uint16_t l_returnValue = 0;
 
     printf( "R HK2 %s\n", _overlayDefaultHotkey );
-    const char l_overlayHotkeyName[] = "overlay_toggle_key";
-    const size_t l_overlayHotkeyNameLength = strlen( l_overlayHotkeyName );
-    const size_t l_overlayNameLength = strlen( _overlayName );
-    const size_t l_overlayHotkeyNameMangledTotalLength =
-        ( l_overlayHotkeyNameLength + 1 + l_overlayNameLength );
-    char* l_overlayHotkeyNameMangled = ( char* )malloc(
-            ( l_overlayHotkeyNameMangledTotalLength + 1 ) * sizeof( char ) );
-    size_t l_overlayHotkeyNameMangledLength = 0;
+    const char l_overlayHotkeyName[] =
+        "overlay_toggle_key"
+        "_";
+    char* l_overlayHotkeyNameMangled = strdup( l_overlayHotkeyName );
 
-    memcpy( l_overlayHotkeyNameMangled, l_overlayHotkeyName,
-            l_overlayHotkeyNameLength );
-    l_overlayHotkeyNameMangledLength += l_overlayHotkeyNameLength;
-
-    l_overlayHotkeyNameMangled[ l_overlayHotkeyNameMangledLength ] = '_';
-    l_overlayHotkeyNameMangledLength += 1;
-
-    memcpy(
-            ( l_overlayHotkeyNameMangled + l_overlayHotkeyNameMangledLength ),
-            _overlayName, l_overlayNameLength );
-    l_overlayHotkeyNameMangledLength += l_overlayNameLength;
-
-    l_overlayHotkeyNameMangled[ l_overlayHotkeyNameMangledLength ] = '\0';
-    l_overlayHotkeyNameMangledLength += 1;
+    concatBeforeAndAfterString( &l_overlayHotkeyNameMangled, "", _overlayName );
 
     {
         char*** l_settings;
 
-        if ( ( l_returnValue =
-                    _useCallback( "core$getSettingsContentByLabel",
-                        &l_settings, _overlayName ) ) == 0 ) {
-            const ssize_t l_overlayHotkeyIndex = findKeyInSettings(
-                    l_settings, l_overlayHotkeyNameMangled );
+        if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
+                                             &l_settings, _overlayName ) ) ==
+             0 ) {
+            const ssize_t l_overlayHotkeyIndex =
+                findKeyInSettings( l_settings, l_overlayHotkeyNameMangled );
 
             if ( l_overlayHotkeyIndex == -1 ) {
                 if ( _useCallback( "core$changeSettingsKeyByLabel",
-                            l_overlayHotkeyNameMangled,
-                            "keyboard",
-                            _overlayDefaultHotkey ) != 1 ) {
+                                   l_overlayHotkeyNameMangled, "keyboard",
+                                   _overlayDefaultHotkey ) != 1 ) {
                     _useCallback( "keyboard$reloadSettings" );
                 }
             }
@@ -603,8 +546,7 @@ static uint16_t registerHotkey( const char* _overlayName,
     }
 
     printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );
-    insertIntoArray( ( void*** )&g_overlayHotkeys,
-            l_overlayHotkeyNameMangled );
+    insertIntoArray( ( void*** )&g_overlayHotkeys, l_overlayHotkeyNameMangled );
 
     return ( l_returnValue );
 }
