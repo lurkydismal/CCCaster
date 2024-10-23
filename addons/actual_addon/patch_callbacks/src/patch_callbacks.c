@@ -194,7 +194,7 @@ void gameMainLoopCallback( void ) {
 
             default: {
                 char* l_gameModeCallbackName =
-                    gameModeToText( l_currentGameMode );
+                    strdup( gameModeToText( l_currentGameMode ) );
 
                 concatBeforeAndAfterString( &l_gameModeCallbackName,
                                             "gameMode$", "" );
