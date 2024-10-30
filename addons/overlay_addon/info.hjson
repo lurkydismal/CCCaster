@@ -12,6 +12,5 @@
         overlay$register: overlay$register
         overlay$draw$rectangle: overlay$draw$rectangle
         overlay$draw$text: overlay$draw$text
-        overlay$draw$sprite: overlay$draw$sprite
     }
 }

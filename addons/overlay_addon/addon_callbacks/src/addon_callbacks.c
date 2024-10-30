@@ -1,3 +1,4 @@
+#include <d3d9.h>
 #include <stdio.h>
 
 #include "_useCallback.h"
@@ -8,6 +9,8 @@
 useCallbackFunction_t g_useCallback;
 element_t** g_overlayToRender = NULL;
 
+IDirect3DDevice9*** g_directXDevice;
+
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     _useCallbackInitialize();
@@ -15,6 +18,8 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     g_overlaysToRender = ( element_t*** )createArray( sizeof( element_t** ) );
     g_overlayHotkeys = ( char** )createArray( sizeof( char* ) );
     g_overlayNames = ( char** )createArray( sizeof( char* ) );
+
+    g_directXDevice = ( IDirect3DDevice9*** )_callbackArguments[ 5 ];
 
     return ( 0 );
 }
@@ -269,14 +274,6 @@ uint16_t __declspec( dllexport ) overlay$draw$text(
               l_element->text, l_element->a.alpha, l_element->shade.first,
               l_element->shade.second, l_element->fontAddress,
               l_element->letterSpacing, l_element->layer, l_out );
-
-    return ( l_returnValue );
-}
-
-uint16_t __declspec( dllexport ) overlay$draw$sprite(
-    void** _callbackArguments ) {
-    uint16_t l_returnValue = 0;
-    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
 
     return ( l_returnValue );
 }

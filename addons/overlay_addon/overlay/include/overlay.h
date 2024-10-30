@@ -8,6 +8,8 @@
     { UNKNOWN,                     \
       { 0, 0 },                    \
       { 0, 0 },                    \
+      { 0, 0 },                    \
+      { 0, 0 },                    \
       { 0, 0, 0, 0 },              \
       { 0, 0, 0, 0 },              \
       { 0, 0, 0, 0 },              \
@@ -47,7 +49,9 @@ extern char* g_elementTypesAsString[ 4 ];
 typedef struct {
     enum elementType type;
     coordinates_t coordinates;
+    coordinates_t textureCoordinates;
     struct size size;
+    struct size textureSize;
     color_t a;
     color_t b;
     color_t c;

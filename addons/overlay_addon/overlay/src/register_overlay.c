@@ -45,11 +45,23 @@ static inline void setElementPropertyByKey( element_t* _element,
     } else if ( strcmp( _key, "y" ) == 0 ) {
         _element->coordinates.y = l_valueAsSize;
 
+    } else if ( strcmp( _key, "texture_x" ) == 0 ) {
+        _element->textureCoordinates.x = l_valueAsSize;
+
+    } else if ( strcmp( _key, "texture_y" ) == 0 ) {
+        _element->textureCoordinates.y = l_valueAsSize;
+
     } else if ( strcmp( _key, "width" ) == 0 ) {
         _element->size.width = l_valueAsSize;
 
     } else if ( strcmp( _key, "height" ) == 0 ) {
         _element->size.height = l_valueAsSize;
+
+    } else if ( strcmp( _key, "texture_width" ) == 0 ) {
+        _element->textureSize.width = l_valueAsSize;
+
+    } else if ( strcmp( _key, "texture_height" ) == 0 ) {
+        _element->textureSize.height = l_valueAsSize;
 
     } else if ( strcmp( _key, "red" ) == 0 ) {
         const uint8_t l_red = l_valueAsSize;

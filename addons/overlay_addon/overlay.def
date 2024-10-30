@@ -7,4 +7,3 @@ game$frame$extraDraw
 overlay$register
 overlay$draw$rectangle
 overlay$draw$text
-overlay$draw$sprite
