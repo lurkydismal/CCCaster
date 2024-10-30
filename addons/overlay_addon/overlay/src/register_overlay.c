@@ -1,14 +1,10 @@
-#include "overlay.h"
-
-#if 1
-#include "_useCallback.h"
-#endif
-
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "_useCallback.h"
 #include "native.h"
+#include "overlay.h"
 #include "stdfunc.h"
 
 static inline char* trim( const char* _text ) {
@@ -36,6 +32,165 @@ static inline char* trim( const char* _text ) {
     l_buffer = ( char* )realloc( l_buffer, l_bufferLength );
 
     return ( l_buffer );
+}
+
+static inline void setElementPropertyByKey( element_t* _element,
+                                            const char* _key,
+                                            char* _value ) {
+    const size_t l_valueAsSize = atol( _value );
+
+    if ( strcmp( _key, "x" ) == 0 ) {
+        _element->coordinates.x = l_valueAsSize;
+
+    } else if ( strcmp( _key, "y" ) == 0 ) {
+        _element->coordinates.y = l_valueAsSize;
+
+    } else if ( strcmp( _key, "width" ) == 0 ) {
+        _element->size.width = l_valueAsSize;
+
+    } else if ( strcmp( _key, "height" ) == 0 ) {
+        _element->size.height = l_valueAsSize;
+
+    } else if ( strcmp( _key, "red" ) == 0 ) {
+        const uint8_t l_red = l_valueAsSize;
+
+        _element->a.red = l_red;
+
+        if ( _element->type == RECTANGLE ) {
+            _element->b.red = l_red;
+            _element->c.red = l_red;
+            _element->d.red = l_red;
+        }
+
+    } else if ( strcmp( _key, "green" ) == 0 ) {
+        const uint8_t l_green = l_valueAsSize;
+
+        _element->a.green = l_green;
+
+        if ( _element->type == RECTANGLE ) {
+            _element->b.green = l_green;
+            _element->c.green = l_green;
+            _element->d.green = l_green;
+        }
+
+    } else if ( strcmp( _key, "blue" ) == 0 ) {
+        const uint8_t l_blue = l_valueAsSize;
+
+        _element->a.blue = l_blue;
+
+        if ( _element->type == RECTANGLE ) {
+            _element->b.blue = l_blue;
+            _element->c.blue = l_blue;
+            _element->d.blue = l_blue;
+        }
+
+    } else if ( strcmp( _key, "alpha" ) == 0 ) {
+        const uint8_t l_alpha = l_valueAsSize;
+
+        _element->a.alpha = l_alpha;
+
+        if ( _element->type == RECTANGLE ) {
+            _element->b.alpha = l_alpha;
+            _element->c.alpha = l_alpha;
+            _element->d.alpha = l_alpha;
+        }
+
+    } else if ( strcmp( _key, "text" ) == 0 ) {
+        _element->text = _value;
+
+    } else if ( strcmp( _key, "shade_first" ) == 0 ) {
+        _element->shade.first = l_valueAsSize;
+
+    } else if ( strcmp( _key, "shade_second" ) == 0 ) {
+        _element->shade.second = l_valueAsSize;
+
+    } else if ( strcmp( _key, "letter_spacing" ) == 0 ) {
+        _element->letterSpacing = l_valueAsSize;
+
+    } else if ( strcmp( _key, "layer" ) == 0 ) {
+        _element->layer = l_valueAsSize;
+
+    } else {
+        // Color
+        if ( _key[ 1 ] == '_' ) {
+            color_t* l_elementColor;
+
+            switch ( _key[ 0 ] ) {
+                case 'a': {
+                    l_elementColor = &_element->a;
+
+                    break;
+                }
+
+                case 'b': {
+                    l_elementColor = &_element->b;
+
+                    break;
+                }
+
+                case 'c': {
+                    l_elementColor = &_element->c;
+
+                    break;
+                }
+
+                case 'd': {
+                    l_elementColor = &_element->d;
+
+                    break;
+                }
+
+                default: {
+                    return;
+                }
+            }
+
+            if ( strcmp( ( _key + 2 ), "red" ) == 0 ) {
+                l_elementColor->red = l_valueAsSize;
+
+            } else if ( strcmp( ( _key + 2 ), "green" ) == 0 ) {
+                l_elementColor->green = l_valueAsSize;
+
+            } else if ( strcmp( ( _key + 2 ), "blue" ) == 0 ) {
+                l_elementColor->blue = l_valueAsSize;
+
+            } else if ( strcmp( ( _key + 2 ), "alpha" ) == 0 ) {
+                l_elementColor->alpha = l_valueAsSize;
+            }
+        }
+    }
+}
+
+static inline enum elementType getElementTypeFromText(
+    const char* _elementTypeAsText ) {
+    printf( "LABE %s\n", _elementTypeAsText );
+    FOR( char* const*, g_elementTypesAsString ) {
+        if ( strcmp( *_element, _elementTypeAsText ) == 0 ) {
+            printf( "LT %s %d\n", _elementTypeAsText,
+                    ( _element - g_elementTypesAsString ) );
+            return ( _element - g_elementTypesAsString );
+        }
+    }
+}
+
+static inline element_t* createElementWithSettings(
+    const enum elementType _elementType,
+    char*** _elementSettings ) {
+    element_t l_element = DEFAULT_ELEMENT_PARAMETERS;
+    l_element.type = _elementType;
+
+    FOR_ARRAY( char** const*, _elementSettings ) {
+        char* l_key = ( *_element )[ 0 ];
+        char* l_value = ( *_element )[ 1 ];
+
+        setElementPropertyByKey( &l_element, ( const char* )l_key, l_value );
+    }
+
+    element_t* l_elementClone = ( element_t* )malloc( sizeof( l_element ) );
+
+    memcpy( l_elementClone, &l_element, sizeof( l_element ) );
+
+    return ( l_elementClone );
 }
 
 static uint16_t getElementsSettings( char*** _elementsLabels,
@@ -293,192 +448,15 @@ static uint16_t registerElementsForRender(
                         }
 
                         printf( "LABE %s\n", *_element );
-                        {
-                            element_t l_element = DEFAULT_ELEMENT_PARAMETERS;
-                            const char* l_label = *_element;
+                        element_t* l_element = createElementWithSettings(
+                            getElementTypeFromText( *_element ),
+                            l_elementSettings );
 
-                            FOR( char* const*, g_elementTypesAsString ) {
-                                if ( strcmp( *_element, l_label ) == 0 ) {
-                                    l_element.type =
-                                        ( _element - g_elementTypesAsString );
-
-                                    break;
-                                }
-                            }
-
-                            printf( "LABE %s\n", *_element );
-                            FOR_ARRAY( char** const*, l_elementSettings ) {
-                                char* l_key = ( *_element )[ 0 ];
-                                char* l_value = ( *_element )[ 1 ];
-
-                                if ( strcmp( l_key, "x" ) == 0 ) {
-                                    l_element.coordinates.x = atol( l_value );
-
-                                } else if ( strcmp( l_key, "y" ) == 0 ) {
-                                    l_element.coordinates.y = atol( l_value );
-
-                                } else if ( strcmp( l_key, "width" ) == 0 ) {
-                                    l_element.size.width = atol( l_value );
-
-                                } else if ( strcmp( l_key, "height" ) == 0 ) {
-                                    l_element.size.height = atol( l_value );
-
-                                } else if ( strcmp( l_key, "red" ) == 0 ) {
-                                    const uint8_t l_red = atol( l_value );
-
-                                    l_element.a.red = l_red;
-
-                                    if ( l_element.type == RECTANGLE ) {
-                                        l_element.b.red = l_red;
-                                        l_element.c.red = l_red;
-                                        l_element.d.red = l_red;
-                                    }
-
-                                } else if ( strcmp( l_key, "a_red" ) == 0 ) {
-                                    const uint8_t l_red = atol( l_value );
-
-                                    l_element.a.red = l_red;
-
-                                } else if ( strcmp( l_key, "b_red" ) == 0 ) {
-                                    const uint8_t l_red = atol( l_value );
-
-                                    l_element.b.red = l_red;
-
-                                } else if ( strcmp( l_key, "c_red" ) == 0 ) {
-                                    const uint8_t l_red = atol( l_value );
-
-                                    l_element.c.red = l_red;
-
-                                } else if ( strcmp( l_key, "d_red" ) == 0 ) {
-                                    const uint8_t l_red = atol( l_value );
-
-                                    l_element.d.red = l_red;
-
-                                } else if ( strcmp( l_key, "green" ) == 0 ) {
-                                    const uint8_t l_green = atol( l_value );
-
-                                    l_element.a.green = l_green;
-
-                                    if ( l_element.type == RECTANGLE ) {
-                                        l_element.b.green = l_green;
-                                        l_element.c.green = l_green;
-                                        l_element.d.green = l_green;
-                                    }
-
-                                } else if ( strcmp( l_key, "a_green" ) == 0 ) {
-                                    const uint8_t l_green = atol( l_value );
-
-                                    l_element.a.green = l_green;
-
-                                } else if ( strcmp( l_key, "b_green" ) == 0 ) {
-                                    const uint8_t l_green = atol( l_value );
-
-                                    l_element.b.green = l_green;
-
-                                } else if ( strcmp( l_key, "c_green" ) == 0 ) {
-                                    const uint8_t l_green = atol( l_value );
-
-                                    l_element.c.green = l_green;
-
-                                } else if ( strcmp( l_key, "d_green" ) == 0 ) {
-                                    const uint8_t l_green = atol( l_value );
-
-                                    l_element.d.green = l_green;
-
-                                } else if ( strcmp( l_key, "blue" ) == 0 ) {
-                                    const uint8_t l_blue = atol( l_value );
-
-                                    l_element.a.blue = l_blue;
-
-                                    if ( l_element.type == RECTANGLE ) {
-                                        l_element.b.blue = l_blue;
-                                        l_element.c.blue = l_blue;
-                                        l_element.d.blue = l_blue;
-                                    }
-
-                                } else if ( strcmp( l_key, "a_blue" ) == 0 ) {
-                                    const uint8_t l_blue = atol( l_value );
-
-                                    l_element.a.blue = l_blue;
-
-                                } else if ( strcmp( l_key, "b_blue" ) == 0 ) {
-                                    const uint8_t l_blue = atol( l_value );
-
-                                    l_element.b.blue = l_blue;
-
-                                } else if ( strcmp( l_key, "c_blue" ) == 0 ) {
-                                    const uint8_t l_blue = atol( l_value );
-
-                                    l_element.c.blue = l_blue;
-
-                                } else if ( strcmp( l_key, "d_blue" ) == 0 ) {
-                                    const uint8_t l_blue = atol( l_value );
-
-                                    l_element.d.blue = l_blue;
-
-                                } else if ( strcmp( l_key, "alpha" ) == 0 ) {
-                                    const uint8_t l_alpha = atol( l_value );
-
-                                    l_element.a.alpha = l_alpha;
-
-                                    if ( l_element.type == RECTANGLE ) {
-                                        l_element.b.alpha = l_alpha;
-                                        l_element.c.alpha = l_alpha;
-                                        l_element.d.alpha = l_alpha;
-                                    }
-
-                                } else if ( strcmp( l_key, "a_alpha" ) == 0 ) {
-                                    const uint8_t l_alpha = atol( l_value );
-
-                                    l_element.a.alpha = l_alpha;
-
-                                } else if ( strcmp( l_key, "b_alpha" ) == 0 ) {
-                                    const uint8_t l_alpha = atol( l_value );
-
-                                    l_element.b.alpha = l_alpha;
-
-                                } else if ( strcmp( l_key, "c_alpha" ) == 0 ) {
-                                    const uint8_t l_alpha = atol( l_value );
-
-                                    l_element.c.alpha = l_alpha;
-
-                                } else if ( strcmp( l_key, "d_alpha" ) == 0 ) {
-                                    const uint8_t l_alpha = atol( l_value );
-
-                                    l_element.d.alpha = l_alpha;
-
-                                } else if ( strcmp( l_key, "text" ) == 0 ) {
-                                    l_element.text = l_value;
-
-                                } else if ( strcmp( l_key, "shade_first" ) ==
-                                            0 ) {
-                                    l_element.shade.first = atol( l_value );
-
-                                } else if ( strcmp( l_key, "shade_second" ) ==
-                                            0 ) {
-                                    l_element.shade.second = atol( l_value );
-
-                                } else if ( strcmp( l_key, "letter_spacing" ) ==
-                                            0 ) {
-                                    l_element.letterSpacing = atol( l_value );
-
-                                } else if ( strcmp( l_key, "layer" ) == 0 ) {
-                                    l_element.layer = atol( l_value );
-                                }
-                            }
-
-                            element_t* l_elementClone =
-                                ( element_t* )malloc( sizeof( l_element ) );
-                            memcpy( l_elementClone, &l_element,
-                                    sizeof( l_element ) );
-
-                            printf( "RE EL %s\n", l_element.text );
-                            insertIntoArray( ( void*** )&l_overlay,
-                                             ( void* )( l_elementClone ) );
-                            printf(
-                                "RE EL2 %s\n",
+                        printf( "RE EL %s\n", l_element->text );
+                        insertIntoArray( ( void*** )&l_overlay,
+                                         ( void* )( l_element ) );
+                        printf( "RE EL2 %s\n",
                                 l_overlay[ arrayLength( l_overlay ) ]->text );
-                        }
 
                         free( l_elementSettings );
                     }
