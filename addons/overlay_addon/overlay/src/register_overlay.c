@@ -157,16 +157,18 @@ static inline void setElementPropertyByKey( element_t* _element,
                 }
             }
 
-            if ( strcmp( ( _key + 2 ), "red" ) == 0 ) {
+            const char* l_color = ( _key + 2 );
+
+            if ( strcmp( l_color, "red" ) == 0 ) {
                 l_elementColor->red = l_valueAsSize;
 
-            } else if ( strcmp( ( _key + 2 ), "green" ) == 0 ) {
+            } else if ( strcmp( l_color, "green" ) == 0 ) {
                 l_elementColor->green = l_valueAsSize;
 
-            } else if ( strcmp( ( _key + 2 ), "blue" ) == 0 ) {
+            } else if ( strcmp( l_color, "blue" ) == 0 ) {
                 l_elementColor->blue = l_valueAsSize;
 
-            } else if ( strcmp( ( _key + 2 ), "alpha" ) == 0 ) {
+            } else if ( strcmp( l_color, "alpha" ) == 0 ) {
                 l_elementColor->alpha = l_valueAsSize;
             }
         }
@@ -188,21 +190,18 @@ static inline enum elementType getElementTypeFromText(
 static inline element_t* createElementWithSettings(
     const enum elementType _elementType,
     char*** _elementSettings ) {
-    element_t l_element = DEFAULT_ELEMENT_PARAMETERS;
-    l_element.type = _elementType;
+    element_t* l_element = ( element_t* )malloc( sizeof( element_t ) );
+    *l_element = ( element_t )DEFAULT_ELEMENT_PARAMETERS;
+    l_element->type = _elementType;
 
     FOR_ARRAY( char** const*, _elementSettings ) {
         char* l_key = ( *_element )[ 0 ];
         char* l_value = ( *_element )[ 1 ];
 
-        setElementPropertyByKey( &l_element, ( const char* )l_key, l_value );
+        setElementPropertyByKey( l_element, ( const char* )l_key, l_value );
     }
 
-    element_t* l_elementClone = ( element_t* )malloc( sizeof( l_element ) );
-
-    memcpy( l_elementClone, &l_element, sizeof( l_element ) );
-
-    return ( l_elementClone );
+    return ( l_element );
 }
 
 static uint16_t getElementsSettings( char*** _elementsLabels,
