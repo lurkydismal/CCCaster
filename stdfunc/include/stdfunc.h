@@ -81,6 +81,9 @@ bool containsString( const char** _array,
 bool contains( const size_t* _array,
                const size_t _arrayLength,
                const size_t _value );
+char* getFromSettingsOrDefault( const char* _overlayName,
+                                const char* _key,
+                                const char* _default );
 
 #ifdef __cplusplus
 }

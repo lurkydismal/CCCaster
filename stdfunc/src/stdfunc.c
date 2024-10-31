@@ -3,6 +3,8 @@
 #include <omp.h>
 #include <string.h>
 
+#include "_useCallback.h"
+
 #define arrayLengthPointer( _array ) ( ( size_t* )( &( _array[ 0 ] ) ) )
 
 #ifdef __cplusplus
@@ -530,6 +532,32 @@ bool contains( const size_t* _array,
                const size_t _arrayLength,
                const size_t _value ) {
     return ( findInArray( _array, _arrayLength, _value ) >= 0 );
+}
+
+char* getFromSettingsOrDefault( const char* _overlayName,
+                                const char* _key,
+                                const char* _default ) {
+    char* l_returnValue = NULL;
+    char*** l_settings;
+
+    if ( _useCallback( "core$getSettingsContentByLabel", &l_settings,
+                       _overlayName ) == 0 ) {
+        const ssize_t l_settingIndex = findKeyInSettings( l_settings, _key );
+
+        if ( l_settingIndex >= 0 ) {
+            l_returnValue = strdup( l_settings[ l_settingIndex ][ 1 ] );
+
+            freeSettingsContent( l_settings );
+
+        } else {
+            _useCallback( "core$changeSettingsKeyByLabel", _key, _overlayName,
+                          _default );
+
+            l_returnValue = strdup( _default );
+        }
+    }
+
+    return ( l_returnValue );
 }
 
 #ifdef __cplusplus

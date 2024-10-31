@@ -159,32 +159,8 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
     {
         const char** l_elementsOrder =
             ( const char** )createArray( sizeof( const char* ) );
-        char* l_elementsOrderString;
-
-        {
-            char*** l_settings;
-
-            if ( ( l_returnValue =
-                       _useCallback( "core$getSettingsContentByLabel",
-                                     &l_settings, _overlayName ) ) == 0 ) {
-                const ssize_t l_elementsOrderIndex =
-                    findKeyInSettings( l_settings, "overlay_items_order" );
-
-                if ( l_elementsOrderIndex >= 0 ) {
-                    l_elementsOrderString =
-                        strdup( l_settings[ l_elementsOrderIndex ][ 1 ] );
-
-                    freeSettingsContent( l_settings );
-
-                } else {
-                    _useCallback( "core$changeSettingsKeyByLabel",
-                                  "overlay_items_order", _overlayName,
-                                  _elementsDefaultOrder );
-
-                    l_elementsOrderString = strdup( _elementsDefaultOrder );
-                }
-            }
-        }
+        char* l_elementsOrderString = getFromSettingsOrDefault(
+            _overlayName, "overlay_items_order", _elementsDefaultOrder );
 
         {
             char* l_text = strdup( l_elementsOrderString );
