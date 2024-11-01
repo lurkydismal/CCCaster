@@ -360,7 +360,7 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
         free( l_text );
     }
 
-    FREE_ARRAY( char* const*, l_labels );
+    FREE_ARRAY( char* const*, l_labels, *_element );
 
     free( l_labelCounts );
 
@@ -484,7 +484,7 @@ static uint16_t registerElementsForRender(
 
     insertIntoArray( ( void*** )&g_overlaysToRender, l_overlay );
 
-    FREE_ARRAY( char* const*, l_labels );
+    FREE_ARRAY( char* const*, l_labels, *_element );
 
     free( l_labelCounts );
 
@@ -495,8 +495,8 @@ static uint16_t freeElementsSettings( char*** _elementsLabels,
                                       char*** _elementsSettings ) {
     uint16_t l_returnValue = 0;
 
-    FREE_ARRAY( char* const*, *_elementsLabels );
-    FREE_ARRAY( char* const*, *_elementsSettings );
+    FREE_ARRAY( char* const*, *_elementsLabels, *_element );
+    FREE_ARRAY( char* const*, *_elementsSettings, *_element );
 
     return ( l_returnValue );
 }
@@ -513,25 +513,9 @@ static uint16_t registerHotkey( const char* _overlayName,
 
     concatBeforeAndAfterString( &l_overlayHotkeyNameMangled, "", _overlayName );
 
-    {
-        char*** l_settings;
-
-        if ( ( l_returnValue = _useCallback( "core$getSettingsContentByLabel",
-                                             &l_settings, _overlayName ) ) ==
-             0 ) {
-            const ssize_t l_overlayHotkeyIndex =
-                findKeyInSettings( l_settings, l_overlayHotkeyNameMangled );
-
-            if ( l_overlayHotkeyIndex == -1 ) {
-                if ( _useCallback( "core$changeSettingsKeyByLabel",
-                                   l_overlayHotkeyNameMangled, "keyboard",
-                                   _overlayDefaultHotkey ) != 1 ) {
-                    _useCallback( "keyboard$reloadSettings" );
-                }
-            }
-
-            freeSettingsContent( l_settings );
-        }
+    if ( getFromSettingsOrDefault( "keyboard", l_overlayHotkeyNameMangled,
+                                   _overlayDefaultHotkey ) == NULL ) {
+        _useCallback( "keyboard$reloadSettings" );
     }
 
     printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );

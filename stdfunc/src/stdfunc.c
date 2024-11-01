@@ -461,14 +461,14 @@ void freeSettingsContent( char*** _content ) {
 }
 
 static ssize_t inline findInSettings( char** const* _settings,
-                                      const char* _text,
+                                      const char* _string,
                                       const enum SETTINGS_ITEM_TYPE _type ) {
     ssize_t l_index = -1;
 
     FOR_ARRAY( char** const*, _settings ) {
-        const char* l_text = ( *_element )[ _type ];
+        const char* l_string = ( *_element )[ _type ];
 
-        if ( strcmp( l_text, _text ) == 0 ) {
+        if ( strcmp( l_string, _string ) == 0 ) {
             l_index = ( _element - arrayFirstElementPointer( _settings ) + 1 );
 
             break;
@@ -556,6 +556,22 @@ char* getFromSettingsOrDefault( const char* _overlayName,
             l_returnValue = strdup( _default );
         }
     }
+
+    return ( l_returnValue );
+}
+
+char** splitStringIntoArray( const char* _string, const char* _delimiter ) {
+    char** l_returnValue = ( char** )createArray( sizeof( char* ) );
+    char* l_string = strdup( _string );
+    char* l_splitted = strtok( l_string, _delimiter );
+
+    while ( l_splitted ) {
+        insertIntoArray( ( void*** )&l_returnValue, strdup( l_splitted ) );
+
+        l_splitted = strtok( NULL, _delimiter );
+    }
+
+    free( l_string );
 
     return ( l_returnValue );
 }

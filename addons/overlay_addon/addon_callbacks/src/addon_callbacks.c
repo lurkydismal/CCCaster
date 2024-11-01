@@ -157,24 +157,17 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
     }
 
     {
-        const char** l_elementsOrder =
-            ( const char** )createArray( sizeof( const char* ) );
-        char* l_elementsOrderString = getFromSettingsOrDefault(
-            _overlayName, "overlay_items_order", _elementsDefaultOrder );
+        char** l_elementsOrder;
 
         {
-            char* l_text = strdup( l_elementsOrderString );
+            char* l_elementsOrderString = getFromSettingsOrDefault(
+                _overlayName, "overlay_items_order", _elementsDefaultOrder );
+
             const char l_delimiter[] = ",";
-            char* l_splitted = strtok( l_text, l_delimiter );
+            l_elementsOrder =
+                splitStringIntoArray( l_elementsOrderString, l_delimiter );
 
-            while ( l_splitted ) {
-                insertIntoArray( ( void*** )&l_elementsOrder,
-                                 strdup( l_splitted ) );
-
-                l_splitted = strtok( NULL, l_delimiter );
-            }
-
-            free( l_text );
+            free( l_elementsOrderString );
         }
 
         if ( arrayLength( l_elementsOrder ) ) {
@@ -182,14 +175,9 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
                 _overlayName, ( const char* const* )l_elementsOrder,
                 _elementsDefaultSettings, _elementsCallbackVariableReferences,
                 _overlayDefaultHotkey );
-
-            FOR_ARRAY( const char**, l_elementsOrder ) {
-                free( _element );
-            }
         }
 
-        free( l_elementsOrder );
-        free( l_elementsOrderString );
+        FREE_ARRAY( char**, l_elementsOrder, *_element );
     }
 
     {
