@@ -534,14 +534,29 @@ bool contains( const size_t* _array,
     return ( findInArray( _array, _arrayLength, _value ) >= 0 );
 }
 
-char* getFromSettingsOrDefault( const char* _overlayName,
-                                const char* _key,
-                                const char* _default ) {
+char*** getLabelFromSettingsOrDefault( const char* _label,
+                                     const char* _default ) {
+    char*** l_returnValue = NULL;
+
+    if ( _useCallback( "core$getSettingsContentByLabel", &l_returnValue,
+                       _label ) != 0 ) {
+        _useCallback( "core$readSettingsFromString", _default );
+
+        _useCallback( "core$getSettingsContentByLabel", &l_returnValue,
+                      _label );
+    }
+
+    return ( l_returnValue );
+}
+
+char* getKeyFromSettingsOrDefault( const char* _label,
+                                   const char* _key,
+                                   const char* _default ) {
     char* l_returnValue = NULL;
     char*** l_settings;
 
     if ( _useCallback( "core$getSettingsContentByLabel", &l_settings,
-                       _overlayName ) == 0 ) {
+                       _label ) == 0 ) {
         const ssize_t l_settingIndex = findKeyInSettings( l_settings, _key );
 
         if ( l_settingIndex >= 0 ) {
@@ -550,7 +565,7 @@ char* getFromSettingsOrDefault( const char* _overlayName,
             freeSettingsContent( l_settings );
 
         } else {
-            _useCallback( "core$changeSettingsKeyByLabel", _key, _overlayName,
+            _useCallback( "core$changeSettingsKeyByLabel", _key, _label,
                           _default );
 
             l_returnValue = strdup( _default );

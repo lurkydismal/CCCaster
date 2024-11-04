@@ -428,35 +428,28 @@ static uint16_t registerElementsForRender(
                             l_elementNameIndexAsTextMangledLength );
                     l_labelMangled[ l_labelMangledLength ] = '\0';
 
+                    const char* l_elementDefaultSettings;
+
+                    // Get element default settings
                     {
-                        char*** l_elementSettings;
+                        const size_t l_elementDefaultSettingsIndex =
+                            _findStringInArray( _elementsLabels,
+                                                l_labelMangled );
+                        printf( "ELEM %s\n", _elementsLabels[ 1 ] );
 
-                        if ( _useCallback( "core$getSettingsContentByLabel",
-                                           &l_elementSettings,
-                                           l_labelMangled ) != 0 ) {
-                            const char* l_elementDefaultSettings;
-
-                            const size_t l_elementDefaultSettingsIndex =
-                                _findStringInArray( _elementsLabels,
-                                                    l_labelMangled );
-                            printf( "ELEM %s\n", _elementsLabels[ 1 ] );
-
-                            if ( l_elementDefaultSettingsIndex >= 1 ) {
-                                l_elementDefaultSettings = _elementsSettings
-                                    [ l_elementDefaultSettingsIndex ];
-                            }
-
-                            printf( "LABE1 %d\n",
-                                    l_elementDefaultSettingsIndex );
-                            printf( "LABE2 %s\n", l_elementDefaultSettings );
-                            _useCallback( "core$readSettingsFromString",
-                                          l_elementDefaultSettings );
-
-                            _useCallback( "core$getSettingsContentByLabel",
-                                          &l_elementSettings, l_labelMangled );
-                            printf( "LABE3 %s\n", l_labelMangled );
-                            printf( "LABE4 %p\n", l_elementSettings );
+                        if ( l_elementDefaultSettingsIndex >= 1 ) {
+                            l_elementDefaultSettings = _elementsSettings
+                                [ l_elementDefaultSettingsIndex ];
                         }
+
+                        printf( "LABE1 %d\n", l_elementDefaultSettingsIndex );
+                        printf( "LABE2 %s\n", l_elementDefaultSettings );
+                    }
+
+                    {
+                        char*** l_elementSettings =
+                            getLabelFromSettingsOrDefault(
+                                l_labelMangled, l_elementDefaultSettings );
 
                         printf( "LABE %s\n", *_element );
                         element_t* l_element = createElementWithSettings(
@@ -469,7 +462,7 @@ static uint16_t registerElementsForRender(
                         printf( "RE EL2 %s\n",
                                 l_overlay[ arrayLength( l_overlay ) ]->text );
 
-                        free( l_elementSettings );
+                        freeSettingsContent( l_elementSettings );
                     }
 
                     free( l_labelMangled );
@@ -513,9 +506,17 @@ static uint16_t registerHotkey( const char* _overlayName,
 
     concatBeforeAndAfterString( &l_overlayHotkeyNameMangled, "", _overlayName );
 
-    if ( getFromSettingsOrDefault( "keyboard", l_overlayHotkeyNameMangled,
-                                   _overlayDefaultHotkey ) == NULL ) {
-        _useCallback( "keyboard$reloadSettings" );
+    {
+        char* l_overlayHotkey = getKeyFromSettingsOrDefault(
+            "keyboard", l_overlayHotkeyNameMangled, _overlayDefaultHotkey );
+
+        printf( "LOHK %s\n", l_overlayHotkey );
+
+        if ( strcmp( l_overlayHotkey, _overlayDefaultHotkey ) == 0 ) {
+            _useCallback( "keyboard$reloadSettings" );
+        }
+
+        free( l_overlayHotkey );
     }
 
     printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );

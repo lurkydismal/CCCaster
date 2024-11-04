@@ -38,14 +38,14 @@
     for ( _type _element = arrayFirstElementPointer( _array ); \
           _element < arrayLastElementPointer( _array ); _element++ )
 
-#define FREE_ARRAY( _type, _array, _elementToFree )  \
-    FOR_ARRAY( _type, _array ) {     \
-        printf( "{\n" );  \
-        printf( "%s\n", _elementToFree ); \
-        printf( "}\n" );  \
-                                     \
-        free( _elementToFree );           \
-    }                                \
+#define FREE_ARRAY( _type, _array, _elementToFree ) \
+    FOR_ARRAY( _type, _array ) {                    \
+        printf( "{\n" );                            \
+        printf( "%s\n", _elementToFree );           \
+        printf( "}\n" );                            \
+                                                    \
+        free( _elementToFree );                     \
+    }                                               \
     free( _array )
 
 #ifdef __cplusplus
@@ -81,9 +81,10 @@ bool containsString( const char** _array,
 bool contains( const size_t* _array,
                const size_t _arrayLength,
                const size_t _value );
-char* getFromSettingsOrDefault( const char* _overlayName,
-                                const char* _key,
-                                const char* _default );
+char*** getLabelFromSettingsOrDefault( const char* _label, const char* _default );
+char* getKeyFromSettingsOrDefault( const char* _label,
+                                   const char* _key,
+                                   const char* _default );
 char** splitStringIntoArray( const char* _string, const char* _delimiter );
 
 #ifdef __cplusplus

@@ -160,7 +160,7 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
         char** l_elementsOrder;
 
         {
-            char* l_elementsOrderString = getFromSettingsOrDefault(
+            char* l_elementsOrderString = getKeyFromSettingsOrDefault(
                 _overlayName, "overlay_items_order", _elementsDefaultOrder );
 
             const char l_delimiter[] = ",";
