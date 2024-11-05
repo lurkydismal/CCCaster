@@ -367,6 +367,36 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
     return ( l_returnValue );
 }
 
+static inline const char* getElementDefaultSettings() {
+    const char* l_returnValue = NULL;
+    const size_t l_elementDefaultSettingsIndex = _findStringInArray( _elementsLabels, l_labelMangled );
+    printf( "ELEM %s\n", _elementsLabels[ 1 ] );
+
+    if ( l_elementDefaultSettingsIndex >= 1 ) {
+        l_elementDefaultSettings = _elementsSettings [ l_elementDefaultSettingsIndex ];
+    }
+
+    printf( "LABE1 %d\n", l_elementDefaultSettingsIndex );
+    printf( "LABE2 %s\n", l_elementDefaultSettings );
+}
+
+static inline void insertElementIntoOverlay(
+    element_t*** _overlay,
+    const enum elementType _elementType,
+    const char* _label,
+    const char* _defaultSettings ) {
+    char*** l_elementSettings =
+        getLabelFromSettingsOrDefault( _label, _defaultSettings );
+
+    element_t* l_element =
+        createElementWithSettings( _elementType, l_elementSettings );
+
+    printf( "RE EL %s\n", l_element->text );
+    insertIntoArray( ( void*** )_overlay, ( void* )( l_element ) );
+
+    free( l_elementSettings );
+}
+
 static uint16_t registerElementsForRender(
     const char* _overlayName,
     const char* const* _elementsLabels,
@@ -428,42 +458,16 @@ static uint16_t registerElementsForRender(
                             l_elementNameIndexAsTextMangledLength );
                     l_labelMangled[ l_labelMangledLength ] = '\0';
 
-                    const char* l_elementDefaultSettings;
-
                     // Get element default settings
-                    {
-                        const size_t l_elementDefaultSettingsIndex =
-                            _findStringInArray( _elementsLabels,
-                                                l_labelMangled );
-                        printf( "ELEM %s\n", _elementsLabels[ 1 ] );
+                    const char* l_elementDefaultSettings = getElementDefaultSettings();
 
-                        if ( l_elementDefaultSettingsIndex >= 1 ) {
-                            l_elementDefaultSettings = _elementsSettings
-                                [ l_elementDefaultSettingsIndex ];
-                        }
-
-                        printf( "LABE1 %d\n", l_elementDefaultSettingsIndex );
-                        printf( "LABE2 %s\n", l_elementDefaultSettings );
-                    }
-
-                    {
-                        char*** l_elementSettings =
-                            getLabelFromSettingsOrDefault(
-                                l_labelMangled, l_elementDefaultSettings );
-
-                        printf( "LABE %s\n", *_element );
-                        element_t* l_element = createElementWithSettings(
-                            getElementTypeFromText( *_element ),
-                            l_elementSettings );
-
-                        printf( "RE EL %s\n", l_element->text );
-                        insertIntoArray( ( void*** )&l_overlay,
-                                         ( void* )( l_element ) );
-                        printf( "RE EL2 %s\n",
-                                l_overlay[ arrayLength( l_overlay ) ]->text );
-
-                        freeSettingsContent( l_elementSettings );
-                    }
+                    // Insert element into overlay
+                    printf( "LABE %s\n", *_element );
+                    insertElementIntoOverlay(
+                        &l_overlay, getElementTypeFromText( *_element ),
+                        l_labelMangled, l_elementDefaultSettings );
+                    printf( "RE EL2 %s\n",
+                            l_overlay[ arrayLength( l_overlay ) ]->text );
 
                     free( l_labelMangled );
                 }
