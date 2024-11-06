@@ -535,7 +535,7 @@ bool contains( const size_t* _array,
 }
 
 char*** getLabelFromSettingsOrDefault( const char* _label,
-                                     const char* _default ) {
+                                       const char* _default ) {
     char*** l_returnValue = NULL;
 
     if ( _useCallback( "core$getSettingsContentByLabel", &l_returnValue,

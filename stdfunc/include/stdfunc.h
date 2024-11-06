@@ -81,7 +81,8 @@ bool containsString( const char** _array,
 bool contains( const size_t* _array,
                const size_t _arrayLength,
                const size_t _value );
-char*** getLabelFromSettingsOrDefault( const char* _label, const char* _default );
+char*** getLabelFromSettingsOrDefault( const char* _label,
+                                       const char* _default );
 char* getKeyFromSettingsOrDefault( const char* _label,
                                    const char* _key,
                                    const char* _default );

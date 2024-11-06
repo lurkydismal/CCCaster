@@ -1,9 +1,0 @@
-LIBRARY netplay
-EXPORTS
-
-gameMode$characterSelect
-gameMode$loading
-gameMode$inMatch
-keyboard$getInput$end
-IDirect3D9Ex$CreateDevice
-extraDrawCallback

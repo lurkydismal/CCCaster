@@ -18,6 +18,8 @@
 
 #endif
 
+void* g_useCallback;
+
 typedef uint16_t addonCallbackFunction_t( void** );
 
 static std::map< std::string, addonCallbackFunction_t** >
