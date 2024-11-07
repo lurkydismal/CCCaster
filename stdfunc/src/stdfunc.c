@@ -575,6 +575,32 @@ char* getKeyFromSettingsOrDefault( const char* _label,
     return ( l_returnValue );
 }
 
+char* sanitizeString( const char* _string ) {
+    const size_t l_stringLength = strlen( _string );
+    char* l_buffer = ( char* )malloc( ( l_stringLength + 1 ) * sizeof( char ) );
+    size_t l_bufferLength = 0;
+
+    for ( const char* _symbol = _string; _symbol < ( _string + l_stringLength );
+          _symbol++ ) {
+        if ( isspace( *_symbol ) ) {
+            continue;
+
+        } else if ( *_symbol == '#' ) {
+            break;
+        }
+
+        l_buffer[ l_bufferLength ] = *_symbol;
+        l_bufferLength++;
+    }
+
+    l_buffer[ l_bufferLength ] = '\0';
+    l_bufferLength++;
+
+    l_buffer = ( char* )realloc( l_buffer, l_bufferLength );
+
+    return ( l_buffer );
+}
+
 char** splitStringIntoArray( const char* _string, const char* _delimiter ) {
     char** l_returnValue = ( char** )createArray( sizeof( char* ) );
     char* l_string = strdup( _string );

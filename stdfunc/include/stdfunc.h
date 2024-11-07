@@ -86,6 +86,7 @@ char*** getLabelFromSettingsOrDefault( const char* _label,
 char* getKeyFromSettingsOrDefault( const char* _label,
                                    const char* _key,
                                    const char* _default );
+char* sanitizeString( const char* _string );
 char** splitStringIntoArray( const char* _string, const char* _delimiter );
 
 #ifdef __cplusplus

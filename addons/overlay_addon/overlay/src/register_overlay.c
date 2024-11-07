@@ -7,33 +7,6 @@
 #include "overlay.h"
 #include "stdfunc.h"
 
-static inline char* trim( const char* _text ) {
-    const size_t l_textLength = strlen( _text );
-
-    char* l_buffer = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
-    size_t l_bufferLength = 0;
-
-    for ( const char* _symbol = _text; _symbol < ( _text + l_textLength );
-          _symbol++ ) {
-        if ( isspace( *_symbol ) ) {
-            continue;
-
-        } else if ( *_symbol == '#' ) {
-            break;
-        }
-
-        l_buffer[ l_bufferLength ] = *_symbol;
-        l_bufferLength++;
-    }
-
-    l_buffer[ l_bufferLength ] = '\0';
-    l_bufferLength++;
-
-    l_buffer = ( char* )realloc( l_buffer, l_bufferLength );
-
-    return ( l_buffer );
-}
-
 static inline void setElementPropertyByKey( element_t* _element,
                                             const char* _key,
                                             char* _value ) {
@@ -220,11 +193,11 @@ static inline size_t getElementCountByIndex( size_t* _countsArray,
 
 static inline char* mangleElementLabel( const char* _label,
                                         const char* _overlayName,
-                                        const char* l_labelIndexAsText ) {
+                                        const char* _labelIndexAsText ) {
     char* l_returnValue = strdup( "_" );
 
     concatBeforeAndAfterString( &l_returnValue, _overlayName, _label );
-    concatBeforeAndAfterString( &l_returnValue, "", l_labelIndexAsText );
+    concatBeforeAndAfterString( &l_returnValue, "", _labelIndexAsText );
 
     return ( l_returnValue );
 }
@@ -246,14 +219,14 @@ static inline element_t* createElementWithSettings(
     return ( l_element );
 }
 
+// Fill resort settings for overlay, in case of settings not having these
+// already
 static uint16_t getElementsSettings( char*** _elementsLabels,
                                      char*** _elementsSettings,
                                      const char* _overlayName,
                                      const char* _elementsDefaultSettings ) {
     uint16_t l_returnValue = 0;
 
-    // Fill resort settings for overlay
-    // In case of settings not having those already
     size_t* l_labelCounts = ( size_t* )createArray( sizeof( size_t ) );
     char** l_labels = ( char** )createArray( sizeof( char* ) );
 
@@ -267,13 +240,14 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
         bool l_isFirstPass = true;
 
         while ( l_line ) {
-            char* l_trimmedText = trim( l_line );
+            char* l_trimmedText = sanitizeString( l_line );
             const size_t l_textLength = strlen( l_trimmedText );
 
             if ( !l_textLength ) {
                 goto PARSE_EXIT;
             }
 
+            // Label
             if ( l_trimmedText[ 0 ] == '[' ) {
                 if ( !l_isFirstPass ) {
                     l_buffer =
@@ -291,71 +265,43 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                 }
 
                 {
+                    l_trimmedText++;
                     l_trimmedText[ l_textLength - 1 ] = '\0';
 
-                    char* l_label = ( char* )malloc( ( l_textLength + 1 ) *
-                                                     sizeof( char ) );
+                    const ssize_t l_elementIndex = increaseElementCount(
+                        &l_labels, &l_labelCounts, l_trimmedText );
+                    const size_t l_labelCount =
+                        getElementCountByIndex( l_labelCounts, l_elementIndex );
 
-                    memcpy( l_label, ( l_trimmedText + 1 ), l_textLength );
+                    const size_t l_labelMangledIndex = ( l_labelCount - 1 );
 
                     {
-                        const size_t l_overlayNameLength =
-                            strlen( _overlayName );
-                        char* l_overlayNameWithUnderscore = ( char* )malloc(
-                            ( l_overlayNameLength + 1 + 1 ) * sizeof( char ) );
-
-                        memcpy( l_overlayNameWithUnderscore, _overlayName,
-                                l_overlayNameLength );
-
-                        l_overlayNameWithUnderscore[ l_overlayNameLength ] =
-                            '_';
-                        l_overlayNameWithUnderscore[ l_overlayNameLength + 1 ] =
-                            '\0';
+                        char* l_labelIndexAsText = stoa( l_labelMangledIndex );
 
                         {
-                            const ssize_t l_elementIndex = increaseElementCount(
-                                &l_labels, &l_labelCounts, l_label );
-                            const size_t l_labelCount = getElementCountByIndex(
-                                l_labelCounts, l_elementIndex );
-
-                            const size_t l_labelMangledIndex =
-                                ( l_labelCount - 1 );
-                            char* l_labelIndexAsText =
-                                stoa( l_labelMangledIndex );
-
-                            concatBeforeAndAfterString(
-                                &l_label, l_overlayNameWithUnderscore,
-                                l_labelIndexAsText );
+                            char* l_label =
+                                mangleElementLabel( l_trimmedText, _overlayName,
+                                                    l_labelIndexAsText );
 
                             insertIntoArray( ( void*** )_elementsLabels,
                                              strdup( l_label ) );
 
-                            const size_t l_labelLength =
-                                concatBeforeAndAfterString( &l_label, "[",
-                                                            "]" );
-                            printf( "LABEL %u %s\n", l_labelLength, l_label );
+                            concatBeforeAndAfterString( &l_label, "[", "]" );
+                            printf( "LABEL %s\n", l_label );
 
-                            l_buffer = ( char* )realloc(
-                                l_buffer, ( l_labelLength + 1 ) );
-                            memcpy( ( l_buffer + l_bufferLength ), l_label,
-                                    l_labelLength );
-                            l_bufferLength += l_labelLength;
+                            concatBeforeAndAfterString( &l_buffer, "",
+                                                        l_label );
 
-                            free( l_labelIndexAsText );
+                            free( l_label );
                         }
 
-                        free( l_overlayNameWithUnderscore );
+                        free( l_labelIndexAsText );
                     }
-
-                    free( l_label );
                 }
 
+                // Not Label
             } else {
-                l_buffer = ( char* )realloc(
-                    l_buffer, ( l_bufferLength + l_textLength + 1 ) );
-                memcpy( ( l_buffer + l_bufferLength ), l_trimmedText,
-                        l_textLength );
-                l_bufferLength += l_textLength;
+                concatBeforeAndAfterString( &l_buffer, "", l_trimmedText );
             }
 
             l_buffer[ l_bufferLength ] = '\n';
