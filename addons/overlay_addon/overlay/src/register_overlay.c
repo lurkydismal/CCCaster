@@ -266,7 +266,7 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
 
                 {
                     l_trimmedText++;
-                    l_trimmedText[ l_textLength - 1 ] = '\0';
+                    l_trimmedText[ l_textLength - 1 - 1 ] = '\0';
 
                     const ssize_t l_elementIndex = increaseElementCount(
                         &l_labels, &l_labelCounts, l_trimmedText );
@@ -315,6 +315,8 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
             printf( "LINE %s\n", l_line );
             l_line = strtok( NULL, l_delimiter );
         }
+
+        printf( "TEST3\n" );
 
         if ( l_bufferLength == 0 ) {
             free( l_buffer );
@@ -482,12 +484,14 @@ uint16_t overlayRegister( const char* _overlayName,
     char** l_elementsLabels = ( char** )createArray( sizeof( char* ) );
     char** l_elementsSettings = ( char** )createArray( sizeof( char* ) );
 
+    printf( "TEST1\n" );
     if ( ( l_returnValue = getElementsSettings(
                &l_elementsLabels, &l_elementsSettings, _overlayName,
                _elementsDefaultSettings ) ) != 0 ) {
         goto FREE_LABELS;
     }
 
+    printf( "TEST2\n" );
     if ( ( l_returnValue = registerElementsForRender(
                _overlayName, ( const char* const* )l_elementsLabels,
                _elementsOrder, ( const char* const* )l_elementsSettings ) ) !=
