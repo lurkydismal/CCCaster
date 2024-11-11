@@ -317,10 +317,6 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
 #endif
         }
 
-#if 0
-        printf( "TEST3\n" );
-#endif
-
         if ( l_bufferLength != 0 ) {
             moveBufferIntoElementsSettings();
         }
