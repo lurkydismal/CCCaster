@@ -150,11 +150,15 @@ static inline void setElementPropertyByKey( element_t* _element,
 
 static inline enum elementType getElementTypeFromLabel(
     const char* _elementLabel ) {
+#if 0
     printf( "getElementTypeFromLabel %s\n", _elementLabel );
+#endif
     FOR( char* const*, g_elementTypesAsString ) {
         if ( strcmp( *_element, _elementLabel ) == 0 ) {
+#if 0
             printf( "LT %s %d\n", _elementLabel,
                     ( _element - g_elementTypesAsString ) );
+#endif
             return ( _element - g_elementTypesAsString );
         }
     }
@@ -162,16 +166,20 @@ static inline enum elementType getElementTypeFromLabel(
 
 static inline const char* getElementLabelFromType(
     const enum elementType _elementType ) {
+#if 0
     printf( "getElementLabelFromType %d\n", _elementType );
+#endif
+#if 0
     printf( "LT %d %s\n", _elementType,
             g_elementTypesAsString[ _elementType ] );
+#endif
 
     return ( g_elementTypesAsString[ _elementType ] );
 }
 
-static inline ssize_t increaseElementCount( char*** _elementLabels,
-                                            size_t** _countsArray,
-                                            const char* _label ) {
+static ssize_t increaseElementCount( char*** _elementLabels,
+                                     size_t** _countsArray,
+                                     const char* _label ) {
     const ssize_t l_labelIndex = _findStringInArray( *_elementLabels, _label );
 
     if ( l_labelIndex >= 1 ) {
@@ -210,6 +218,150 @@ static inline char* mangleElementLabel( const char* _label,
     return ( l_returnValue );
 }
 
+static inline bool isLabel( const char* _string, const size_t _stringLength ) {
+    return ( ( _string[ 0 ] == '[' ) &&
+             ( _string[ _stringLength - 1 - 1 ] == ']' ) );
+}
+
+static uint16_t getElementsSettings( char*** _elementsLabels,
+                                     char*** _elementsSettings,
+                                     const char* _overlayName,
+                                     const char* _elementsDefaultSettings ) {
+    uint16_t l_returnValue = 0;
+
+    size_t* l_labelCounts = ( size_t* )createArray( sizeof( size_t ) );
+    char** l_labels = ( char** )createArray( sizeof( char* ) );
+
+    {
+        const char l_delimiter[] = "\n";
+        char** l_elementsDefaultSettings =
+            splitStringIntoArray( _elementsDefaultSettings, l_delimiter );
+
+        char* l_buffer = strdup( "" );
+        size_t l_bufferLength = 0;
+
+#define moveBufferIntoElementsSettings()                                     \
+    do {                                                                     \
+        l_buffer = ( char* )realloc( l_buffer, ( l_bufferLength + 1 ) );     \
+        insertIntoArray( ( void*** )_elementsSettings, strdup( l_buffer ) ); \
+        free( l_buffer );                                                    \
+        l_bufferLength = 0;                                                  \
+    } while ( false )
+
+        bool l_isFirstPass = true;
+
+        FOR_ARRAY( char* const*, l_elementsDefaultSettings ) {
+            char* l_line = sanitizeString( *_element );
+            const size_t l_lineLength = strlen( l_line );
+
+            if ( !l_lineLength ) {
+                goto PARSE_EXIT;
+            }
+
+            // Label
+            if ( isLabel( l_line, l_lineLength ) ) {
+                if ( !l_isFirstPass ) {
+                    moveBufferIntoElementsSettings();
+                    l_buffer = strdup( "" );
+                }
+
+                trim( l_line, 1, ( l_lineLength - 2 ) );
+
+                const ssize_t l_elementIndex =
+                    increaseElementCount( &l_labels, &l_labelCounts, l_line );
+                const size_t l_labelCount =
+                    getElementCount( l_labels, l_labelCounts, l_line );
+
+                {
+                    const size_t l_labelIndex = ( l_labelCount - 1 );
+                    char* l_labelIndexAsText = stoa( l_labelIndex );
+
+                    {
+                        char* l_label = mangleElementLabel(
+                            l_line, _overlayName, l_labelIndexAsText );
+
+                        insertIntoArray( ( void*** )_elementsLabels,
+                                         strdup( l_label ) );
+
+                        concatBeforeAndAfterString( &l_label, "[", "]" );
+
+                        concatBeforeAndAfterString( &l_buffer, "", l_label );
+#if 0
+                        printf( "LB1 %s %d\n", l_buffer,
+                                strlen( l_buffer ) );
+#endif
+
+                        free( l_label );
+                    }
+
+                    free( l_labelIndexAsText );
+                }
+
+                // Not Label
+            } else {
+                concatBeforeAndAfterString( &l_buffer, "", l_line );
+#if 0
+                printf( "LB2 %s %d\n", l_line, strlen( l_line ) );
+#endif
+            }
+
+            l_bufferLength = concatBeforeAndAfterString( &l_buffer, "", "\n" );
+
+            l_isFirstPass = false;
+
+        PARSE_EXIT:
+            free( l_line );
+
+#if 0
+            printf( "LINE %s\n", l_line );
+#endif
+        }
+
+#if 0
+        printf( "TEST3\n" );
+#endif
+
+        if ( l_bufferLength != 0 ) {
+            moveBufferIntoElementsSettings();
+        }
+
+        FREE_ARRAY( char**, l_elementsDefaultSettings, *_element );
+
+#undef moveBufferIntoElementsSettings
+    }
+
+    FREE_ARRAY( char* const*, l_labels, *_element );
+
+    free( l_labelCounts );
+
+    return ( l_returnValue );
+}
+
+static inline const char* getElementDefaultSettings(
+    const char* const* _elementsLabels,
+    const char* const* _elementsSettings,
+    const char* _elementLabel ) {
+    const char* l_returnValue = NULL;
+#if 0
+    printf( "ELEM %s\n", _elementsLabels[ 1 ] );
+#endif
+    const size_t l_elementDefaultSettingsIndex =
+        _findStringInArray( _elementsLabels, _elementLabel );
+
+    if ( l_elementDefaultSettingsIndex >= 1 ) {
+        l_returnValue = _elementsSettings[ l_elementDefaultSettingsIndex ];
+    }
+
+#if 0
+    printf( "LABE1 %d\n", l_elementDefaultSettingsIndex );
+#endif
+#if 0
+    printf( "LABE2 %s\n", _elementsSettings[ 1 ] );
+#endif
+
+    return ( l_returnValue );
+}
+
 static inline element_t* createElementWithSettings(
     const enum elementType _type,
     char*** _settings ) {
@@ -227,168 +379,14 @@ static inline element_t* createElementWithSettings(
     return ( l_element );
 }
 
-// Fill resort settings for overlay, in case of settings not having these
-// already
-static uint16_t getElementsSettings( char*** _elementsLabels,
-                                     char*** _elementsSettings,
-                                     const char* _overlayName,
-                                     const char* _elementsDefaultSettings ) {
-    uint16_t l_returnValue = 0;
-
-    size_t* l_labelCounts = ( size_t* )createArray( sizeof( size_t ) );
-    char** l_labels = ( char** )createArray( sizeof( char* ) );
-
-    {
-        char* l_text = strdup( _elementsDefaultSettings );
-
-        const char l_delimiter[] = "\n";
-        char* l_line = strtok( l_text, l_delimiter );
-        char* l_buffer = strdup( "" );
-        size_t l_bufferLength = 0;
-        bool l_isFirstPass = true;
-
-        while ( l_line ) {
-            char* l_trimmedText = sanitizeString( l_line );
-            const size_t l_textLength = strlen( l_trimmedText );
-
-            if ( !l_textLength ) {
-                goto PARSE_EXIT;
-            }
-
-            // Label
-            if ( l_trimmedText[ 0 ] == '[' ) {
-                if ( !l_isFirstPass ) {
-                    l_buffer =
-                        ( char* )realloc( l_buffer, ( l_bufferLength + 1 ) );
-
-                    l_buffer[ l_bufferLength ] = '\0';
-
-                    insertIntoArray( ( void*** )_elementsSettings,
-                                     strdup( l_buffer ) );
-                    printf( "SETTINGS %s\n", l_buffer );
-
-                    free( l_buffer );
-                    l_buffer = strdup( "" );
-
-                    l_bufferLength = 0;
-                }
-
-                {
-                    l_trimmedText++;
-                    l_trimmedText[ l_textLength - 1 - 1 ] = '\0';
-                    printf( "TEST13\n" );
-
-                    const ssize_t l_elementIndex = increaseElementCount(
-                        &l_labels, &l_labelCounts, l_trimmedText );
-                    printf( "TEST14 %d\n", l_elementIndex );
-                    const size_t l_labelCount = getElementCount(
-                        l_labels, l_labelCounts, l_trimmedText );
-                    printf( "TEST15 %d\n", l_labelCount );
-
-                    {
-                        const size_t l_labelIndex = ( l_labelCount - 1 );
-                        char* l_labelIndexAsText = stoa( l_labelIndex );
-                        printf( "TEST11\n" );
-
-                        {
-                            char* l_label =
-                                mangleElementLabel( l_trimmedText, _overlayName,
-                                                    l_labelIndexAsText );
-
-                            printf( "TEST10\n" );
-                            insertIntoArray( ( void*** )_elementsLabels,
-                                             strdup( "keyboard_text0" ) );
-                            printf( "_elementLabels[ %d ]\n%d %s\n",
-                                    l_labelIndex,
-                                    arrayLength( *_elementsLabels ),
-                                    ( *_elementsLabels )[ l_labelIndex + 1 ] );
-
-                            concatBeforeAndAfterString( &l_label, "[", "]" );
-                            printf( "LABEL %s\n", l_label );
-
-                            l_bufferLength = concatBeforeAndAfterString(
-                                &l_buffer, "", l_label );
-                            printf( "LB1 %s %d\n", l_label, strlen( l_label ) );
-
-                            free( l_label );
-                        }
-
-                        free( l_labelIndexAsText );
-                    }
-                }
-
-                // Not Label
-            } else {
-                l_bufferLength =
-                    concatBeforeAndAfterString( &l_buffer, "", l_trimmedText );
-                printf( "LB2 %s\n", l_trimmedText );
-            }
-
-            l_buffer[ l_bufferLength ] = '\n';
-            l_bufferLength++;
-
-            l_isFirstPass = false;
-
-        PARSE_EXIT:
-            free( l_trimmedText );
-
-            printf( "LINE %s\n", l_line );
-            l_line = strtok( NULL, l_delimiter );
-        }
-
-        printf( "TEST3\n" );
-
-        if ( l_bufferLength == 0 ) {
-            free( l_buffer );
-
-        } else {
-            l_buffer = ( char* )realloc( l_buffer, ( l_bufferLength + 1 ) );
-
-            l_buffer[ l_bufferLength ] = '\0';
-
-            insertIntoArray( ( void*** )_elementsSettings, strdup( l_buffer ) );
-            printf( "SETTINGS %s\n", l_buffer );
-
-            free( l_buffer );
-
-            l_bufferLength = 0;
-        }
-
-        free( l_text );
-    }
-
-    FREE_ARRAY( char* const*, l_labels, *_element );
-
-    free( l_labelCounts );
-
-    return ( l_returnValue );
-}
-
-static inline const char* getElementDefaultSettings(
-    const char* const* _elementsLabels,
-    const char* const* _elementsSettings,
-    const char* _elementLabel ) {
-    const char* l_returnValue = NULL;
-    printf( "ELEM %s\n", _elementsLabels[ 1 ] );
-    const size_t l_elementDefaultSettingsIndex =
-        _findStringInArray( _elementsLabels, _elementLabel );
-
-    if ( l_elementDefaultSettingsIndex >= 1 ) {
-        l_returnValue = _elementsSettings[ l_elementDefaultSettingsIndex ];
-    }
-
-    printf( "LABE1 %d\n", l_elementDefaultSettingsIndex );
-    printf( "LABE2 %s\n", _elementsSettings[ 1 ] );
-
-    return ( l_returnValue );
-}
-
 static inline void insertElementIntoOverlay( element_t*** _overlay,
                                              const enum elementType _type,
                                              char*** _settings ) {
     element_t* l_element = createElementWithSettings( _type, _settings );
 
+#if 0
     printf( "RE EL %s\n", l_element->text );
+#endif
     insertIntoArray( ( void*** )_overlay, ( void* )( l_element ) );
 
     free( _settings );
@@ -407,7 +405,9 @@ static uint16_t registerElementsForRender(
 
     // Go over elements in order and register for rendering
     FOR_ARRAY( const char* const*, _elementsOrder ) {
+#if 0
         printf( "LABE %s\n", *_element );
+#endif
 
         const ssize_t l_elementIndex =
             increaseElementCount( &l_labels, &l_labelCounts, *_element );
@@ -428,17 +428,25 @@ static uint16_t registerElementsForRender(
                         getElementDefaultSettings( _elementsLabels,
                                                    _elementsSettings,
                                                    l_elementLabelMangled );
+#if 0
                     printf( "TEST4\n" );
+#endif
                     char*** l_elementSettings = getLabelFromSettingsOrDefault(
                         l_elementLabelMangled, l_elementDefaultSettings );
+#if 0
                     printf( "TEST5\n" );
+#endif
 
                     insertElementIntoOverlay(
                         &l_overlay, getElementTypeFromLabel( *_element ),
                         l_elementSettings );
+#if 0
                     printf( "TEST6\n" );
+#endif
+#if 0
                     printf( "RE EL2 %s\n",
                             l_overlay[ arrayLength( l_overlay ) ]->text );
+#endif
                 }
 
                 free( l_elementLabelMangled );
@@ -471,7 +479,9 @@ static uint16_t registerHotkey( const char* _overlayName,
                                 const char* _overlayDefaultHotkey ) {
     uint16_t l_returnValue = 0;
 
+#if 0
     printf( "R HK2 %s\n", _overlayDefaultHotkey );
+#endif
     const char l_overlayHotkeyName[] =
         "overlay_toggle_key"
         "_";
@@ -483,7 +493,9 @@ static uint16_t registerHotkey( const char* _overlayName,
         char* l_overlayHotkey = getKeyFromSettingsOrDefault(
             "keyboard", l_overlayHotkeyNameMangled, _overlayDefaultHotkey );
 
+#if 0
         printf( "LOHK %s\n", l_overlayHotkey );
+#endif
 
         if ( strcmp( l_overlayHotkey, _overlayDefaultHotkey ) == 0 ) {
             _useCallback( "keyboard$reloadSettings" );
@@ -492,7 +504,9 @@ static uint16_t registerHotkey( const char* _overlayName,
         free( l_overlayHotkey );
     }
 
+#if 0
     printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );
+#endif
     insertIntoArray( ( void*** )&g_overlayHotkeys, l_overlayHotkeyNameMangled );
 
     return ( l_returnValue );
@@ -508,14 +522,18 @@ uint16_t overlayRegister( const char* _overlayName,
     char** l_elementsLabels = ( char** )createArray( sizeof( char* ) );
     char** l_elementsSettings = ( char** )createArray( sizeof( char* ) );
 
+#if 0
     printf( "TEST1\n" );
+#endif
     if ( ( l_returnValue = getElementsSettings(
                &l_elementsLabels, &l_elementsSettings, _overlayName,
                _elementsDefaultSettings ) ) != 0 ) {
         goto FREE_LABELS;
     }
 
+#if 0
     printf( "TEST2\n" );
+#endif
     if ( ( l_returnValue = registerElementsForRender(
                _overlayName, ( const char* const* )l_elementsLabels,
                _elementsOrder, ( const char* const* )l_elementsSettings ) ) !=
@@ -523,14 +541,18 @@ uint16_t overlayRegister( const char* _overlayName,
         goto FREE_LABELS;
     }
 
+#if 0
     printf( "G %s\n", ( g_overlaysToRender[ 1 ][ 1 ] )->text );
+#endif
 
     if ( ( l_returnValue =
                registerHotkey( _overlayName, _overlayDefaultHotkey ) ) != 0 ) {
         goto FREE_LABELS;
     }
 
+#if 0
     printf( "R HK1 %s\n", _overlayName );
+#endif
     insertIntoArray( ( void*** )&g_overlayNames, ( void* )_overlayName );
 
 FREE_LABELS:
@@ -539,7 +561,9 @@ FREE_LABELS:
         goto EXIT;
     }
 
+#if 0
     printf( "G2 %s\n", ( g_overlaysToRender[ 1 ][ 1 ] )->text );
+#endif
 
 EXIT:
     return ( l_returnValue );

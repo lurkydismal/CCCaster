@@ -5,6 +5,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define trim( _string, _from, _to ) \
+    do { \
+        _string += _from; \
+        _string[ _to + 1 ] = '\0'; \
+    } while( false );
+
 #define arrayLength( _array ) ( ( size_t )( _array[ 0 ] ) - 1 )
 #define arrayFirstElementPointer( _array ) ( _array + 1 )
 #define arrayLastElementPointer( _array ) \

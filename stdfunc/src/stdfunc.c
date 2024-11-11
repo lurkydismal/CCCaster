@@ -433,16 +433,22 @@ void preallocateArray( void*** _array, const size_t _length ) {
 
 void insertIntoArray( void*** _array, void* _value ) {
     const size_t l_arrayLength = arrayLength( *_array );
+#if 0
     printf( "AR L %d\n", l_arrayLength );
+#endif
 
     *_array = ( void** )realloc(
         *_array, ( 1 + l_arrayLength + 1 ) * sizeof( ( *_array )[ 0 ] ) );
 
     ( *_array )[ l_arrayLength + 1 ] = _value;
+#if 0
     printf( "AR V %p\n", ( *_array )[ l_arrayLength + 1 ] );
+#endif
 
     ( *arrayLengthPointer( *_array ) )++;
+#if 0
     printf( "AR V %d\n", ( *arrayLengthPointer( *_array ) ) );
+#endif
 }
 
 void insertIntoArrayByIndex( void*** _array,
