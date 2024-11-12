@@ -220,7 +220,7 @@ static inline char* mangleElementLabel( const char* _label,
 
 static inline bool isLabel( const char* _string, const size_t _stringLength ) {
     return ( ( _string[ 0 ] == '[' ) &&
-             ( _string[ _stringLength - 1 - 1 ] == ']' ) );
+             ( _string[ _stringLength - 1 ] == ']' ) );
 }
 
 static uint16_t getElementsSettings( char*** _elementsLabels,
@@ -287,8 +287,7 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
 
                         concatBeforeAndAfterString( &l_buffer, "", l_label );
 #if 0
-                        printf( "LB1 %s %d\n", l_buffer,
-                                strlen( l_buffer ) );
+                        printf( "LB1 %s %d\n", l_buffer, strlen( l_buffer ) );
 #endif
 
                         free( l_label );

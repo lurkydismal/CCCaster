@@ -117,12 +117,12 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
             { 1, 1 }    // 9
         };
 
-        const char* l_tempKeys[] = { "A",  "B",   "C",   "D",    "E",
+        const char* l_buttonsKeys[] = { "A",  "B",   "C",   "D",    "E",
                                      "AB", "FN1", "FN2", "START" };
         const size_t l_tempKeysLength =
-            ( sizeof( l_tempKeys ) / sizeof( l_tempKeys[ 0 ] ) );
+            ( sizeof( l_buttonsKeys ) / sizeof( l_buttonsKeys[ 0 ] ) );
 
-        const button_t l_tempValues[] = {
+        const button_t l_buttonsValues[] = {
             ( ( button_t )( ( uint16_t )( A ) | ( uint16_t )( CONFIRM ) ) ),
             ( ( button_t )( ( uint16_t )( B ) | ( uint16_t )( CANCEL ) ) ),
             C,
@@ -179,9 +179,9 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
                 ssize_t l_index;
 
                 if ( ( l_index = findStringInArray(
-                           l_tempKeys, l_tempKeysLength, l_activeValue ) ) >=
+                           l_buttonsKeys, l_tempKeysLength, l_activeValue ) ) >=
                      0 ) {
-                    const button_t l_value = l_tempValues[ l_index ];
+                    const button_t l_value = l_buttonsValues[ l_index ];
 
                     l_buttons = ( button_t )( ( uint16_t )( l_buttons ) |
                                               ( uint16_t )( l_value ) );

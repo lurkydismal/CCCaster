@@ -176,54 +176,27 @@ static inline void addValue( const char* _text ) {
     addContent( _text, VALUE );
 }
 
-static inline char* trim( const char* _text ) {
-    const size_t l_textLength = strlen( _text );
-
-    char* l_buffer = ( char* )malloc( ( l_textLength + 1 ) * sizeof( char ) );
-    size_t l_bufferLength = 0;
-
-    for ( const char* _symbol = _text; _symbol < ( _text + l_textLength );
-          _symbol++ ) {
-        if ( isspace( *_symbol ) ) {
-            continue;
-
-        } else if ( *_symbol == '#' ) {
-            break;
-        }
-
-        l_buffer[ l_bufferLength ] = *_symbol;
-        l_bufferLength++;
-    }
-
-    l_buffer[ l_bufferLength ] = '\0';
-    l_bufferLength++;
-
-    l_buffer = ( char* )realloc( l_buffer, l_bufferLength );
-
-    return ( l_buffer );
-}
-
-static void parseLine( char* _text ) {
-    char* l_trimmedText = trim( _text );
-    const size_t l_textLength = strlen( l_trimmedText );
+static void parseLine( char* _line ) {
+    char* l_line = sanitizeString( _line );
+    const size_t l_textLength = strlen( l_line );
 
     if ( !l_textLength ) {
         goto EXIT;
     }
 
-    if ( l_trimmedText[ 0 ] == '[' ) {
-        l_trimmedText[ l_textLength - 1 ] = '\0';
-        char* l_label = ( l_trimmedText + 1 );
+    if ( l_line[ 0 ] == '[' ) {
+        l_line[ l_textLength - 1 ] = '\0';
+        char* l_label = ( l_line + 1 );
 
         addLabel( l_label );
 
     } else {
         for ( size_t _index = 0; _index < ( l_textLength - 1 ); _index++ ) {
-            if ( l_trimmedText[ _index ] == '=' ) {
-                l_trimmedText[ _index ] = '\0';
+            if ( l_line[ _index ] == '=' ) {
+                l_line[ _index ] = '\0';
 
-                const char* l_key = l_trimmedText;
-                const char* l_value = ( l_trimmedText + _index + 1 );
+                const char* l_key = l_line;
+                const char* l_value = ( l_line + _index + 1 );
 
                 addKey( l_key );
                 addValue( l_value );
@@ -234,7 +207,7 @@ static void parseLine( char* _text ) {
     }
 
 EXIT:
-    free( l_trimmedText );
+    free( l_line );
 }
 
 inline char*** getSettingsContentByLabel( const char* _label ) {
