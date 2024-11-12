@@ -166,20 +166,28 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
             const char l_delimiter[] = ",";
             l_elementsOrder =
                 splitStringIntoArray( l_elementsOrderString, l_delimiter );
+            printf( "TEST\n" );
+            FOR_ARRAY( char* const*, l_elementsOrder ) {
+                printf( "%s\n", *_element );
+            }
+            printf( "TTTT\n" );
 
             free( l_elementsOrderString );
         }
 
+        printf( "TEST1\n" );
         if ( arrayLength( l_elementsOrder ) ) {
             l_returnValue = overlayRegister(
                 _overlayName, ( const char* const* )l_elementsOrder,
                 _elementsDefaultSettings, _elementsCallbackVariableReferences,
                 _overlayDefaultHotkey );
         }
+        printf( "TEST2\n" );
 
         FREE_ARRAY( char**, l_elementsOrder, *_element );
     }
 
+    printf( "TEST3\n" );
     {
         char* l_returnValueAsText = stoa( l_returnValue );
 
@@ -190,6 +198,8 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
 
         free( l_returnValueAsText );
     }
+    printf( "TEST4\n" );
+    printf( "TEST L\n" );
 
     return ( l_returnValue );
 }

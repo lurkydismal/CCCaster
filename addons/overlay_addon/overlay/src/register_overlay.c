@@ -181,6 +181,8 @@ static ssize_t increaseElementCount( char*** _elementLabels,
                                      size_t** _countsArray,
                                      const char* _label ) {
     const ssize_t l_labelIndex = _findStringInArray( *_elementLabels, _label );
+    printf( "EL IEC %s\n", _label );
+    printf( "EL IECI %d\n", l_labelIndex );
 
     if ( l_labelIndex >= 1 ) {
         ( *_countsArray[ l_labelIndex ] )++;
@@ -199,10 +201,14 @@ static inline size_t getElementCount( char** _elementLabels,
                                       const char* _label ) {
     ssize_t l_returnValue = -1;
     const ssize_t l_labelIndex = _findStringInArray( _elementLabels, _label );
+    printf( "EL C %s\n", _label );
+    printf( "EL CI %d\n", l_labelIndex );
 
     if ( l_labelIndex >= 1 ) {
         l_returnValue = _countsArray[ l_labelIndex ];
     }
+
+    printf( "EL C %d\n", l_returnValue );
 
     return ( l_labelIndex );
 }
@@ -517,18 +523,14 @@ uint16_t overlayRegister( const char* _overlayName,
     char** l_elementsLabels = ( char** )createArray( sizeof( char* ) );
     char** l_elementsSettings = ( char** )createArray( sizeof( char* ) );
 
-#if 0
     printf( "TEST1\n" );
-#endif
     if ( ( l_returnValue = getElementsSettings(
                &l_elementsLabels, &l_elementsSettings, _overlayName,
                _elementsDefaultSettings ) ) != 0 ) {
         goto FREE_LABELS;
     }
 
-#if 0
     printf( "TEST2\n" );
-#endif
     if ( ( l_returnValue = registerElementsForRender(
                _overlayName, ( const char* const* )l_elementsLabels,
                _elementsOrder, ( const char* const* )l_elementsSettings ) ) !=
