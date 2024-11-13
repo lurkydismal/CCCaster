@@ -196,9 +196,9 @@ static ssize_t increaseElementCount( char*** _elementLabels,
     return ( l_labelIndex );
 }
 
-static inline size_t getElementCount( char** _elementLabels,
-                                      size_t* _countsArray,
-                                      const char* _label ) {
+static inline ssize_t getElementCount( char** _elementLabels,
+                                       size_t* _countsArray,
+                                       const char* _label ) {
     ssize_t l_returnValue = -1;
     const ssize_t l_labelIndex = _findStringInArray( _elementLabels, _label );
     printf( "EL C %s\n", _label );
@@ -210,7 +210,7 @@ static inline size_t getElementCount( char** _elementLabels,
 
     printf( "EL C %d\n", l_returnValue );
 
-    return ( l_labelIndex );
+    return ( l_returnValue );
 }
 
 static inline char* mangleElementLabel( const char* _label,
@@ -275,12 +275,13 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
 
                 const ssize_t l_elementIndex =
                     increaseElementCount( &l_labels, &l_labelCounts, l_line );
-                const size_t l_labelCount =
+                const ssize_t l_labelCount =
                     getElementCount( l_labels, l_labelCounts, l_line );
 
                 {
                     const size_t l_labelIndex = ( l_labelCount - 1 );
                     char* l_labelIndexAsText = stoa( l_labelIndex );
+                    printf( "TESTTTT %s\n", l_labelIndexAsText );
 
                     {
                         char* l_label = mangleElementLabel(
@@ -419,6 +420,7 @@ static uint16_t registerElementsForRender(
         {
             const size_t l_labelIndex = ( l_labelCount - 1 );
             char* l_labelIndexAsText = stoa( l_labelIndex );
+            printf( "TESTTTT %s\n", l_labelIndexAsText );
 
             {
                 char* l_elementLabelMangled = mangleElementLabel(
