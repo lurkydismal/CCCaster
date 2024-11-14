@@ -118,7 +118,7 @@ uint16_t __declspec( dllexport ) game$applyInput( void** _callbackArguments ) {
         };
 
         const char* l_buttonsKeys[] = { "A",  "B",   "C",   "D",    "E",
-                                     "AB", "FN1", "FN2", "START" };
+                                        "AB", "FN1", "FN2", "START" };
         const size_t l_tempKeysLength =
             ( sizeof( l_buttonsKeys ) / sizeof( l_buttonsKeys[ 0 ] ) );
 

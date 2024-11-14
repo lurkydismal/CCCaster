@@ -168,6 +168,8 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
         MAKE_PATCH( 0x440CC5, { // jmp 0x440D16
                                 0xEB, 0x4F } );
 
+        // NO SFX PATCH
+#if 0
         // Filter repeated SFX
         MAKE_PATCH( 0x4DD836, { // mov eax,g_SFXMute
                                 0xB8, INLINE_DWORD( g_SFXMute ),
@@ -262,6 +264,7 @@ int32_t __attribute__( ( stdcall ) ) DllMain( void* _handle,
                                 0xE9, 0xC7, 0xFA, 0xFF, 0xFF } );
 
 #undef DX_MUTED_VOLUME
+#endif
 
         // Add extra textures callback
         MAKE_PATCH( 0x41BE38,
