@@ -17,8 +17,6 @@ uint32_t g_currentMenuIndex = 0;
 uint32_t g_menuConfirmState = 0;
 bool g_enableEscapeToExit = false;
 uint32_t g_roundStartCounter = 0;
-uint8_t g_SFXMute[ CC_SFX_ARRAY_LENGTH ] = { 0 };
-uint8_t g_SFXFilter[ CC_SFX_ARRAY_LENGTH ] = { 0 };
 uint32_t* g_autoReplaySaveState;
 
 static char* gameModeToText( gameMode_t _gameMode ) {
