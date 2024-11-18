@@ -15,6 +15,12 @@ uint16_t log_query( const char* _string ) {
             l_stringLength + 1 );
     g_transactionStringLength += l_stringLength;
 
+#if defined( INSTANT_COMMIT )
+
+    log_commit();
+
+#endif
+
     return ( l_returnValue );
 }
 
