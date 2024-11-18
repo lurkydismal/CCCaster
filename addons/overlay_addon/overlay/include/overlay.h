@@ -74,5 +74,6 @@ uint16_t overlayRegister( const char* _overlayName,
                           const char* _overlayDefaultHotkey );
 
 uint16_t drawElement( const element_t* _element );
+uint16_t interactElement( const element_t* _element, char*** _activeMappedKeys, char*** _activeKeys );
 
 uint32_t getColorForRectangle( color_t _color );

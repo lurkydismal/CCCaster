@@ -37,6 +37,12 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
         goto NOT_MAPPED;
     }
 
+    if ( g_overlayToRender != NULL ) {
+        FOR_ARRAY( element_t**, g_overlayToRender ) {
+            interactElement( *_element, _activeMappedKeys, _activeKeys );
+        }
+    }
+
     FOR_ARRAY( char* const*, g_overlayHotkeys ) {
         if ( _containsString( *_activeMappedKeys, *_element ) ) {
             printf( "KEY TRUE  %s\n", *_element );
