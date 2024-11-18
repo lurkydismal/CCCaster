@@ -181,8 +181,10 @@ static ssize_t increaseElementCount( char*** _elementLabels,
                                      size_t** _countsArray,
                                      const char* _label ) {
     const ssize_t l_labelIndex = _findStringInArray( *_elementLabels, _label );
+#if 0
     _useCallback( "log$transaction$query", "EL IEC %s\n", _label );
     _useCallback( "log$transaction$query", "EL IECI %d\n", l_labelIndex );
+#endif
 
     if ( l_labelIndex >= 1 ) {
         ( *_countsArray[ l_labelIndex ] )++;
@@ -201,14 +203,18 @@ static inline ssize_t getElementCount( char** _elementLabels,
                                        const char* _label ) {
     ssize_t l_returnValue = -1;
     const ssize_t l_labelIndex = _findStringInArray( _elementLabels, _label );
+#if 0
     _useCallback( "log$transaction$query", "EL C %s\n", _label );
     _useCallback( "log$transaction$query", "EL CI %d\n", l_labelIndex );
+#endif
 
     if ( l_labelIndex >= 1 ) {
         l_returnValue = _countsArray[ l_labelIndex ];
     }
 
+#if 0
     _useCallback( "log$transaction$query", "EL C %d\n", l_returnValue );
+#endif
 
     return ( l_returnValue );
 }
