@@ -30,8 +30,7 @@ uint16_t drawElement( const element_t* _element ) {
         }
 
         case SPRITE: {
-            l_returnValue = _useCallback( "overlay$draw$sprite", l_element,
-                                          g_directXDevice );
+            l_returnValue = _useCallback( "overlay$draw$sprite", l_element );
 
             break;
         }

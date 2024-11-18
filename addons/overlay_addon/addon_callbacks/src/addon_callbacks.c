@@ -9,8 +9,6 @@
 useCallbackFunction_t g_useCallback;
 element_t** g_overlayToRender = NULL;
 
-IDirect3DDevice9*** g_directXDevice;
-
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
     _useCallbackInitialize();
@@ -18,8 +16,6 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     g_overlaysToRender = ( element_t*** )createArray( sizeof( element_t** ) );
     g_overlayHotkeys = ( char** )createArray( sizeof( char* ) );
     g_overlayNames = ( char** )createArray( sizeof( char* ) );
-
-    g_directXDevice = ( IDirect3DDevice9*** )_callbackArguments[ 5 ];
 
     return ( 0 );
 }

@@ -3,8 +3,6 @@
 #include <d3d9.h>
 #include <stdint.h>
 
-extern IDirect3DDevice9*** g_directXDevice;
-
 #define SCREEN_WIDTH ( 0x54D048 ) // The actual width of the main viewport
 
 // Addresses for drawText fonts
