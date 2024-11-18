@@ -22,11 +22,14 @@ static void applyInput( button_t _buttons,
     const uintptr_t l_secondPlayerButtonsOffset = 0x38;   // 56
 #endif
 
+    if ( _direction == 5 ) {
+        _direction = 0;
+    }
+
     if ( _buttons == AB ) {
         _buttons = ( button_t )( ( uint16_t )A | ( uint16_t )B );
 
-    } else if ( ( _buttons == E ) &&
-                ( ( !_direction ) || ( _direction == 5 ) ) ) {
+    } else if ( ( _buttons == E ) && ( !_direction ) ) {
         _buttons =
             ( button_t )( ( uint16_t )A | ( uint16_t )B | ( uint16_t )C );
     }
