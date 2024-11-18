@@ -39,7 +39,30 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
 
     if ( g_overlayToRender != NULL ) {
         FOR_ARRAY( element_t**, g_overlayToRender ) {
-            interactElement( *_element, _activeMappedKeys, _activeKeys );
+            if ( interactElement( *_element, _activeMappedKeys,
+                                  _activeKeys ) ) {
+                // Select next element
+                bool l_isNextToActivate = false;
+
+                FOR_ARRAY( element_t**, g_overlayToRender ) {
+                    if ( l_isNextToActivate ) {
+                        if ( ( *_element )->canActive ) {
+                            ( *_element )->isActive = true;
+
+                            break;
+                        }
+
+                    } else {
+                        if ( ( *_element )->isActive ) {
+                            l_isNextToActivate = true;
+                        }
+                    }
+                }
+
+                ( *_element )->isActive = false;
+
+                break;
+            }
         }
     }
 

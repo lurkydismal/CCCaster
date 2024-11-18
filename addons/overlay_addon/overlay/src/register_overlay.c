@@ -95,6 +95,12 @@ static inline void setElementPropertyByKey( element_t* _element,
     } else if ( strcmp( _key, "layer" ) == 0 ) {
         _element->layer = l_valueAsSize;
 
+    } else if ( strcmp( _key, "is_active" ) == 0 ) {
+        _element->isActive = ( bool )l_valueAsSize;
+
+    } else if ( strcmp( _key, "can_active" ) == 0 ) {
+        _element->canActive = ( bool )l_valueAsSize;
+
     } else {
         // Color
         if ( _key[ 1 ] == '_' ) {

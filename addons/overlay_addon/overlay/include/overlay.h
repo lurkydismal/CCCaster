@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "native.h"
@@ -18,7 +19,9 @@
       { 0, 0 },                    \
       FONT0,                       \
       0,                           \
-      0 }
+      0,                           \
+      false,                       \
+      false }
 
 typedef struct {
     uint8_t red;
@@ -61,6 +64,8 @@ typedef struct {
     uintptr_t* fontAddress;
     uint32_t letterSpacing;
     uint32_t layer;
+    bool isActive;
+    bool canActive;
 } element_t;
 
 extern element_t*** g_overlaysToRender;
