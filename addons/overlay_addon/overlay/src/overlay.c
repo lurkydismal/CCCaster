@@ -2,7 +2,8 @@
 
 #include "native.h"
 
-char* g_elementTypesAsString[] = { "rectangle", "text", "sprite", NULL };
+char* g_elementTypesAsString[] = { "rectangle", "text", "sprite", "bind",
+                                   "unknown" };
 element_t*** g_overlaysToRender;
 char** g_overlayHotkeys;
 char** g_overlayNames;

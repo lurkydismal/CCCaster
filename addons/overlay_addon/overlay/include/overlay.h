@@ -42,9 +42,9 @@ typedef struct {
     uint32_t second;
 } shade_t;
 
-enum elementType { RECTANGLE, TEXT, SPRITE, UNKNOWN };
+enum elementType { RECTANGLE, TEXT, SPRITE, BIND, UNKNOWN, TOTAL };
 
-extern char* g_elementTypesAsString[ 4 ];
+extern char* g_elementTypesAsString[ ( enum elementType )TOTAL ];
 
 typedef struct {
     enum elementType type;

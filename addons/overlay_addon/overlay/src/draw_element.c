@@ -16,29 +16,14 @@ uint16_t drawElement( const element_t* _element ) {
     element_t* l_element = ( element_t* )malloc( sizeof( element_t ) );
     memcpy( l_element, _element, sizeof( element_t ) );
 
-    switch ( _element->type ) {
-        case RECTANGLE: {
-            l_returnValue = _useCallback( "overlay$draw$rectangle", l_element );
+    char* l_callbackName = strdup( "overlay$draw$" );
 
-            break;
-        }
+    concatBeforeAndAfterString( &l_callbackName, "",
+                                g_elementTypesAsString[ _element->type ] );
 
-        case TEXT: {
-            l_returnValue = _useCallback( "overlay$draw$text", l_element );
+    l_returnValue = _useCallback( l_callbackName, l_element );
 
-            break;
-        }
-
-        case SPRITE: {
-            l_returnValue = _useCallback( "overlay$draw$sprite", l_element );
-
-            break;
-        }
-
-        default: {
-            l_returnValue = _useCallback( "overlay$draw$unknown", l_element );
-        }
-    }
+    free( l_callbackName );
 
     free( l_element );
 

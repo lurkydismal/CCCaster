@@ -15,12 +15,15 @@ uint16_t interactElement( const element_t* _element,
                           char*** _activeKeys ) {
     uint16_t l_returnValue = 0;
 
-    switch ( _element->type ) {
-        default: {
-            l_returnValue = _useCallback( "overlay$interact$unknown", _element,
-                                          _activeMappedKeys, _activeKeys );
-        }
-    }
+    char* l_callbackName = strdup( "overlay$interact$" );
+
+    concatBeforeAndAfterString( &l_callbackName, "",
+                                g_elementTypesAsString[ _element->type ] );
+
+    l_returnValue = _useCallback( l_callbackName, _element, _activeMappedKeys,
+                                  _activeKeys );
+
+    free( l_callbackName );
 
     return ( l_returnValue );
 }

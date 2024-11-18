@@ -253,3 +253,23 @@ uint16_t __declspec( dllexport ) overlay$draw$text(
 
     return ( l_returnValue );
 }
+
+uint16_t __declspec( dllexport ) overlay$interact$bind(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+    const char* const* const* l_activeMappedKeys =
+        ( const char* const* const* )_callbackArguments[ 0 ];
+    const char* const* const* l_activeKeys =
+        ( const char* const* const* )_callbackArguments[ 0 ];
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) overlay$draw$bind(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+
+    return ( l_returnValue );
+}
