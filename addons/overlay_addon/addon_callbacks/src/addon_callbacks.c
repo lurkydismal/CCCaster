@@ -39,27 +39,38 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
 
     if ( g_overlayToRender != NULL ) {
         FOR_ARRAY( element_t**, g_overlayToRender ) {
-            if ( interactElement( *_element, _activeMappedKeys,
-                                  _activeKeys ) ) {
-                // Select next element
-                bool l_isNextToActivate = false;
+            const uint16_t l_interactionReturnValue =
+                interactElement( *_element, _activeMappedKeys, _activeKeys );
 
-                FOR_ARRAY( element_t**, g_overlayToRender ) {
-                    if ( l_isNextToActivate ) {
+            if ( ( l_interactionReturnValue != ENODATA ) &&
+                 ( l_interactionReturnValue ) ) {
+                bool l_isNextToActivate = true;
+
+                ( *_element )->isActive = false;
+
+                _element++;
+
+                while ( _element !=
+                        arrayLastElementPointer( g_overlayToRender ) ) {
+                    if ( ( *_element )->canActive ) {
+                        ( *_element )->isActive = true;
+                        l_isNextToActivate = false;
+
+                        break;
+                    }
+
+                    _element++;
+                }
+
+                if ( l_isNextToActivate ) {
+                    FOR_ARRAY( element_t**, g_overlayToRender ) {
                         if ( ( *_element )->canActive ) {
                             ( *_element )->isActive = true;
 
                             break;
                         }
-
-                    } else {
-                        if ( ( *_element )->isActive ) {
-                            l_isNextToActivate = true;
-                        }
                     }
                 }
-
-                ( *_element )->isActive = false;
 
                 break;
             }
@@ -77,7 +88,7 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
 
                 printf(
                     "%s\n",
-                    arrayFirstElementPointer( g_overlayToRender )[ 0 ]->text );
+                    arrayFirstElementPointer( g_overlayToRender )[ 1 ]->text );
 
             } else {
                 g_overlayToRender = NULL;
@@ -232,23 +243,23 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
 uint16_t __declspec( dllexport ) overlay$draw$rectangle(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+    const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
 
-    const uint32_t l_a = getColorForRectangle( l_element->a );
-    const uint32_t l_b = getColorForRectangle( l_element->b );
-    const uint32_t l_c = getColorForRectangle( l_element->c );
-    const uint32_t l_d = getColorForRectangle( l_element->d );
+    const uint32_t l_a = getColorForRectangle( _element->a );
+    const uint32_t l_b = getColorForRectangle( _element->b );
+    const uint32_t l_c = getColorForRectangle( _element->c );
+    const uint32_t l_d = getColorForRectangle( _element->d );
 
 #if 0
     printf( "rectangle x%u y%u w%u h%u a%u b%u c%u d%u l%u\n",
-            l_element->coordinates.x, l_element->coordinates.y,
-            l_element->size.width, l_element->size.height, l_a, l_b, l_c, l_d,
-            l_element->layer );
+            _element->coordinates.x, _element->coordinates.y,
+            _element->size.width, _element->size.height, l_a, l_b, l_c, l_d,
+            _element->layer );
 #endif
 
-    drawRectangle( l_element->coordinates.x, l_element->coordinates.y,
-                   l_element->size.width, l_element->size.height, l_a, l_b, l_c,
-                   l_d, l_element->layer );
+    drawRectangle( _element->coordinates.x, _element->coordinates.y,
+                   _element->size.width, _element->size.height, l_a, l_b, l_c,
+                   l_d, _element->layer );
 
     return ( l_returnValue );
 }
@@ -256,23 +267,23 @@ uint16_t __declspec( dllexport ) overlay$draw$rectangle(
 uint16_t __declspec( dllexport ) overlay$draw$text(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+    const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
     char* l_out;
 
 #if 0
-    printf( "text %u %u %d %d %s %u %u %u %u %u %u %p\n", l_element->size.width,
-            l_element->size.height, l_element->coordinates.x,
-            l_element->coordinates.y, l_element->text, l_element->a.alpha,
-            l_element->shade.first, l_element->shade.second,
-            l_element->fontAddress, l_element->letterSpacing, l_element->layer,
+    printf( "text %u %u %d %d %s %u %u %u %u %u %u %p\n", _element->size.width,
+            _element->size.height, _element->coordinates.x,
+            _element->coordinates.y, _element->text, _element->a.alpha,
+            _element->shade.first, _element->shade.second,
+            _element->fontAddress, _element->letterSpacing, _element->layer,
             l_out );
 #endif
 
-    drawText( l_element->size.width, l_element->size.height,
-              l_element->coordinates.x, l_element->coordinates.y,
-              l_element->text, l_element->a.alpha, l_element->shade.first,
-              l_element->shade.second, l_element->fontAddress,
-              l_element->letterSpacing, l_element->layer, l_out );
+    drawText( _element->size.width, _element->size.height,
+              _element->coordinates.x, _element->coordinates.y, _element->text,
+              _element->a.alpha, _element->shade.first, _element->shade.second,
+              _element->fontAddress, _element->letterSpacing, _element->layer,
+              l_out );
 
     return ( l_returnValue );
 }
@@ -280,11 +291,23 @@ uint16_t __declspec( dllexport ) overlay$draw$text(
 uint16_t __declspec( dllexport ) overlay$interact$bind(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
-    const char* const* const* l_activeMappedKeys =
+    const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
+    const char* const* const* _activeMappedKeys =
         ( const char* const* const* )_callbackArguments[ 0 ];
-    const char* const* const* l_activeKeys =
+    const char* const* const* _activeKeys =
         ( const char* const* const* )_callbackArguments[ 0 ];
+
+    static uint8_t l_counter = 0;
+
+    if ( _element->isActive ) {
+        l_counter++;
+
+        if ( l_counter > 5 ) {
+            l_counter = 0;
+
+            l_returnValue = 1;
+        }
+    }
 
     return ( l_returnValue );
 }
@@ -292,7 +315,23 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
 uint16_t __declspec( dllexport ) overlay$draw$bind(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
-    const element_t* l_element = ( const element_t* )_callbackArguments[ 0 ];
+    const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
+
+    color_t l_tempA = _element->a;
+
+    if ( _element->isActive ) {
+        l_tempA.red = 255;
+        l_tempA.green = 0;
+    }
+
+    const uint32_t l_a = getColorForRectangle( l_tempA );
+    const uint32_t l_b = getColorForRectangle( _element->b );
+    const uint32_t l_c = getColorForRectangle( _element->c );
+    const uint32_t l_d = getColorForRectangle( _element->d );
+
+    drawRectangle( _element->coordinates.x, _element->coordinates.y,
+                   _element->size.width, _element->size.height, l_a, l_b, l_c,
+                   l_d, _element->layer );
 
     return ( l_returnValue );
 }

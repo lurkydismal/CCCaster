@@ -7,3 +7,5 @@ game$frame$extraDraw
 overlay$register
 overlay$draw$rectangle
 overlay$draw$text
+overlay$interact$bind
+overlay$draw$bind

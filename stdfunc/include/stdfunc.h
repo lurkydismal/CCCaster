@@ -46,9 +46,11 @@
 
 #define FREE_ARRAY( _type, _array, _elementToFree ) \
     FOR_ARRAY( _type, _array ) {                    \
+        /*                                          \
         printf( "{\n" );                            \
         printf( "%s\n", _elementToFree );           \
         printf( "}\n" );                            \
+        */                                          \
                                                     \
         free( _elementToFree );                     \
     }                                               \

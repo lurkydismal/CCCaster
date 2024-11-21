@@ -40,45 +40,33 @@ static inline void setElementPropertyByKey( element_t* _element,
         const uint8_t l_red = l_valueAsSize;
 
         _element->a.red = l_red;
-
-        if ( _element->type == RECTANGLE ) {
-            _element->b.red = l_red;
-            _element->c.red = l_red;
-            _element->d.red = l_red;
-        }
+        _element->b.red = l_red;
+        _element->c.red = l_red;
+        _element->d.red = l_red;
 
     } else if ( strcmp( _key, "green" ) == 0 ) {
         const uint8_t l_green = l_valueAsSize;
 
         _element->a.green = l_green;
-
-        if ( _element->type == RECTANGLE ) {
-            _element->b.green = l_green;
-            _element->c.green = l_green;
-            _element->d.green = l_green;
-        }
+        _element->b.green = l_green;
+        _element->c.green = l_green;
+        _element->d.green = l_green;
 
     } else if ( strcmp( _key, "blue" ) == 0 ) {
         const uint8_t l_blue = l_valueAsSize;
 
         _element->a.blue = l_blue;
-
-        if ( _element->type == RECTANGLE ) {
-            _element->b.blue = l_blue;
-            _element->c.blue = l_blue;
-            _element->d.blue = l_blue;
-        }
+        _element->b.blue = l_blue;
+        _element->c.blue = l_blue;
+        _element->d.blue = l_blue;
 
     } else if ( strcmp( _key, "alpha" ) == 0 ) {
         const uint8_t l_alpha = l_valueAsSize;
 
         _element->a.alpha = l_alpha;
-
-        if ( _element->type == RECTANGLE ) {
-            _element->b.alpha = l_alpha;
-            _element->c.alpha = l_alpha;
-            _element->d.alpha = l_alpha;
-        }
+        _element->b.alpha = l_alpha;
+        _element->c.alpha = l_alpha;
+        _element->d.alpha = l_alpha;
 
     } else if ( strcmp( _key, "text" ) == 0 ) {
         _element->text = _value;
@@ -156,13 +144,13 @@ static inline void setElementPropertyByKey( element_t* _element,
 
 static inline enum elementType getElementTypeFromLabel(
     const char* _elementLabel ) {
-#if 0
-    _useCallback( "log$transaction$query", "getElementTypeFromLabel %s\n", _elementLabel );
+#if LOG_REGISTER
+    printf( "getElementTypeFromLabel %s\n", _elementLabel );
 #endif
     FOR( char* const*, g_elementTypesAsString ) {
         if ( strcmp( *_element, _elementLabel ) == 0 ) {
-#if 0
-            _useCallback( "log$transaction$query", "LT %s %d\n", _elementLabel,
+#if LOG_REGISTER
+            printf( "LT %s %d\n", _elementLabel,
                     ( _element - g_elementTypesAsString ) );
 #endif
             return ( _element - g_elementTypesAsString );
@@ -172,11 +160,11 @@ static inline enum elementType getElementTypeFromLabel(
 
 static inline const char* getElementLabelFromType(
     const enum elementType _elementType ) {
-#if 0
-    _useCallback( "log$transaction$query", "getElementLabelFromType %d\n", _elementType );
+#if LOG_REGISTER
+    printf( "getElementLabelFromType %d\n", _elementType );
 #endif
-#if 0
-    _useCallback( "log$transaction$query", "LT %d %s\n", _elementType,
+#if LOG_REGISTER
+    printf( "LT %d %s\n", _elementType,
             g_elementTypesAsString[ _elementType ] );
 #endif
 
@@ -186,19 +174,26 @@ static inline const char* getElementLabelFromType(
 static ssize_t increaseElementCount( char*** _elementLabels,
                                      size_t** _countsArray,
                                      const char* _label ) {
+#if LOG_REGISTER
+    printf( "EL IEC %s\n", _label );
+#endif
+
     const ssize_t l_labelIndex = _findStringInArray( *_elementLabels, _label );
-#if 0
-    _useCallback( "log$transaction$query", "EL IEC %s\n", _label );
-    _useCallback( "log$transaction$query", "EL IECI %d\n", l_labelIndex );
+
+#if LOG_REGISTER
+    printf( "EL IECI %d\n", l_labelIndex );
 #endif
 
     if ( l_labelIndex >= 1 ) {
-        ( *_countsArray[ l_labelIndex ] )++;
+        //( ( size_t* )( &( _array[ 0 ] ) ) )++;
+        ( ( *_countsArray )[ l_labelIndex ] )++;
+        printf( "EL IECI2 %d\n", ( ( *_countsArray )[ l_labelIndex ] ) );
 
     } else {
         insertIntoArray( ( void*** )_elementLabels,
                          ( void* )( strdup( _label ) ) );
         insertIntoArray( ( void*** )_countsArray, ( void* )1 );
+        printf( "EL IECI1 %d\n", ( ( *_countsArray )[ 1 ] ) );
     }
 
     return ( l_labelIndex );
@@ -209,17 +204,17 @@ static inline ssize_t getElementCount( char** _elementLabels,
                                        const char* _label ) {
     ssize_t l_returnValue = -1;
     const ssize_t l_labelIndex = _findStringInArray( _elementLabels, _label );
-#if 0
-    _useCallback( "log$transaction$query", "EL C %s\n", _label );
-    _useCallback( "log$transaction$query", "EL CI %d\n", l_labelIndex );
+#if LOG_REGISTER
+    printf( "EL C %s\n", _label );
+    printf( "EL CI %d\n", l_labelIndex );
 #endif
 
     if ( l_labelIndex >= 1 ) {
         l_returnValue = _countsArray[ l_labelIndex ];
     }
 
-#if 0
-    _useCallback( "log$transaction$query", "EL C %d\n", l_returnValue );
+#if LOG_REGISTER
+    printf( "EL C %d\n", l_returnValue );
 #endif
 
     return ( l_returnValue );
@@ -293,8 +288,7 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                 {
                     const size_t l_labelIndex = ( l_labelCount - 1 );
                     char* l_labelIndexAsText = stoa( l_labelIndex );
-                    _useCallback( "log$transaction$query", "TESTTTT %s\n",
-                                  l_labelIndexAsText );
+                    printf( "TESTTTT %s\n", l_labelIndexAsText );
 
                     {
                         char* l_label = mangleElementLabel(
@@ -306,8 +300,8 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                         concatBeforeAndAfterString( &l_label, "[", "]" );
 
                         concatBeforeAndAfterString( &l_buffer, "", l_label );
-#if 0
-                        _useCallback( "log$transaction$query", "LB1 %s %d\n", l_buffer, strlen( l_buffer ) );
+#if LOG_REGISTER
+                        printf( "LB1 %s %d\n", l_buffer, strlen( l_buffer ) );
 #endif
 
                         free( l_label );
@@ -319,8 +313,8 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                 // Not Label
             } else {
                 concatBeforeAndAfterString( &l_buffer, "", l_line );
-#if 0
-                _useCallback( "log$transaction$query", "LB2 %s %d\n", l_line, strlen( l_line ) );
+#if LOG_REGISTER
+                printf( "LB2 %s %d\n", l_line, strlen( l_line ) );
 #endif
             }
 
@@ -331,8 +325,8 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
         PARSE_EXIT:
             free( l_line );
 
-#if 0
-            _useCallback( "log$transaction$query", "LINE %s\n", l_line );
+#if LOG_REGISTER
+            printf( "LINE %s\n", l_line );
 #endif
         }
 
@@ -357,8 +351,8 @@ static inline const char* getElementDefaultSettings(
     const char* const* _elementsSettings,
     const char* _elementLabel ) {
     const char* l_returnValue = NULL;
-#if 0
-    _useCallback( "log$transaction$query", "ELEM %s\n", _elementsLabels[ 1 ] );
+#if LOG_REGISTER
+    printf( "ELEM %s\n", _elementLabel );
 #endif
     const size_t l_elementDefaultSettingsIndex =
         _findStringInArray( _elementsLabels, _elementLabel );
@@ -367,11 +361,11 @@ static inline const char* getElementDefaultSettings(
         l_returnValue = _elementsSettings[ l_elementDefaultSettingsIndex ];
     }
 
-#if 0
-    _useCallback( "log$transaction$query", "LABE1 %d\n", l_elementDefaultSettingsIndex );
+#if LOG_REGISTER
+    printf( "LABE1 %d\n", l_elementDefaultSettingsIndex );
 #endif
-#if 0
-    _useCallback( "log$transaction$query", "LABE2 %s\n", _elementsSettings[ 1 ] );
+#if LOG_REGISTER
+    printf( "LABE2 %s\n", l_returnValue );
 #endif
 
     return ( l_returnValue );
@@ -399,8 +393,8 @@ static inline void insertElementIntoOverlay( element_t*** _overlay,
                                              char*** _settings ) {
     element_t* l_element = createElementWithSettings( _type, _settings );
 
-#if 0
-    _useCallback( "log$transaction$query", "RE EL %s\n", l_element->text );
+#if LOG_REGISTER
+    printf( "RE EL %s\n", l_element->text );
 #endif
     insertIntoArray( ( void*** )_overlay, ( void* )( l_element ) );
 
@@ -420,21 +414,20 @@ static uint16_t registerElementsForRender(
 
     // Go over elements in order and register for rendering
     FOR_ARRAY( const char* const*, _elementsOrder ) {
-#if 0
-        _useCallback( "log$transaction$query", "LABE %s\n", *_element );
+#if LOG_REGISTER
+        printf( "{\nLABE %s\n", *_element );
 #endif
 
         const ssize_t l_elementIndex =
             increaseElementCount( &l_labels, &l_labelCounts, *_element );
-        const size_t l_labelCount =
+        const ssize_t l_labelCount =
             getElementCount( l_labels, l_labelCounts, *_element );
 
         // Insert element into overlay with settings or defalt settings
         {
             const size_t l_labelIndex = ( l_labelCount - 1 );
             char* l_labelIndexAsText = stoa( l_labelIndex );
-            _useCallback( "log$transaction$query", "TESTTTT %s\n",
-                          l_labelIndexAsText );
+            printf( "TESTTTT %s\n", l_labelIndexAsText );
 
             {
                 char* l_elementLabelMangled = mangleElementLabel(
@@ -445,23 +438,23 @@ static uint16_t registerElementsForRender(
                         getElementDefaultSettings( _elementsLabels,
                                                    _elementsSettings,
                                                    l_elementLabelMangled );
-#if 0
-                    _useCallback( "log$transaction$query", "TEST4\n" );
+#if LOG_REGISTER
+                    printf( "TEST4\n" );
 #endif
                     char*** l_elementSettings = getLabelFromSettingsOrDefault(
                         l_elementLabelMangled, l_elementDefaultSettings );
-#if 0
-                    _useCallback( "log$transaction$query", "TEST5\n" );
+#if LOG_REGISTER
+                    printf( "TEST5\n" );
 #endif
 
                     insertElementIntoOverlay(
                         &l_overlay, getElementTypeFromLabel( *_element ),
                         l_elementSettings );
-#if 0
-                    _useCallback( "log$transaction$query", "TEST6\n" );
+#if LOG_REGISTER
+                    printf( "TEST6\n" );
 #endif
-#if 0
-                    _useCallback( "log$transaction$query", "RE EL2 %s\n",
+#if LOG_REGISTER
+                    printf( "RE EL2 %s\n}\n",
                             l_overlay[ arrayLength( l_overlay ) ]->text );
 #endif
                 }
@@ -496,8 +489,8 @@ static uint16_t registerHotkey( const char* _overlayName,
                                 const char* _overlayDefaultHotkey ) {
     uint16_t l_returnValue = 0;
 
-#if 0
-    _useCallback( "log$transaction$query", "R HK2 %s\n", _overlayDefaultHotkey );
+#if LOG_REGISTER
+    printf( "R HK2 %s\n", _overlayDefaultHotkey );
 #endif
     const char l_overlayHotkeyName[] =
         "overlay_toggle_key"
@@ -510,8 +503,8 @@ static uint16_t registerHotkey( const char* _overlayName,
         char* l_overlayHotkey = getKeyFromSettingsOrDefault(
             "keyboard", l_overlayHotkeyNameMangled, _overlayDefaultHotkey );
 
-#if 0
-        _useCallback( "log$transaction$query", "LOHK %s\n", l_overlayHotkey );
+#if LOG_REGISTER
+        printf( "LOHK %s\n", l_overlayHotkey );
 #endif
 
         if ( strcmp( l_overlayHotkey, _overlayDefaultHotkey ) == 0 ) {
@@ -521,8 +514,8 @@ static uint16_t registerHotkey( const char* _overlayName,
         free( l_overlayHotkey );
     }
 
-#if 0
-    _useCallback( "log$transaction$query", "R HK3 %s\n", l_overlayHotkeyNameMangled );
+#if LOG_REGISTER
+    printf( "R HK3 %s\n", l_overlayHotkeyNameMangled );
 #endif
     insertIntoArray( ( void*** )&g_overlayHotkeys, l_overlayHotkeyNameMangled );
 
@@ -539,14 +532,14 @@ uint16_t overlayRegister( const char* _overlayName,
     char** l_elementsLabels = ( char** )createArray( sizeof( char* ) );
     char** l_elementsSettings = ( char** )createArray( sizeof( char* ) );
 
-    _useCallback( "log$transaction$query", "TEST1\n" );
+    printf( "TEST1\n" );
     if ( ( l_returnValue = getElementsSettings(
                &l_elementsLabels, &l_elementsSettings, _overlayName,
                _elementsDefaultSettings ) ) != 0 ) {
         goto FREE_LABELS;
     }
 
-    _useCallback( "log$transaction$query", "TEST2\n" );
+    printf( "TEST2\n" );
     if ( ( l_returnValue = registerElementsForRender(
                _overlayName, ( const char* const* )l_elementsLabels,
                _elementsOrder, ( const char* const* )l_elementsSettings ) ) !=
@@ -554,8 +547,8 @@ uint16_t overlayRegister( const char* _overlayName,
         goto FREE_LABELS;
     }
 
-#if 0
-    _useCallback( "log$transaction$query", "G %s\n", ( g_overlaysToRender[ 1 ][ 1 ] )->text );
+#if LOG_REGISTER
+    printf( "G %s\n", ( g_overlaysToRender[ 1 ][ 1 ] )->text );
 #endif
 
     if ( ( l_returnValue =
@@ -563,8 +556,8 @@ uint16_t overlayRegister( const char* _overlayName,
         goto FREE_LABELS;
     }
 
-#if 0
-    _useCallback( "log$transaction$query", "R HK1 %s\n", _overlayName );
+#if LOG_REGISTER
+    printf( "R HK1 %s\n", _overlayName );
 #endif
     insertIntoArray( ( void*** )&g_overlayNames, ( void* )_overlayName );
 
@@ -574,8 +567,8 @@ FREE_LABELS:
         goto EXIT;
     }
 
-#if 0
-    _useCallback( "log$transaction$query", "G2 %s\n", ( g_overlaysToRender[ 1 ][ 1 ] )->text );
+#if LOG_REGISTER
+    printf( "G2 %s\n", ( g_overlaysToRender[ 1 ][ 1 ] )->text );
 #endif
 
 EXIT:
