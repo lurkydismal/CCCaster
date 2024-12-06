@@ -146,15 +146,16 @@ static inline enum elementType getElementTypeFromLabel(
     const char* _elementLabel ) {
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "getElementTypeFromLabel " );
-    _useCallback( _elementLabel );
+    _useCallback( "log$transaction$query", _elementLabel );
     _useCallback( "log$transaction$query", "\n" );
 #endif
     FOR( char* const*, g_elementTypesAsString ) {
         if ( strcmp( *_element, _elementLabel ) == 0 ) {
 #if LOG_REGISTER
             _useCallback( "log$transaction$query", "LT %s %d\n" );
-            _useCallback( _elementLabel );
-            //_useCallback( _element - g_elementTypesAsString );
+            _useCallback( "log$transaction$query", _elementLabel );
+            //_useCallback( "log$transaction$query", _element -
+            // g_elementTypesAsString );
             _useCallback( "log$transaction$query", "\n" );
 #endif
             return ( _element - g_elementTypesAsString );
@@ -166,13 +167,14 @@ static inline const char* getElementLabelFromType(
     const enum elementType _elementType ) {
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "getElementLabelFromType %d\n" );
-    //_useCallback( _elementType );
+    //_useCallback( "log$transaction$query", _elementType );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "LT %d %s\n" );
-    //_useCallback( _elementType );
-    _useCallback( g_elementTypesAsString[ _elementType ] );
+    //_useCallback( "log$transaction$query", _elementType );
+    _useCallback( "log$transaction$query",
+                  g_elementTypesAsString[ _elementType ] );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -184,7 +186,7 @@ static ssize_t increaseElementCount( char*** _elementLabels,
                                      const char* _label ) {
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "EL IEC " );
-    _useCallback( _label );
+    _useCallback( "log$transaction$query", _label );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -192,7 +194,7 @@ static ssize_t increaseElementCount( char*** _elementLabels,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "EL IECI %d\n" );
-    //_useCallback( l_labelIndex );
+    //_useCallback( "log$transaction$query", l_labelIndex );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -200,7 +202,8 @@ static ssize_t increaseElementCount( char*** _elementLabels,
         //( ( size_t* )( &( _array[ 0 ] ) ) )++;
         ( ( *_countsArray )[ l_labelIndex ] )++;
         _useCallback( "log$transaction$query", "EL IECI2 %d\n" );
-        //_useCallback( ( *_countsArray )[ l_labelIndex ] );
+        //_useCallback( "log$transaction$query", ( *_countsArray )[ l_labelIndex
+        //] );
         _useCallback( "log$transaction$query", "\n" );
 
     } else {
@@ -208,7 +211,7 @@ static ssize_t increaseElementCount( char*** _elementLabels,
                          ( void* )( strdup( _label ) ) );
         insertIntoArray( ( void*** )_countsArray, ( void* )1 );
         _useCallback( "log$transaction$query", "EL IECI1 %d\n" );
-        //_useCallback( ( *_countsArray )[ 1 ] );
+        //_useCallback( "log$transaction$query", ( *_countsArray )[ 1 ] );
         _useCallback( "log$transaction$query", "\n" );
     }
 
@@ -222,10 +225,10 @@ static inline ssize_t getElementCount( char** _elementLabels,
     const ssize_t l_labelIndex = _findStringInArray( _elementLabels, _label );
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "EL C %s\n" );
-    _useCallback( _label );
+    _useCallback( "log$transaction$query", _label );
     _useCallback( "log$transaction$query", "\n" );
     _useCallback( "log$transaction$query", "EL CI %d\n" );
-    //_useCallback( l_labelIndex );
+    //_useCallback( "log$transaction$query", l_labelIndex );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -235,7 +238,7 @@ static inline ssize_t getElementCount( char** _elementLabels,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "EL C %d\n" );
-    //_useCallback( l_returnValue );
+    //_useCallback( "log$transaction$query", l_returnValue );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -310,9 +313,6 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                 {
                     const size_t l_labelIndex = ( l_labelCount - 1 );
                     char* l_labelIndexAsText = stoa( l_labelIndex );
-                    _useCallback( "log$transaction$query", "TESTTTT " );
-                    _useCallback( l_labelIndexAsText );
-                    _useCallback( "log$transaction$query", "\n" );
 
                     {
                         char* l_label = mangleElementLabel(
@@ -326,8 +326,9 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                         concatBeforeAndAfterString( &l_buffer, "", l_label );
 #if LOG_REGISTER
                         _useCallback( "log$transaction$query", "LB1 %s %d\n" );
-                        _useCallback( l_buffer );
-                        //_useCallback( strlen( l_buffer ) );
+                        _useCallback( "log$transaction$query", l_buffer );
+                        //_useCallback( "log$transaction$query", strlen(
+                        // l_buffer ) );
                         _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -342,8 +343,8 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
                 concatBeforeAndAfterString( &l_buffer, "", l_line );
 #if LOG_REGISTER
                 _useCallback( "log$transaction$query", "LB2 %s %d\n" );
-                _useCallback( l_line );
-                //_useCallback( strlen( l_line ) );
+                _useCallback( "log$transaction$query", l_line );
+                //_useCallback( "log$transaction$query", strlen( l_line ) );
                 _useCallback( "log$transaction$query", "\n" );
 #endif
             }
@@ -357,7 +358,7 @@ static uint16_t getElementsSettings( char*** _elementsLabels,
 
 #if LOG_REGISTER
             _useCallback( "log$transaction$query", "LINE " );
-            _useCallback( l_line );
+            _useCallback( "log$transaction$query", l_line );
             _useCallback( "log$transaction$query", "\n" );
 #endif
         }
@@ -385,7 +386,7 @@ static inline const char* getElementDefaultSettings(
     const char* l_returnValue = NULL;
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "ELEM " );
-    _useCallback( _elementLabel );
+    _useCallback( "log$transaction$query", _elementLabel );
     _useCallback( "log$transaction$query", "\n" );
 #endif
     const size_t l_elementDefaultSettingsIndex =
@@ -397,12 +398,12 @@ static inline const char* getElementDefaultSettings(
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "LABE1 %d\n" );
-    //_useCallback( l_elementDefaultSettingsIndex );
+    //_useCallback( "log$transaction$query", l_elementDefaultSettingsIndex );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "LABE2 " );
-    _useCallback( l_returnValue );
+    _useCallback( "log$transaction$query", l_returnValue );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -433,7 +434,7 @@ static inline void insertElementIntoOverlay( element_t*** _overlay,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "RE EL " );
-    _useCallback( l_element->text );
+    _useCallback( "log$transaction$query", l_element->text );
     _useCallback( "log$transaction$query", "\n" );
 #endif
     insertIntoArray( ( void*** )_overlay, ( void* )( l_element ) );
@@ -456,7 +457,7 @@ static uint16_t registerElementsForRender(
     FOR_ARRAY( const char* const*, _elementsOrder ) {
 #if LOG_REGISTER
         _useCallback( "log$transaction$query", "{\nLABE " );
-        _useCallback( *_element );
+        _useCallback( "log$transaction$query", *_element );
         _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -469,9 +470,6 @@ static uint16_t registerElementsForRender(
         {
             const size_t l_labelIndex = ( l_labelCount - 1 );
             char* l_labelIndexAsText = stoa( l_labelIndex );
-            _useCallback( "log$transaction$query", "TESTTTT " );
-            _useCallback( l_labelIndexAsText );
-            _useCallback( "log$transaction$query", "\n" );
 
             {
                 char* l_elementLabelMangled = mangleElementLabel(
@@ -536,7 +534,7 @@ static uint16_t registerHotkey( const char* _overlayName,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "R HK2 " );
-    _useCallback( _overlayDefaultHotkey );
+    _useCallback( "log$transaction$query", _overlayDefaultHotkey );
     _useCallback( "log$transaction$query", "\n" );
 #endif
     char* l_overlayHotkeyNameMangled = strdup( OVERLAY_HOTKEY_PART1 );
@@ -549,7 +547,7 @@ static uint16_t registerHotkey( const char* _overlayName,
 
 #if LOG_REGISTER
         _useCallback( "log$transaction$query", "LOHK " );
-        _useCallback( l_overlayHotkey );
+        _useCallback( "log$transaction$query", l_overlayHotkey );
         _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -562,7 +560,7 @@ static uint16_t registerHotkey( const char* _overlayName,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "R HK3 " );
-    _useCallback( l_overlayHotkeyNameMangled );
+    _useCallback( "log$transaction$query", l_overlayHotkeyNameMangled );
     _useCallback( "log$transaction$query", "\n" );
 #endif
     insertIntoArray( ( void*** )&g_overlayHotkeys, l_overlayHotkeyNameMangled );
@@ -601,7 +599,8 @@ uint16_t overlayRegister( const char* _overlayName,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "G " );
-    _useCallback( ( g_overlaysToRender[ 1 ][ 1 ] )->text );
+    _useCallback( "log$transaction$query",
+                  ( g_overlaysToRender[ 1 ][ 1 ] )->text );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 
@@ -612,7 +611,7 @@ uint16_t overlayRegister( const char* _overlayName,
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "R HK1 " );
-    _useCallback( _overlayName );
+    _useCallback( "log$transaction$query", _overlayName );
     _useCallback( "log$transaction$query", "\n" );
 #endif
     insertIntoArray( ( void*** )&g_overlayNames, ( void* )_overlayName );
@@ -625,7 +624,8 @@ FREE_LABELS:
 
 #if LOG_REGISTER
     _useCallback( "log$transaction$query", "G2 " );
-    _useCallback( ( g_overlaysToRender[ 1 ][ 1 ] )->text );
+    _useCallback( "log$transaction$query",
+                  ( g_overlaysToRender[ 1 ][ 1 ] )->text );
     _useCallback( "log$transaction$query", "\n" );
 #endif
 

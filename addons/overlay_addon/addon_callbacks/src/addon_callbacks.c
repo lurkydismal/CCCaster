@@ -69,37 +69,153 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
                 const uint16_t l_interactionReturnValue = interactElement(
                     *_element, _activeMappedKeys, _activeKeys );
 
-                if ( ( l_interactionReturnValue != ENODATA ) &&
-                     ( l_interactionReturnValue ) ) {
-                    bool l_isNextToActivate = true;
+                if ( l_interactionReturnValue != ENODATA ) {
+                    if ( l_interactionReturnValue == 1 ) {
+                        bool l_isNextToActivate = true;
 
-                    ( *_element )->isActive = false;
+                        _useCallback( "log$transaction$query", "TEST1\n" );
 
-                    _element++;
-
-                    while ( _element !=
-                            arrayLastElementPointer( g_overlayToRender ) ) {
-                        if ( ( *_element )->canActive ) {
-                            ( *_element )->isActive = true;
-                            l_isNextToActivate = false;
-
-                            break;
-                        }
+                        ( *_element )->isActive = false;
 
                         _element++;
-                    }
 
-                    if ( l_isNextToActivate ) {
-                        FOR_ARRAY( element_t**, g_overlayToRender ) {
+                        while ( _element !=
+                                arrayLastElementPointer( g_overlayToRender ) ) {
                             if ( ( *_element )->canActive ) {
                                 ( *_element )->isActive = true;
+                                l_isNextToActivate = false;
 
                                 break;
                             }
-                        }
-                    }
 
-                    break;
+                            _element++;
+                        }
+
+                        if ( l_isNextToActivate ) {
+                            FOR_ARRAY( element_t**, g_overlayToRender ) {
+                                if ( ( *_element )->canActive ) {
+                                    ( *_element )->isActive = true;
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        _useCallback( "log$transaction$query", "TEST2\n" );
+                        break;
+
+                    } else if ( l_interactionReturnValue == 2 ) {
+                        bool l_isPreviousToActivate = true;
+
+                        _useCallback( "log$transaction$query", "TEST3\n" );
+                        _useCallback( "log$transaction$commit" );
+
+                        {
+                            const size_t l_x =
+                                ( _element - arrayFirstElementPointer(
+                                                 g_overlayToRender ) );
+                            char* l_buffer = stoa( l_x );
+                            _useCallback( "log$transaction$query", l_buffer );
+                            free( l_buffer );
+                        }
+                        _useCallback( "log$transaction$query", "\n" );
+                        _useCallback( "log$transaction$commit" );
+                        ( *_element )->isActive = false;
+                        _useCallback( "log$transaction$query", "TEST5\n" );
+                        _useCallback( "log$transaction$commit" );
+
+                        _element--;
+                        {
+                            const size_t l_x =
+                                ( _element - arrayFirstElementPointer(
+                                                 g_overlayToRender ) );
+                            char* l_buffer = stoa( l_x );
+                            _useCallback( "log$transaction$query", l_buffer );
+                            free( l_buffer );
+                        }
+                        _useCallback( "log$transaction$query", "\n" );
+                        _useCallback( "log$transaction$commit" );
+                        _useCallback( "log$transaction$query", "TEST6\n" );
+                        _useCallback( "log$transaction$commit" );
+
+                        while ( _element != ( arrayFirstElementPointer(
+                                                  g_overlayToRender ) -
+                                              1 ) ) {
+                            _useCallback( "log$transaction$query", "TEST7\n" );
+                            _useCallback( "log$transaction$commit" );
+
+                            {
+                                const size_t l_x =
+                                    ( _element - arrayFirstElementPointer(
+                                                     g_overlayToRender ) );
+                                char* l_buffer = stoa( l_x );
+                                _useCallback( "log$transaction$query",
+                                              l_buffer );
+                                free( l_buffer );
+                            }
+                            _useCallback( "log$transaction$query", "\n" );
+                            _useCallback( "log$transaction$commit" );
+
+                            if ( ( *_element )->canActive ) {
+                                _useCallback( "log$transaction$query",
+                                              "TEST8\n" );
+                                _useCallback( "log$transaction$commit" );
+                                ( *_element )->isActive = true;
+                                l_isPreviousToActivate = false;
+
+                                break;
+                            }
+
+                            _useCallback( "log$transaction$query", "TEST9\n" );
+                            _useCallback( "log$transaction$commit" );
+                            _element--;
+                        }
+
+                        _element = arrayLastElementPointer( g_overlayToRender );
+
+                        if ( l_isPreviousToActivate ) {
+                            _useCallback( "log$transaction$query", "TEST20\n" );
+                            _useCallback( "log$transaction$commit" );
+                            while ( _element != ( arrayFirstElementPointer(
+                                                      g_overlayToRender ) -
+                                                  1 ) ) {
+                                _useCallback( "log$transaction$query",
+                                              "TEST27\n" );
+                                _useCallback( "log$transaction$commit" );
+
+                                {
+                                    const size_t l_x =
+                                        ( _element - arrayFirstElementPointer(
+                                                         g_overlayToRender ) );
+                                    char* l_buffer = stoa( l_x );
+                                    _useCallback( "log$transaction$query",
+                                                  l_buffer );
+                                    free( l_buffer );
+                                }
+                                _useCallback( "log$transaction$query", "\n" );
+                                _useCallback( "log$transaction$commit" );
+
+                                if ( ( *_element )->canActive ) {
+                                    _useCallback( "log$transaction$query",
+                                                  "TEST28\n" );
+                                    _useCallback( "log$transaction$commit" );
+                                    ( *_element )->isActive = true;
+                                    l_isPreviousToActivate = false;
+
+                                    break;
+                                }
+
+                                _useCallback( "log$transaction$query",
+                                              "TEST29\n" );
+                                _useCallback( "log$transaction$commit" );
+                                _element--;
+                            }
+                        }
+
+                        _useCallback( "log$transaction$query", "TEST24\n" );
+                        _useCallback( "log$transaction$commit" );
+                        break;
+                    }
                 }
             }
         }
@@ -283,18 +399,78 @@ uint16_t __declspec( dllexport ) overlay$draw$text(
     return ( l_returnValue );
 }
 
-uint16_t __declspec( dllexport ) overlay$interact$bind(
+uint16_t __declspec( dllexport ) overlay$interact$bind$binding$needToMove(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
     const char*** _activeMappedKeys = ( const char*** )_callbackArguments[ 1 ];
+
+    static size_t l_frameCounter = 0;
+
+    if ( l_frameCounter ) {
+        goto EXIT;
+    }
+
+    if ( ( _containsString( *_activeMappedKeys, "2" ) ) ||
+         ( _containsString( *_activeMappedKeys, "6" ) ) ) {
+        l_returnValue = 1;
+
+        l_frameCounter = 10;
+
+    } else if ( _containsString( *_activeMappedKeys, "8" ) ||
+                ( _containsString( *_activeMappedKeys, "4" ) ) ) {
+        l_returnValue = 2;
+
+        l_frameCounter = 10;
+    }
+
+EXIT:
+    if ( l_frameCounter ) {
+        l_frameCounter--;
+    }
+
+    return ( l_returnValue );
+}
+
+uint16_t __declspec( dllexport ) overlay$interact$bind(
+    void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+    element_t* _element = ( element_t* )_callbackArguments[ 0 ];
+    const char*** _activeMappedKeys = ( const char*** )_callbackArguments[ 1 ];
     const char*** _activeKeys = ( const char*** )_callbackArguments[ 2 ];
 
     static bool l_isBinding = false;
+    static color_t l_lastElementColor;
 
     if ( !l_isBinding ) {
         if ( _containsString( *_activeMappedKeys, "A" ) ) {
             _useCallback( "log$transaction$query", "TEST2\n" );
+
+            l_lastElementColor.red = _element->a.red;
+            l_lastElementColor.green = _element->a.green;
+            l_lastElementColor.blue = _element->a.blue;
+
+            if ( l_lastElementColor.red < 125 ) {
+                _element->a.red -= 60;
+
+            } else {
+                _element->a.red += 60;
+            }
+
+            if ( l_lastElementColor.green < 125 ) {
+                _element->a.green -= 60;
+
+            } else {
+                _element->a.green += 60;
+            }
+
+            if ( l_lastElementColor.blue < 125 ) {
+                _element->a.blue -= 60;
+
+            } else {
+                _element->a.blue += 60;
+            }
+
             l_isBinding = true;
         }
     }
@@ -302,16 +478,25 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
     if ( l_isBinding ) {
         if ( _containsString( *_activeMappedKeys, "B" ) ) {
             _useCallback( "log$transaction$query", "TEST4\n" );
+
+            _element->a.red = l_lastElementColor.red;
+            _element->a.green = l_lastElementColor.green;
+            _element->a.blue = l_lastElementColor.blue;
+
             l_isBinding = false;
         }
     }
 
     if ( !l_isBinding ) {
-        l_returnValue = _useCallback( "overlay$interact$bind$binding", *_element, *_activeMappedKeys );
+        l_returnValue =
+            _useCallback( "overlay$interact$bind$binding$needToMove", _element,
+                          _activeMappedKeys );
     }
 
     if ( l_isBinding ) {
-        l_returnValue = _useCallback( "overlay$interact$bind$binding$end", _element, _activeMappedKeys, _activeKeys );
+        l_returnValue =
+            _useCallback( "overlay$interact$bind$binding$end", _element,
+                          _activeMappedKeys, _activeKeys );
     }
 
     {
