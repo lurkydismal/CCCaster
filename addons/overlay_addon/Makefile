@@ -22,7 +22,7 @@ CXXEXTRA              = -Ofast \
 			-fopenmp-simd \
 			-funroll-loops
 RCEXTRA               =
-DEFINES               = -D LOG_REGISTER
+DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I ../../stdfunc/include \
 			-I overlay/include \

@@ -34,61 +34,24 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
     char*** _activeKeys = ( char*** )_callbackArguments[ 1 ];
 
     if ( !arrayLength( *_activeMappedKeys ) ) {
-        goto NOT_MAPPED;
-    }
-
-    if ( g_overlayToRender != NULL ) {
-        FOR_ARRAY( element_t**, g_overlayToRender ) {
-            const uint16_t l_interactionReturnValue =
-                interactElement( *_element, _activeMappedKeys, _activeKeys );
-
-            if ( ( l_interactionReturnValue != ENODATA ) &&
-                 ( l_interactionReturnValue ) ) {
-                bool l_isNextToActivate = true;
-
-                ( *_element )->isActive = false;
-
-                _element++;
-
-                while ( _element !=
-                        arrayLastElementPointer( g_overlayToRender ) ) {
-                    if ( ( *_element )->canActive ) {
-                        ( *_element )->isActive = true;
-                        l_isNextToActivate = false;
-
-                        break;
-                    }
-
-                    _element++;
-                }
-
-                if ( l_isNextToActivate ) {
-                    FOR_ARRAY( element_t**, g_overlayToRender ) {
-                        if ( ( *_element )->canActive ) {
-                            ( *_element )->isActive = true;
-
-                            break;
-                        }
-                    }
-                }
-
-                break;
-            }
-        }
+        goto NO_MAPPED;
     }
 
     FOR_ARRAY( char* const*, g_overlayHotkeys ) {
         if ( _containsString( *_activeMappedKeys, *_element ) ) {
-            printf( "KEY TRUE  %s\n", *_element );
+            _useCallback( "log$transaction$query", "KEY TRUE " );
+            _useCallback( "log$transaction$query", *_element );
+            _useCallback( "log$transaction$query", "\n" );
 
             if ( g_overlayToRender == NULL ) {
                 g_overlayToRender = arrayFirstElementPointer(
                     g_overlaysToRender )[ _element - arrayFirstElementPointer(
                                                          g_overlayHotkeys ) ];
 
-                printf(
-                    "%s\n",
+                _useCallback(
+                    "log$transaction$query",
                     arrayFirstElementPointer( g_overlayToRender )[ 1 ]->text );
+                _useCallback( "log$transaction$query", "\n" );
 
             } else {
                 g_overlayToRender = NULL;
@@ -100,7 +63,49 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
         }
     }
 
-NOT_MAPPED:
+    if ( g_overlayToRender != NULL ) {
+        FOR_ARRAY( element_t**, g_overlayToRender ) {
+            if ( ( *_element )->isActive ) {
+                const uint16_t l_interactionReturnValue = interactElement(
+                    *_element, _activeMappedKeys, _activeKeys );
+
+                if ( ( l_interactionReturnValue != ENODATA ) &&
+                     ( l_interactionReturnValue ) ) {
+                    bool l_isNextToActivate = true;
+
+                    ( *_element )->isActive = false;
+
+                    _element++;
+
+                    while ( _element !=
+                            arrayLastElementPointer( g_overlayToRender ) ) {
+                        if ( ( *_element )->canActive ) {
+                            ( *_element )->isActive = true;
+                            l_isNextToActivate = false;
+
+                            break;
+                        }
+
+                        _element++;
+                    }
+
+                    if ( l_isNextToActivate ) {
+                        FOR_ARRAY( element_t**, g_overlayToRender ) {
+                            if ( ( *_element )->canActive ) {
+                                ( *_element )->isActive = true;
+
+                                break;
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+NO_MAPPED:
     if ( !arrayLength( *_activeKeys ) ) {
         goto EXIT;
     }
@@ -202,28 +207,20 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
             const char l_delimiter[] = ",";
             l_elementsOrder =
                 splitStringIntoArray( l_elementsOrderString, l_delimiter );
-            printf( "TEST\n" );
-            FOR_ARRAY( char* const*, l_elementsOrder ) {
-                printf( "%s\n", *_element );
-            }
-            printf( "TTTT\n" );
 
             free( l_elementsOrderString );
         }
 
-        printf( "TEST1\n" );
         if ( arrayLength( l_elementsOrder ) ) {
             l_returnValue = overlayRegister(
                 _overlayName, ( const char* const* )l_elementsOrder,
                 _elementsDefaultSettings, _elementsCallbackVariableReferences,
                 _overlayDefaultHotkey );
         }
-        printf( "TEST2\n" );
 
         FREE_ARRAY( char**, l_elementsOrder, *_element );
     }
 
-    printf( "TEST3\n" );
     {
         char* l_returnValueAsText = stoa( l_returnValue );
 
@@ -234,8 +231,6 @@ uint16_t __declspec( dllexport ) overlay$register( void** _callbackArguments ) {
 
         free( l_returnValueAsText );
     }
-    printf( "TEST4\n" );
-    printf( "TEST L\n" );
 
     return ( l_returnValue );
 }
@@ -292,21 +287,41 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
-    const char* const* const* _activeMappedKeys =
-        ( const char* const* const* )_callbackArguments[ 0 ];
-    const char* const* const* _activeKeys =
-        ( const char* const* const* )_callbackArguments[ 0 ];
+    const char*** _activeMappedKeys = ( const char*** )_callbackArguments[ 1 ];
+    const char*** _activeKeys = ( const char*** )_callbackArguments[ 2 ];
 
-    static uint8_t l_counter = 0;
+    static bool l_isBinding = false;
 
-    if ( _element->isActive ) {
-        l_counter++;
-
-        if ( l_counter > 5 ) {
-            l_counter = 0;
-
-            l_returnValue = 1;
+    if ( !l_isBinding ) {
+        if ( _containsString( *_activeMappedKeys, "A" ) ) {
+            _useCallback( "log$transaction$query", "TEST2\n" );
+            l_isBinding = true;
         }
+    }
+
+    if ( l_isBinding ) {
+        if ( _containsString( *_activeMappedKeys, "B" ) ) {
+            _useCallback( "log$transaction$query", "TEST4\n" );
+            l_isBinding = false;
+        }
+    }
+
+    if ( !l_isBinding ) {
+        l_returnValue = _useCallback( "overlay$interact$bind$binding", *_element, *_activeMappedKeys );
+    }
+
+    if ( l_isBinding ) {
+        l_returnValue = _useCallback( "overlay$interact$bind$binding$end", _element, _activeMappedKeys, _activeKeys );
+    }
+
+    {
+        free( *_activeMappedKeys );
+
+        *_activeMappedKeys = ( const char** )createArray( sizeof( char* ) );
+
+        free( *_activeKeys );
+
+        *_activeKeys = ( const char** )createArray( sizeof( char* ) );
     }
 
     return ( l_returnValue );

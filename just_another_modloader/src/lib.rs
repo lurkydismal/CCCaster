@@ -259,10 +259,10 @@ unsafe fn load_addons_directory() {
             println!("addCallbacks : {:?}", states_function_add_callbacks);
         }
 
-        if states_function_add_callbacks != v_address_to_function!(
+        if !std::ptr::fn_addr_eq( states_function_add_callbacks, v_address_to_function!(
             NULL,
             extern "C" fn(LPCSTR, usize, *const usize, u32)
-        ) {
+        ) ) {
             // Load callbacks into the event handling DLL.
             thread::spawn(move || {
                 for (event_name, function_addresses) in ON_EVENT_FUNCTIONS.lock().unwrap().iter() {

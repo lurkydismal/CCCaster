@@ -5,6 +5,10 @@
 
 #include "native.h"
 
+#define OVERLAY_HOTKEY_PART1 \
+    "overlay_toggle_key"     \
+    "_"
+
 #define DEFAULT_ELEMENT_PARAMETERS \
     { UNKNOWN,                     \
       { 0, 0 },                    \
