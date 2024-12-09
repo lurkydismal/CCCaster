@@ -14,7 +14,7 @@
 #define arrayLength( _array ) ( ( size_t )( _array[ 0 ] ) - 1 )
 #define arrayFirstElementPointer( _array ) ( _array + 1 )
 #define arrayLastElementPointer( _array ) \
-    ( arrayFirstElementPointer( _array ) + arrayLength( _array ) )
+    ( ( arrayFirstElementPointer( _array ) - 1 ) + arrayLength( _array ) )
 
 #define _findStringInArray( _array, _value )                      \
     ( findStringInArray(                                          \
@@ -42,7 +42,7 @@
 
 #define FOR_ARRAY( _type, _array )                             \
     for ( _type _element = arrayFirstElementPointer( _array ); \
-          _element < arrayLastElementPointer( _array ); _element++ )
+          _element != ( arrayLastElementPointer( _array ) + 1 ); _element++ )
 
 #define FREE_ARRAY( _type, _array, _elementToFree ) \
     FOR_ARRAY( _type, _array ) {                    \

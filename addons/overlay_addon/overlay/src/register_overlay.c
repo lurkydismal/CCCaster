@@ -201,18 +201,22 @@ static ssize_t increaseElementCount( char*** _elementLabels,
     if ( l_labelIndex >= 1 ) {
         //( ( size_t* )( &( _array[ 0 ] ) ) )++;
         ( ( *_countsArray )[ l_labelIndex ] )++;
+#if LOG_REGISTER
         _useCallback( "log$transaction$query", "EL IECI2 %d\n" );
         //_useCallback( "log$transaction$query", ( *_countsArray )[ l_labelIndex
         //] );
         _useCallback( "log$transaction$query", "\n" );
+#endif
 
     } else {
         insertIntoArray( ( void*** )_elementLabels,
                          ( void* )( strdup( _label ) ) );
         insertIntoArray( ( void*** )_countsArray, ( void* )1 );
+#if LOG_REGISTER
         _useCallback( "log$transaction$query", "EL IECI1 %d\n" );
         //_useCallback( "log$transaction$query", ( *_countsArray )[ 1 ] );
         _useCallback( "log$transaction$query", "\n" );
+#endif
     }
 
     return ( l_labelIndex );
