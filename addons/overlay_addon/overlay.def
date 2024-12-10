@@ -2,6 +2,7 @@ LIBRARY overlay
 EXPORTS
 
 IDirect3D9Ex$CreateDevice
+mainLoop$end
 keyboard$getInput$end
 game$frame$extraDraw
 overlay$register

@@ -84,7 +84,7 @@ uint16_t overlayRegister( const char* _overlayName,
 
 uint16_t drawElement( const element_t* _element );
 uint16_t interactElement( const element_t* _element,
-                          char*** _activeMappedKeys,
-                          char*** _activeKeys );
+                          const char*** _activeMappedKeys,
+                          const char*** _activeKeys );
 
 uint32_t getColorForRectangle( color_t _color );

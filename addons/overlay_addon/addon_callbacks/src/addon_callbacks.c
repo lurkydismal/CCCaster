@@ -2,12 +2,50 @@
 #include <stdio.h>
 
 #include "_useCallback.h"
+#include "direction_t.h"
 #include "native.h"
 #include "overlay.h"
 #include "stdfunc.h"
 
 useCallbackFunction_t g_useCallback;
 element_t** g_overlayToRender = NULL;
+static size_t g_frameCounter = 0;
+
+static uint16_t needToMove( const char** _activeMappedKeys ) {
+    uint16_t l_returnValue = 0;
+
+    if ( g_frameCounter ) {
+        goto EXIT;
+    }
+
+    if ( _containsString( _activeMappedKeys, "2" ) ) {
+        l_returnValue = DOWN;
+
+    } else if ( _containsString( _activeMappedKeys, "6" ) ) {
+        l_returnValue = RIGHT;
+
+    } else if ( _containsString( _activeMappedKeys, "8" ) ) {
+        l_returnValue = UP;
+
+    } else if ( _containsString( _activeMappedKeys, "4" ) ) {
+        l_returnValue = LEFT;
+    }
+
+    if ( l_returnValue ) {
+        g_frameCounter = 10;
+    }
+
+EXIT:
+    return ( l_returnValue );
+}
+
+static uint16_t bind$needToMove( const char** _activeMappedKeys ) {
+    uint16_t l_returnValue = 0;
+
+    l_returnValue = needToMove( _activeMappedKeys );
+
+    return ( l_returnValue );
+}
 
 uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     void** _callbackArguments ) {
@@ -20,58 +58,82 @@ uint16_t __declspec( dllexport ) IDirect3D9Ex$CreateDevice(
     return ( 0 );
 }
 
+uint16_t __declspec( dllexport ) mainLoop$end( void** _callbackArguments ) {
+    uint16_t l_returnValue = 0;
+
+    if ( g_frameCounter ) {
+        g_frameCounter--;
+    }
+
+    return ( l_returnValue );
+}
+
 uint16_t __declspec( dllexport ) keyboard$getInput$end(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
 
-    static size_t l_frameCounter = 0;
+    const char*** _activeMappedKeys = ( const char*** )_callbackArguments[ 0 ];
+    const char*** _activeKeys = ( const char*** )_callbackArguments[ 1 ];
 
-    if ( l_frameCounter ) {
-        goto EXIT;
+    static bool l_isOverlayInteractive = false;
+
+    if ( g_frameCounter ) {
+        goto INTERACT_ELEMENTS;
     }
 
-    char*** _activeMappedKeys = ( char*** )_callbackArguments[ 0 ];
-    char*** _activeKeys = ( char*** )_callbackArguments[ 1 ];
-
     if ( !arrayLength( *_activeMappedKeys ) ) {
-        goto NO_MAPPED;
+        if ( !arrayLength( *_activeKeys ) ) {
+            goto EXIT;
+
+        } else {
+            goto INTERACT_ELEMENTS;
+        }
     }
 
     FOR_ARRAY( char* const*, g_overlayHotkeys ) {
         if ( _containsString( *_activeMappedKeys, *_element ) ) {
-            _useCallback( "log$transaction$query", "KEY TRUE " );
+            _useCallback( "log$transaction$query", "Overlay hotkey " );
             _useCallback( "log$transaction$query", *_element );
-            _useCallback( "log$transaction$query", "\n" );
+            _useCallback( "log$transaction$query", "is active\n" );
 
             if ( g_overlayToRender == NULL ) {
                 g_overlayToRender = arrayFirstElementPointer(
                     g_overlaysToRender )[ _element - arrayFirstElementPointer(
                                                          g_overlayHotkeys ) ];
 
-                _useCallback(
-                    "log$transaction$query",
-                    arrayFirstElementPointer( g_overlayToRender )[ 1 ]->text );
-                _useCallback( "log$transaction$query", "\n" );
+                {
+                    l_isOverlayInteractive = false;
+
+                    FOR_ARRAY( element_t**, g_overlayToRender ) {
+                        if ( ( *_element )->canActive ) {
+                            l_isOverlayInteractive = true;
+                        }
+                    }
+                }
 
             } else {
                 g_overlayToRender = NULL;
             }
 
-            l_frameCounter = 30;
+            g_frameCounter = 30;
 
             goto EXIT;
         }
     }
 
+INTERACT_ELEMENTS:
     if ( g_overlayToRender != NULL ) {
         FOR_ARRAY( element_t**, g_overlayToRender ) {
             if ( ( *_element )->isActive ) {
-                const uint16_t l_interactionReturnValue = interactElement(
-                    *_element, _activeMappedKeys, _activeKeys );
+                const direction_t l_interactionReturnValue =
+                    ( direction_t )( interactElement(
+                        *_element, _activeMappedKeys, _activeKeys ) );
 
-                if ( l_interactionReturnValue != ENODATA ) {
+                if ( ( l_interactionReturnValue ) &&
+                     ( l_interactionReturnValue != ENODATA ) ) {
                     // Next
-                    if ( l_interactionReturnValue == 1 ) {
+                    if ( ( l_interactionReturnValue == DOWN ) ||
+                         ( l_interactionReturnValue == RIGHT ) ) {
                         bool l_isNextToActivate = true;
 
                         ( *_element )->isActive = false;
@@ -104,12 +166,11 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
                             }
                         }
 
-                        l_frameCounter = 10;
-
                         break;
 
                         // Previous
-                    } else if ( l_interactionReturnValue == 2 ) {
+                    } else if ( ( l_interactionReturnValue == UP ) ||
+                                ( l_interactionReturnValue == LEFT ) ) {
                         bool l_isPreviousToActivate = true;
 
                         ( *_element )->isActive = false;
@@ -150,25 +211,24 @@ uint16_t __declspec( dllexport ) keyboard$getInput$end(
                             }
                         }
 
-                        l_frameCounter = 10;
-
                         break;
                     }
                 }
             }
         }
-    }
 
-NO_MAPPED:
-    if ( !arrayLength( *_activeKeys ) ) {
-        goto EXIT;
+        {
+            free( *_activeMappedKeys );
+
+            *_activeMappedKeys = ( const char** )createArray( sizeof( char* ) );
+
+            free( *_activeKeys );
+
+            *_activeKeys = ( const char** )createArray( sizeof( char* ) );
+        }
     }
 
 EXIT:
-    if ( l_frameCounter ) {
-        l_frameCounter--;
-    }
-
     return ( l_returnValue );
 }
 
@@ -343,14 +403,7 @@ uint16_t __declspec( dllexport ) overlay$interact$bind$binding$needToMove(
     const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
     const char*** _activeMappedKeys = ( const char*** )_callbackArguments[ 1 ];
 
-    if ( ( _containsString( *_activeMappedKeys, "2" ) ) ||
-         ( _containsString( *_activeMappedKeys, "6" ) ) ) {
-        l_returnValue = 1;
-
-    } else if ( _containsString( *_activeMappedKeys, "8" ) ||
-                ( _containsString( *_activeMappedKeys, "4" ) ) ) {
-        l_returnValue = 2;
-    }
+    l_returnValue = bind$needToMove( *_activeMappedKeys );
 
     return ( l_returnValue );
 }
@@ -367,7 +420,7 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
 
     if ( !l_isBinding ) {
         if ( _containsString( *_activeMappedKeys, "A" ) ) {
-            _useCallback( "log$transaction$query", "TEST2\n" );
+            _useCallback( "log$transaction$query", "Bind activated\n" );
 
             l_lastElementColor.red = _element->a.red;
             l_lastElementColor.green = _element->a.green;
@@ -400,7 +453,7 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
 
     if ( l_isBinding ) {
         if ( _containsString( *_activeMappedKeys, "B" ) ) {
-            _useCallback( "log$transaction$query", "TEST4\n" );
+            _useCallback( "log$transaction$query", "Bind deactivated\n" );
 
             _element->a.red = l_lastElementColor.red;
             _element->a.green = l_lastElementColor.green;
@@ -420,16 +473,6 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
         l_returnValue =
             _useCallback( "overlay$interact$bind$binding$end", _element,
                           _activeMappedKeys, _activeKeys );
-    }
-
-    {
-        free( *_activeMappedKeys );
-
-        *_activeMappedKeys = ( const char** )createArray( sizeof( char* ) );
-
-        free( *_activeKeys );
-
-        *_activeKeys = ( const char** )createArray( sizeof( char* ) );
     }
 
     return ( l_returnValue );

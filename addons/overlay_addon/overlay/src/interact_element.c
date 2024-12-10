@@ -11,8 +11,8 @@
 #include "stdfunc.h"
 
 uint16_t interactElement( const element_t* _element,
-                          char*** _activeMappedKeys,
-                          char*** _activeKeys ) {
+                          const char*** _activeMappedKeys,
+                          const char*** _activeKeys ) {
     uint16_t l_returnValue = 0;
 
     char* l_callbackName = strdup( "overlay$interact$" );

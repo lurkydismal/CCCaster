@@ -25,6 +25,7 @@ RCEXTRA               =
 DEFINES               =
 INCLUDE_PATH          = -I ../../states_dll/_useCallback/include \
 			-I ../../stdfunc/include \
+			-I ../ \
 			-I overlay/include \
 			-I native/include
 DLL_PATH              =
