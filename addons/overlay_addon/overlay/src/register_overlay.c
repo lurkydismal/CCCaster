@@ -12,7 +12,10 @@ static inline void setElementPropertyByKey( element_t* _element,
                                             char* _value ) {
     const size_t l_valueAsSize = atol( _value );
 
-    if ( strcmp( _key, "x" ) == 0 ) {
+    if ( strcmp( _key, "type" ) == 0 ) {
+        _element->type = _value;
+
+    } else if ( strcmp( _key, "x" ) == 0 ) {
         _element->coordinates.x = l_valueAsSize;
 
     } else if ( strcmp( _key, "y" ) == 0 ) {
@@ -140,45 +143,6 @@ static inline void setElementPropertyByKey( element_t* _element,
             }
         }
     }
-}
-
-static inline enum elementType getElementTypeFromLabel(
-    const char* _elementLabel ) {
-#if LOG_REGISTER
-    _useCallback( "log$transaction$query", "getElementTypeFromLabel " );
-    _useCallback( "log$transaction$query", _elementLabel );
-    _useCallback( "log$transaction$query", "\n" );
-#endif
-    FOR( char* const*, g_elementTypesAsString ) {
-        if ( strcmp( *_element, _elementLabel ) == 0 ) {
-#if LOG_REGISTER
-            _useCallback( "log$transaction$query", "LT %s %d\n" );
-            _useCallback( "log$transaction$query", _elementLabel );
-            //_useCallback( "log$transaction$query", _element -
-            // g_elementTypesAsString );
-            _useCallback( "log$transaction$query", "\n" );
-#endif
-            return ( _element - g_elementTypesAsString );
-        }
-    }
-}
-
-static inline const char* getElementLabelFromType(
-    const enum elementType _elementType ) {
-#if LOG_REGISTER
-    _useCallback( "log$transaction$query", "getElementLabelFromType %d\n" );
-    //_useCallback( "log$transaction$query", _elementType );
-    _useCallback( "log$transaction$query", "\n" );
-#endif
-#if LOG_REGISTER
-    _useCallback( "log$transaction$query", "LT %d %s\n" );
-    //_useCallback( "log$transaction$query", _elementType );
-    _useCallback( "log$transaction$query",
-                  g_elementTypesAsString[ _elementType ] );
-    _useCallback( "log$transaction$query", "\n" );
-#endif
-
-    return ( g_elementTypesAsString[ _elementType ] );
 }
 
 static ssize_t increaseElementCount( char*** _elementLabels,
@@ -414,12 +378,11 @@ static inline const char* getElementDefaultSettings(
     return ( l_returnValue );
 }
 
-static inline element_t* createElementWithSettings(
-    const enum elementType _type,
-    char*** _settings ) {
+static inline element_t* createElementWithSettings( const char* _type,
+                                                    char*** _settings ) {
     element_t* l_element = ( element_t* )malloc( sizeof( element_t ) );
     *l_element = ( element_t )DEFAULT_ELEMENT_PARAMETERS;
-    l_element->type = _type;
+    setElementPropertyByKey( l_element, "type", strdup( _type ) );
 
     FOR_ARRAY( char** const*, _settings ) {
         char* l_key = ( *_element )[ 0 ];
@@ -432,7 +395,7 @@ static inline element_t* createElementWithSettings(
 }
 
 static inline void insertElementIntoOverlay( element_t*** _overlay,
-                                             const enum elementType _type,
+                                             const char* _type,
                                              char*** _settings ) {
     element_t* l_element = createElementWithSettings( _type, _settings );
 
@@ -493,9 +456,8 @@ static uint16_t registerElementsForRender(
                     _useCallback( "log$transaction$query", "TEST5\n" );
 #endif
 
-                    insertElementIntoOverlay(
-                        &l_overlay, getElementTypeFromLabel( *_element ),
-                        l_elementSettings );
+                    insertElementIntoOverlay( &l_overlay, *_element,
+                                              l_elementSettings );
 #if LOG_REGISTER
                     _useCallback( "log$transaction$query", "TEST6\n" );
 #endif

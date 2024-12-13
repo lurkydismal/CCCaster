@@ -17,8 +17,7 @@ uint16_t interactElement( const element_t* _element,
 
     char* l_callbackName = strdup( "overlay$interact$" );
 
-    concatBeforeAndAfterString( &l_callbackName, "",
-                                g_elementTypesAsString[ _element->type ] );
+    concatBeforeAndAfterString( &l_callbackName, "", _element->type );
 
     l_returnValue = _useCallback( l_callbackName, _element, _activeMappedKeys,
                                   _activeKeys );

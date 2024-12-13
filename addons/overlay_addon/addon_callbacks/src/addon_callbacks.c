@@ -408,6 +408,55 @@ uint16_t __declspec( dllexport ) overlay$interact$bind$binding$needToMove(
     return ( l_returnValue );
 }
 
+static bool inline bind$activate( element_t* _element,
+                                  color_t* _lastElementColor ) {
+    bool l_returnValue = false;
+
+    _useCallback( "log$transaction$query", "Bind activated\n" );
+
+    _lastElementColor->red = _element->a.red;
+    _lastElementColor->green = _element->a.green;
+    _lastElementColor->blue = _element->a.blue;
+
+    if ( _lastElementColor->red < 125 ) {
+        _element->a.red -= 60;
+
+    } else {
+        _element->a.red += 60;
+    }
+
+    if ( _lastElementColor->green < 125 ) {
+        _element->a.green -= 60;
+
+    } else {
+        _element->a.green += 60;
+    }
+
+    if ( _lastElementColor->blue < 125 ) {
+        _element->a.blue -= 60;
+
+    } else {
+        _element->a.blue += 60;
+    }
+
+    l_returnValue = true;
+
+    return ( l_returnValue );
+}
+
+static bool inline bind$deactivate( element_t* _element,
+                                    color_t _lastElementColor ) {
+    bool l_returnValue = false;
+
+    _useCallback( "log$transaction$query", "Bind deactivated\n" );
+
+    _element->a.red = _lastElementColor.red;
+    _element->a.green = _lastElementColor.green;
+    _element->a.blue = _lastElementColor.blue;
+
+    return ( l_returnValue );
+}
+
 uint16_t __declspec( dllexport ) overlay$interact$bind(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
@@ -420,46 +469,13 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
 
     if ( !l_isBinding ) {
         if ( _containsString( *_activeMappedKeys, "A" ) ) {
-            _useCallback( "log$transaction$query", "Bind activated\n" );
-
-            l_lastElementColor.red = _element->a.red;
-            l_lastElementColor.green = _element->a.green;
-            l_lastElementColor.blue = _element->a.blue;
-
-            if ( l_lastElementColor.red < 125 ) {
-                _element->a.red -= 60;
-
-            } else {
-                _element->a.red += 60;
-            }
-
-            if ( l_lastElementColor.green < 125 ) {
-                _element->a.green -= 60;
-
-            } else {
-                _element->a.green += 60;
-            }
-
-            if ( l_lastElementColor.blue < 125 ) {
-                _element->a.blue -= 60;
-
-            } else {
-                _element->a.blue += 60;
-            }
-
-            l_isBinding = true;
+            l_isBinding = bind$activate( _element, &l_lastElementColor );
         }
     }
 
     if ( l_isBinding ) {
         if ( _containsString( *_activeMappedKeys, "B" ) ) {
-            _useCallback( "log$transaction$query", "Bind deactivated\n" );
-
-            _element->a.red = l_lastElementColor.red;
-            _element->a.green = l_lastElementColor.green;
-            _element->a.blue = l_lastElementColor.blue;
-
-            l_isBinding = false;
+            l_isBinding = bind$deactivate( _element, l_lastElementColor );
         }
     }
 
@@ -470,9 +486,36 @@ uint16_t __declspec( dllexport ) overlay$interact$bind(
     }
 
     if ( l_isBinding ) {
+        if ( !arrayLength( *_activeKeys ) ) {
+            goto BIND_EXIT;
+        }
+
+        const char* l_valueToBind =
+            *( arrayFirstElementPointer( *_activeKeys ) );
+
+        if ( strcmp( l_valueToBind, _element->text ) == 0 ) {
+            goto BIND_EXIT;
+        }
+
+        if ( _element->callbackAddress ) {
+            const char** l_callbackValuePointer =
+                ( const char** )( _element->callbackAddress );
+
+            *l_callbackValuePointer = l_valueToBind;
+        }
+
+        _useCallback( "log$transaction$query", _element->text );
+        _useCallback( "log$transaction$query", "\n" );
+
         l_returnValue =
-            _useCallback( "overlay$interact$bind$binding$end", _element,
-                          _activeMappedKeys, _activeKeys );
+            _useCallback( "overlay$interact$bind$binding$end", _element );
+
+        _element->text = ( char* )l_valueToBind;
+        _useCallback( "log$transaction$query", _element->text );
+        _useCallback( "log$transaction$query", "\n" );
+
+        l_isBinding = bind$deactivate( _element, l_lastElementColor );
+    BIND_EXIT:
     }
 
     return ( l_returnValue );
@@ -482,6 +525,13 @@ uint16_t __declspec( dllexport ) overlay$draw$bind(
     void** _callbackArguments ) {
     uint16_t l_returnValue = 0;
     const element_t* _element = ( const element_t* )_callbackArguments[ 0 ];
+
+    const size_t l_textLength = strlen( _element->text );
+    const size_t l_fontSize =
+        ( l_textLength ) ? ( _element->size.width / l_textLength ) : ( 12 );
+
+    const coordinates_t l_fontCoordinates = { ( _element->coordinates.x ),
+                                              ( _element->coordinates.y ) };
 
     color_t l_tempA = _element->a;
 
@@ -498,6 +548,13 @@ uint16_t __declspec( dllexport ) overlay$draw$bind(
     drawRectangle( _element->coordinates.x, _element->coordinates.y,
                    _element->size.width, _element->size.height, l_a, l_b, l_c,
                    l_d, _element->layer );
+
+    char* l_out;
+
+    drawText( l_fontSize, l_fontSize, l_fontCoordinates.x, l_fontCoordinates.y,
+              _element->text, _element->a.alpha, _element->shade.first,
+              _element->shade.second, _element->fontAddress,
+              _element->letterSpacing, _element->layer, l_out );
 
     return ( l_returnValue );
 }

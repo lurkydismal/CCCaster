@@ -18,8 +18,7 @@ uint16_t drawElement( const element_t* _element ) {
 
     char* l_callbackName = strdup( "overlay$draw$" );
 
-    concatBeforeAndAfterString( &l_callbackName, "",
-                                g_elementTypesAsString[ _element->type ] );
+    concatBeforeAndAfterString( &l_callbackName, "", _element->type );
 
     l_returnValue = _useCallback( l_callbackName, l_element );
 
