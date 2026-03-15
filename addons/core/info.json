@@ -1,0 +1,9 @@
+{
+    "author": "me",
+    "version": "0.0.0",
+    "runtime": "lua",
+    "entry": "main.lua",
+    "dependencies": [],
+    "events": [],
+    "api_version": 1
+}

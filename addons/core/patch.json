@@ -1,0 +1,11 @@
+[
+    {
+        "address": "0x123",
+        "bytes": "AA BB"
+    },
+    {
+        "address": "0x123",
+        "pattern": "CC ? DD ?? FF GG ??",
+        "bytes": "AA BB TT"
+    }
+]
