@@ -1,0 +1,6 @@
+[submodule "logg"]
+	path = main/logg
+	url = https://github.com/lurkydismal/logg.git
+[submodule "stdfunc"]
+	path = main/stdfunc
+	url = https://github.com/lurkydismal/stdfunc.git
