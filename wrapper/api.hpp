@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstring>
 #include <expected>
-#include <optional>
 #include <span>
 #include <string_view>
 #include <vector>
@@ -47,18 +46,14 @@ private:
     std::vector< std::byte > _bytes{};
 };
 
-using patternByte_t = std::optional< std::byte >;
-using pattern_t = std::vector< patternByte_t >;
-
-[[nodiscard]] auto parsePattern( std::string_view _pattern )
-    -> std::expected< pattern_t, std::string >;
-
-[[nodiscard]] auto makePatches( uintptr_t _address,
-                                std::span< const patternByte_t > _pattern,
-                                std::span< const std::byte > _bytes )
-    -> std::expected< std::vector< patch_t >, std::string >;
-
 [[nodiscard]] auto makePatches( uintptr_t _address,
                                 std::string_view _pattern,
                                 std::span< const std::byte > _bytes )
     -> std::expected< std::vector< patch_t >, std::string >;
+
+#if 0
+using api_t = struct api {
+    // TODO: Make private
+    decltype( &makePatches ) makePatches{};
+};
+#endif

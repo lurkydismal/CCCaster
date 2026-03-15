@@ -7,7 +7,7 @@
 
 namespace {
 
-constexpr const std::string g_cccasterName = "cccaster.so";
+constexpr const std::string g_cccasterName = "main.so";
 void* g_cccasterHandle = nullptr;
 
 void attach() {

@@ -10,6 +10,7 @@
 #include <cstring>
 #include <format>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 memoryLock_t::memoryLock( uintptr_t _address, size_t _length )
@@ -90,6 +91,9 @@ patch_t::~patch() {
         ) );
 }
 
+using patternByte_t = std::optional< std::byte >;
+using pattern_t = std::vector< patternByte_t >;
+
 [[nodiscard]] static auto parseByteToken( std::string_view _token )
     -> std::expected< patternByte_t, std::string > {
     if ( _token == "?" || _token == "??" ) {
@@ -110,7 +114,7 @@ patch_t::~patch() {
     return ( static_cast< std::byte >( ( l_hi.value() << 4 ) | l_lo.value() ) );
 }
 
-[[nodiscard]] auto parsePattern( std::string_view _pattern )
+[[nodiscard]] static auto parsePattern( std::string_view _pattern )
     -> std::expected< pattern_t, std::string > {
     pattern_t l_result{};
 
@@ -178,9 +182,10 @@ patch_t::~patch() {
     return ( l_runs );
 }
 
-[[nodiscard]] auto makePatches( uintptr_t _address,
-                                std::span< const patternByte_t > _pattern,
-                                std::span< const std::byte > _bytes )
+[[nodiscard]] static auto makePatches(
+    uintptr_t _address,
+    std::span< const patternByte_t > _pattern,
+    std::span< const std::byte > _bytes )
     -> std::expected< std::vector< patch_t >, std::string > {
     if ( countConcreteBytes( _pattern ) != _bytes.size() ) {
         return ( std::unexpected( "Invalid argument" ) );
