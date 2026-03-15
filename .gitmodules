@@ -4,3 +4,12 @@
 [submodule "stdfunc"]
 	path = main/stdfunc
 	url = https://github.com/lurkydismal/stdfunc.git
+[submodule "ctre"]
+	path = main/ctre
+	url = https://github.com/lurkydismal/ctre.git
+[submodule "rapidhash"]
+	path = main/rapidhash
+	url = https://github.com/lurkydismal/rapidhash.git
+[submodule "forward_circular_buffer"]
+	path = main/forward_circular_buffer
+	url = https://github.com/lurkydismal/forward_circular_buffer.git
