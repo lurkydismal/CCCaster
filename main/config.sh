@@ -5,14 +5,12 @@ export partsToBuild=(
 export testsToBuild=(
     "example"
 
-    "arhodigp"
     "logg"
     "stdfunc"
 
     "test"
 )
 export staticParts=(
-    "arhodigp"
     "logg"
     "stdfunc"
 )
