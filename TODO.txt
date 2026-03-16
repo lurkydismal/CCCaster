@@ -1,2 +1,27 @@
 P0
 Fix release not finding default.profraw
+
+P6
+Implement main:
+1. List all mods in addons/
+2. For each addon:
+    1. Sanitize file paths and names to avoid directory traversal issues.
+    2. Read and validate info.json
+    3. Validate if runtime can be ran
+    4. Apply patch.json if present ( implement function hooking later )
+        - Decide whether hooks can overwrite engine functions or only append behavior.
+        - Plan for conflicts (two mods patching the same function).
+3. Build dependency graph for all addons
+4. Circular dependency detection.
+5. Optional dependencies: some mods might degrade gracefully if a dependency is missing.
+6. Version ranges for dependencies.
+7. Check if any mod cannot be loaded ( api_version, dependency )
+8. Load and register in graph order
+    - Mod initialization callbacks (on_load, on_unload).
+    - Lazy vs eager loading: do you load all mods at startup or only when needed?
+    - Restricting filesystem/network access unless explicitly allowed.
+        - Maybe VFS
+9. Hotreload:
+    - Add tracking of loaded scripts and hooks.
+    - Plan for unloading or reloading safely, including dependency checks.
+    - Hashing or signing mods for integrity.
