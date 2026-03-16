@@ -70,7 +70,7 @@ export BUILT_EXECUTABLE_COLOR="$GREEN_LIGHT_COLOR"
 export SECTIONS_TO_STRIP_COLOR="$RED_LIGHT_COLOR"
 
 # Custom
-BUILD_C_FLAGS+=" -m32 -I ../wrapper/include"
-BUILD_CPP_FLAGS+=" -m32 -I ../wrapper/include"
+BUILD_C_FLAGS+=" -m32 -fvisibility=hidden -fvisibility-inlines-hidden -I ../wrapper/include"
+BUILD_CPP_FLAGS+=" -m32 -fvisibility=hidden -fvisibility-inlines-hidden -I ../wrapper/include"
 LINK_FLAGS+=" -m32 -shared"
 EXECUTABLE_NAME="main.so"

@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <print>
-#include <span>
 
+#include "api.hpp"
 #include "example.hpp"
 #include "logg.hpp"
 
@@ -11,9 +11,16 @@
 
 #endif
 
-auto main( int _argumentCount, char** _argumentVector ) -> int {
-    std::println( "{}: '{}'", _argumentCount,
-                  std::span( _argumentVector, _argumentCount ) );
+[[gnu::visibility( "default" )]] auto init(
+    decltype( &wrapper::makePatch ) _makePatch,
+    decltype( &wrapper::makePatchByPattern ) _makePatchByPattern,
+    decltype( &wrapper::removePatch ) _removePatch ) -> bool {
+    static_assert(
+        std::is_same_v< decltype( init ),
+                        std::remove_pointer_t< wrapper::initFunction_t > > );
+
+    std::println( "{:#X} : {:#X} : '{:#X}'", ( uintptr_t )_makePatch,
+                  ( uintptr_t )_makePatchByPattern, ( uintptr_t )_removePatch );
 
     example::printBuildType();
 
