@@ -31,9 +31,9 @@ libfile_a_DLLS         :=
 libfile_a_LIBRARY_PATH :=
 libfile_a_LIBRARIES    :=
 
-libfile_a_OBJS         := $(libfile_a_SRCS:.c=.o) \
-			$(libfile_a_SRCS:.cpp=.o) \
-			$(libfile_a_RC_SRCS:.rc=.res)
+libfile_a_OBJS := $(patsubst %.c,%.o,   \
+                    $(patsubst %.cpp,%.o,$(libfile_a_SRCS))) \
+                   $(patsubst %.rc,%.res,$(libfile_a_RC_SRCS))
 
 
 
