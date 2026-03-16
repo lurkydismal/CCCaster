@@ -33,7 +33,6 @@ BUILD_INCLUDES+=()
 
 # -l link
 LIBRARIES_TO_LINK+=(
-    "mimalloc"
     "unwind"
 
     "stdc++exp"
@@ -69,3 +68,9 @@ export PARTS_TO_BUILD_COLOR="$YELLOW_COLOR"
 export SKIPPING_PART_IN_BUILD_COLOR="$GREEN_LIGHT_COLOR"
 export BUILT_EXECUTABLE_COLOR="$GREEN_LIGHT_COLOR"
 export SECTIONS_TO_STRIP_COLOR="$RED_LIGHT_COLOR"
+
+# Custom
+BUILD_C_FLAGS+=" -m32 -I ../wrapper/include"
+BUILD_CPP_FLAGS+=" -m32 -I ../wrapper/include"
+LINK_FLAGS+=" -m32 -shared"
+EXECUTABLE_NAME="main.so"

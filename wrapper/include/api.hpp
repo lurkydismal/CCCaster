@@ -89,4 +89,8 @@ private:
     decltype( &wrapper::removePatch ) _removePatch;
 };
 
+using initFunction_t = auto ( * )( decltype( &wrapper::makePatch ),
+                                   decltype( &wrapper::makePatchByPattern ),
+                                   decltype( &wrapper::removePatch ) ) -> bool;
+
 } // namespace wrapper

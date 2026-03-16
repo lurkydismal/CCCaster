@@ -4,6 +4,9 @@
 #include <dlfcn.h>
 
 #include <iostream>
+#include <string>
+
+#include "api.hpp"
 
 namespace {
 
@@ -16,10 +19,35 @@ auto attach() -> bool {
     g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
 
     if ( g_cccasterHandle ) {
-        std::cout << "CCCASTER LOADED\n";
+        // Clear any existing error
+        dlerror();
+
+        const auto l_initFunction = std::bit_cast< wrapper::initFunction_t >(
+            dlsym( g_cccasterHandle, "init" ) );
+
+        {
+            const char* l_error = dlerror();
+
+            if ( l_error != nullptr ) {
+                std::cerr << std::format( "dlsym failed: {}\n", l_error );
+
+                return false;
+            }
+        }
+
+        const bool l_result =
+            l_initFunction( wrapper::makePatch, wrapper::makePatchByPattern,
+                            wrapper::removePatch );
+
+        if ( l_result ) {
+            std::cout << "CCCASTER LOADED\n";
+
+        } else {
+            std::cerr << "CCCASTER FAILED TO INIT\n";
+        }
 
     } else {
-        std::cout << "CCCASTER FAILED TO LOAD\n";
+        std::cout << std::format( "CCCASTER FAILED TO LOAD: {}\n", dlerror() );
 
         return false;
     }
