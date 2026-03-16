@@ -14,4 +14,5 @@ ccache wineg++ \
     -fno-unwind-tables \
     -fPIC -Wl,-O1 -Wl,--gc-sections \
     -s -Wl,--no-eh-frame-hdr \
-    ./*.cpp -o wrapper.dll
+    -I include \
+    ./src/*.cpp -o wrapper.dll

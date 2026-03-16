@@ -10,64 +10,103 @@
 #include <cstring>
 #include <format>
 #include <iostream>
-#include <optional>
+#include <iterator>
+#include <list>
+#include <variant>
 #include <vector>
 
-memoryLock_t::memoryLock( uintptr_t _address, size_t _length )
-    : _address( _address ), _length( _length ) {
-    _ok = VirtualProtect( std::bit_cast< void* >( _address ), _length,
-                          PAGE_READWRITE, &_oldProtectionRules );
+namespace {
 
-    if ( !_ok ) {
-        std::cerr << std::format( "Patch for {} : {} bytes failed.\n", _address,
-                                  _length );
-    }
-}
+using memoryLock_t = struct memoryLock {
+    memoryLock( uintptr_t _address, size_t _length )
+        : _address( _address ), _length( _length ) {
+        _ok = VirtualProtect( std::bit_cast< void* >( _address ), _length,
+                              PAGE_READWRITE, &_oldProtectionRules );
 
-memoryLock_t::~memoryLock() {
-    if ( _oldProtectionRules ) {
-        if ( !VirtualProtect( std::bit_cast< void* >( _address ), _length,
-                              _oldProtectionRules, &_oldProtectionRules ) ) {
-            std::cerr << std::format(
-                "Patch removal for {} : {} bytes failed.\n", _address,
-                _length );
+        if ( !_ok ) {
+            std::cerr << std::format( "Patch for {} : {} bytes failed.\n",
+                                      _address, _length );
         }
     }
-}
 
-[[nodiscard]] patch_t::patch( uintptr_t _address,
-                              std::span< const std::byte > _bytes ) {
-    const memoryLock_t l_lock( _address, _bytes.size() );
-
-    _ok = l_lock.ok();
-
-    if ( _ok ) {
-        this->_address = _address;
-        this->_bytes.resize( _bytes.size() );
-
-        // Backup
-        std::ranges::copy(
-            std::span( std::bit_cast< const std::byte* >( _address ),
-                       _bytes.size() ),
-            this->_bytes.begin() );
-
-        // Write
-        std::ranges::copy( _bytes, std::bit_cast< std::byte* >( _address ) );
+    ~memoryLock() {
+        if ( _oldProtectionRules ) {
+            if ( !VirtualProtect( std::bit_cast< void* >( _address ), _length,
+                                  _oldProtectionRules,
+                                  &_oldProtectionRules ) ) {
+                std::cerr << std::format(
+                    "Patch removal for {} : {} bytes failed.\n", _address,
+                    _length );
+            }
+        }
     }
-}
 
-patch_t::~patch() {
-    const memoryLock_t l_lock( _address, _bytes.size() );
+    [[nodiscard]] constexpr auto ok() const -> bool { return _ok; }
 
-    _ok = l_lock.ok();
+    memoryLock( const memoryLock& ) = delete;
+    memoryLock( memoryLock&& ) = default;
+    auto operator=( const memoryLock& ) -> memoryLock& = delete;
+    auto operator=( memoryLock&& ) -> memoryLock& = default;
 
-    if ( _ok ) {
-        // Write
-        std::ranges::copy( _bytes, std::bit_cast< std::byte* >( _address ) );
+private:
+    bool _ok{};
+    unsigned long _oldProtectionRules{};
+    uintptr_t _address;
+    size_t _length;
+};
+
+using patch_t = struct patch {
+    [[nodiscard]] patch( uintptr_t _address,
+                         std::span< const std::byte > _bytes ) {
+        const memoryLock_t l_lock( _address, _bytes.size() );
+
+        _ok = l_lock.ok();
+
+        if ( _ok ) {
+            this->_address = _address;
+            this->_bytes.resize( _bytes.size() );
+
+            // Backup
+            std::ranges::copy(
+                std::span( std::bit_cast< const std::byte* >( _address ),
+                           _bytes.size() ),
+                this->_bytes.begin() );
+
+            // Write
+            std::ranges::copy( _bytes,
+                               std::bit_cast< std::byte* >( _address ) );
+        }
     }
-}
 
-[[nodiscard]] static constexpr auto nibble( char _character )
+    ~patch() {
+        const memoryLock_t l_lock( _address, _bytes.size() );
+
+        _ok = l_lock.ok();
+
+        if ( _ok ) {
+            // Write
+            std::ranges::copy( _bytes,
+                               std::bit_cast< std::byte* >( _address ) );
+        }
+    }
+
+    [[nodiscard]] constexpr auto ok() const -> bool { return _ok; }
+    [[nodiscard]] constexpr auto address() const -> uintptr_t {
+        return _address;
+    }
+
+    patch( const patch& ) = delete;
+    patch( patch&& ) = default;
+    auto operator=( const patch& ) -> patch& = delete;
+    auto operator=( patch&& ) -> patch& = default;
+
+private:
+    bool _ok{};
+    uintptr_t _address{};
+    std::vector< std::byte > _bytes{};
+};
+
+[[nodiscard]] constexpr auto nibble( char _character )
     -> std::optional< char > {
     const bool l_isDigit = ( ( _character >= '0' ) && ( _character <= '9' ) );
     const bool l_isUpper = ( ( _character >= 'A' ) && ( _character <= 'F' ) );
@@ -94,7 +133,7 @@ patch_t::~patch() {
 using patternByte_t = std::optional< std::byte >;
 using pattern_t = std::vector< patternByte_t >;
 
-[[nodiscard]] static auto parseByteToken( std::string_view _token )
+[[nodiscard]] constexpr auto parseByteToken( std::string_view _token )
     -> std::expected< patternByte_t, std::string > {
     if ( _token == "?" || _token == "??" ) {
         return ( std::nullopt );
@@ -114,7 +153,7 @@ using pattern_t = std::vector< patternByte_t >;
     return ( static_cast< std::byte >( ( l_hi.value() << 4 ) | l_lo.value() ) );
 }
 
-[[nodiscard]] static auto parsePattern( std::string_view _pattern )
+[[nodiscard]] auto parsePattern( std::string_view _pattern )
     -> std::expected< pattern_t, std::string > {
     pattern_t l_result{};
 
@@ -150,7 +189,7 @@ using pattern_t = std::vector< patternByte_t >;
     return ( l_result );
 }
 
-[[nodiscard]] static auto countConcreteBytes(
+[[nodiscard]] constexpr auto countConcreteBytes(
     std::span< const patternByte_t > _pattern ) -> std::size_t {
     std::size_t l_count{};
 
@@ -163,8 +202,8 @@ using pattern_t = std::vector< patternByte_t >;
     return ( l_count );
 }
 
-[[nodiscard]] static auto countRuns( std::span< const patternByte_t > _pattern )
-    -> std::size_t {
+[[nodiscard]] constexpr auto countRuns(
+    std::span< const patternByte_t > _pattern ) -> std::size_t {
     std::size_t l_runs{};
     bool l_inRun{ false };
 
@@ -182,10 +221,9 @@ using pattern_t = std::vector< patternByte_t >;
     return ( l_runs );
 }
 
-[[nodiscard]] static auto makePatches(
-    uintptr_t _address,
-    std::span< const patternByte_t > _pattern,
-    std::span< const std::byte > _bytes )
+[[nodiscard]] auto makePatches( uintptr_t _address,
+                                std::span< const patternByte_t > _pattern,
+                                std::span< const std::byte > _bytes )
     -> std::expected< std::vector< patch_t >, std::string > {
     if ( countConcreteBytes( _pattern ) != _bytes.size() ) {
         return ( std::unexpected( "Invalid argument" ) );
@@ -236,3 +274,46 @@ using pattern_t = std::vector< patternByte_t >;
 
     return ( makePatches( _address, l_parsed.value(), _bytes ) );
 }
+
+std::list< std::variant< patch_t, std::vector< patch_t > > > g_patches;
+
+} // namespace
+
+namespace wrapper {
+
+[[nodiscard]] auto makePatch( uintptr_t _address,
+                              std::span< const std::byte > _bytes ) -> size_t {
+    g_patches.emplace_back( ::patch_t{ _address, _bytes } );
+
+    const auto l_it = std::prev( g_patches.end() );
+
+    return std::distance( g_patches.begin(), l_it );
+}
+
+[[nodiscard]] auto makePatchByPattern( uintptr_t _address,
+                                       std::string_view _pattern,
+                                       std::span< const std::byte > _bytes )
+    -> std::expected< size_t, std::string > {
+    auto l_patches = makePatches( _address, _pattern, _bytes );
+
+    if ( !l_patches ) {
+        return std::unexpected( l_patches.error() );
+    }
+
+    g_patches.emplace_back( std::move( l_patches.value() ) );
+
+    const auto l_it = std::prev( g_patches.end() );
+
+    return std::distance( g_patches.begin(), l_it );
+}
+
+void removePatch( size_t _id ) {
+    if ( _id > g_patches.size() ) {
+        // TODO: Report error
+        return;
+    }
+
+    g_patches.erase( std::next( g_patches.begin(), _id ) );
+}
+
+} // namespace wrapper
