@@ -89,6 +89,18 @@ using patch_t = struct patch {
             // Write
             std::ranges::copy( _bytes,
                                std::bit_cast< std::byte* >( l_address ) );
+
+            const auto x = std::span(
+                std::bit_cast< const std::byte* >( l_address ), _bytes.size() );
+
+            std::cout << ( "[" );
+            for ( size_t l_i = 0; l_i < x.size(); ++l_i ) {
+                std::cout << std::format( "{:X}",
+                                          static_cast< uint8_t >( x[ l_i ] ) );
+                if ( l_i + 1 < x.size() )
+                    std::cout << ( ", " );
+            }
+            std::cout << ( "]\n" );
         }
     }
 
