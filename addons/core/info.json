@@ -4,6 +4,8 @@
     "runtime": "lua",
     "entry": "main.lua",
     "dependencies": [],
-    "events": [],
+    "events": [
+        "on_init"
+    ],
     "api_version": 1
 }

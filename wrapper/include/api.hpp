@@ -55,6 +55,8 @@ private:
 };
 
 using api_t = struct api {
+    // FIX: Remove
+    api() = default;
     api( decltype( &makePatch ) _makePatch,
          decltype( &makePatchByPattern ) _makePatchByPattern,
          decltype( &removePatch ) _removePatch )
