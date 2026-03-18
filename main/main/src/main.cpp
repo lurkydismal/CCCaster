@@ -46,7 +46,7 @@ struct std::formatter< std::unordered_map< K, V, Cmp, Alloc > > {
 
 wrapper::api_t store::g_api;
 
-[[gnu::visibility( "default" )]] auto init(
+EXPORT [[gnu::visibility( "default" )]] auto init(
     decltype( &wrapper::makePatch ) _makePatch,
     decltype( &wrapper::makePatchByPattern ) _makePatchByPattern,
     decltype( &wrapper::removePatch ) _removePatch ) -> bool {

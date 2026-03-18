@@ -10,7 +10,7 @@
 
 namespace {
 
-constexpr const std::string g_cccasterName = "main.so";
+constexpr const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 
 auto attach() -> bool {
@@ -44,6 +44,8 @@ auto attach() -> bool {
 
         } else {
             std::cerr << "CCCASTER FAILED TO INIT\n";
+
+            return false;
         }
 
     } else {

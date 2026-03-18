@@ -31,7 +31,7 @@ auto LuaRuntimeT::_logInfo( lua_State* _l ) -> int {
 
     const char* l_text = lua_tostring( _l, 1 );
 
-    logg::info( "[mod]: {}\n", ( l_text ? l_text : "" ) );
+    logg::info( "[mod]: {}", ( l_text ? l_text : "" ) );
 
     return ( 0 );
 }
@@ -39,7 +39,7 @@ auto LuaRuntimeT::_logInfo( lua_State* _l ) -> int {
 auto LuaRuntimeT::_logWarn( lua_State* _l ) -> int {
     const char* l_text = lua_tostring( _l, 1 );
 
-    logg::info( "[mod] warn: {}\n", ( l_text ? l_text : "" ) );
+    logg::info( "[mod] warn: {}", ( l_text ? l_text : "" ) );
 
     return ( 0 );
 }
@@ -47,7 +47,7 @@ auto LuaRuntimeT::_logWarn( lua_State* _l ) -> int {
 auto LuaRuntimeT::_logError( lua_State* _l ) -> int {
     const char* l_text = lua_tostring( _l, 1 );
 
-    logg$error( "[mod] error: {}\n", ( l_text ? l_text : "" ) );
+    logg$error( "[mod] error: {}", ( l_text ? l_text : "" ) );
 
     return ( 0 );
 }
@@ -93,7 +93,7 @@ auto LuaRuntimeT::_callGlobalFn( std::string_view _fnName ) -> bool {
     if ( lua_pcall( _l, 0, 0, 0 ) != LUA_OK ) {
         const char* l_err = lua_tostring( _l, -1 );
 
-        logg$error( "[lua] {}\n", ( l_err ? l_err : "unknown error" ) );
+        logg$error( "[lua] {}", ( l_err ? l_err : "unknown error" ) );
 
         lua_pop( _l, 1 );
 
@@ -126,7 +126,7 @@ auto LuaRuntimeT::load( addonRecordT& _addon ) -> bool {
     if ( luaL_dofile( _l, l_entryPath.string().c_str() ) != LUA_OK ) {
         const char* l_err = lua_tostring( _l, -1 );
 
-        logg$error( "[lua] load failed for {}: {}\n", _addon.id,
+        logg$error( "[lua] load failed for {}: {}", _addon.id,
                     ( l_err ? l_err : "unknown error" ) );
 
         lua_pop( _l, 1 );
@@ -155,7 +155,7 @@ auto LuaRuntimeT::callEvent( [[maybe_unused]] addonRecordT& _addon,
 }
 
 auto WasmRuntimeT::load( addonRecordT& _addon ) -> bool {
-    logg$error( "[wasm] runtime not implemented for addon: {}\n", _addon.id );
+    logg$error( "[wasm] runtime not implemented for addon: {}", _addon.id );
 
     return ( false );
 }
