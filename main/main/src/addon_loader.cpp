@@ -115,10 +115,19 @@ auto AddonLoaderT::_applyPatches( addonRecordT& _addon ) -> bool {
             return ( false );
         }
 
-        _addon.applied_patches.push_back( store::g_api.makePatch(
-            static_cast< std::uintptr_t >( l_address.value() ),
-            std::span< const std::byte >( l_bytes->data(),
-                                          l_bytes->size() ) ) );
+        if ( l_hasPattern ) {
+            _addon.applied_patches.push_back( store::g_api.makePatch(
+                static_cast< std::uintptr_t >( l_address.value() ),
+                l_patch.pattern.value(),
+                std::span< const std::byte >( l_bytes->data(),
+                                              l_bytes->size() ) ) );
+
+        } else {
+            _addon.applied_patches.push_back( store::g_api.makePatch(
+                static_cast< std::uintptr_t >( l_address.value() ),
+                std::span< const std::byte >( l_bytes->data(),
+                                              l_bytes->size() ) ) );
+        }
     }
 
     return ( true );

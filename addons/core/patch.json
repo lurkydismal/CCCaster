@@ -1,6 +1,10 @@
 [
     {
-        "address": "0x04A1D42",
+        "address": "0xA1D42",
         "bytes": "EB 0E"
+    },
+    {
+        "address": "0xA1D4A",
+        "bytes": "EB"
     }
 ]

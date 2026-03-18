@@ -58,23 +58,37 @@ private:
 using patch_t = struct patch {
     [[nodiscard]] patch( uintptr_t _address,
                          std::span< const std::byte > _bytes ) {
-        const memoryLock_t l_lock( _address, _bytes.size() );
+        const auto l_moduleBase =
+            std::bit_cast< uintptr_t >( GetModuleHandle( nullptr ) );
+
+        uintptr_t l_address = ( l_moduleBase + _address );
+
+        const memoryLock_t l_lock( l_address, _bytes.size() );
 
         _ok = l_lock.ok();
 
         if ( _ok ) {
-            this->_address = _address;
+            this->_address = l_address;
             this->_bytes.resize( _bytes.size() );
 
             // Backup
             std::ranges::copy(
-                std::span( std::bit_cast< const std::byte* >( _address ),
+                std::span( std::bit_cast< const std::byte* >( l_address ),
                            _bytes.size() ),
                 this->_bytes.begin() );
 
+            std::cout << ( "[" );
+            for ( size_t l_i = 0; l_i < this->_bytes.size(); ++l_i ) {
+                std::cout << std::format(
+                    "{:X}", static_cast< uint8_t >( this->_bytes[ l_i ] ) );
+                if ( l_i + 1 < this->_bytes.size() )
+                    std::cout << ( ", " );
+            }
+            std::cout << ( "]\n" );
+
             // Write
             std::ranges::copy( _bytes,
-                               std::bit_cast< std::byte* >( _address ) );
+                               std::bit_cast< std::byte* >( l_address ) );
         }
     }
 

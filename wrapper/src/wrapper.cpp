@@ -35,18 +35,13 @@ auto attach() -> bool {
             }
         }
 
+        std::cout << "CALLING INIT()\n";
+
         const bool l_result =
             l_initFunction( wrapper::makePatch, wrapper::makePatchByPattern,
                             wrapper::removePatch );
 
-        if ( l_result ) {
-            std::cout << "CCCASTER LOADED\n";
-
-        } else {
-            std::cerr << "CCCASTER FAILED TO INIT\n";
-
-            return false;
-        }
+        return ( l_result );
 
     } else {
         std::cout << std::format( "CCCASTER FAILED TO LOAD: {}\n", dlerror() );
@@ -75,7 +70,15 @@ extern "C" auto APIENTRY DllMain( [[maybe_unused]] HMODULE _hModule,
     -> BOOL {
     switch ( _ulReasonForCall ) {
         case DLL_PROCESS_ATTACH: {
-            return attach();
+            const bool l_result = attach();
+
+            if ( l_result ) {
+                std::cout << "CCCASTER LOADED\n";
+            } else {
+                std::cerr << "CCCASTER FAILED TO INIT\n";
+            }
+
+            return l_result;
 
             break;
         }

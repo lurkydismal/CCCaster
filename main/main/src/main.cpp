@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstdlib>
 #include <print>
 #include <span>
@@ -45,6 +46,7 @@ struct std::formatter< std::unordered_map< K, V, Cmp, Alloc > > {
 };
 
 wrapper::api_t store::g_api;
+mod::AddonLoaderT g_lLoader{ "addons" };
 
 EXPORT [[gnu::visibility( "default" )]] auto init(
     decltype( &wrapper::makePatch ) _makePatch,
@@ -68,21 +70,19 @@ EXPORT [[gnu::visibility( "default" )]] auto init(
         wrapper::api_t{ _makePatch, _makePatchByPattern, _removePatch };
 
     // LUA
-    mod::AddonLoaderT l_loader{ "addons" };
-
-    if ( !l_loader.scan() ) {
+    if ( !g_lLoader.scan() ) {
         std::cerr << "Scan failed\n";
-        return 1;
+        return false;
     }
 
-    if ( !l_loader.loadAll() ) {
+    if ( !g_lLoader.loadAll() ) {
         std::cerr << "Load failed\n";
-        return 1;
+        return false;
     }
 
-    std::println( "ADDONS: {{\n{}\n}}", l_loader.addons() );
+    std::println( "ADDONS: {{\n{}\n}}", g_lLoader.addons() );
 
-    l_loader.dispatchEvent( "on_init" );
+    g_lLoader.dispatchEvent( "on_init" );
 
     // watch::watch_t l_watch{
     //     "addons",
@@ -103,5 +103,5 @@ EXPORT [[gnu::visibility( "default" )]] auto init(
     //     l_loader.tick( false );
     // }
 
-    return ( EXIT_FAILURE );
+    return ( true );
 }
