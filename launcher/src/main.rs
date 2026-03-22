@@ -1,18 +1,6 @@
-mod args;
-mod launcher;
-mod shared_memory;
-
-use clap::Parser;
-use std::process::ExitCode;
-
-fn main() -> ExitCode {
-    let l_args = args::Args::parse();
-
-    match launcher::run(&l_args) {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(l_err) => {
-            eprintln!("{l_err}");
-            ExitCode::from(1)
-        }
+fn main() {
+    if let Err(l_err) = launcher::run_cli() {
+        eprintln!("{l_err}");
+        std::process::exit(1);
     }
 }

@@ -1,5 +1,10 @@
-use crate::args::Args;
+use crate::{
+    args::Args,
+    error::{AppError, Result},
+};
 
-pub fn run(_args: &Args) -> Result<(), String> {
-    unimplemented!("this launcher implementation is Windows-only right now")
+pub fn run(_args: &Args) -> Result<()> {
+    Err(AppError::Unsupported(
+        "this launcher implementation is Windows-only right now",
+    ))
 }

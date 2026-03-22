@@ -1,5 +1,6 @@
+use crate::error::{AppError, Result};
+use serde::Serialize;
 use std::{ffi::CString, ptr::copy_nonoverlapping, ptr::null_mut};
-
 use windows_sys::Win32::{
     Foundation::{CloseHandle, HANDLE},
     System::Memory::{
@@ -7,7 +8,7 @@ use windows_sys::Win32::{
     },
 };
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct TestData {
     pub name: String,
     pub path: String,
@@ -19,9 +20,10 @@ struct MyData {
     value: [u8; 0],
 }
 
-pub fn write_shared_string(name: &str, value: &str) -> Result<(), &'static str> {
+pub fn write_shared_string(name: &str, value: &str) -> Result<()> {
     let size = std::mem::size_of::<MyData>() + value.len();
-    let c_name = CString::new(name).map_err(|_| "invalid mapping name")?;
+    let c_name =
+        CString::new(name).map_err(|_| AppError::Message("invalid mapping name".to_string()))?;
 
     let mapping: HANDLE = unsafe {
         CreateFileMappingA(
@@ -35,13 +37,13 @@ pub fn write_shared_string(name: &str, value: &str) -> Result<(), &'static str> 
     };
 
     if mapping.is_null() {
-        return Err("CreateFileMappingA failed");
+        return Err(AppError::Message("CreateFileMappingA failed".to_string()));
     }
 
     let view = unsafe { MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, size) };
     if view.Value.is_null() {
         unsafe { CloseHandle(mapping) };
-        return Err("MapViewOfFile failed");
+        return Err(AppError::Message("MapViewOfFile failed".to_string()));
     }
 
     let header = view.Value as *mut MyData;

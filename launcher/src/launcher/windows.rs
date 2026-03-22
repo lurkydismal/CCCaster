@@ -1,8 +1,8 @@
 use crate::{
     args::Args,
+    error::{AppError, Result},
     shared_memory::{TestData, write_shared_string},
 };
-use serde_json;
 use std::{
     ffi::OsStr,
     mem::size_of,
@@ -30,18 +30,22 @@ use windows_sys::Win32::{
 
 use crate::launcher::{DEFAULT_EXE_NAME, DEFAULT_WRAPPER_NAME};
 
-pub fn run(args: &Args) -> Result<(), String> {
-    if args.attach {
-        return Err("attach mode is not implemented in this launcher".to_string());
+pub fn run(l_args: &Args) -> Result<()> {
+    if l_args.attach {
+        return Err(AppError::Message(
+            "attach mode is not implemented in this launcher".to_string(),
+        ));
     }
 
     let l_exe_path = resolve_path(DEFAULT_EXE_NAME, None)?;
-    let l_wrapper_path =
-        resolve_path(DEFAULT_WRAPPER_NAME, args.wrapper.as_deref().map(Path::new))?;
+    let l_wrapper_path = resolve_path(
+        DEFAULT_WRAPPER_NAME,
+        l_args.wrapper.as_deref().map(Path::new),
+    )?;
 
-    if args.validate || args.dry_run {
-        validate_launcher_inputs(&l_exe_path, &l_wrapper_path, args)?;
-        if args.validate {
+    if l_args.validate || l_args.dry_run {
+        validate_launcher_inputs(&l_exe_path, &l_wrapper_path, l_args)?;
+        if l_args.validate {
             println!("validation ok");
         } else {
             println!("dry run ok");
@@ -49,41 +53,41 @@ pub fn run(args: &Args) -> Result<(), String> {
         return Ok(());
     }
 
-    if args.no_inject {
-        launch_without_injection(&l_exe_path, &args.game_args)?;
+    if l_args.no_inject {
+        launch_without_injection(&l_exe_path, &l_args.game_args)?;
         return Ok(());
     }
 
-    launch_with_injection(&l_exe_path, &l_wrapper_path, args)
+    launch_with_injection(&l_exe_path, &l_wrapper_path, l_args)
 }
 
-fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result<(), String> {
+fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result<()> {
     let mut l_pi = spawn_process(exe_path, game_args, false)?;
     println!("process started");
     close_process_handles(&mut l_pi);
     Ok(())
 }
 
-fn launch_with_injection(exe_path: &Path, wrapper_path: &Path, args: &Args) -> Result<(), String> {
-    let mut l_pi = spawn_process(exe_path, &args.game_args, true)?;
+fn launch_with_injection(exe_path: &Path, wrapper_path: &Path, l_args: &Args) -> Result<()> {
+    let mut l_pi = spawn_process(exe_path, &l_args.game_args, true)?;
     println!("process started suspended");
 
-    let data = TestData {
+    let l_data = TestData {
         name: "example".to_string(),
         path: "/tmp/file".to_string(),
     };
 
-    let json = serde_json::to_string(&data).map_err(|err| err.to_string())?;
+    let l_json = serde_json::to_string(&l_data)?;
 
-    if let Err(e) = write_shared_string("Local\\MySharedData", &json) {
-        eprintln!("{e}");
+    if let Err(l_err) = write_shared_string("Local\\MySharedData", &l_json) {
+        eprintln!("{l_err}");
     }
 
-    inject_dll(&mut l_pi, wrapper_path, args.inject_timeout)?;
+    inject_dll(&mut l_pi, wrapper_path, l_args.inject_timeout)?;
 
     println!("dll injected");
 
-    if args.suspend || args.break_on_load {
+    if l_args.suspend || l_args.break_on_load {
         println!("leaving process suspended");
         close_process_handles(&mut l_pi);
         return Ok(());
@@ -94,10 +98,10 @@ fn launch_with_injection(exe_path: &Path, wrapper_path: &Path, args: &Args) -> R
     if l_resume_result == u32::MAX {
         let l_err = unsafe { GetLastError() };
         close_process_handles(&mut l_pi);
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "ResumeThread failed: {}",
             last_error_message(Some(l_err))
-        ));
+        )));
     }
 
     close_process_handles(&mut l_pi);
@@ -108,7 +112,7 @@ fn spawn_process(
     exe_path: &Path,
     game_args: &[String],
     suspended: bool,
-) -> Result<PROCESS_INFORMATION, String> {
+) -> Result<PROCESS_INFORMATION> {
     let mut l_si: STARTUPINFOW = unsafe { std::mem::zeroed() };
     let mut l_pi: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
 
@@ -136,10 +140,10 @@ fn spawn_process(
     };
 
     if l_ok == 0 {
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "CreateProcessW failed: {}",
             last_error_message(None)
-        ));
+        )));
     }
 
     Ok(l_pi)
@@ -167,7 +171,9 @@ fn quote_windows_arg(arg: &str) -> String {
 
         for l_ch in arg.chars() {
             match l_ch {
-                '\\' => l_backslashes += 1,
+                '\\' => {
+                    l_backslashes += 1;
+                }
                 '"' => {
                     l_out.push_str(&"\\".repeat((l_backslashes * 2) + 1));
                     l_out.push('"');
@@ -198,7 +204,7 @@ fn inject_dll(
     pi: &mut PROCESS_INFORMATION,
     wrapper_path: &Path,
     timeout_ms: Option<usize>,
-) -> Result<(), String> {
+) -> Result<()> {
     let l_wrapper_wide = to_wide_null(wrapper_path.as_os_str());
     let l_bytes = l_wrapper_wide.len() * size_of::<u16>();
 
@@ -213,10 +219,10 @@ fn inject_dll(
     };
 
     if l_remote_mem.is_null() {
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "VirtualAllocEx failed: {}",
             last_error_message(None)
-        ));
+        )));
     }
 
     let l_write_ok = unsafe {
@@ -231,10 +237,10 @@ fn inject_dll(
 
     if l_write_ok == 0 {
         unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "WriteProcessMemory failed: {}",
             last_error_message(None)
-        ));
+        )));
     }
 
     let l_start_routine: windows_sys::Win32::System::Threading::LPTHREAD_START_ROUTINE =
@@ -254,10 +260,10 @@ fn inject_dll(
 
     if l_thread.is_null() {
         unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "CreateRemoteThread failed: {}",
             last_error_message(None)
-        ));
+        )));
     }
 
     let l_wait_ms = match timeout_ms {
@@ -265,7 +271,7 @@ fn inject_dll(
             if l_timeout > u32::MAX as usize {
                 unsafe { CloseHandle(l_thread) };
                 unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
-                return Err("inject_timeout is too large".to_string());
+                return Err(AppError::Message("inject_timeout is too large".to_string()));
             }
             l_timeout as u32
         }
@@ -276,33 +282,35 @@ fn inject_dll(
     if l_wait_result == WAIT_TIMEOUT {
         unsafe { CloseHandle(l_thread) };
         unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
-        return Err("wrapper injection timed out".to_string());
+        return Err(AppError::Message("wrapper injection timed out".to_string()));
     }
 
     if l_wait_result != WAIT_OBJECT_0 {
         unsafe { CloseHandle(l_thread) };
         unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "WaitForSingleObject failed: {}",
             last_error_message(None)
-        ));
+        )));
     }
 
     let mut l_exit_code: u32 = 0;
     if unsafe { GetExitCodeThread(l_thread, &mut l_exit_code) } == 0 {
         unsafe { CloseHandle(l_thread) };
         unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(format!(
+        return Err(AppError::Message(format!(
             "GetExitCodeThread failed: {}",
             last_error_message(None)
-        ));
+        )));
     }
 
     unsafe { CloseHandle(l_thread) };
     unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
 
     if l_exit_code == 0 {
-        return Err("LoadLibraryW failed in remote process".to_string());
+        return Err(AppError::Message(
+            "LoadLibraryW failed in remote process".to_string(),
+        ));
     }
 
     Ok(())
@@ -311,12 +319,12 @@ fn inject_dll(
 fn close_process_handles(pi: &mut PROCESS_INFORMATION) {
     if !pi.hThread.is_null() {
         unsafe { CloseHandle(pi.hThread) };
-        pi.hThread = null_mut();
+        pi.hThread = std::ptr::null_mut();
     }
 
     if !pi.hProcess.is_null() {
         unsafe { CloseHandle(pi.hProcess) };
-        pi.hProcess = null_mut();
+        pi.hProcess = std::ptr::null_mut();
     }
 }
 
@@ -324,7 +332,7 @@ fn to_wide_null(value: &OsStr) -> Vec<u16> {
     value.encode_wide().chain(std::iter::once(0)).collect()
 }
 
-pub fn last_error_message(error: Option<u32>) -> String {
+fn last_error_message(error: Option<u32>) -> String {
     let l_error = error.unwrap_or_else(|| unsafe { GetLastError() });
 
     let mut l_buffer: *mut u8 = null_mut();
@@ -359,31 +367,33 @@ pub fn last_error_message(error: Option<u32>) -> String {
     format!("{} ({})", l_string, l_error)
 }
 
-fn resolve_path(default_name: &str, r#override: Option<&Path>) -> Result<PathBuf, String> {
+fn resolve_path(default_name: &str, r#override: Option<&Path>) -> Result<PathBuf> {
     if let Some(l_path) = r#override {
         return Ok(l_path.to_path_buf());
     }
 
-    let binding =
-        std::env::current_exe().map_err(|l_err| format!("current_exe failed: {l_err}"))?;
+    let binding = std::env::current_exe()
+        .map_err(|l_err| AppError::Message(format!("current_exe failed: {l_err}")))?;
     let l_base_dir = binding
         .parent()
-        .ok_or_else(|| "launcher has no parent directory".to_string())?;
+        .ok_or_else(|| AppError::Message("launcher has no parent directory".to_string()))?;
 
     Ok(l_base_dir.join(default_name))
 }
 
-fn validate_launcher_inputs(
-    exe_path: &Path,
-    wrapper_path: &Path,
-    args: &Args,
-) -> Result<(), String> {
+fn validate_launcher_inputs(exe_path: &Path, wrapper_path: &Path, args: &Args) -> Result<()> {
     if !exe_path.exists() {
-        return Err(format!("game executable not found: {}", exe_path.display()));
+        return Err(AppError::Message(format!(
+            "game executable not found: {}",
+            exe_path.display()
+        )));
     }
 
     if !args.no_inject && !wrapper_path.exists() {
-        return Err(format!("wrapper dll not found: {}", wrapper_path.display()));
+        return Err(AppError::Message(format!(
+            "wrapper dll not found: {}",
+            wrapper_path.display()
+        )));
     }
 
     Ok(())
