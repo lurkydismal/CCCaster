@@ -10,11 +10,26 @@
 
 namespace {
 
+using data_t = struct data {
+    size_t size;
+    char value[];
+};
+
 constexpr const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 
 auto attach() -> bool {
     std::cout << "WRAPPER ATTACHED\n";
+
+    HANDLE l_mapping =
+        OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
+    LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
+    const auto l_data = std::bit_cast< data_t* >( l_view );
+
+    std::cout << std::format(
+        "SIZE: '{}', VALUE: '{}'\n", l_data->size,
+        std::string_view( static_cast< char* >( l_data->value ),
+                          l_data->size ) );
 
     g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
 

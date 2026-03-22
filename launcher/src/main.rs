@@ -1,8 +1,14 @@
 use clap::Parser;
+use serde::Serialize;
 use std::{
-    ffi::OsStr,
+    ffi::{CString, OsStr},
     path::{Path, PathBuf},
     process::ExitCode,
+    ptr::copy_nonoverlapping,
+};
+use windows_sys::Win32::{
+    Foundation::HANDLE,
+    System::Memory::{CreateFileMappingA, FILE_MAP_WRITE, MapViewOfFile},
 };
 
 #[cfg(target_os = "windows")]
@@ -80,10 +86,30 @@ fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result<(),
     Ok(())
 }
 
+#[derive(Serialize)]
+struct TestData {
+    name: String,
+    path: String,
+}
+
 #[cfg(target_os = "windows")]
 fn launch_with_injection(exe_path: &Path, wrapper_path: &Path, args: &Args) -> Result<(), String> {
     let mut l_pi = spawn_process(exe_path, &args.game_args, true)?;
     println!("process started suspended");
+
+    let data = TestData {
+        name: "example".to_string(),
+        path: "/tmp/file".to_string(),
+    };
+
+    let json = match serde_json::to_string(&data) {
+        Ok(it) => it,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    if let Err(e) = write_shared_string("Local\\MySharedData", &json) {
+        eprintln!("{}", e);
+    }
 
     inject_dll(&mut l_pi, wrapper_path, args.inject_timeout)?;
 
@@ -374,6 +400,51 @@ pub fn last_error_message(error: Option<u32>) -> String {
     unsafe { LocalFree(l_buffer as HLOCAL) };
 
     format!("{} ({})", l_string, l_error)
+}
+
+#[repr(C)]
+struct MyData {
+    size: usize,
+    value: [u8; 0],
+}
+
+fn write_shared_string(name: &str, value: &str) -> Result<(), &'static str> {
+    let size = std::mem::size_of::<MyData>() + value.len();
+    let c_name = CString::new(name).map_err(|_| "invalid mapping name")?;
+
+    let mapping: HANDLE = unsafe {
+        CreateFileMappingA(
+            -1isize as HANDLE, // INVALID_HANDLE_VALUE
+            null_mut(),
+            PAGE_READWRITE,
+            0,
+            size as u32,
+            c_name.as_ptr() as *const u8,
+        )
+    };
+
+    if mapping.is_null() {
+        return Err("CreateFileMappingA failed");
+    }
+
+    let view = unsafe { MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, size) };
+
+    if view.Value.is_null() {
+        return Err("MapViewOfFile failed");
+    }
+
+    // Write header
+    let header = view.Value as *mut MyData;
+    unsafe {
+        (*header).size = value.len();
+    }
+
+    // Write payload right after header
+    let data_ptr = (unsafe { (*header).value.as_ptr() }) as *mut u8;
+
+    unsafe { copy_nonoverlapping(value.as_ptr(), data_ptr, value.len()) };
+
+    Ok(())
 }
 
 #[cfg(target_os = "linux")]
