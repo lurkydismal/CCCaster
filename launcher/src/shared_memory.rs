@@ -1,6 +1,9 @@
 use crate::error::{AppError, Result};
 use serde::Serialize;
-use std::{ffi::CString, ptr::copy_nonoverlapping, ptr::null_mut};
+use std::{
+    ffi::CString,
+    ptr::{self, copy_nonoverlapping},
+};
 use windows_sys::Win32::{
     Foundation::{CloseHandle, HANDLE},
     System::Memory::{
@@ -28,7 +31,7 @@ pub fn write_shared_string(name: &str, value: &str) -> Result<()> {
     let mapping: HANDLE = unsafe {
         CreateFileMappingA(
             -1isize as HANDLE,
-            null_mut(),
+            ptr::null_mut(),
             PAGE_READWRITE,
             0,
             size as u32,
