@@ -1,7 +1,7 @@
 use crate::{
     args::Args,
     error::{AppError, Result},
-    launcher::{DEFAULT_EXE_NAME, DEFAULT_WRAPPER_NAME},
+    launcher::{DEFAULT_ADDONS_DIR, DEFAULT_EXE_NAME, DEFAULT_WRAPPER_NAME},
 };
 use std::path::Path;
 
@@ -10,22 +10,24 @@ mod paths;
 mod process;
 mod win32;
 
-pub fn run(l_args: &Args) -> Result<()> {
-    if l_args.attach {
+pub fn run(args: &Args) -> Result<()> {
+    if args.attach {
         return Err(AppError::Message(
             "attach mode is not implemented in this launcher".to_string(),
         ));
     }
 
     let l_exe_path = paths::resolve_path(DEFAULT_EXE_NAME, None)?;
-    let l_wrapper_path = paths::resolve_path(
-        DEFAULT_WRAPPER_NAME,
-        l_args.wrapper.as_deref().map(Path::new),
+    let l_wrapper_path =
+        paths::resolve_path(DEFAULT_WRAPPER_NAME, args.wrapper.as_deref().map(Path::new))?;
+    let l_addons_path = paths::resolve_path(
+        DEFAULT_ADDONS_DIR,
+        args.addons_dir.as_deref().map(Path::new),
     )?;
 
-    if l_args.validate || l_args.dry_run {
-        paths::validate_launcher_inputs(&l_exe_path, &l_wrapper_path, l_args)?;
-        if l_args.validate {
+    if args.validate || args.dry_run {
+        paths::validate_launcher_inputs(&l_exe_path, &l_wrapper_path, &l_addons_path, args)?;
+        if args.validate {
             println!("validation ok");
         } else {
             println!("dry run ok");
@@ -33,10 +35,10 @@ pub fn run(l_args: &Args) -> Result<()> {
         return Ok(());
     }
 
-    if l_args.no_inject {
-        process::launch_without_injection(&l_exe_path, &l_args.game_args)?;
+    if args.no_inject {
+        process::launch_without_injection(&l_exe_path, &args.game_args)?;
         return Ok(());
     }
 
-    process::launch_with_injection(&l_exe_path, &l_wrapper_path, l_args)
+    process::launch_with_injection(&l_exe_path, &l_wrapper_path, &l_addons_path, args)
 }

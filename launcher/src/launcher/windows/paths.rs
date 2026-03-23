@@ -19,6 +19,7 @@ pub fn resolve_path(default_name: &str, r#override: Option<&Path>) -> Result<Pat
 pub fn validate_launcher_inputs(
     exe_path: &Path,
     wrapper_path: &Path,
+    addons_path: &Path,
     args: &Args,
 ) -> Result<(), AppError> {
     if !exe_path.exists() {
@@ -32,6 +33,13 @@ pub fn validate_launcher_inputs(
         return Err(AppError::Message(format!(
             "wrapper dll not found: {}",
             wrapper_path.display()
+        )));
+    }
+
+    if !args.no_inject && !addons_path.exists() {
+        return Err(AppError::Message(format!(
+            "addons directory not found: {}",
+            addons_path.display()
         )));
     }
 

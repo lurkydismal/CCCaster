@@ -1,6 +1,6 @@
 use clap::Parser;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[command(
     version,
     about,
@@ -57,7 +57,7 @@ pub struct Args {
 
     /// Load only specific addons (override auto-load).
     #[arg(short, long, value_name = "NAME", action = clap::ArgAction::Append)]
-    pub addon: Vec<String>,
+    pub addon: Option<Vec<String>>,
 
     /// Load a predefined addon set.
     #[arg(short, long, value_name = "NAME")]
@@ -82,7 +82,7 @@ pub struct Args {
 
     /// Blacklist specific addons.
     #[arg(short, long, value_name = "ADDON", action = clap::ArgAction::Append)]
-    pub disable: Vec<String>,
+    pub disable: Option<Vec<String>>,
 
     // Injection/ runtime control
     /// Custom wrapper DLL.
@@ -110,10 +110,6 @@ pub struct Args {
     /// Each additional `-v` increases detail level.
     #[arg(short, long, action = clap::ArgAction::Count)]
     pub verbose: u8,
-
-    /// Write logs to the specified file instead of stdout.
-    #[arg(short, long, value_name = "PATH")]
-    pub log_file: Option<String>,
 
     /// Very noisy: patching, hooks, loader internals.
     #[arg(long)]

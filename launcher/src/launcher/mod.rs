@@ -1,5 +1,6 @@
 pub const DEFAULT_EXE_NAME: &str = "MBAA.exe";
 pub const DEFAULT_WRAPPER_NAME: &str = "wrapper.dll";
+pub const DEFAULT_ADDONS_DIR: &str = "addons/";
 
 #[cfg(target_os = "windows")]
 mod windows;
