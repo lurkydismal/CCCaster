@@ -1,5 +1,4 @@
 use crate::error::{AppError, Result};
-use serde::Serialize;
 use std::{
     ffi::CString,
     ptr::{self, copy_nonoverlapping},
@@ -11,20 +10,14 @@ use windows_sys::Win32::{
     },
 };
 
-#[derive(Serialize)]
-pub struct TestData {
-    pub name: String,
-    pub path: String,
-}
-
 #[repr(C)]
-struct MyData {
+struct Data {
     size: usize,
     value: [u8; 0],
 }
 
 pub fn write_shared_string(name: &str, value: &str) -> Result<()> {
-    let size = std::mem::size_of::<MyData>() + value.len();
+    let size = std::mem::size_of::<Data>() + value.len();
     let c_name =
         CString::new(name).map_err(|_| AppError::Message("invalid mapping name".to_string()))?;
 
@@ -49,7 +42,7 @@ pub fn write_shared_string(name: &str, value: &str) -> Result<()> {
         return Err(AppError::Message("MapViewOfFile failed".to_string()));
     }
 
-    let header = view.Value as *mut MyData;
+    let header = view.Value as *mut Data;
     unsafe {
         (*header).size = value.len();
     }

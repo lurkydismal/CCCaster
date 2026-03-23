@@ -1,5 +1,11 @@
+use crate::{
+    AppError,
+    args::Args,
+    launcher::windows::{inject, win32},
+    shared_memory,
+};
+use serde::Serialize;
 use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::Path, ptr};
-
 use windows_sys::Win32::{
     Foundation::{CloseHandle, GetLastError},
     System::Threading::{
@@ -7,12 +13,81 @@ use windows_sys::Win32::{
     },
 };
 
-use crate::{
-    AppError,
-    args::Args,
-    launcher::windows::{inject, win32},
-    shared_memory,
-};
+macro_rules! copy_fields_ref {
+    ($src:expr, { $($f:ident),* $(,)? }) => {
+        Self {
+            $($f: &$src.$f),*
+        }
+    };
+}
+
+#[derive(Serialize)]
+pub struct WrapperData<'a> {
+    // Core execution modes
+    /// Default behavior. Launch + inject + run normally.
+    pub play: &'a bool,
+
+    /// Validate addons, dependency graph, patches, paths — do not launch.
+    pub dry_run: &'a bool,
+
+    /// Same as dry-run but stricter: checksum files, detect conflicts, ABI mismatches.
+    pub validate: &'a bool,
+
+    /// Load only specific addons (override auto-load).
+    pub addon: &'a Vec<String>,
+
+    // Addon loading & resolution control
+    /// Override default `addons/`.
+    pub addons_dir: &'a Option<String>,
+
+    /// Explicit load order override (bypass dependency resolver).
+    pub load_order: &'a Option<String>,
+
+    /// Ignore dependencies (dangerous but useful for debugging).
+    pub no_deps: &'a bool,
+
+    /// Ignore version/ API mismatches.
+    pub force: &'a bool,
+
+    /// Blacklist specific addons.
+    pub disable: &'a Vec<String>,
+
+    // Debugging & diagnostics
+    /// Increase logging verbosity (-v, -vv, -vvv).
+    /// Each additional `-v` increases detail level.
+    pub verbose: &'a u8,
+
+    /// Write logs to the specified file instead of stdout.
+    pub log_file: &'a Option<String>,
+
+    /// Very noisy: patching, hooks, loader internals.
+    pub trace: &'a bool,
+
+    /// Output resolved patches after dependency resolution.
+    pub dump_patches: &'a bool,
+
+    /// Output mod dependency graph.
+    pub dump_graph: &'a bool,
+
+    /// Measure load/ injection phases.
+    pub timings: &'a bool,
+
+    // Safety/ isolation controls
+    /// Disable all mods except core/ runtime.
+    pub safe_mode: &'a bool,
+
+    /// Restrict file access (NOTE: stub, no VFS yet).
+    pub sandbox: &'a bool,
+
+    /// Load mods but don’t apply binary patches (script-only testing).
+    pub no_patches: &'a bool,
+}
+
+impl<'a> From<&'a Args> for WrapperData<'a> {
+    fn from(v: &'a Args) -> Self {
+        copy_fields_ref!(v, { play, dry_run, validate, addon, addons_dir, load_order, no_deps, force, disable, verbose, log_file, trace, dump_patches, dump_graph, timings, safe_mode, sandbox, no_patches,  })
+    }
+}
 
 pub fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result<(), AppError> {
     let mut l_pi = spawn_process(exe_path, game_args, false)?;
@@ -29,12 +104,11 @@ pub fn launch_with_injection(
     let mut l_pi = spawn_process(exe_path, &l_args.game_args, true)?;
     println!("process started suspended");
 
-    let l_data = shared_memory::TestData {
-        name: "example".to_string(),
-        path: "/tmp/file".to_string(),
-    };
+    let l_data: WrapperData = l_args.into();
 
     let l_json = serde_json::to_string(&l_data)?;
+
+    println!("json: {}", l_json);
 
     if let Err(l_err) = shared_memory::write_shared_string("Local\\MySharedData", &l_json) {
         eprintln!("{l_err}");
