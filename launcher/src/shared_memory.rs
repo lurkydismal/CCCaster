@@ -52,7 +52,6 @@ pub fn write_shared_string(name: &str, value: &str) -> Result<()> {
 
     unsafe {
         UnmapViewOfFile(view);
-        CloseHandle(mapping);
     }
 
     Ok(())
