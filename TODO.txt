@@ -1,7 +1,10 @@
-P0
+P6
 Fix release not finding default.profraw
 
-P6
+P4
+Implement profile support in launcher
+
+P2
 Implement main:
 1. List all mods in addons/
 2. For each addon:
@@ -25,3 +28,4 @@ Implement main:
     - Add tracking of loaded scripts and hooks.
     - Plan for unloading or reloading safely, including dependency checks.
     - Hashing or signing mods for integrity.
+
