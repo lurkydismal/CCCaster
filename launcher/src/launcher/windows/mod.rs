@@ -25,13 +25,12 @@ pub fn run(args: &Args) -> Result<()> {
         args.addons_dir.as_deref().map(Path::new),
     )?;
 
-    if args.validate || args.dry_run {
+    if args.dry_run {
         paths::validate_launcher_inputs(&l_exe_path, &l_wrapper_path, &l_addons_path, args)?;
-        if args.validate {
-            println!("validation ok");
-        } else {
-            println!("dry run ok");
-        }
+        // TODO: Inject into this own process
+
+        println!("dry run ok");
+
         return Ok(());
     }
 

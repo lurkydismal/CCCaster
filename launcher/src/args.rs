@@ -28,7 +28,7 @@ This tool controls how the game is started with addon support enabled. It handle
 <bold>Usage examples:</bold>
 
 <dim>$</dim> <bold>launcher --profile modded</bold>  
-<dim>$</dim> <bold>launcher --validate</bold>  
+<dim>$</dim> <bold>launcher --dry-run</bold>  
 <dim>$</dim> <bold>launcher --no-inject -- game.exe -fullscreen</bold>
 
 <bold>Notes:</bold>
@@ -50,10 +50,6 @@ pub struct Args {
     /// Validate addons, dependency graph, patches, paths — do not launch.
     #[arg(long)]
     pub dry_run: bool,
-
-    /// Same as dry-run but stricter: checksum files, detect conflicts, ABI mismatches.
-    #[arg(long)]
-    pub validate: bool,
 
     /// Load only specific addons (override auto-load).
     #[arg(short, long, value_name = "NAME", action = clap::ArgAction::Append)]

@@ -33,9 +33,6 @@ struct WrapperData<'a> {
     /// Validate addons, dependency graph, patches, paths — do not launch.
     dry_run: &'a bool,
 
-    /// Same as dry-run but stricter: checksum files, detect conflicts, ABI mismatches.
-    validate: &'a bool,
-
     /// Load only specific addons (override auto-load).
     addon: &'a Option<Vec<String>>,
 
@@ -85,7 +82,7 @@ struct WrapperData<'a> {
 
 impl<'a> From<&'a Args> for WrapperData<'a> {
     fn from(v: &'a Args) -> Self {
-        copy_fields_ref!(v, { play, dry_run, validate, addon, addons_dir, load_order, no_deps, force, disable, verbose, trace, dump_patches, dump_graph, timings, safe_mode, sandbox, no_patches,  })
+        copy_fields_ref!(v, { play, dry_run, addon, addons_dir, load_order, no_deps, force, disable, verbose, trace, dump_patches, dump_graph, timings, safe_mode, sandbox, no_patches,  })
     }
 }
 
