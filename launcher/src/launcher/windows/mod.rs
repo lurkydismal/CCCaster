@@ -11,7 +11,7 @@ mod process;
 mod win32;
 
 pub fn run(args: &Args) -> Result<()> {
-    win32::measure_block(|| {
+    let l_function = || {
         let l_exe_path = paths::resolve_path(DEFAULT_EXE_NAME, None)?;
         let l_wrapper_path =
             paths::resolve_path(DEFAULT_WRAPPER_NAME, args.wrapper.as_deref().map(Path::new))?;
@@ -71,5 +71,11 @@ pub fn run(args: &Args) -> Result<()> {
         }
 
         process::launch_with_injection(&l_exe_path, &l_wrapper_path, &l_addons_path, args)
-    })
+    };
+
+    if args.timings {
+        win32::measure_block(l_function)
+    } else {
+        l_function()
+    }
 }

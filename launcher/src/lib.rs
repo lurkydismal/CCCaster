@@ -36,6 +36,30 @@ pub fn run_cli() -> Result<()> {
         let mut l_profile_path = PathBuf::from("profiles");
         l_profile_path.push(format!("{}.json", profile));
 
+        if l_args.save_profile {
+            profile::save_profile(
+                &l_profile_path,
+                &Profile {
+                    enabled_mods: l_args
+                        .addon
+                        .as_ref()
+                        .into_iter()
+                        .flatten()
+                        .cloned()
+                        .collect(),
+                    load_order: l_args.load_order.as_deref().map(|l_s| {
+                        l_s.split(';')
+                            .map(|l_part| l_part.to_string())
+                            .collect::<Vec<String>>()
+                    }),
+                    env: collect_env(),
+                    game_args: l_args.game_args.clone(),
+                },
+            )?;
+
+            launcher_println!("Profile saved to: {}", &l_profile_path.display());
+        }
+
         if !l_profile_path.exists() {
             launcher_eprintln!("Profile not found: {}", l_profile_path.display());
         } else {
@@ -56,27 +80,9 @@ pub fn run_cli() -> Result<()> {
 
             return launcher::run(&l_new_args);
         }
-
+    } else {
         if l_args.save_profile {
-            profile::save_profile(
-                l_profile_path,
-                &Profile {
-                    enabled_mods: l_args
-                        .addon
-                        .as_ref()
-                        .into_iter()
-                        .flatten()
-                        .cloned()
-                        .collect(),
-                    load_order: l_args.load_order.as_deref().map(|l_s| {
-                        l_s.split(';')
-                            .map(|l_part| l_part.to_string())
-                            .collect::<Vec<String>>()
-                    }),
-                    env: collect_env(),
-                    game_args: l_args.game_args.clone(),
-                },
-            )?;
+            launcher_eprintln!("Profile name not specified");
         }
     }
 
