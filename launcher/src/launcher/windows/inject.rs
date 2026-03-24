@@ -1,16 +1,14 @@
 use std::{path::Path, ptr};
 
 use windows_sys::Win32::{
-    Foundation::{CloseHandle, WAIT_OBJECT_0, WAIT_TIMEOUT},
+    Foundation::{CloseHandle, HANDLE, WAIT_OBJECT_0, WAIT_TIMEOUT},
     System::{
         Diagnostics::Debug::WriteProcessMemory,
         LibraryLoader::LoadLibraryW,
         Memory::{
             MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, PAGE_READWRITE, VirtualAllocEx, VirtualFreeEx,
         },
-        Threading::{
-            CreateRemoteThread, GetExitCodeThread, PROCESS_INFORMATION, WaitForSingleObject,
-        },
+        Threading::{CreateRemoteThread, GetExitCodeThread, WaitForSingleObject},
     },
 };
 
@@ -20,7 +18,7 @@ use crate::{
 };
 
 pub fn inject_dll(
-    pi: &mut PROCESS_INFORMATION,
+    h_process: HANDLE,
     wrapper_path: &Path,
     timeout_ms: Option<usize>,
 ) -> Result<(), AppError> {
@@ -29,7 +27,7 @@ pub fn inject_dll(
 
     let l_remote_mem = unsafe {
         VirtualAllocEx(
-            pi.hProcess,
+            h_process,
             ptr::null_mut(),
             l_bytes,
             MEM_COMMIT | MEM_RESERVE,
@@ -46,7 +44,7 @@ pub fn inject_dll(
 
     let l_write_ok = unsafe {
         WriteProcessMemory(
-            pi.hProcess,
+            h_process,
             l_remote_mem,
             l_wrapper_wide.as_ptr() as *const _,
             l_bytes,
@@ -55,7 +53,7 @@ pub fn inject_dll(
     };
 
     if l_write_ok == 0 {
-        unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
         return Err(AppError::Message(format!(
             "WriteProcessMemory failed: {}",
             win32::last_error_message(None)
@@ -67,7 +65,7 @@ pub fn inject_dll(
 
     let l_thread = unsafe {
         CreateRemoteThread(
-            pi.hProcess,
+            h_process,
             ptr::null_mut(),
             0,
             l_start_routine,
@@ -78,7 +76,7 @@ pub fn inject_dll(
     };
 
     if l_thread.is_null() {
-        unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
         return Err(AppError::Message(format!(
             "CreateRemoteThread failed: {}",
             win32::last_error_message(None)
@@ -89,7 +87,7 @@ pub fn inject_dll(
         Some(l_timeout) => {
             if l_timeout > u32::MAX as usize {
                 unsafe { CloseHandle(l_thread) };
-                unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+                unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
                 return Err(AppError::Message("inject_timeout is too large".to_string()));
             }
             l_timeout as u32
@@ -100,13 +98,13 @@ pub fn inject_dll(
     let l_wait_result = unsafe { WaitForSingleObject(l_thread, l_wait_ms) };
     if l_wait_result == WAIT_TIMEOUT {
         unsafe { CloseHandle(l_thread) };
-        unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
         return Err(AppError::Message("wrapper injection timed out".to_string()));
     }
 
     if l_wait_result != WAIT_OBJECT_0 {
         unsafe { CloseHandle(l_thread) };
-        unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
         return Err(AppError::Message(format!(
             "WaitForSingleObject failed: {}",
             win32::last_error_message(None)
@@ -116,7 +114,7 @@ pub fn inject_dll(
     let mut l_exit_code: u32 = 0;
     if unsafe { GetExitCodeThread(l_thread, &mut l_exit_code) } == 0 {
         unsafe { CloseHandle(l_thread) };
-        unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
         return Err(AppError::Message(format!(
             "GetExitCodeThread failed: {}",
             win32::last_error_message(None)
@@ -124,7 +122,7 @@ pub fn inject_dll(
     }
 
     unsafe { CloseHandle(l_thread) };
-    unsafe { VirtualFreeEx(pi.hProcess, l_remote_mem, 0, MEM_RELEASE) };
+    unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
 
     if l_exit_code == 0 {
         return Err(AppError::Message(

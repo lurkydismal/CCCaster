@@ -2,16 +2,23 @@ use crate::{
     AppError,
     args::Args,
     launcher::windows::{inject, win32},
-    shared_memory,
+    launcher_eprintln, launcher_println, shared_memory,
 };
 use serde::Serialize;
 use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::Path, ptr};
 use windows_sys::Win32::{
-    Foundation::{CloseHandle, GetLastError},
+    Foundation::{CloseHandle, GetLastError, HANDLE, INVALID_HANDLE_VALUE},
     System::{
-        Diagnostics::Debug::DebugBreak,
+        Diagnostics::{
+            Debug::DebugBreak,
+            ToolHelp::{
+                CreateToolhelp32Snapshot, PROCESSENTRY32, Process32First, Process32Next,
+                TH32CS_SNAPPROCESS,
+            },
+        },
         Threading::{
-            CREATE_SUSPENDED, CreateProcessW, PROCESS_INFORMATION, ResumeThread, STARTUPINFOW,
+            CREATE_SUSPENDED, CreateProcessW, GetCurrentProcessId, OpenProcess, PROCESS_ALL_ACCESS,
+            PROCESS_INFORMATION, ResumeThread, STARTUPINFOW,
         },
     },
 };
@@ -88,8 +95,100 @@ impl<'a> From<&'a Args> for WrapperData<'a> {
 
 pub fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result<(), AppError> {
     let mut l_pi = spawn_process(exe_path, game_args, false)?;
-    println!("process started");
+    launcher_println!("process started");
     close_process_handles(&mut l_pi);
+    Ok(())
+}
+
+#[derive(Debug)]
+pub struct ProcessHandle {
+    pub pid: u32,
+    pub handle: HANDLE,
+}
+
+pub fn attach_to_process_by_name(process_name: &str) -> Option<ProcessHandle> {
+    let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
+    if snapshot == INVALID_HANDLE_VALUE {
+        return None;
+    }
+
+    let target = std::ffi::CString::new(process_name).ok()?;
+    let mut entry: PROCESSENTRY32 = unsafe { std::mem::zeroed() };
+    entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
+
+    if unsafe { Process32First(snapshot, &mut entry) } == 0 {
+        unsafe { CloseHandle(snapshot) };
+        return None;
+    }
+
+    loop {
+        let exe_name = {
+            let len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(260);
+
+            let bytes: &[u8] =
+                unsafe { std::slice::from_raw_parts(entry.szExeFile.as_ptr() as *const u8, len) };
+
+            std::ffi::CString::new(bytes).unwrap()
+        };
+
+        if exe_name.as_c_str() == target.as_c_str() {
+            let pid = entry.th32ProcessID;
+
+            let handle = unsafe { OpenProcess(PROCESS_ALL_ACCESS, 0, pid) };
+            unsafe { CloseHandle(snapshot) };
+
+            if handle.is_null() {
+                return None;
+            }
+
+            return Some(ProcessHandle { pid, handle });
+        }
+
+        if unsafe { Process32Next(snapshot, &mut entry) } == 0 {
+            break;
+        }
+    }
+
+    unsafe { CloseHandle(snapshot) };
+    None
+}
+
+pub fn current_process_handle() -> Option<HANDLE> {
+    unsafe {
+        let pid = GetCurrentProcessId();
+        let h_process = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
+
+        if h_process.is_null() {
+            None
+        } else {
+            Some(h_process)
+        }
+    }
+}
+
+pub fn inject_into_running_process(
+    h_process: HANDLE,
+    wrapper_path: &Path,
+    addons_path: &Path,
+    args: &Args,
+) -> Result<(), AppError> {
+    let new_args = Args {
+        addons_dir: Some(addons_path.to_str().unwrap().to_string()),
+        ..args.clone()
+    };
+
+    let l_data: WrapperData = (&new_args).into();
+    let l_json = serde_json::to_string(&l_data)?;
+
+    launcher_println!("json: {}", l_json);
+
+    if let Err(l_err) = shared_memory::write_shared_string("Local\\MySharedData", &l_json) {
+        launcher_eprintln!("{l_err}");
+    }
+
+    inject::inject_dll(h_process, wrapper_path, args.inject_timeout)?;
+
+    launcher_println!("dll injected");
     Ok(())
 }
 
@@ -100,42 +199,24 @@ pub fn launch_with_injection(
     args: &Args,
 ) -> Result<(), AppError> {
     let mut l_pi = spawn_process(exe_path, &args.game_args, true)?;
-    println!("process started suspended");
+    launcher_println!("process started suspended");
 
-    let new_args = Args {
-        addons_dir: Some(addons_path.to_str().unwrap().to_string()),
-        ..args.clone()
-    };
-
-    let l_data: WrapperData = (&new_args).into();
-
-    let l_json = serde_json::to_string(&l_data)?;
-
-    println!("json: {}", l_json);
-
-    if let Err(l_err) = shared_memory::write_shared_string("Local\\MySharedData", &l_json) {
-        eprintln!("{l_err}");
-    }
-
-    inject::inject_dll(&mut l_pi, wrapper_path, args.inject_timeout)?;
-
-    println!("dll injected");
-
-    if args.suspend || args.break_on_load {
-        println!("leaving process suspended");
-        close_process_handles(&mut l_pi);
-        return Ok(());
-    }
+    inject_into_running_process(l_pi.hProcess, wrapper_path, addons_path, args)?;
 
     if args.break_on_load {
-        println!("break before resuming process");
-
+        launcher_println!("break before resuming process");
         unsafe {
             DebugBreak();
         }
     }
 
-    println!("resuming process");
+    if args.suspend {
+        launcher_println!("leaving process suspended");
+        close_process_handles(&mut l_pi);
+        return Ok(());
+    }
+
+    launcher_println!("resuming process");
     let l_resume_result = unsafe { ResumeThread(l_pi.hThread) };
     if l_resume_result == u32::MAX {
         let l_err = unsafe { GetLastError() };
@@ -150,7 +231,7 @@ pub fn launch_with_injection(
     Ok(())
 }
 
-pub fn spawn_process(
+fn spawn_process(
     exe_path: &Path,
     game_args: &[String],
     suspended: bool,

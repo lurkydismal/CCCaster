@@ -11,12 +11,6 @@ mod process;
 mod win32;
 
 pub fn run(args: &Args) -> Result<()> {
-    if args.attach {
-        return Err(AppError::Message(
-            "attach mode is not implemented in this launcher".to_string(),
-        ));
-    }
-
     let l_exe_path = paths::resolve_path(DEFAULT_EXE_NAME, None)?;
     let l_wrapper_path =
         paths::resolve_path(DEFAULT_WRAPPER_NAME, args.wrapper.as_deref().map(Path::new))?;
@@ -27,11 +21,35 @@ pub fn run(args: &Args) -> Result<()> {
 
     if args.dry_run {
         paths::validate_launcher_inputs(&l_exe_path, &l_wrapper_path, &l_addons_path, args)?;
-        // TODO: Inject into this own process
 
-        println!("dry run ok");
+        if let Some(handle) = process::current_process_handle() {
+            process::inject_into_running_process(handle, &l_wrapper_path, &l_addons_path, &args)?;
 
-        return Ok(());
+            return Ok(());
+        } else {
+            return Err(AppError::Message(format!(
+                "Dry run failed: cannot open current process '{}'",
+                DEFAULT_EXE_NAME
+            )));
+        }
+    }
+
+    if args.attach {
+        if let Some(process_handle) = process::attach_to_process_by_name(DEFAULT_EXE_NAME) {
+            process::inject_into_running_process(
+                process_handle.handle,
+                &l_wrapper_path,
+                &l_addons_path,
+                &args,
+            )?;
+
+            return Ok(());
+        } else {
+            return Err(AppError::Message(format!(
+                "Attach failed: process '{}' not running",
+                DEFAULT_EXE_NAME
+            )));
+        }
     }
 
     if args.no_inject {

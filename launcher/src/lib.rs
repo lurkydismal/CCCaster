@@ -14,3 +14,19 @@ pub fn run_cli() -> Result<()> {
     let l_args = args::Args::parse();
     launcher::run(&l_args)
 }
+
+#[macro_export]
+macro_rules! launcher_println {
+    ($($arg:tt)*) => {{
+        print!("[LAUNCHER] ");
+        println!($($arg)*);
+    }};
+}
+
+#[macro_export]
+macro_rules! launcher_eprintln {
+    ($($arg:tt)*) => {{
+        eprint!("[LAUNCHER] ");
+        eprintln!($($arg)*);
+    }};
+}
