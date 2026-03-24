@@ -231,7 +231,7 @@ pub fn launch_with_injection(
     Ok(())
 }
 
-fn spawn_process(
+pub fn spawn_process(
     exe_path: &Path,
     game_args: &[String],
     suspended: bool,
