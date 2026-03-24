@@ -8,8 +8,11 @@ use serde::Serialize;
 use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::Path, ptr};
 use windows_sys::Win32::{
     Foundation::{CloseHandle, GetLastError},
-    System::Threading::{
-        CREATE_SUSPENDED, CreateProcessW, PROCESS_INFORMATION, ResumeThread, STARTUPINFOW,
+    System::{
+        Diagnostics::Debug::DebugBreak,
+        Threading::{
+            CREATE_SUSPENDED, CreateProcessW, PROCESS_INFORMATION, ResumeThread, STARTUPINFOW,
+        },
     },
 };
 
@@ -125,6 +128,14 @@ pub fn launch_with_injection(
         println!("leaving process suspended");
         close_process_handles(&mut l_pi);
         return Ok(());
+    }
+
+    if args.break_on_load {
+        println!("break before resuming process");
+
+        unsafe {
+            DebugBreak();
+        }
     }
 
     println!("resuming process");
