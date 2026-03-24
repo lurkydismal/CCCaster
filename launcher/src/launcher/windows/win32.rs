@@ -1,12 +1,16 @@
 use std::ptr;
-
 use windows_sys::Win32::{
     Foundation::{GetLastError, HLOCAL, LocalFree},
-    System::Diagnostics::Debug::{
-        FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM, FORMAT_MESSAGE_IGNORE_INSERTS,
-        FormatMessageA,
+    System::{
+        Diagnostics::Debug::{
+            FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM,
+            FORMAT_MESSAGE_IGNORE_INSERTS, FormatMessageA,
+        },
+        Performance::{QueryPerformanceCounter, QueryPerformanceFrequency},
     },
 };
+
+use crate::launcher_println;
 
 pub fn last_error_message(error: Option<u32>) -> String {
     let l_error = error.unwrap_or_else(|| unsafe { GetLastError() });
@@ -41,4 +45,28 @@ pub fn last_error_message(error: Option<u32>) -> String {
     unsafe { LocalFree(l_buffer as HLOCAL) };
 
     format!("{} ({})", l_string, l_error)
+}
+
+pub fn measure_block<F, R>(f: F) -> R
+where
+    F: FnOnce() -> R,
+{
+    let mut l_freq = 0i64;
+    unsafe { QueryPerformanceFrequency(&mut l_freq) };
+
+    let mut l_start = 0i64;
+    let mut l_end = 0i64;
+
+    unsafe { QueryPerformanceCounter(&mut l_start) };
+
+    let l_result = f();
+
+    unsafe { QueryPerformanceCounter(&mut l_end) };
+
+    let l_seconds = (l_end - l_start) as f64 / l_freq as f64;
+    let l_seconds = l_seconds * 1000.0; // ms
+
+    launcher_println!("Measured load/ injection phases: {l_seconds} milliseconds");
+
+    l_result
 }

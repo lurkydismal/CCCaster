@@ -2,7 +2,7 @@ use crate::{
     AppError,
     args::Args,
     launcher::windows::{inject, win32},
-    launcher_eprintln, launcher_println, shared_memory,
+    launcher_eprintln, launcher_println, launcher_trace_println, shared_memory,
 };
 use serde::Serialize;
 use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::Path, ptr};
@@ -158,33 +158,50 @@ pub fn current_process_handle() -> Option<HANDLE> {
         let pid = GetCurrentProcessId();
         let h_process = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
 
-        if h_process.is_null() { None } else { Some(h_process) }
+        if h_process.is_null() {
+            None
+        } else {
+            Some(h_process)
+        }
     }
 }
 
 pub fn inject_into_running_process(
-    h_process: HANDLE, wrapper_path: &Path, addons_path: &Path, args: &Args,
+    h_process: HANDLE,
+    wrapper_path: &Path,
+    addons_path: &Path,
+    args: &Args,
 ) -> Result<(), AppError> {
-    let new_args =
-        Args { addons_dir: Some(addons_path.to_str().unwrap().to_string()), ..args.clone() };
+    let new_args = Args {
+        addons_dir: Some(addons_path.to_str().unwrap().to_string()),
+        ..args.clone()
+    };
 
     let l_data: WrapperData = (&new_args).into();
     let l_json = serde_json::to_string(&l_data)?;
 
-    launcher_println!("json: {}", l_json);
+    launcher_trace_println!(args.trace, "json: {}", l_json);
 
     if let Err(l_err) = shared_memory::write_shared_string("Local\\MySharedData", &l_json) {
         launcher_eprintln!("{l_err}");
     }
 
-    inject::inject_dll(h_process, wrapper_path, args.inject_timeout, !args.no_wait_wrapper)?;
+    inject::inject_dll(
+        h_process,
+        wrapper_path,
+        args.inject_timeout,
+        !args.no_wait_wrapper,
+    )?;
 
     launcher_println!("dll injected");
     Ok(())
 }
 
 pub fn launch_with_injection(
-    exe_path: &Path, wrapper_path: &Path, addons_path: &Path, args: &Args,
+    exe_path: &Path,
+    wrapper_path: &Path,
+    addons_path: &Path,
+    args: &Args,
 ) -> Result<(), AppError> {
     let mut l_pi = spawn_process(exe_path, &args.game_args, true)?;
     launcher_println!("process started suspended");
@@ -220,7 +237,9 @@ pub fn launch_with_injection(
 }
 
 pub fn spawn_process(
-    exe_path: &Path, game_args: &[String], suspended: bool,
+    exe_path: &Path,
+    game_args: &[String],
+    suspended: bool,
 ) -> Result<PROCESS_INFORMATION, AppError> {
     let mut l_si: STARTUPINFOW = unsafe { std::mem::zeroed() };
     let mut l_pi: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
@@ -270,21 +289,25 @@ pub fn build_command_line(exe_path: &Path, game_args: &[String]) -> String {
 }
 
 pub fn quote_windows_arg(arg: &str) -> String {
-    if arg.is_empty() || arg.chars().any(|l_ch| l_ch == ' ' || l_ch == '\t' || l_ch == '"') {
+    if arg.is_empty()
+        || arg
+            .chars()
+            .any(|l_ch| l_ch == ' ' || l_ch == '\t' || l_ch == '"')
+    {
         let mut l_out = String::from("\"");
         let mut l_backslashes = 0usize;
 
         for l_ch in arg.chars() {
             match l_ch {
-                | '\\' => {
+                '\\' => {
                     l_backslashes += 1;
                 }
-                | '"' => {
+                '"' => {
                     l_out.push_str(&"\\".repeat((l_backslashes * 2) + 1));
                     l_out.push('"');
                     l_backslashes = 0;
                 }
-                | _ => {
+                _ => {
                     if l_backslashes != 0 {
                         l_out.push_str(&"\\".repeat(l_backslashes));
                         l_backslashes = 0;

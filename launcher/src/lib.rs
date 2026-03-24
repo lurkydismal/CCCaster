@@ -24,6 +24,16 @@ macro_rules! launcher_println {
 }
 
 #[macro_export]
+macro_rules! launcher_trace_println {
+    ($trace:expr, $($arg:tt)*) => {
+        if $trace {
+            print!("[TRACE] ");
+            $crate::launcher_println!($($arg)*)
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! launcher_eprintln {
     ($($arg:tt)*) => {{
         eprint!("[LAUNCHER] ");
