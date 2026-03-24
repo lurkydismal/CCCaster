@@ -55,9 +55,13 @@ pub struct Args {
     #[arg(short, long, value_name = "NAME", action = clap::ArgAction::Append)]
     pub addon: Option<Vec<String>>,
 
-    /// Load a predefined addon set.
+    /// Load a predefined addon and game arguments set.
     #[arg(short, long, value_name = "NAME")]
     pub profile: Option<String>,
+
+    /// Save a predefined addon and game arguments set.
+    #[arg(long)]
+    pub save_profile: bool,
 
     // Addon loading & resolution control
     /// Override default `addons/`.

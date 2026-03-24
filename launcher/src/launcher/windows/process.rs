@@ -102,67 +102,74 @@ pub fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result
 
 #[derive(Debug)]
 pub struct ProcessHandle {
+    #[expect(unused)]
     pub pid: u32,
     pub handle: HANDLE,
 }
 
 pub fn attach_to_process_by_name(process_name: &str) -> Option<ProcessHandle> {
-    let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
-    if snapshot == INVALID_HANDLE_VALUE {
+    let l_snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
+    if l_snapshot == INVALID_HANDLE_VALUE {
         return None;
     }
 
-    let target = std::ffi::CString::new(process_name).ok()?;
-    let mut entry: PROCESSENTRY32 = unsafe { std::mem::zeroed() };
-    entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
+    let l_target = std::ffi::CString::new(process_name).ok()?;
+    let mut l_entry: PROCESSENTRY32 = unsafe { std::mem::zeroed() };
+    l_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
 
-    if unsafe { Process32First(snapshot, &mut entry) } == 0 {
-        unsafe { CloseHandle(snapshot) };
+    if unsafe { Process32First(l_snapshot, &mut l_entry) } == 0 {
+        unsafe { CloseHandle(l_snapshot) };
         return None;
     }
 
     loop {
-        let exe_name = {
-            let len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(260);
+        let l_exe_name = {
+            let l_len = l_entry
+                .szExeFile
+                .iter()
+                .position(|&c| c == 0)
+                .unwrap_or(260);
 
-            let bytes: &[u8] =
-                unsafe { std::slice::from_raw_parts(entry.szExeFile.as_ptr() as *const u8, len) };
+            let l_bytes: &[u8] = unsafe {
+                std::slice::from_raw_parts(l_entry.szExeFile.as_ptr() as *const u8, l_len)
+            };
 
-            std::ffi::CString::new(bytes).unwrap()
+            std::ffi::CString::new(l_bytes).unwrap()
         };
 
-        if exe_name.as_c_str() == target.as_c_str() {
-            let pid = entry.th32ProcessID;
+        if l_exe_name.as_c_str() == l_target.as_c_str() {
+            let l_pid = l_entry.th32ProcessID;
 
-            let handle = unsafe { OpenProcess(PROCESS_ALL_ACCESS, 0, pid) };
-            unsafe { CloseHandle(snapshot) };
+            let l_handle = unsafe { OpenProcess(PROCESS_ALL_ACCESS, 0, l_pid) };
+            unsafe { CloseHandle(l_snapshot) };
 
-            if handle.is_null() {
+            if l_handle.is_null() {
                 return None;
             }
 
-            return Some(ProcessHandle { pid, handle });
+            return Some(ProcessHandle {
+                pid: l_pid,
+                handle: l_handle,
+            });
         }
 
-        if unsafe { Process32Next(snapshot, &mut entry) } == 0 {
+        if unsafe { Process32Next(l_snapshot, &mut l_entry) } == 0 {
             break;
         }
     }
 
-    unsafe { CloseHandle(snapshot) };
+    unsafe { CloseHandle(l_snapshot) };
     None
 }
 
 pub fn current_process_handle() -> Option<HANDLE> {
-    unsafe {
-        let pid = GetCurrentProcessId();
-        let h_process = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
+    let l_pid = unsafe { GetCurrentProcessId() };
+    let l_h_process = unsafe { OpenProcess(PROCESS_ALL_ACCESS, 0, l_pid) };
 
-        if h_process.is_null() {
-            None
-        } else {
-            Some(h_process)
-        }
+    if l_h_process.is_null() {
+        None
+    } else {
+        Some(l_h_process)
     }
 }
 
@@ -172,12 +179,12 @@ pub fn inject_into_running_process(
     addons_path: &Path,
     args: &Args,
 ) -> Result<(), AppError> {
-    let new_args = Args {
+    let l_new_args = Args {
         addons_dir: Some(addons_path.to_str().unwrap().to_string()),
         ..args.clone()
     };
 
-    let l_data: WrapperData = (&new_args).into();
+    let l_data: WrapperData = (&l_new_args).into();
     let l_json = serde_json::to_string(&l_data)?;
 
     launcher_trace_println!(args.trace, "json: {}", l_json);
