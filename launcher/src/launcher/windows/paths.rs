@@ -29,18 +29,20 @@ pub fn validate_launcher_inputs(
         )));
     }
 
-    if !args.no_inject && !wrapper_path.exists() {
-        return Err(AppError::Message(format!(
-            "wrapper dll not found: {}",
-            wrapper_path.display()
-        )));
-    }
+    if !args.no_inject {
+        if !wrapper_path.exists() {
+            return Err(AppError::Message(format!(
+                "wrapper dll not found: {}",
+                wrapper_path.display()
+            )));
+        }
 
-    if !args.no_inject && !addons_path.exists() {
-        return Err(AppError::Message(format!(
-            "addons directory not found: {}",
-            addons_path.display()
-        )));
+        if !addons_path.exists() {
+            return Err(AppError::Message(format!(
+                "addons directory not found: {}",
+                addons_path.display()
+            )));
+        }
     }
 
     Ok(())

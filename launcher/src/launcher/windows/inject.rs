@@ -18,9 +18,7 @@ use crate::{
 };
 
 pub fn inject_dll(
-    h_process: HANDLE,
-    wrapper_path: &Path,
-    timeout_ms: Option<usize>,
+    h_process: HANDLE, wrapper_path: &Path, timeout_ms: Option<usize>, wait_for_wrapper: bool,
 ) -> Result<(), AppError> {
     let l_wrapper_wide = process::to_wide_null(wrapper_path.as_os_str());
     let l_bytes = l_wrapper_wide.len() * size_of::<u16>();
@@ -83,51 +81,55 @@ pub fn inject_dll(
         )));
     }
 
-    let l_wait_ms = match timeout_ms {
-        Some(l_timeout) => {
-            if l_timeout > u32::MAX as usize {
-                unsafe { CloseHandle(l_thread) };
-                unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
-                return Err(AppError::Message("inject_timeout is too large".to_string()));
-            }
-            l_timeout as u32
-        }
-        None => u32::MAX,
-    };
-
-    let l_wait_result = unsafe { WaitForSingleObject(l_thread, l_wait_ms) };
-    if l_wait_result == WAIT_TIMEOUT {
-        unsafe { CloseHandle(l_thread) };
-        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(AppError::Message("wrapper injection timed out".to_string()));
-    }
-
-    if l_wait_result != WAIT_OBJECT_0 {
-        unsafe { CloseHandle(l_thread) };
-        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(AppError::Message(format!(
-            "WaitForSingleObject failed: {}",
-            win32::last_error_message(None)
-        )));
-    }
-
     let mut l_exit_code: u32 = 0;
-    if unsafe { GetExitCodeThread(l_thread, &mut l_exit_code) } == 0 {
-        unsafe { CloseHandle(l_thread) };
-        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
-        return Err(AppError::Message(format!(
-            "GetExitCodeThread failed: {}",
-            win32::last_error_message(None)
-        )));
+
+    if wait_for_wrapper {
+        let l_wait_ms = match timeout_ms {
+            | Some(l_timeout) => {
+                if l_timeout > u32::MAX as usize {
+                    unsafe { CloseHandle(l_thread) };
+                    unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
+                    return Err(AppError::Message("inject_timeout is too large".to_string()));
+                }
+                l_timeout as u32
+            }
+            | None => u32::MAX,
+        };
+
+        let l_wait_result = unsafe { WaitForSingleObject(l_thread, l_wait_ms) };
+        if l_wait_result == WAIT_TIMEOUT {
+            unsafe { CloseHandle(l_thread) };
+            unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
+            return Err(AppError::Message("wrapper injection timed out".to_string()));
+        }
+
+        if l_wait_result != WAIT_OBJECT_0 {
+            unsafe { CloseHandle(l_thread) };
+            unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
+            return Err(AppError::Message(format!(
+                "WaitForSingleObject failed: {}",
+                win32::last_error_message(None)
+            )));
+        }
+
+        if unsafe { GetExitCodeThread(l_thread, &mut l_exit_code) } == 0 {
+            unsafe { CloseHandle(l_thread) };
+            unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
+            return Err(AppError::Message(format!(
+                "GetExitCodeThread failed: {}",
+                win32::last_error_message(None)
+            )));
+        }
     }
 
     unsafe { CloseHandle(l_thread) };
-    unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
 
-    if l_exit_code == 0 {
-        return Err(AppError::Message(
-            "LoadLibraryW failed in remote process".to_string(),
-        ));
+    if wait_for_wrapper {
+        unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
+
+        if l_exit_code == 0 {
+            return Err(AppError::Message("LoadLibraryW failed in remote process".to_string()));
+        }
     }
 
     Ok(())
