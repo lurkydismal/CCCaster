@@ -32,9 +32,24 @@ fn collect_env() -> std::collections::BTreeMap<String, String> {
 pub fn run_cli() -> Result<()> {
     let l_args = args::Args::parse();
 
-    if let Some(profile) = &l_args.profile {
-        let mut l_profile_path = PathBuf::from("profiles");
-        l_profile_path.push(format!("{}.json", profile));
+    let l_root = std::env::var("LAUNCHER_ROOT")
+        .ok()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            std::env::current_exe()
+                .expect("current_exe failed")
+                .canonicalize()
+                .expect("canonicalize failed")
+                .parent()
+                .expect("no parent directory")
+                .to_path_buf()
+        });
+
+    let l_env_profile = std::env::var("LAUNCHER_PROFILE").ok();
+    let l_profile = l_args.profile.as_deref().or(l_env_profile.as_deref());
+
+    if let Some(profile) = l_profile {
+        let l_profile_path = l_root.join("profiles").join(format!("{}.json", profile));
 
         if l_args.save_profile {
             profile::save_profile(
@@ -78,7 +93,7 @@ pub fn run_cli() -> Result<()> {
                 ..l_args.clone()
             };
 
-            return launcher::run(&l_new_args);
+            return launcher::run(&l_new_args, &l_root);
         }
     } else {
         if l_args.save_profile {
@@ -86,7 +101,7 @@ pub fn run_cli() -> Result<()> {
         }
     }
 
-    launcher::run(&l_args)
+    launcher::run(&l_args, &l_root)
 }
 
 #[macro_export]

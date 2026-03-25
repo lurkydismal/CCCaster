@@ -10,14 +10,18 @@ mod paths;
 mod process;
 mod win32;
 
-pub fn run(args: &Args) -> Result<()> {
+pub fn run(args: &Args, roor_path: &Path) -> Result<()> {
     let l_function = || {
-        let l_exe_path = paths::resolve_path(DEFAULT_EXE_NAME, None)?;
-        let l_wrapper_path =
-            paths::resolve_path(DEFAULT_WRAPPER_NAME, args.wrapper.as_deref().map(Path::new))?;
+        let l_exe_path = paths::resolve_path(DEFAULT_EXE_NAME, None, roor_path)?;
+        let l_wrapper_path = paths::resolve_path(
+            DEFAULT_WRAPPER_NAME,
+            args.wrapper.as_deref().map(Path::new),
+            roor_path,
+        )?;
         let l_addons_path = paths::resolve_path(
             DEFAULT_ADDONS_DIR,
             args.addons_dir.as_deref().map(Path::new),
+            roor_path,
         )?;
 
         if !args.play {
@@ -34,7 +38,7 @@ pub fn run(args: &Args) -> Result<()> {
                         handle,
                         &l_wrapper_path,
                         &l_addons_path,
-                        &args,
+                        args,
                     )?;
 
                     return Ok(());
@@ -52,7 +56,7 @@ pub fn run(args: &Args) -> Result<()> {
                         process_handle.handle,
                         &l_wrapper_path,
                         &l_addons_path,
-                        &args,
+                        args,
                     )?;
 
                     return Ok(());
