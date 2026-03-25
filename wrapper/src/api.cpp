@@ -33,13 +33,13 @@ namespace wrapper {
 }
 
 [[nodiscard]] auto removePatch( storage_t::handle_t _id ) -> bool {
-    const auto l_handle = g_patches.removePatch( _id );
+    const bool l_result = g_patches.removePatch( _id );
 
-    if ( l_handle == storage_t::g_invalidHandle ) {
+    if ( !l_result ) {
         logg::error( "Patch removal failed" );
     }
 
-    return ( l_handle );
+    return ( l_result );
 }
 
 } // namespace wrapper

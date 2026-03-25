@@ -1,10 +1,15 @@
 #pragma once
 
+#include <cstdint>
 #include <format>
 #include <iostream>
 #include <mutex>
+#include <type_traits>
+#include <utility>
 
 namespace logg {
+
+extern std::mutex g_mutex;
 
 using level_t = enum class level : uint8_t {
     trace,
@@ -16,48 +21,24 @@ using level_t = enum class level : uint8_t {
 
 namespace {
 
-inline std::mutex g_mutex;
-
 inline auto log( level_t _level, const std::string& _message ) -> void {
+    static_assert( static_cast< std::underlying_type_t< level_t > >(
+                       level_t::error ) == 4 );
+
+    static constexpr const std::array l_prefixes = {
+        "[trace] ", "[debug] ", "[info ] ", "[warn ] ", "[error] ",
+    };
+
+    const bool l_isError =
+        ( _level == level_t::warning ) || ( _level == level_t::error );
+
+    auto& l_stream = l_isError ? std::cerr : std::cout;
+
     std::lock_guard l_lock( g_mutex );
 
-    switch ( _level ) {
-        case ( level_t::trace ): {
-            std::cout << "[trace] ";
-
-            break;
-        }
-
-        case ( level_t::debug ): {
-            std::cout << "[debug] ";
-
-            break;
-        }
-
-        case ( level_t::info ): {
-            std::cout << "[info ] ";
-
-            break;
-        }
-
-        case ( level_t::warning ): {
-            std::cerr << "[warn ] ";
-
-            break;
-        }
-
-        case ( level_t::error ): {
-            std::cerr << "[error] ";
-
-            break;
-        }
-
-        default: {
-            std::terminate();
-        }
-    }
-
-    std::cout << _message << '\n';
+    l_stream << l_prefixes.at(
+                    static_cast< std::underlying_type_t< level_t > >( _level ) )
+             << _message << '\n';
 }
 
 } // namespace

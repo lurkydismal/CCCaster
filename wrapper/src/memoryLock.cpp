@@ -18,7 +18,7 @@ memoryLock::memoryLock( uintptr_t _address, size_t _length )
                           PAGE_READWRITE, &_oldProtectionRules );
 
     if ( !_ok ) {
-        logg::error( "Patch for {} : {} bytes failed.\n", _address, _length );
+        logg::error( "Patch for {} : {} bytes failed.", _address, _length );
     }
 }
 
@@ -28,7 +28,7 @@ memoryLock::~memoryLock() {
 
         if ( !VirtualProtect( reinterpret_cast< void* >( _address ), _length,
                               _oldProtectionRules, &l_temp ) ) {
-            logg::error( "Patch removal for {} : {} bytes failed.\n", _address,
+            logg::error( "Patch removal for {} : {} bytes failed.", _address,
                          _length );
         }
 
@@ -37,8 +37,7 @@ memoryLock::~memoryLock() {
             _length );
 
         if ( !l_result ) {
-            logg::error( "Instruction cache flush failed.\n", _address,
-                         _length );
+            logg::error( "Instruction cache flush failed." );
 
             std::terminate();
         }

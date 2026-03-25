@@ -4,8 +4,11 @@
 #define NOMINMAX
 #include <windows.h>
 
+#include <algorithm>
+#include <bit>
 #include <exception>
 #include <format>
+#include <string>
 #include <utility>
 
 #include "logg.hpp"
@@ -62,6 +65,8 @@ void printBytes( uintptr_t _address, size_t _length ) {
     {
         printBytes( _bytes );
 
+        this->_bytes.resize( _bytes.size() );
+
         std::ranges::copy(
             std::span( std::bit_cast< const std::byte* >( l_address ),
                        _bytes.size() ),
@@ -72,7 +77,7 @@ void printBytes( uintptr_t _address, size_t _length ) {
     {
         std::ranges::copy( _bytes, std::bit_cast< std::byte* >( l_address ) );
 
-        printBytes( _address, _bytes.size() );
+        printBytes( l_address, _bytes.size() );
     }
 
     _ownsPatch = true;
@@ -105,10 +110,6 @@ auto patch::_release() -> void {
 
     if ( l_lock.ok() ) {
         std::ranges::copy( _bytes, std::bit_cast< std::byte* >( _address ) );
-
-        FlushInstructionCache( GetCurrentProcess(),
-                               std::bit_cast< const void* >( _address ),
-                               _bytes.size() );
     }
 
     _ownsPatch = false;
