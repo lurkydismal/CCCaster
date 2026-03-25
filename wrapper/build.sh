@@ -86,11 +86,17 @@ if ((${#l_sources[@]} == 0)); then
     exit 1
 fi
 
+l_total=${#l_sources[@]}
+l_index=1
+
 l_objects=()
 for l_source in "${l_sources[@]}"; do
     l_base="$(basename "${l_source%.cpp}")"
     l_object="$l_build_dir/${l_base}.o"
     l_objects+=("$l_object")
+
+    echo "[$l_index/$l_total] Compiling: $l_source"
+    echo "[$l_index/$l_total] -> $l_object"
 
     ccache "$l_compiler" \
         -m32 -shared \
@@ -112,7 +118,11 @@ for l_source in "${l_sources[@]}"; do
         -I include \
         -c "$l_source" \
         -o "$l_object"
+
+    ((l_index++))
 done
+
+echo "Linking $((${#l_objects[@]})) objects into wrapper.dll"
 
 "$l_compiler" \
     "${l_objects[@]}" \
