@@ -74,7 +74,7 @@ if ((l_windows)); then
     l_compiler="wineg++"
 fi
 
-l_build_dir="build"
+l_build_dir="out"
 mkdir -p "$l_build_dir"
 
 shopt -s nullglob
