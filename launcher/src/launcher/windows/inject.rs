@@ -18,8 +18,17 @@ use crate::{
 };
 
 pub fn inject_dll(
-    h_process: HANDLE, wrapper_path: &Path, timeout_ms: Option<usize>, wait_for_wrapper: bool,
+    h_process: HANDLE,
+    wrapper_path: &Path,
+    timeout_ms: Option<usize>,
+    wait_for_wrapper: bool,
 ) -> Result<(), AppError> {
+    crate::launcher_trace!(
+        "inject_dll accepted args: h_process={h_process:p}, wrapper_path={}, timeout_ms={:?}, wait_for_wrapper={}",
+        wrapper_path.display(),
+        timeout_ms,
+        wait_for_wrapper
+    );
     let l_wrapper_wide = process::to_wide_null(wrapper_path.as_os_str());
     let l_bytes = l_wrapper_wide.len() * size_of::<u16>();
 
@@ -85,7 +94,7 @@ pub fn inject_dll(
 
     if wait_for_wrapper {
         let l_wait_ms = match timeout_ms {
-            | Some(l_timeout) => {
+            Some(l_timeout) => {
                 if l_timeout > u32::MAX as usize {
                     unsafe { CloseHandle(l_thread) };
                     unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
@@ -93,7 +102,7 @@ pub fn inject_dll(
                 }
                 l_timeout as u32
             }
-            | None => u32::MAX,
+            None => u32::MAX,
         };
 
         let l_wait_result = unsafe { WaitForSingleObject(l_thread, l_wait_ms) };
@@ -128,7 +137,9 @@ pub fn inject_dll(
         unsafe { VirtualFreeEx(h_process, l_remote_mem, 0, MEM_RELEASE) };
 
         if l_exit_code == 0 {
-            return Err(AppError::Message("LoadLibraryW failed in remote process".to_string()));
+            return Err(AppError::Message(
+                "LoadLibraryW failed in remote process".to_string(),
+            ));
         }
     }
 

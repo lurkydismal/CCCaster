@@ -10,9 +10,10 @@ use windows_sys::Win32::{
     },
 };
 
-use crate::launcher_println;
+use crate::{launcher_info, launcher_trace};
 
 pub fn last_error_message(error: Option<u32>) -> String {
+    launcher_trace!("last_error_message accepted args: error={error:?}");
     let l_error = error.unwrap_or_else(|| unsafe { GetLastError() });
 
     let mut l_buffer: *mut u8 = ptr::null_mut();
@@ -51,6 +52,7 @@ pub fn measure_block<F, R>(f: F) -> R
 where
     F: FnOnce() -> R,
 {
+    launcher_trace!("measure_block accepted args");
     let mut l_freq = 0i64;
     unsafe { QueryPerformanceFrequency(&mut l_freq) };
 
@@ -66,7 +68,7 @@ where
     let l_seconds = (l_end - l_start) as f64 / l_freq as f64;
     let l_seconds = l_seconds * 1000.0; // ms
 
-    launcher_println!("Measured load/ injection phases: {l_seconds} milliseconds");
+    launcher_info!("Measured load/ injection phases: {l_seconds} milliseconds");
 
     l_result
 }

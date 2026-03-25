@@ -2,7 +2,7 @@ use crate::{
     AppError,
     args::Args,
     launcher::windows::{inject, win32},
-    launcher_eprintln, launcher_println, launcher_trace_println, shared_memory,
+    launcher_debug, launcher_info, launcher_trace, launcher_warning, shared_memory,
 };
 use serde::Serialize;
 use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::Path, ptr};
@@ -89,13 +89,25 @@ struct WrapperData<'a> {
 
 impl<'a> From<&'a Args> for WrapperData<'a> {
     fn from(v: &'a Args) -> Self {
+        launcher_trace!(
+            "WrapperData::from accepted args: trace={}, verbose={}, dry_run={}, addon_count={}",
+            v.trace,
+            v.verbose,
+            v.dry_run,
+            v.addon.as_ref().map_or(0, |l_v| l_v.len())
+        );
         copy_fields_ref!(v, { play, dry_run, addon, addons_dir, load_order, no_deps, force, disable, verbose, trace, dump_patches, dump_graph, timings, safe_mode, sandbox, no_patches, })
     }
 }
 
 pub fn launch_without_injection(exe_path: &Path, game_args: &[String]) -> Result<(), AppError> {
+    launcher_trace!(
+        "launch_without_injection accepted args: exe_path={}, game_args_count={}",
+        exe_path.display(),
+        game_args.len()
+    );
     let mut l_pi = spawn_process(exe_path, game_args, false)?;
-    launcher_println!("process started");
+    launcher_info!("process started");
     close_process_handles(&mut l_pi);
     Ok(())
 }
@@ -108,6 +120,7 @@ pub struct ProcessHandle {
 }
 
 pub fn attach_to_process_by_name(process_name: &str) -> Option<ProcessHandle> {
+    launcher_trace!("attach_to_process_by_name accepted args: process_name={process_name}");
     let l_snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
     if l_snapshot == INVALID_HANDLE_VALUE {
         return None;
@@ -163,6 +176,7 @@ pub fn attach_to_process_by_name(process_name: &str) -> Option<ProcessHandle> {
 }
 
 pub fn current_process_handle() -> Option<HANDLE> {
+    launcher_trace!("current_process_handle accepted args: none");
     let l_pid = unsafe { GetCurrentProcessId() };
     let l_h_process = unsafe { OpenProcess(PROCESS_ALL_ACCESS, 0, l_pid) };
 
@@ -179,6 +193,13 @@ pub fn inject_into_running_process(
     addons_path: &Path,
     args: &Args,
 ) -> Result<(), AppError> {
+    launcher_trace!(
+        "inject_into_running_process accepted args: h_process={h_process:p}, wrapper_path={}, addons_path={}, trace={}, verbose={}",
+        wrapper_path.display(),
+        addons_path.display(),
+        args.trace,
+        args.verbose
+    );
     let l_new_args = Args {
         addons_dir: Some(addons_path.to_str().unwrap().to_string()),
         ..args.clone()
@@ -187,10 +208,10 @@ pub fn inject_into_running_process(
     let l_data: WrapperData = (&l_new_args).into();
     let l_json = serde_json::to_string(&l_data)?;
 
-    launcher_trace_println!(args.trace, "json: {}", l_json);
+    launcher_trace!("json: {}", l_json);
 
     if let Err(l_err) = shared_memory::write_shared_string("Local\\MySharedData", &l_json) {
-        launcher_eprintln!("{l_err}");
+        launcher_warning!("{l_err}");
     }
 
     inject::inject_dll(
@@ -200,7 +221,7 @@ pub fn inject_into_running_process(
         !args.no_wait_wrapper,
     )?;
 
-    launcher_println!("dll injected");
+    launcher_info!("dll injected");
     Ok(())
 }
 
@@ -210,25 +231,33 @@ pub fn launch_with_injection(
     addons_path: &Path,
     args: &Args,
 ) -> Result<(), AppError> {
+    launcher_trace!(
+        "launch_with_injection accepted args: exe_path={}, wrapper_path={}, addons_path={}, game_args_count={}, suspend={}",
+        exe_path.display(),
+        wrapper_path.display(),
+        addons_path.display(),
+        args.game_args.len(),
+        args.suspend
+    );
     let mut l_pi = spawn_process(exe_path, &args.game_args, true)?;
-    launcher_println!("process started suspended");
+    launcher_info!("process started suspended");
 
     inject_into_running_process(l_pi.hProcess, wrapper_path, addons_path, args)?;
 
     if args.break_on_load {
-        launcher_println!("break before resuming process");
+        launcher_debug!("break before resuming process");
         unsafe {
             DebugBreak();
         }
     }
 
     if args.suspend {
-        launcher_println!("leaving process suspended");
+        launcher_info!("leaving process suspended");
         close_process_handles(&mut l_pi);
         return Ok(());
     }
 
-    launcher_println!("resuming process");
+    launcher_info!("resuming process");
     let l_resume_result = unsafe { ResumeThread(l_pi.hThread) };
     if l_resume_result == u32::MAX {
         let l_err = unsafe { GetLastError() };
@@ -248,6 +277,12 @@ pub fn spawn_process(
     game_args: &[String],
     suspended: bool,
 ) -> Result<PROCESS_INFORMATION, AppError> {
+    launcher_trace!(
+        "spawn_process accepted args: exe_path={}, game_args_count={}, suspended={}",
+        exe_path.display(),
+        game_args.len(),
+        suspended
+    );
     let mut l_si: STARTUPINFOW = unsafe { std::mem::zeroed() };
     let mut l_pi: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
 
@@ -285,6 +320,11 @@ pub fn spawn_process(
 }
 
 pub fn build_command_line(exe_path: &Path, game_args: &[String]) -> String {
+    launcher_trace!(
+        "build_command_line accepted args: exe_path={}, game_args_count={}",
+        exe_path.display(),
+        game_args.len()
+    );
     let mut l_cmdline = quote_windows_arg(&exe_path.to_string_lossy());
 
     for l_arg in game_args {
@@ -296,6 +336,7 @@ pub fn build_command_line(exe_path: &Path, game_args: &[String]) -> String {
 }
 
 pub fn quote_windows_arg(arg: &str) -> String {
+    launcher_trace!("quote_windows_arg accepted args: arg_len={}", arg.len());
     if arg.is_empty()
         || arg
             .chars()
@@ -336,6 +377,11 @@ pub fn quote_windows_arg(arg: &str) -> String {
 }
 
 pub fn close_process_handles(pi: &mut PROCESS_INFORMATION) {
+    launcher_trace!(
+        "close_process_handles accepted args: hThread={:p}, hProcess={:p}",
+        pi.hThread,
+        pi.hProcess
+    );
     if !pi.hThread.is_null() {
         unsafe { CloseHandle(pi.hThread) };
         pi.hThread = std::ptr::null_mut();
@@ -348,5 +394,6 @@ pub fn close_process_handles(pi: &mut PROCESS_INFORMATION) {
 }
 
 pub fn to_wide_null(value: &OsStr) -> Vec<u16> {
+    launcher_trace!("to_wide_null accepted args");
     value.encode_wide().chain(std::iter::once(0)).collect()
 }

@@ -11,6 +11,16 @@ mod process;
 mod win32;
 
 pub fn run(args: &Args, roor_path: &Path) -> Result<()> {
+    crate::launcher_trace!(
+        "windows::run accepted args: play={}, dry_run={}, attach={}, no_inject={}, trace={}, verbose={}, root_path={}",
+        args.play,
+        args.dry_run,
+        args.attach,
+        args.no_inject,
+        args.trace,
+        args.verbose,
+        roor_path.display()
+    );
     let l_function = || {
         let l_exe_path = paths::resolve_path(DEFAULT_EXE_NAME, None, roor_path)?;
         let l_wrapper_path = paths::resolve_path(

@@ -8,13 +8,44 @@ mod profile;
 mod shared_memory;
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 pub use error::{AppError, Result};
 
 use crate::{args::Args, profile::Profile};
 use clap::Parser;
 
+pub const LOG_ERROR: u8 = 0;
+pub const LOG_WARNING: u8 = 1;
+pub const LOG_INFO: u8 = 2;
+pub const LOG_DEBUG: u8 = 3;
+pub const LOG_TRACE: u8 = 4;
+
+static ENABLED_LOG_LEVEL: AtomicU8 = AtomicU8::new(LOG_ERROR);
+
+pub fn log_level_from_args(args: &Args) -> u8 {
+    launcher_trace!(
+        "log_level_from_args accepted args: trace={}, verbose={}",
+        args.trace,
+        args.verbose
+    );
+    if args.trace {
+        LOG_TRACE
+    } else {
+        args.verbose.min(LOG_DEBUG)
+    }
+}
+
+pub fn set_enabled_log_level(level: u8) {
+    ENABLED_LOG_LEVEL.store(level, Ordering::Relaxed);
+}
+
+pub fn enabled_log_level() -> u8 {
+    ENABLED_LOG_LEVEL.load(Ordering::Relaxed)
+}
+
 fn collect_env() -> std::collections::BTreeMap<String, String> {
+    launcher_trace!("collect_env accepted args");
     let mut l_map = std::collections::BTreeMap::new();
 
     for (l_key, l_value) in std::env::vars() {
@@ -31,6 +62,17 @@ fn collect_env() -> std::collections::BTreeMap<String, String> {
 
 pub fn run_cli() -> Result<()> {
     let l_args = args::Args::parse();
+    set_enabled_log_level(log_level_from_args(&l_args));
+    launcher_trace!(
+        "run_cli accepted args: profile={:?}, save_profile={}, addons_dir={:?}, load_order={:?}, trace={}, verbose={}, game_args_count={}",
+        l_args.profile,
+        l_args.save_profile,
+        l_args.addons_dir,
+        l_args.load_order,
+        l_args.trace,
+        l_args.verbose,
+        l_args.game_args.len()
+    );
 
     let l_root = std::env::var("LAUNCHER_ROOT")
         .ok()
@@ -72,11 +114,11 @@ pub fn run_cli() -> Result<()> {
                 },
             )?;
 
-            launcher_println!("Profile saved to: {}", &l_profile_path.display());
+            launcher_info!("Profile saved to: {}", &l_profile_path.display());
         }
 
         if !l_profile_path.exists() {
-            launcher_eprintln!("Profile not found: {}", l_profile_path.display());
+            launcher_error!("Profile not found: {}", l_profile_path.display());
         } else {
             let l_profile = profile::load_profile(l_profile_path)?;
 
@@ -97,7 +139,7 @@ pub fn run_cli() -> Result<()> {
         }
     } else {
         if l_args.save_profile {
-            launcher_eprintln!("Profile name not specified");
+            launcher_error!("Profile name not specified");
         }
     }
 
@@ -105,27 +147,51 @@ pub fn run_cli() -> Result<()> {
 }
 
 #[macro_export]
-macro_rules! launcher_println {
+macro_rules! launcher_trace {
     ($($arg:tt)*) => {{
-        print!("[LAUNCHER] ");
-        println!($($arg)*);
+        if $crate::enabled_log_level() >= $crate::LOG_TRACE {
+            eprint!("[TRACE][LAUNCHER] ");
+            eprintln!($($arg)*);
+        }
     }};
 }
 
 #[macro_export]
-macro_rules! launcher_trace_println {
-    ($trace:expr, $($arg:tt)*) => {
-        if $trace {
-            print!("[TRACE] ");
-            $crate::launcher_println!($($arg)*)
+macro_rules! launcher_debug {
+    ($($arg:tt)*) => {{
+        if $crate::enabled_log_level() >= $crate::LOG_DEBUG {
+            print!("[DEBUG][LAUNCHER] ");
+            println!($($arg)*);
         }
-    };
+    }};
 }
 
 #[macro_export]
-macro_rules! launcher_eprintln {
+macro_rules! launcher_info {
     ($($arg:tt)*) => {{
-        eprint!("[LAUNCHER] ");
-        eprintln!($($arg)*);
+        if $crate::enabled_log_level() >= $crate::LOG_INFO {
+            print!("[INFO][LAUNCHER] ");
+            println!($($arg)*);
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! launcher_warning {
+    ($($arg:tt)*) => {{
+        if $crate::enabled_log_level() >= $crate::LOG_WARNING {
+            eprint!("[WARNING][LAUNCHER] ");
+            eprintln!($($arg)*);
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! launcher_error {
+    ($($arg:tt)*) => {{
+        if $crate::enabled_log_level() >= $crate::LOG_ERROR {
+            eprint!("[ERROR][LAUNCHER] ");
+            eprintln!($($arg)*);
+        }
     }};
 }

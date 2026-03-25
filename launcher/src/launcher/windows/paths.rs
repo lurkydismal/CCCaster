@@ -7,6 +7,12 @@ pub fn resolve_path(
     r#override: Option<&Path>,
     root_path: &Path,
 ) -> Result<PathBuf, AppError> {
+    crate::launcher_trace!(
+        "resolve_path accepted args: default_name={}, override={:?}, root_path={}",
+        default_name,
+        r#override.map(|l_p| l_p.display().to_string()),
+        root_path.display()
+    );
     if let Some(l_path) = r#override {
         return Ok(l_path.to_path_buf());
     }
@@ -20,6 +26,13 @@ pub fn validate_launcher_inputs(
     addons_path: &Path,
     args: &Args,
 ) -> Result<(), AppError> {
+    crate::launcher_trace!(
+        "validate_launcher_inputs accepted args: exe_path={}, wrapper_path={}, addons_path={}, no_inject={}",
+        exe_path.display(),
+        wrapper_path.display(),
+        addons_path.display(),
+        args.no_inject
+    );
     if !exe_path.exists() {
         return Err(AppError::Message(format!(
             "game executable not found: {}",
