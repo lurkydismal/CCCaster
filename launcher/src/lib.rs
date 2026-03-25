@@ -74,18 +74,36 @@ pub fn run_cli() -> Result<()> {
         l_args.game_args.len()
     );
 
-    let l_root = std::env::var("LAUNCHER_ROOT")
-        .ok()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| {
-            std::env::current_exe()
-                .expect("current_exe failed")
-                .canonicalize()
-                .expect("canonicalize failed")
-                .parent()
-                .expect("no parent directory")
-                .to_path_buf()
-        });
+    let l_root = if let Ok(l_root) = std::env::var("LAUNCHER_ROOT") {
+        launcher_debug!("Using LAUNCHER_ROOT override: {l_root}");
+        PathBuf::from(l_root)
+    } else {
+        let l_current_exe = std::env::current_exe().map_err(|l_err| {
+            AppError::Message(format!(
+                "Failed to resolve current executable path: {l_err}"
+            ))
+        })?;
+        launcher_debug!(
+            "Resolved current executable path: {}",
+            l_current_exe.display()
+        );
+
+        let l_canonical_exe = l_current_exe.canonicalize().map_err(|l_err| {
+            AppError::Message(format!(
+                "Failed to canonicalize executable path '{}': {l_err}",
+                l_current_exe.display()
+            ))
+        })?;
+        launcher_debug!("Canonical executable path: {}", l_canonical_exe.display());
+
+        l_canonical_exe.parent().map(PathBuf::from).ok_or_else(|| {
+            AppError::Message(format!(
+                "Executable path has no parent directory: {}",
+                l_canonical_exe.display()
+            ))
+        })?
+    };
+    launcher_debug!("Resolved launcher root: {}", l_root.display());
 
     let l_env_profile = std::env::var("LAUNCHER_PROFILE").ok();
     let l_profile = l_args.profile.as_deref().or(l_env_profile.as_deref());
