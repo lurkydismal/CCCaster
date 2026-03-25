@@ -6,6 +6,7 @@
 
 #include <exception>
 #include <format>
+#include <utility>
 
 #include "logg.hpp"
 #include "memoryLock.hpp"
@@ -61,7 +62,10 @@ void printBytes( uintptr_t _address, size_t _length ) {
     {
         printBytes( _bytes );
 
-        this->_bytes.assign( _bytes.begin(), _bytes.end() );
+        std::ranges::copy(
+            std::span( std::bit_cast< const std::byte* >( l_address ),
+                       _bytes.size() ),
+            this->_bytes.begin() );
     }
 
     // Write
@@ -70,15 +74,53 @@ void printBytes( uintptr_t _address, size_t _length ) {
 
         printBytes( _address, _bytes.size() );
     }
+
+    _ownsPatch = true;
 }
 
 patch::~patch() {
+    _release();
+}
+
+patch::patch( patch&& _other ) {
+    _moveFrom( std::move( _other ) );
+}
+
+auto patch::operator=( patch&& _other ) -> patch& {
+    if ( this != &_other ) {
+        _release();
+
+        _moveFrom( std::move( _other ) );
+    }
+
+    return ( *this );
+}
+
+auto patch::_release() -> void {
+    if ( !_ownsPatch ) {
+        return;
+    }
+
     const memoryLock_t l_lock( _address, _bytes.size() );
 
-    _ok = l_lock.ok();
-
-    if ( _ok ) {
-        // Write
+    if ( l_lock.ok() ) {
         std::ranges::copy( _bytes, std::bit_cast< std::byte* >( _address ) );
+
+        FlushInstructionCache( GetCurrentProcess(),
+                               std::bit_cast< const void* >( _address ),
+                               _bytes.size() );
     }
+
+    _ownsPatch = false;
+    _ok = false;
+    _address = 0;
+    _bytes.clear();
+}
+
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+auto patch::_moveFrom( patch&& _other ) -> void {
+    _ok = std::exchange( _other._ok, false );
+    _ownsPatch = std::exchange( _other._ownsPatch, false );
+    _address = std::exchange( _other._address, 0 );
+    _bytes = std::move( _other._bytes );
 }

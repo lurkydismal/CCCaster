@@ -8,12 +8,12 @@ using memoryLock_t = struct memoryLock {
 
     ~memoryLock();
 
-    [[nodiscard]] constexpr auto ok() const -> bool { return _ok; }
-
     memoryLock( const memoryLock& ) = delete;
     memoryLock( memoryLock&& ) = delete;
     auto operator=( const memoryLock& ) -> memoryLock& = delete;
     auto operator=( memoryLock&& ) -> memoryLock& = delete;
+
+    [[nodiscard]] constexpr auto ok() const -> bool { return _ok; }
 
 private:
     bool _ok{};
