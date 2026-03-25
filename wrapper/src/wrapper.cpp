@@ -25,26 +25,6 @@ void* g_cccasterHandle = nullptr;
 auto attach() -> bool {
     logg::info( "WRAPPER ATTACHED" );
 
-    HANDLE l_mapping =
-        OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
-    if ( !l_mapping ) {
-        logg::warning( "OpenFileMappingA failed" );
-        return false;
-    }
-
-    LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
-    if ( !l_view ) {
-        logg::warning( "MapViewOfFile failed" );
-        CloseHandle( l_mapping );
-        return false;
-    }
-
-    const auto l_data = std::bit_cast< data_t* >( l_view );
-
-    logg::debug( "SIZE: '{}', VALUE: '{}'", l_data->size,
-                 std::string_view( static_cast< char* >( l_data->value ),
-                                   l_data->size ) );
-
     g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
 
     if ( g_cccasterHandle ) {
@@ -54,31 +34,59 @@ auto attach() -> bool {
         const auto l_initFunction = std::bit_cast< wrapper::initFunction_t >(
             dlsym( g_cccasterHandle, "init" ) );
 
+        // Check dlsym error
         {
             const char* l_error = dlerror();
 
             if ( l_error != nullptr ) {
                 logg::error( "dlsym failed: {}", l_error );
-                return false;
+                return ( false );
             }
         }
 
-        logg::info( "CALLING INIT()" );
+        // Get shared file value
+        {
+            HANDLE l_mapping =
+                OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
 
-        const bool l_result =
-            l_initFunction( wrapper::makePatch, wrapper::removePatch );
+            if ( !l_mapping ) {
+                logg::warning( "OpenFileMappingA failed" );
+                return ( false );
+            }
 
-        if ( l_result ) {
-            logg::info( "CCCASTER LOADED" );
-        } else {
-            logg::error( "CCCASTER FAILED TO INIT" );
+            LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
+            if ( !l_view ) {
+                logg::warning( "MapViewOfFile failed" );
+                CloseHandle( l_mapping );
+                return ( false );
+            }
+
+            const auto l_data = std::bit_cast< data_t* >( l_view );
+
+            logg::debug( "SIZE: '{}', VALUE: '{}'", l_data->size,
+                         std::string_view( l_data->value, l_data->size ) );
+
+            logg::info( "CALLING INIT()" );
+
+            const bool l_result =
+                l_initFunction( wrapper::makePatch, wrapper::removePatch,
+                                l_data->value, l_data->size );
+
+            if ( l_result ) {
+                logg::info( "CCCASTER LOADED" );
+            } else {
+                logg::error( "CCCASTER FAILED TO INIT" );
+            }
+
+            UnmapViewOfFile( l_view );
+            CloseHandle( l_mapping );
+
+            return ( l_result );
         }
-
-        return l_result;
 
     } else {
         logg::error( "CCCASTER FAILED TO LOAD: {}", dlerror() );
-        return false;
+        return ( false );
     }
 }
 
@@ -90,7 +98,7 @@ auto detach() -> bool {
         g_cccasterHandle = nullptr;
     }
 
-    return true;
+    return ( true );
 }
 
 } // namespace
@@ -101,16 +109,11 @@ extern "C" auto APIENTRY DllMain( [[maybe_unused]] HMODULE _hModule,
     -> BOOL {
     switch ( _ulReasonForCall ) {
         case DLL_PROCESS_ATTACH: {
-            const bool l_result = attach();
-            return l_result;
-
-            break;
+            return ( attach() );
         }
 
         case DLL_PROCESS_DETACH: {
-            return detach();
-
-            break;
+            return ( detach() );
         }
 
         default: {
@@ -118,5 +121,5 @@ extern "C" auto APIENTRY DllMain( [[maybe_unused]] HMODULE _hModule,
         }
     }
 
-    return ( TRUE );
+    return ( ( TRUE ) );
 }

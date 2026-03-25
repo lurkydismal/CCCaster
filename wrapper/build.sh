@@ -4,7 +4,7 @@ set -e
 
 print_help() {
     cat <<EOF
-Usage: $0 (-w | -l) [-r | -d] [-h]
+Usage: $0 -w [-r | -d] [-h]
 
 Options:
   -w    Build for Windows
@@ -13,7 +13,7 @@ Options:
   -h    Show this help message
 
 Notes:
-  -w and -l are mutually exclusive (one is required).
+  -w is required.
   -r and -d are mutually exclusive.
 EOF
 }
@@ -45,7 +45,7 @@ done
 
 # Validate platform flags
 if ((!l_windows)); then
-    echo "Error: one of -w or -l must be specified"
+    echo "Error: one of -w must be specified"
     print_help
     exit 1
 fi

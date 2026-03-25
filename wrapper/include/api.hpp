@@ -13,6 +13,8 @@ namespace wrapper {
 [[nodiscard]] auto removePatch( storage_t::handle_t _id ) -> bool;
 
 using initFunction_t = auto ( * )( decltype( &wrapper::makePatch ),
-                                   decltype( &wrapper::removePatch ) ) -> bool;
+                                   decltype( &wrapper::removePatch ),
+                                   const char* _json,
+                                   size_t _jsonLength ) -> bool;
 
 } // namespace wrapper
