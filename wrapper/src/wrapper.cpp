@@ -53,8 +53,7 @@ auto attach() -> bool {
         std::cout << "CALLING INIT()\n";
 
         const bool l_result =
-            l_initFunction( wrapper::makePatch, wrapper::makePatchByPattern,
-                            wrapper::removePatch );
+            l_initFunction( wrapper::makePatch, wrapper::removePatch );
 
         return ( l_result );
 

@@ -1,8 +1,0 @@
-CLI flags don’t scale. Profiles fix that.
-
-A profile should define:
-
-enabled mods
-load order (optional override)
-environment overrides
-game args
