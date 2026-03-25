@@ -4,6 +4,8 @@
 #include <dlfcn.h>
 
 #include <bit>
+#include <cctype>
+#include <cstdlib>
 #include <format>
 #include <string>
 #include <string_view>
@@ -21,7 +23,66 @@ using data_t = struct data {
 constexpr const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 
+
+inline auto isTruthy( const char* _value ) -> bool {
+    if ( _value == nullptr ) {
+        return ( false );
+    }
+
+    std::string l_value = _value;
+
+    for ( char& l_char : l_value ) {
+        l_char =
+            static_cast< char >( std::tolower( static_cast< unsigned char >( l_char ) ) );
+    }
+
+    return ( l_value == "1" ) || ( l_value == "true" ) || ( l_value == "ok" ) ||
+           ( l_value == "yes" );
+}
+
+inline auto waitForDebuggerIfNeeded() -> void {
+    const char* l_waitDebugger = std::getenv( "WRAPPER_WAIT_DEBUGGER" );
+
+    if ( !isTruthy( l_waitDebugger ) ) {
+        return;
+    }
+
+    logg::info( "WRAPPER_WAIT_DEBUGGER is enabled; waiting for debugger attach" );
+
+    while ( !IsDebuggerPresent() ) {
+        Sleep( 100 );
+    }
+
+    logg::info( "Debugger attached; continuing startup" );
+}
+
+inline auto logEnabledEnvironmentVariables() -> void {
+    const char* l_waitDebugger = std::getenv( "WRAPPER_WAIT_DEBUGGER" );
+    const char* l_logPath = std::getenv( "WRAPPER_LOG" );
+    const char* l_debug = std::getenv( "WRAPPER_DEBUG" );
+    const char* l_trace = std::getenv( "WRAPPER_TRACE" );
+
+    if ( l_waitDebugger != nullptr ) {
+        logg::debug( "WRAPPER_WAIT_DEBUGGER='{}'", l_waitDebugger );
+    }
+
+    if ( l_logPath != nullptr ) {
+        logg::debug( "WRAPPER_LOG='{}'", l_logPath );
+    }
+
+    if ( l_debug != nullptr ) {
+        logg::debug( "WRAPPER_DEBUG='{}'", l_debug );
+    }
+
+    if ( l_trace != nullptr ) {
+        logg::debug( "WRAPPER_TRACE='{}'", l_trace );
+    }
+}
+
 auto attach() -> bool {
+    waitForDebuggerIfNeeded();
+    logEnabledEnvironmentVariables();
+
     logg::info( "WRAPPER ATTACHED" );
 
     g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
