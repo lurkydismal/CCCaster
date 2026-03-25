@@ -74,7 +74,48 @@ if ((l_windows)); then
     l_compiler="wineg++"
 fi
 
-ccache $l_compiler \
+l_build_dir="build"
+mkdir -p "$l_build_dir"
+
+shopt -s nullglob
+l_sources=(./src/*.cpp)
+shopt -u nullglob
+
+if ((${#l_sources[@]} == 0)); then
+    echo "Error: no source files found in ./src"
+    exit 1
+fi
+
+l_objects=()
+for l_source in "${l_sources[@]}"; do
+    l_base="$(basename "${l_source%.cpp}")"
+    l_object="$l_build_dir/${l_base}.o"
+    l_objects+=("$l_object")
+
+    ccache "$l_compiler" \
+        -m32 -shared \
+        -std=gnu++26 \
+        -pipe -fuse-ld=mold -march=native \
+        -ffunction-sections -fdata-sections \
+        -fPIC -fopenmp-simd \
+        -fno-ident -fno-short-enums \
+        -Wall -Wextra \
+        $l_build_flags \
+        -fno-asynchronous-unwind-tables \
+        -fno-rtti -fno-exceptions \
+        -fno-threadsafe-statics \
+        -fno-unwind-tables \
+        -fPIC \
+        -Wl,--gc-sections \
+        -s -Wl,--no-eh-frame-hdr \
+        $l_link_flags \
+        -I include \
+        -c "$l_source" \
+        -o "$l_object"
+done
+
+"$l_compiler" \
+    "${l_objects[@]}" \
     -m32 -shared \
     -std=gnu++26 \
     -pipe -fuse-ld=mold -march=native \
@@ -91,5 +132,4 @@ ccache $l_compiler \
     -Wl,--gc-sections \
     -s -Wl,--no-eh-frame-hdr \
     $l_link_flags \
-    -I include \
-    ./src/*.cpp -o wrapper.dll
+    -o wrapper.dll
