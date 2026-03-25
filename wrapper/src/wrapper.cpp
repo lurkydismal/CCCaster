@@ -5,7 +5,6 @@
 
 #include <bit>
 #include <format>
-#include <iostream>
 #include <string>
 #include <string_view>
 
@@ -16,7 +15,7 @@ namespace {
 
 using data_t = struct data {
     size_t size;
-    char value[];
+    char* value;
 };
 
 constexpr const std::string g_cccasterName = "./main.so";
@@ -40,6 +39,9 @@ auto attach() -> bool {
 
             if ( l_error != nullptr ) {
                 logg::error( "dlsym failed: {}", l_error );
+
+                dlclose( g_cccasterHandle );
+
                 return ( false );
             }
         }
@@ -51,13 +53,21 @@ auto attach() -> bool {
 
             if ( !l_mapping ) {
                 logg::warning( "OpenFileMappingA failed" );
+
+                dlclose( g_cccasterHandle );
+
                 return ( false );
             }
 
             LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
+
             if ( !l_view ) {
                 logg::warning( "MapViewOfFile failed" );
+
                 CloseHandle( l_mapping );
+
+                dlclose( g_cccasterHandle );
+
                 return ( false );
             }
 
@@ -74,8 +84,11 @@ auto attach() -> bool {
 
             if ( l_result ) {
                 logg::info( "CCCASTER LOADED" );
+
             } else {
                 logg::error( "CCCASTER FAILED TO INIT" );
+
+                dlclose( g_cccasterHandle );
             }
 
             UnmapViewOfFile( l_view );
@@ -86,6 +99,7 @@ auto attach() -> bool {
 
     } else {
         logg::error( "CCCASTER FAILED TO LOAD: {}", dlerror() );
+
         return ( false );
     }
 }
@@ -95,6 +109,7 @@ auto detach() -> bool {
 
     if ( g_cccasterHandle ) {
         dlclose( g_cccasterHandle );
+
         g_cccasterHandle = nullptr;
     }
 
@@ -117,7 +132,6 @@ extern "C" auto APIENTRY DllMain( [[maybe_unused]] HMODULE _hModule,
         }
 
         default: {
-            break;
         }
     }
 
