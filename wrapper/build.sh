@@ -43,6 +43,8 @@ while getopts ":rdwh" opt; do
     esac
 done
 
+SCRIPT_DIRECTORY=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+
 # Validate platform flags
 if ((!l_windows)); then
     echo "Error: one of -w must be specified"
@@ -78,11 +80,11 @@ l_build_dir="out"
 mkdir -p "$l_build_dir"
 
 shopt -s nullglob
-l_sources=(./src/*.cpp)
+l_sources=("$SCRIPT_DIRECTORY"/src/*.cpp)
 shopt -u nullglob
 
 if ((${#l_sources[@]} == 0)); then
-    echo "Error: no source files found in ./src"
+    echo "Error: no source files found in src/"
     exit 1
 fi
 
