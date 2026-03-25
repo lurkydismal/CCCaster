@@ -2,6 +2,6 @@
 
 namespace logg {
 
-inline std::mutex g_mutex;
+std::mutex g_mutex;
 
 }
