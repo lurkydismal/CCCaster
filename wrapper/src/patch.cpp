@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cstdint>
 #include <exception>
 #include <format>
 #include <string>
@@ -37,7 +38,10 @@ void printBytes( uintptr_t _address, size_t _length ) {
 
 [[nodiscard]] patch::patch( uintptr_t _address,
                             std::span< const std::byte > _bytes ) {
+    logg::trace( "patch::patch addr={} size={}", _address, _bytes.size() );
+
     if ( !_address || !_bytes.data() || !_bytes.size() ) {
+        logg::error( "patch::patch invalid arguments" );
         std::terminate();
     }
 
@@ -45,21 +49,27 @@ void printBytes( uintptr_t _address, size_t _length ) {
         std::bit_cast< uintptr_t >( GetModuleHandle( nullptr ) );
 
     if ( l_moduleBase == _address ) {
+        logg::error( "patch::patch invalid address" );
         std::terminate();
     }
 
     uintptr_t l_address =
         ( _address > l_moduleBase ) ? _address : ( l_moduleBase + _address );
 
+    logg::debug( "patch::patch resolved addr={}", l_address );
+
     const memoryLock_t l_lock( l_address, _bytes.size() );
 
     _ok = l_lock.ok();
 
     if ( !_ok ) {
+        logg::error( "patch::patch memory lock failed" );
         return;
     }
 
     this->_address = l_address;
+
+    this->_bytes.resize( _bytes.size() );
 
     // Backup
     {
@@ -81,6 +91,9 @@ void printBytes( uintptr_t _address, size_t _length ) {
     }
 
     _ownsPatch = true;
+
+    logg::info( "patch::patch applied addr={} size={}", l_address,
+                _bytes.size() );
 }
 
 patch::~patch() {
@@ -88,13 +101,15 @@ patch::~patch() {
 }
 
 patch::patch( patch&& _other ) {
+    logg::trace( "patch::patch(move)" );
     _moveFrom( std::move( _other ) );
 }
 
 auto patch::operator=( patch&& _other ) -> patch& {
+    logg::trace( "patch::operator=(move)" );
+
     if ( this != &_other ) {
         _release();
-
         _moveFrom( std::move( _other ) );
     }
 
@@ -106,10 +121,16 @@ auto patch::_release() -> void {
         return;
     }
 
+    logg::trace( "patch::_release addr={} size={}", _address, _bytes.size() );
+
     const memoryLock_t l_lock( _address, _bytes.size() );
 
     if ( l_lock.ok() ) {
         std::ranges::copy( _bytes, std::bit_cast< std::byte* >( _address ) );
+
+        logg::info( "patch::_release restored addr={}", _address );
+    } else {
+        logg::error( "patch::_release memory lock failed" );
     }
 
     _ownsPatch = false;
