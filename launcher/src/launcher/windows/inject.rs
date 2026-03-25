@@ -68,7 +68,11 @@ pub fn inject_dll(
     }
 
     let l_start_routine: windows_sys::Win32::System::Threading::LPTHREAD_START_ROUTINE =
-        Some(unsafe { std::mem::transmute(LoadLibraryW as *const () as usize) });
+        Some(unsafe {
+            std::mem::transmute::<usize, unsafe extern "system" fn(*mut std::ffi::c_void) -> u32>(
+                LoadLibraryW as *const () as usize,
+            )
+        });
 
     let l_thread = unsafe {
         CreateRemoteThread(

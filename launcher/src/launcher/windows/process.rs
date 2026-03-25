@@ -304,7 +304,7 @@ pub fn spawn_process(
             l_flags,
             ptr::null_mut(),
             ptr::null_mut(),
-            &mut l_si,
+            &l_si,
             &mut l_pi,
         )
     };
