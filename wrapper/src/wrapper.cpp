@@ -5,13 +5,18 @@
 
 #include <bit>
 #include <cctype>
+#include <cstdint>
 #include <cstdlib>
-#include <format>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
+
+#include <glaze/glaze.hpp>
 
 #include "api.hpp"
 #include "logg.hpp"
+#include "timer.hpp"
 
 namespace {
 
@@ -20,9 +25,31 @@ using data_t = struct data {
     char* value;
 };
 
+using wrapperData_t = struct wrapperData {
+    bool play{};
+    bool dry_run{};
+    std::optional< std::vector< std::string > > addon{};
+
+    std::optional< std::string > addons_dir{};
+    std::optional< std::string > load_order{};
+    bool no_deps{};
+    bool force{};
+    std::optional< std::vector< std::string > > disable{};
+
+    uint8_t verbose{};
+    bool trace{};
+    bool dump_patches{};
+    bool dump_graph{};
+    bool timings{};
+
+    bool safe_mode{};
+    bool sandbox{};
+    bool no_patches{};
+};
+
 constexpr const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
-
+bool g_timingsEnabled = false;
 
 inline auto isTruthy( const char* _value ) -> bool {
     if ( _value == nullptr ) {
@@ -79,7 +106,29 @@ inline auto logEnabledEnvironmentVariables() -> void {
     }
 }
 
+inline auto parseWrapperData( const data_t* _data, wrapperData_t& _out ) -> bool {
+    if ( ( _data == nullptr ) || ( _data->value == nullptr ) ) {
+        logg::error( "Shared data is null" );
+
+        return ( false );
+    }
+
+    const std::string_view l_json{ _data->value, _data->size };
+
+    auto l_ec = glz::read_json( _out, l_json );
+
+    if ( l_ec ) {
+        logg::error( "Failed to parse wrapper JSON" );
+
+        return ( false );
+    }
+
+    return ( true );
+}
+
 auto attach() -> bool {
+    timer::scoped_t l_attachTimer{ "wrapper::attach", false };
+
     waitForDebuggerIfNeeded();
     logEnabledEnvironmentVariables();
 
@@ -87,85 +136,90 @@ auto attach() -> bool {
 
     g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
 
-    if ( g_cccasterHandle ) {
-        // Clear any existing error
-        dlerror();
-
-        const auto l_initFunction = std::bit_cast< wrapper::initFunction_t >(
-            dlsym( g_cccasterHandle, "init" ) );
-
-        // Check dlsym error
-        {
-            const char* l_error = dlerror();
-
-            if ( l_error != nullptr ) {
-                logg::error( "dlsym failed: {}", l_error );
-
-                dlclose( g_cccasterHandle );
-
-                return ( false );
-            }
-        }
-
-        // Get shared file value
-        {
-            HANDLE l_mapping =
-                OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
-
-            if ( !l_mapping ) {
-                logg::warning( "OpenFileMappingA failed" );
-
-                dlclose( g_cccasterHandle );
-
-                return ( false );
-            }
-
-            LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
-
-            if ( !l_view ) {
-                logg::warning( "MapViewOfFile failed" );
-
-                CloseHandle( l_mapping );
-
-                dlclose( g_cccasterHandle );
-
-                return ( false );
-            }
-
-            const auto l_data = std::bit_cast< data_t* >( l_view );
-
-            logg::debug( "SIZE: '{}', VALUE: '{}'", l_data->size,
-                         std::string_view( l_data->value, l_data->size ) );
-
-            logg::info( "CALLING INIT()" );
-
-            const bool l_result =
-                l_initFunction( wrapper::makePatch, wrapper::removePatch,
-                                l_data->value, l_data->size );
-
-            if ( l_result ) {
-                logg::info( "CCCASTER LOADED" );
-
-            } else {
-                logg::error( "CCCASTER FAILED TO INIT" );
-
-                dlclose( g_cccasterHandle );
-            }
-
-            UnmapViewOfFile( l_view );
-            CloseHandle( l_mapping );
-
-            return ( l_result );
-        }
-
-    } else {
+    if ( !g_cccasterHandle ) {
         logg::error( "CCCASTER FAILED TO LOAD: {}", dlerror() );
 
         return ( false );
     }
+
+    dlerror();
+
+    const auto l_initFunction =
+        std::bit_cast< wrapper::initFunction_t >( dlsym( g_cccasterHandle, "init" ) );
+
+    {
+        const char* l_error = dlerror();
+
+        if ( l_error != nullptr ) {
+            logg::error( "dlsym failed: {}", l_error );
+
+            dlclose( g_cccasterHandle );
+
+            return ( false );
+        }
+    }
+
+    HANDLE l_mapping = OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
+
+    if ( !l_mapping ) {
+        logg::warning( "OpenFileMappingA failed" );
+
+        dlclose( g_cccasterHandle );
+
+        return ( false );
+    }
+
+    LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
+
+    if ( !l_view ) {
+        logg::warning( "MapViewOfFile failed" );
+
+        CloseHandle( l_mapping );
+        dlclose( g_cccasterHandle );
+
+        return ( false );
+    }
+
+    const auto l_data = std::bit_cast< data_t* >( l_view );
+    wrapperData_t l_wrapperData{};
+
+    if ( !parseWrapperData( l_data, l_wrapperData ) ) {
+        UnmapViewOfFile( l_view );
+        CloseHandle( l_mapping );
+        dlclose( g_cccasterHandle );
+
+        return ( false );
+    }
+
+    g_timingsEnabled = l_wrapperData.timings;
+    l_attachTimer.setEnabled( g_timingsEnabled );
+
+    logg::debug( "SIZE: '{}', VALUE: '{}'", l_data->size,
+                 std::string_view( l_data->value, l_data->size ) );
+
+    logg::info( "CALLING INIT()" );
+
+    const bool l_result = l_initFunction( wrapper::makePatch, wrapper::removePatch,
+                                          l_data->value, l_data->size );
+
+    if ( l_result ) {
+        logg::info( "CCCASTER LOADED" );
+
+    } else {
+        logg::error( "CCCASTER FAILED TO INIT" );
+
+        dlclose( g_cccasterHandle );
+    }
+
+    UnmapViewOfFile( l_view );
+    CloseHandle( l_mapping );
+
+    return ( l_result );
 }
 
 auto detach() -> bool {
+    timer::scoped_t l_detachTimer{ "wrapper::detach", g_timingsEnabled };
+
     logg::info( "WRAPPER DETACHED" );
 
     if ( g_cccasterHandle ) {

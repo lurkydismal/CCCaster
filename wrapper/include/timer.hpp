@@ -12,8 +12,9 @@ namespace timer {
 
 // RAII helper for measuring a block
 using scoped_t = struct scoped {
-    scoped( std::string _name );
+    scoped( std::string _name, bool _enabled = true );
     ~scoped();
+    auto setEnabled( bool _enabled ) -> void;
 
     scoped( const scoped& ) = default;
     scoped( scoped&& ) = delete;
@@ -22,6 +23,7 @@ using scoped_t = struct scoped {
 
 private:
     std::string _mName;
+    bool _mEnabled{ true };
     LARGE_INTEGER _mFrequency{};
     LARGE_INTEGER _mStart{};
 };

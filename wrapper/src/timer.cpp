@@ -9,12 +9,17 @@
 namespace timer {
 
 // RAII helper for measuring a block
-scoped::scoped( std::string _name ) : _mName( std::move( _name ) ) {
+scoped::scoped( std::string _name, bool _enabled )
+    : _mName( std::move( _name ) ), _mEnabled( _enabled ) {
     QueryPerformanceFrequency( &_mFrequency );
     QueryPerformanceCounter( &_mStart );
 }
 
 scoped::~scoped() {
+    if ( !_mEnabled ) {
+        return;
+    }
+
     LARGE_INTEGER l_end;
     QueryPerformanceCounter( &l_end );
 
@@ -25,6 +30,10 @@ scoped::~scoped() {
     double l_s = ( l_elapsed * 1.0 ) / _mFrequency.QuadPart;
 
     logg::info( "[Timer] {}: ms, {} µs, {} s", _mName, l_ms, l_us, l_s );
+}
+
+auto scoped::setEnabled( bool _enabled ) -> void {
+    _mEnabled = _enabled;
 }
 
 } // namespace timer
