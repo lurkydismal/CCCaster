@@ -47,7 +47,12 @@ private:
         std::span< const std::byte > _bytes ) -> handle_t;
 
 private:
+    using slot_t = struct slot {
+        std::optional< patch_t > patch;
+        uint32_t generation{};
+    };
+
     mutable std::mutex _mutex;
-    std::vector< std::optional< patch_t > > _slots;
+    std::vector< slot_t > _slots;
     std::vector< handle_t > _free;
 };

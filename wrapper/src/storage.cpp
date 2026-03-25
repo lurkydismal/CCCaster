@@ -2,6 +2,25 @@
 
 #include "logg.hpp"
 
+namespace {
+
+constexpr uint32_t g_indexMask = 0xFFFFu;
+constexpr uint32_t g_genShift = 16;
+
+auto makeHandle( uint32_t _index, uint32_t _gen ) -> uint32_t {
+    return ( _gen << g_genShift ) | ( _index & g_indexMask );
+}
+
+auto handleIndex( uint32_t _h ) -> uint32_t {
+    return ( _h & g_indexMask );
+}
+
+auto handleGen( uint32_t _h ) -> uint32_t {
+    return ( _h >> g_genShift );
+}
+
+} // namespace
+
 storage::storage( handle_t _reserve ) {
     logg::debug( "storage::storage reserve {}", _reserve );
     reserve( _reserve );
@@ -43,7 +62,8 @@ auto storage::reserve( handle_t _count ) -> void {
 
     std::scoped_lock l_lock( _mutex );
 
-    const handle_t l_index = ( _handle - 1 );
+    const uint32_t l_index = handleIndex( _handle ) - 1;
+    const uint32_t l_generation = handleGen( _handle );
 
     if ( l_index >= _slots.size() ) {
         logg::warning( "storage::removePatch handle out of range" );
@@ -52,12 +72,13 @@ auto storage::reserve( handle_t _count ) -> void {
 
     auto& l_slot = _slots[ l_index ];
 
-    if ( !l_slot.has_value() ) {
+    if ( !l_slot.patch.has_value() || l_slot.generation != l_generation ) {
         logg::warning( "storage::removePatch empty slot" );
         return ( false );
     }
 
-    l_slot.reset();
+    l_slot.patch.reset();
+    ++l_slot.generation;
 
     _free.push_back( l_index );
 
@@ -73,13 +94,16 @@ auto storage::reserve( handle_t _count ) -> void {
 
     std::scoped_lock l_lock( _mutex );
 
-    const handle_t l_index = ( _handle - 1 );
+    const uint32_t l_index = handleIndex( _handle ) - 1;
+    const uint32_t l_generation = handleGen( _handle );
 
     if ( l_index >= _slots.size() ) {
         return ( false );
     }
 
-    return ( _slots[ l_index ].has_value() );
+    const auto& l_slot = _slots[ l_index ];
+
+    return ( l_slot.patch.has_value() && l_slot.generation == l_generation );
 }
 
 [[nodiscard]] auto storage::_emplacePatch( uintptr_t _address,
@@ -112,12 +136,12 @@ auto storage::reserve( handle_t _count ) -> void {
     auto& l_slot = _slots[ l_index ];
 
     // Construct in-place. No temporary patch_t move here.
-    l_slot.emplace( _address, _bytes );
+    l_slot.patch.emplace( _address, _bytes );
 
-    if ( !l_slot->ok() ) {
+    if ( !l_slot.patch->ok() ) {
         logg::error( "storage::_emplacePatchLocked patch creation failed" );
 
-        l_slot.reset();
+        l_slot.patch.reset();
 
         if ( l_reuse ) {
             _free.push_back( l_index );
@@ -128,9 +152,8 @@ auto storage::reserve( handle_t _count ) -> void {
         return ( g_invalidHandle );
     }
 
-    // 1-based handle: 0 stays invalid.
-    const handle_t l_handle = ( l_index + 1 );
-
+    const handle_t l_handle =
+        makeHandle( static_cast< uint32_t >( l_index + 1 ), l_slot.generation );
     logg::info( "storage::_emplacePatchLocked created handle={}", l_handle );
 
     return ( l_handle );

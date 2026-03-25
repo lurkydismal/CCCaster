@@ -26,7 +26,7 @@ inline auto log( level_t _level, const std::string& _message ) -> void {
                        level_t::error ) == 4 );
 
     static constexpr const std::array l_prefixes = {
-        "[trace] ", "[debug] ", "[info ] ", "[warn ] ", "[error] ",
+        "[trace]", "[debug]", "[info]", "[warn]", "[error]",
     };
 
     const bool l_isError =
@@ -36,9 +36,11 @@ inline auto log( level_t _level, const std::string& _message ) -> void {
 
     std::lock_guard l_lock( g_mutex );
 
-    l_stream << l_prefixes.at(
-                    static_cast< std::underlying_type_t< level_t > >( _level ) )
-             << _message << '\n';
+    l_stream << std::format(
+        "[WRAPPER] {} {}\n",
+        l_prefixes.at(
+            static_cast< std::underlying_type_t< level_t > >( _level ) ),
+        _message );
 }
 
 } // namespace
