@@ -4,29 +4,29 @@ set -e
 
 print_help() {
     cat <<EOF
-Usage: $0 -w [-r | -d] [-h]
+Usage: $0 -l [-r | -d] [-h]
 
 Options:
-  -w    Build for Windows
+  -l    Build for Linux (native target)
   -r    Build in release mode
   -d    Build in debug mode (default if neither specified)
   -h    Show this help message
 
 Notes:
-  -w is required.
+  -l is required.
   -r and -d are mutually exclusive.
 EOF
 }
 
 l_release=0
 l_debug=0
-l_windows=0
+l_linux=0
 
-while getopts ":rdwh" opt; do
+while getopts ":rdlh" opt; do
     case "$opt" in
     r) l_release=1 ;;
     d) l_debug=1 ;;
-    w) l_windows=1 ;;
+    l) l_linux=1 ;;
     h)
         print_help
         exit 0
@@ -46,8 +46,8 @@ done
 SCRIPT_DIRECTORY=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 
 # Validate platform flags
-if ((!l_windows)); then
-    echo "Error: one of -w must be specified"
+if ((!l_linux)); then
+    echo "Error: one of -l must be specified"
     print_help
     exit 1
 fi
@@ -72,7 +72,7 @@ fi
 
 # Target selection
 l_compiler=""
-if ((l_windows)); then
+if ((l_linux)); then
     l_compiler="wineg++"
 fi
 
