@@ -394,6 +394,6 @@ pub fn close_process_handles(pi: &mut PROCESS_INFORMATION) {
 }
 
 pub fn to_wide_null(value: &OsStr) -> Vec<u16> {
-    launcher_trace!("to_wide_null accepted args");
+    launcher_trace!("to_wide_null accepted args: {:?}", value.to_string_lossy());
     value.encode_wide().chain(std::iter::once(0)).collect()
 }
