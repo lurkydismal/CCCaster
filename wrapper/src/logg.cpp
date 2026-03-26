@@ -88,8 +88,8 @@ auto log( level_t _level, const std::string& _message ) -> void {
         return;
     }
 
-    static constexpr const std::array l_prefixes = {
-        "[trace]", "[debug]", "[info]", "[warn]", "[error]",
+    static constexpr std::array l_prefixes = {
+        "[TRACE]", "[DEBUG]", "[INFO]", "[WARN]", "[ERROR]",
     };
 
     const bool l_isError =
