@@ -168,7 +168,7 @@ pub fn run_cli() -> Result<()> {
 macro_rules! launcher_trace {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_TRACE {
-            eprint!("[LAUNCHER] [TRACE] ");
+            color_print::ceprint!("<m!>[LAUNCHER]</> [TRACE] ");
             eprintln!($($arg)*);
         }
     }};
@@ -178,7 +178,7 @@ macro_rules! launcher_trace {
 macro_rules! launcher_debug {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_DEBUG {
-            print!("[LAUNCHER] [DEBUG] ");
+            color_print::cprint!("<m!>[LAUNCHER]</> <c!>[DEBUG]</> ");
             println!($($arg)*);
         }
     }};
@@ -188,7 +188,7 @@ macro_rules! launcher_debug {
 macro_rules! launcher_info {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_INFO {
-            print!("[LAUNCHER] [INFO] ");
+            color_print::cprint!("<m!>[LAUNCHER]</> <g!>[INFO]</> ");
             println!($($arg)*);
         }
     }};
@@ -198,7 +198,7 @@ macro_rules! launcher_info {
 macro_rules! launcher_warning {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_WARNING {
-            eprint!("[LAUNCHER] [WARNING] ");
+            color_print::ceprint!("<m!>[LAUNCHER]</> <y!>[WARNING]</> ");
             eprintln!($($arg)*);
         }
     }};
@@ -208,7 +208,7 @@ macro_rules! launcher_warning {
 macro_rules! launcher_error {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_ERROR {
-            eprint!("[LAUNCHER] [ERROR] ");
+            color_print::ceprint!("<m!>[LAUNCHER]</> <r!>[ERROR]</> ");
             eprintln!($($arg)*);
         }
     }};
