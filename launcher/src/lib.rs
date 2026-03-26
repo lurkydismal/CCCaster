@@ -88,18 +88,10 @@ pub fn run_cli() -> Result<()> {
             l_current_exe.display()
         );
 
-        let l_canonical_exe = l_current_exe.canonicalize().map_err(|l_err| {
-            AppError::Message(format!(
-                "Failed to canonicalize executable path '{}': {l_err}",
-                l_current_exe.display()
-            ))
-        })?;
-        launcher_debug!("Canonical executable path: {}", l_canonical_exe.display());
-
-        l_canonical_exe.parent().map(PathBuf::from).ok_or_else(|| {
+        l_current_exe.parent().map(PathBuf::from).ok_or_else(|| {
             AppError::Message(format!(
                 "Executable path has no parent directory: {}",
-                l_canonical_exe.display()
+                l_current_exe.display()
             ))
         })?
     };
