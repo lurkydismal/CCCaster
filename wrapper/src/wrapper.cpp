@@ -23,6 +23,29 @@ using data_t = struct data {
     char* value;
 };
 
+} // namespace
+
+template <>
+struct std::formatter< data_t > {
+    constexpr auto parse( std::format_parse_context& _ctx ) {
+        return _ctx.begin();
+    }
+
+    auto format( const data_t& _data, std::format_context& _ctx ) const {
+        if ( _data.value == nullptr ) {
+            return std::format_to(
+                _ctx.out(), "data_t{{ size={}, value=null }}", _data.size );
+        }
+
+        std::string_view l_view{ _data.value, _data.size };
+
+        return std::format_to( _ctx.out(), "data_t{{ size={}, value='{}' }}",
+                               _data.size, l_view );
+    }
+};
+
+namespace {
+
 using wrapperData_t = struct wrapperData {
     uint8_t verbose{};
     bool trace{};
@@ -281,7 +304,7 @@ auto parseValueForKey( std::string_view _key,
         return ( l_result );
 
     } else {
-        logg::warn( "parseValueForKey: unknown key '{}'", _key );
+        logg::warning( "parseValueForKey: unknown key '{}'", _key );
         return ( false );
     }
 }
@@ -296,7 +319,7 @@ auto parseWrapperData( std::string_view _json )
     wrapperData_t l_out{};
 
     if ( !json_cfg::consume( _json, l_i, '{' ) ) {
-        logg::warn( "parseWrapperData: missing opening brace" );
+        logg::warning( "parseWrapperData: missing opening brace" );
         return ( std::nullopt );
     }
 
@@ -311,18 +334,19 @@ auto parseWrapperData( std::string_view _json )
         std::string_view l_key{};
 
         if ( !json_cfg::parseString( _json, l_i, l_key ) ) {
-            logg::warn( "parseWrapperData: failed to parse key at {}", l_i );
+            logg::warning( "parseWrapperData: failed to parse key at {}", l_i );
             return ( std::nullopt );
         }
 
         if ( !json_cfg::consume( _json, l_i, ':' ) ) {
-            logg::warn( "parseWrapperData: missing ':' after key '{}'", l_key );
+            logg::warning( "parseWrapperData: missing ':' after key '{}'",
+                           l_key );
             return ( std::nullopt );
         }
 
         if ( !json_cfg::parseValueForKey( l_key, _json, l_i, l_out ) ) {
-            logg::warn( "parseWrapperData: failed to parse value for key '{}'",
-                        l_key );
+            logg::warning(
+                "parseWrapperData: failed to parse value for key '{}'", l_key );
             return ( std::nullopt );
         }
 
@@ -336,7 +360,7 @@ auto parseWrapperData( std::string_view _json )
         }
 
         if ( !json_cfg::consume( _json, l_i, ',' ) ) {
-            logg::warn( "parseWrapperData: missing ',' or '}' at {}", l_i );
+            logg::warning( "parseWrapperData: missing ',' or '}}' at {}", l_i );
             return ( std::nullopt );
         }
 
@@ -346,7 +370,7 @@ auto parseWrapperData( std::string_view _json )
     json_cfg::skipWs( _json, l_i );
 
     if ( l_i != _json.size() ) {
-        logg::warn( "parseWrapperData: trailing data at {}", l_i );
+        logg::warning( "parseWrapperData: trailing data at {}", l_i );
         return ( std::nullopt );
     }
 
@@ -374,7 +398,7 @@ auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
     const auto l_cfg = parseWrapperData( l_json );
 
     if ( !l_cfg ) {
-        logg::warn( "parseWrapperData(shared): JSON parse failed" );
+        logg::warning( "parseWrapperData(shared): JSON parse failed" );
         return ( std::nullopt );
     }
 
@@ -426,7 +450,7 @@ auto attach() -> bool {
         OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
 
     if ( !l_mapping ) {
-        logg::warn( "OpenFileMappingA failed: {}", GetLastError() );
+        logg::warning( "OpenFileMappingA failed: {}", GetLastError() );
 
         dlclose( g_cccasterHandle );
         g_cccasterHandle = nullptr;
@@ -439,7 +463,7 @@ auto attach() -> bool {
     LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
 
     if ( !l_view ) {
-        logg::warn( "MapViewOfFile failed: {}", GetLastError() );
+        logg::warning( "MapViewOfFile failed: {}", GetLastError() );
 
         CloseHandle( l_mapping );
         dlclose( g_cccasterHandle );
@@ -463,8 +487,7 @@ auto attach() -> bool {
         return ( false );
     }
 
-    logg::trace( "attach: shared data struct at {}", l_data );
-    logg::trace( "attach: shared data size={}", l_data->size );
+    logg::trace( "attach: shared data struct {}", *l_data );
 
     std::optional< wrapperData_t > l_wrapperData = parseWrapperData( l_data );
 
