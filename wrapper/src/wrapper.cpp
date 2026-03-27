@@ -3,7 +3,6 @@
 
 #include <dlfcn.h>
 
-#include <algorithm>
 #include <bit>
 #include <cctype>
 #include <cstdint>
@@ -32,11 +31,6 @@ struct std::formatter< data_t > {
     }
 
     auto format( const data_t& _data, std::format_context& _ctx ) const {
-        if ( _data.value == nullptr ) {
-            return std::format_to(
-                _ctx.out(), "data_t{{ size={}, value=null }}", _data.size );
-        }
-
         std::string_view l_view{ _data.value, _data.size };
 
         return std::format_to( _ctx.out(), "data_t{{ size={}, value='{}' }}",
@@ -138,164 +132,244 @@ auto logEnabledEnvironmentVariables() -> void {
     }
 }
 
-auto trim( std::string_view _s ) -> std::string_view {
-    while ( !_s.empty() &&
-            std::isspace( static_cast< unsigned char >( _s.front() ) ) ) {
-        _s.remove_prefix( 1 );
-    }
+namespace json_cfg {
 
-    while ( !_s.empty() &&
-            std::isspace( static_cast< unsigned char >( _s.back() ) ) ) {
-        _s.remove_suffix( 1 );
-    }
+void skipWs( std::string_view _s, size_t& _i ) {
+    const size_t l_begin = _i;
 
-    return ( _s );
-}
+    while ( _i < _s.size() ) {
+        auto const l_c = static_cast< unsigned char >( _s[ _i ] );
 
-auto lowerCopy( std::string_view _s ) -> std::string {
-    std::string l_out{ _s };
-
-    std::ranges::transform(
-        l_out, l_out.begin(), []( unsigned char _ch ) -> char {
-            return ( static_cast< char >( std::tolower( _ch ) ) );
-        } );
-
-    return ( l_out );
-}
-
-auto parseBoolEnv( char const* _name,
-                   bool _default = false,
-                   bool* _ok = nullptr ) -> bool {
-    if ( _ok != nullptr ) {
-        *_ok = true;
-    }
-
-    char const* l_raw = std::getenv( _name );
-    if ( l_raw == nullptr ) {
-        if ( _ok != nullptr ) {
-            *_ok = false;
+        if ( ( l_c != ' ' ) && ( l_c != '\t' ) && ( l_c != '\n' ) &&
+             ( l_c != '\r' ) ) {
+            break;
         }
-        return ( _default );
+
+        ++_i;
     }
 
-    std::string_view l_value{ l_raw };
-    l_value = trim( l_value );
-    std::string l_lower = lowerCopy( l_value );
-
-    if ( l_lower == "1" || l_lower == "true" || l_lower == "yes" ||
-         l_lower == "ok" || l_lower == "on" ) {
-        return ( true );
+    if ( _i != l_begin ) {
+        logg::trace( "skipWs: advanced from {} to {}", l_begin, _i );
     }
+}
 
-    if ( l_lower == "0" || l_lower == "false" || l_lower == "no" ||
-         l_lower == "off" ) {
+auto consume( std::string_view _s, size_t& _i, char _ch ) -> bool {
+    skipWs( _s, _i );
+
+    if ( ( _i >= _s.size() ) || ( _s[ _i ] != _ch ) ) {
+        logg::trace( "consume: expected '{}' at {}, failed", _ch, _i );
         return ( false );
     }
 
-    if ( _ok != nullptr ) {
-        *_ok = false;
-    }
+    logg::trace( "consume: matched '{}' at {}", _ch, _i );
+    ++_i;
 
-    return ( _default );
+    return ( true );
 }
 
-auto parseVerboseEnv( char const* _name,
-                      uint8_t _default = 0,
-                      bool* _ok = nullptr ) -> uint8_t {
-    if ( _ok != nullptr ) {
-        *_ok = true;
+auto parseString( std::string_view _s, size_t& _i, std::string_view& _out )
+    -> bool {
+    skipWs( _s, _i );
+
+    if ( ( _i >= _s.size() ) || ( _s[ _i ] != '"' ) ) {
+        logg::trace( "parseString: expected '\"' at {}, failed", _i );
+        return ( false );
     }
 
-    char const* l_raw = std::getenv( _name );
-    if ( l_raw == nullptr ) {
-        if ( _ok != nullptr ) {
-            *_ok = false;
+    const size_t l_quoteBegin = _i;
+    ++_i;
+
+    size_t const l_begin = _i;
+
+    while ( _i < _s.size() ) {
+        char const l_c = _s[ _i ];
+
+        if ( l_c == '"' ) {
+            _out = _s.substr( l_begin, ( _i - l_begin ) );
+
+            logg::trace( "parseString: parsed '{}' from [{}..{})", _out,
+                         l_quoteBegin, _i + 1 );
+
+            ++_i;
+
+            return ( true );
         }
-        return ( _default );
-    }
 
-    std::string_view l_value{ l_raw };
-    l_value = trim( l_value );
-
-    if ( l_value.empty() ) {
-        if ( _ok != nullptr ) {
-            *_ok = false;
+        if ( l_c == '\\' ) {
+            logg::trace( "parseString: escape sequences are not supported" );
+            return ( false );
         }
-        return ( _default );
+
+        ++_i;
     }
 
-    for ( char const l_ch : l_value ) {
-        if ( !std::isdigit( static_cast< unsigned char >( l_ch ) ) ) {
-            if ( _ok != nullptr ) {
-                *_ok = false;
-            }
-            return ( _default );
-        }
-    }
-
-    unsigned long l_num = 0;
-
-    auto const* l_begin = l_value.begin();
-    auto const* l_end = l_value.end();
-
-    std::from_chars_result l_res = std::from_chars( l_begin, l_end, l_num );
-
-    if ( l_res.ec != std::errc{} || l_res.ptr != l_end ) {
-        if ( _ok != nullptr ) {
-            *_ok = false;
-        }
-        return ( _default );
-    }
-
-    if ( l_num > 3 ) {
-        if ( _ok != nullptr ) {
-            *_ok = false;
-        }
-        return ( 3 );
-    }
-
-    return ( static_cast< uint8_t >( l_num ) );
+    logg::trace( "parseString: unterminated string starting at {}",
+                 l_quoteBegin );
+    return ( false );
 }
 
-auto parseWrapperData() -> std::optional< wrapperData_t > {
+auto parseBool( std::string_view _s, size_t& _i, bool& _out ) -> bool {
+    skipWs( _s, _i );
+
+    if ( _s.substr( _i, 4 ) == "true" ) {
+        _out = true;
+        _i += 4;
+
+        logg::trace( "parseBool: parsed true at position {}", ( _i - 4 ) );
+        return ( true );
+    }
+
+    if ( _s.substr( _i, 5 ) == "false" ) {
+        _out = false;
+        _i += 5;
+
+        logg::trace( "parseBool: parsed false at position {}", ( _i - 5 ) );
+        return ( true );
+    }
+
+    logg::trace( "parseBool: failed at position {}", _i );
+    return ( false );
+}
+
+auto parseUint8( std::string_view _s, size_t& _i, uint8_t& _out ) -> bool {
+    skipWs( _s, _i );
+
+    if ( _i >= _s.size() ) {
+        logg::trace( "parseUint8: input ended at {}", _i );
+        return ( false );
+    }
+
+    uint32_t l_value = 0;
+    size_t l_start = _i;
+    bool l_hasDigit = false;
+
+    while ( _i < _s.size() ) {
+        auto const l_c = static_cast< unsigned char >( _s[ _i ] );
+
+        if ( ( l_c < '0' ) || ( l_c > '9' ) ) {
+            break;
+        }
+
+        l_hasDigit = true;
+        l_value = ( l_value * 10u ) + static_cast< uint32_t >( l_c - '0' );
+
+        if ( l_value > static_cast< uint32_t >(
+                           std::numeric_limits< uint8_t >::max() ) ) {
+            logg::trace( "parseUint8: value overflow at {}", _i );
+            return ( false );
+        }
+
+        ++_i;
+    }
+
+    if ( !l_hasDigit ) {
+        logg::trace( "parseUint8: no digits at {}", l_start );
+        return ( false );
+    }
+
+    _out = static_cast< uint8_t >( l_value );
+
+    logg::trace( "parseUint8: parsed {} from [{}..{})",
+                 static_cast< unsigned >( _out ), l_start, _i );
+
+    return ( _i > l_start );
+}
+
+auto parseValueForKey( std::string_view _key,
+                       std::string_view _s,
+                       size_t& _i,
+                       wrapperData_t& _out ) -> bool {
+    logg::trace( "parseValueForKey: key='{}' at position {}", _key, _i );
+
+    if ( _key == "verbose" ) {
+        const bool l_result = parseUint8( _s, _i, _out.verbose );
+        logg::trace( "parseValueForKey: verbose -> {}", l_result );
+        return ( l_result );
+
+    } else if ( _key == "trace" ) {
+        const bool l_result = parseBool( _s, _i, _out.trace );
+        logg::trace( "parseValueForKey: trace -> {}", l_result );
+        return ( l_result );
+
+    } else if ( _key == "timings" ) {
+        const bool l_result = parseBool( _s, _i, _out.timings );
+        logg::trace( "parseValueForKey: timings -> {}", l_result );
+        return ( l_result );
+
+    } else if ( _key == "no_patches" ) {
+        const bool l_result = parseBool( _s, _i, _out.no_patches );
+        logg::trace( "parseValueForKey: no_patches -> {}", l_result );
+        return ( l_result );
+
+    } else {
+        logg::warning( "parseValueForKey: unknown key '{}'", _key );
+        return ( false );
+    }
+}
+
+} // namespace json_cfg
+
+auto parseWrapperData( std::string_view _json )
+    -> std::optional< wrapperData_t > {
+    logg::debug( "parseWrapperData: parsing {} bytes", _json.size() );
+
+    size_t l_i = 0;
     wrapperData_t l_out{};
 
-    bool l_ok = false;
-
-    l_out.verbose = parseVerboseEnv( "WRAPPER_VERBOSE", 0, &l_ok );
-
-    if ( !l_ok && std::getenv( "WRAPPER_VERBOSE" ) != nullptr ) {
-        logg::warning( "parseWrapperData: invalid WRAPPER_VERBOSE" );
-
+    if ( !json_cfg::consume( _json, l_i, '{' ) ) {
+        logg::warning( "parseWrapperData: missing opening brace" );
         return ( std::nullopt );
     }
 
-    l_out.trace = parseBoolEnv( "WRAPPER_TRACE", false, &l_ok );
+    json_cfg::skipWs( _json, l_i );
 
-    if ( !l_ok && std::getenv( "WRAPPER_TRACE" ) != nullptr ) {
-        logg::warning( "parseWrapperData: invalid WRAPPER_TRACE" );
-
-        return ( std::nullopt );
+    if ( json_cfg::consume( _json, l_i, '}' ) ) {
+        logg::debug( "parseWrapperData: empty object" );
+        return ( l_out );
     }
 
-    l_out.timings = parseBoolEnv( "WRAPPER_TIMINGS", false, &l_ok );
+    while ( true ) {
+        std::string_view l_key{};
 
-    if ( !l_ok && std::getenv( "WRAPPER_TIMINGS" ) != nullptr ) {
-        logg::warning( "parseWrapperData: invalid WRAPPER_TIMINGS" );
+        if ( !json_cfg::parseString( _json, l_i, l_key ) ) {
+            logg::warning( "parseWrapperData: failed to parse key at {}", l_i );
+            return ( std::nullopt );
+        }
 
-        return ( std::nullopt );
+        if ( !json_cfg::consume( _json, l_i, ':' ) ) {
+            logg::warning( "parseWrapperData: missing ':' after key '{}'",
+                           l_key );
+            return ( std::nullopt );
+        }
+
+        if ( !json_cfg::parseValueForKey( l_key, _json, l_i, l_out ) ) {
+            logg::warning(
+                "parseWrapperData: failed to parse value for key '{}'", l_key );
+            return ( std::nullopt );
+        }
+
+        logg::trace( "parseWrapperData: key '{}' parsed successfully", l_key );
+
+        json_cfg::skipWs( _json, l_i );
+
+        if ( json_cfg::consume( _json, l_i, '}' ) ) {
+            logg::debug( "parseWrapperData: end of object reached" );
+            break;
+        }
+
+        if ( !json_cfg::consume( _json, l_i, ',' ) ) {
+            logg::warning( "parseWrapperData: missing ',' or '}}' at {}", l_i );
+            return ( std::nullopt );
+        }
+
+        logg::trace( "parseWrapperData: continuing to next key" );
     }
 
-    l_out.no_patches = parseBoolEnv( "WRAPPER_NO_PATCHES", false, &l_ok );
+    json_cfg::skipWs( _json, l_i );
 
-    if ( !l_ok && std::getenv( "WRAPPER_NO_PATCHES" ) != nullptr ) {
-        logg::warning( "parseWrapperData: invalid WRAPPER_NO_PATCHES" );
-
+    if ( l_i != _json.size() ) {
+        logg::warning( "parseWrapperData: trailing data at {}", l_i );
         return ( std::nullopt );
-    }
-
-    if ( parseBoolEnv( "WRAPPER_DEBUG", false ) ) {
-        l_out.verbose = std::max< uint8_t >( l_out.verbose, 1 );
     }
 
     logg::debug(
@@ -308,18 +382,16 @@ auto parseWrapperData() -> std::optional< wrapperData_t > {
 }
 
 auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
-    if ( ( _data == nullptr ) || ( _data->value == nullptr ) ) {
+    if ( _data == nullptr ) {
         logg::error( "Shared data is null" );
         return ( std::nullopt );
     }
 
-    logg::debug( "parseWrapperData(shared): size={}", _data->size );
+    logg::debug( "parseWrapperData(shared): {}", *_data );
 
     const std::string_view l_json{ _data->value, _data->size };
 
-    logg::trace( "parseWrapperData(shared): json='{}'", l_json );
-
-    const auto l_cfg = parseWrapperData();
+    const auto l_cfg = parseWrapperData( l_json );
 
     if ( !l_cfg ) {
         logg::warning( "parseWrapperData(env): JSON parse failed" );
@@ -411,9 +483,7 @@ auto attach() -> bool {
         return ( false );
     }
 
-    logg::trace( "attach: shared data struct size={}", l_data->size );
-    logg::trace( "attach: shared data struct value='{}'",
-                 std::string_view( l_data->value, l_data->size ) );
+    logg::trace( "attach: shared data {}", *l_data );
 
     std::optional< wrapperData_t > l_wrapperData = parseWrapperData( l_data );
 
