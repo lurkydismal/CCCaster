@@ -435,7 +435,7 @@ auto parseValueForKey( std::string_view _key,
         return ( l_result );
 
     } else {
-        logg::warning( "parseValueForKey: unknown key '{}', skipping", _key );
+        logg::debug( "parseValueForKey: unknown key '{}', skipping", _key );
         return ( skipValue( _s, _i ) );
     }
 }
@@ -533,6 +533,9 @@ auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
 
     // Set env vars for config
     {
+        logg::trace( "config parsed: trace={}, verbose={}", l_cfg->trace,
+                     l_cfg->verbose );
+
         setenv( "WRAPPER_TRACE", ( l_cfg->trace ? "1" : "0" ), true );
         setenv( "WRAPPER_DEBUG", ( ( l_cfg->verbose >= 3 ) ? "1" : "0" ),
                 true );
