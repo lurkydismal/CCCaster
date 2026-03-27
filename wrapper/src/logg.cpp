@@ -39,6 +39,17 @@ auto isTruthy( const char* _value ) -> bool {
            ( l_value == "yes" );
 }
 
+auto getVerboseLevel() -> uint8_t {
+    std::string_view l_level = std::getenv( "WRAPPER_VERBOSE" );
+    static uint8_t l_verboseLevel = 0;
+
+    if ( !l_verboseLevel ) {
+        std::from_chars( l_level.begin(), l_level.end(), l_verboseLevel );
+    }
+
+    return ( l_verboseLevel );
+}
+
 auto isDebugEnabled() -> bool {
     static const bool l_debugEnabled =
         isTruthy( std::getenv( "WRAPPER_DEBUG" ) ) ||
@@ -80,11 +91,11 @@ auto log( level_t _level, const std::string& _message ) -> void {
     static_assert( static_cast< std::underlying_type_t< level_t > >(
                        level_t::error ) == 4 );
 
-    if ( ( _level == level_t::trace ) && !isTraceEnabled() ) {
-        return;
-    }
-
-    if ( ( _level == level_t::debug ) && !isDebugEnabled() ) {
+    if ( ( ( _level == level_t::trace ) && !isTraceEnabled() ) ||
+         ( ( _level == level_t::debug ) &&
+           ( !isDebugEnabled() || ( getVerboseLevel() < 3 ) ) ) ||
+         ( ( _level == level_t::info ) && ( getVerboseLevel() < 1 ) ) ||
+         ( ( _level == level_t::warning ) && ( getVerboseLevel() < 2 ) ) ) {
         return;
     }
 
