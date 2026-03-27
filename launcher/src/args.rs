@@ -59,7 +59,7 @@ pub struct Args {
     #[arg(short, long, value_name = "NAME")]
     pub profile: Option<String>,
 
-    /// Save a predefined addon and game arguments set.
+    /// Save a predefined addon and game arguments set (overwrites existing profile if present).
     #[arg(long)]
     pub save_profile: bool,
 
