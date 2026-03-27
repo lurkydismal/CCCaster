@@ -20,7 +20,7 @@ namespace {
 
 using data_t = struct data {
     size_t size;
-    char* value;
+    char value[];
 };
 
 } // namespace
@@ -412,7 +412,7 @@ auto attach() -> bool {
     }
 
     logg::trace( "attach: shared data struct size={}", l_data->size );
-    logg::trace( "attach: shared data struct value={}",
+    logg::trace( "attach: shared data struct value='{}'",
                  std::string_view( l_data->value, l_data->size ) );
 
     std::optional< wrapperData_t > l_wrapperData = parseWrapperData( l_data );
@@ -437,13 +437,15 @@ auto attach() -> bool {
         static_cast< unsigned >( l_wrapperData->verbose ), l_wrapperData->trace,
         l_wrapperData->timings, l_wrapperData->no_patches );
 
-    logg::debug( "SIZE: '{}', VALUE: '{}'", l_data->size,
-                 std::string_view( l_data->value, l_data->size ) );
-
     logg::info( "CALLING INIT()" );
 
-    const bool l_result = l_initFunction(
-        wrapper::makePatch, wrapper::removePatch, l_data->value, l_data->size );
+    const std::string l_value = l_data->value;
+
+    logg::trace( "attach: init json value='{}'", l_value.c_str() );
+
+    const bool l_result =
+        l_initFunction( wrapper::makePatch, wrapper::removePatch,
+                        l_value.c_str(), l_data->size );
 
     if ( l_result ) {
         logg::info( "CCCASTER LOADED" );
