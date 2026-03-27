@@ -208,7 +208,7 @@ pub fn inject_into_running_process(
     let l_data: WrapperData = (&l_new_args).into();
     let l_json = serde_json::to_string(&l_data)?;
 
-    launcher_trace!("json: {}", l_json);
+    launcher_trace!("json: {}", &l_json);
 
     if let Err(l_err) = shared_memory::write_shared_string("Local\\MySharedData", &l_json) {
         launcher_warning!("{l_err}");
