@@ -238,7 +238,7 @@ auto parseVerboseEnv( char const* _name,
     auto const* l_begin = l_value.begin();
     auto const* l_end = l_value.end();
 
-    std::from_chars_result l_res = std::from_chars( l_begin, l_end, l_num, 10 );
+    std::from_chars_result l_res = std::from_chars( l_begin, l_end, l_num );
 
     if ( l_res.ec != std::errc{} || l_res.ptr != l_end ) {
         if ( _ok != nullptr ) {
