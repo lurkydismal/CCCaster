@@ -275,6 +275,139 @@ auto parseUint8( std::string_view _s, size_t& _i, uint8_t& _out ) -> bool {
     return ( _i > l_start );
 }
 
+auto skipValue( std::string_view _s, size_t& _i ) -> bool {
+    skipWs( _s, _i );
+
+    if ( _i >= _s.size() ) {
+        return ( false );
+    }
+
+    switch ( _s[ _i ] ) {
+        case '"': {
+            ++_i;
+
+            while ( _i < _s.size() ) {
+                if ( _s[ _i ] == '\\' ) {
+                    if ( ( _i + 1 ) >= _s.size() ) {
+                        return ( false );
+                    }
+
+                    _i += 2;
+                    continue;
+                }
+
+                if ( _s[ _i ] == '"' ) {
+                    ++_i;
+                    return ( true );
+                }
+
+                ++_i;
+            }
+
+            return ( false );
+        }
+
+        case '{': {
+            ++_i;
+            skipWs( _s, _i );
+
+            if ( consume( _s, _i, '}' ) ) {
+                return ( true );
+            }
+
+            while ( true ) {
+                std::string_view l_key{};
+
+                if ( !parseString( _s, _i, l_key ) ) {
+                    return ( false );
+                }
+
+                if ( !consume( _s, _i, ':' ) ) {
+                    return ( false );
+                }
+
+                if ( !skipValue( _s, _i ) ) {
+                    return ( false );
+                }
+
+                skipWs( _s, _i );
+
+                if ( consume( _s, _i, '}' ) ) {
+                    return ( true );
+                }
+
+                if ( !consume( _s, _i, ',' ) ) {
+                    return ( false );
+                }
+            }
+        }
+
+        case '[': {
+            ++_i;
+            skipWs( _s, _i );
+
+            if ( consume( _s, _i, ']' ) ) {
+                return ( true );
+            }
+
+            while ( true ) {
+                if ( !skipValue( _s, _i ) ) {
+                    return ( false );
+                }
+
+                skipWs( _s, _i );
+
+                if ( consume( _s, _i, ']' ) ) {
+                    return ( true );
+                }
+
+                if ( !consume( _s, _i, ',' ) ) {
+                    return ( false );
+                }
+            }
+        }
+
+        case 't':
+            if ( _s.substr( _i, 4 ) == "true" ) {
+                _i += 4;
+                return ( true );
+            }
+            return ( false );
+
+        case 'f':
+            if ( _s.substr( _i, 5 ) == "false" ) {
+                _i += 5;
+                return ( true );
+            }
+            return ( false );
+
+        case 'n':
+            if ( _s.substr( _i, 4 ) == "null" ) {
+                _i += 4;
+                return ( true );
+            }
+            return ( false );
+
+        default: {
+            size_t const l_begin = _i;
+
+            while ( _i < _s.size() ) {
+                char const l_c = _s[ _i ];
+
+                if ( ( l_c == ' ' ) || ( l_c == '\t' ) || ( l_c == '\n' ) ||
+                     ( l_c == '\r' ) || ( l_c == ',' ) || ( l_c == '}' ) ||
+                     ( l_c == ']' ) ) {
+                    break;
+                }
+
+                ++_i;
+            }
+
+            return ( _i > l_begin );
+        }
+    }
+}
+
 auto parseValueForKey( std::string_view _key,
                        std::string_view _s,
                        size_t& _i,
@@ -302,8 +435,8 @@ auto parseValueForKey( std::string_view _key,
         return ( l_result );
 
     } else {
-        logg::warning( "parseValueForKey: unknown key '{}'", _key );
-        return ( false );
+        logg::warning( "parseValueForKey: unknown key '{}', skipping", _key );
+        return ( skipValue( _s, _i ) );
     }
 }
 
@@ -396,6 +529,13 @@ auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
     if ( !l_cfg ) {
         logg::warning( "parseWrapperData(env): JSON parse failed" );
         return ( std::nullopt );
+    }
+
+    // Set env vars for config
+    {
+        setenv( "WRAPPER_TRACE", ( l_cfg->trace ? "1" : "0" ), true );
+        setenv( "WRAPPER_DEBUG", ( ( l_cfg->verbose >= 3 ) ? "1" : "0" ),
+                true );
     }
 
     logg::debug( "parseWrapperData(shared): JSON parse succeeded" );
