@@ -89,12 +89,28 @@ auto log( level_t _level, const std::string& _message ) -> void {
     static_assert( static_cast< std::underlying_type_t< level_t > >(
                        level_t::error ) == 4 );
 
-    if ( ( ( _level == level_t::trace ) && !isTraceEnabled() ) ||
-         ( ( _level == level_t::debug ) &&
-           ( !isDebugEnabled() || ( getVerboseLevel() < 3 ) ) ) ||
-         ( ( _level == level_t::info ) && ( getVerboseLevel() < 1 ) ) ||
-         ( ( _level == level_t::warning ) && ( getVerboseLevel() < 2 ) ) ) {
-        return;
+    {
+        bool l_allow = false;
+
+        if ( _level == level_t::trace ) {
+            l_allow = isTraceEnabled();
+
+        } else if ( _level == level_t::debug ) {
+            l_allow = isDebugEnabled() || isTraceEnabled() ||
+                      ( getVerboseLevel() >= 3 );
+
+        } else if ( _level == level_t::info ) {
+            l_allow = isDebugEnabled() || isTraceEnabled() ||
+                      ( getVerboseLevel() >= 2 );
+
+        } else if ( _level == level_t::warning ) {
+            l_allow = isDebugEnabled() || isTraceEnabled() ||
+                      ( getVerboseLevel() >= 1 );
+        }
+
+        if ( !l_allow ) {
+            return;
+        }
     }
 
     static constexpr std::array l_prefixes = {
