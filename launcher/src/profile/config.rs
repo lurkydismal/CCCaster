@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 #[serde(default)]
 pub struct Profile {
     pub enabled_mods: BTreeSet<String>,
+    pub disabled_mods: BTreeSet<String>,
     pub load_order: Option<Vec<String>>,
     pub env: BTreeMap<String, String>,
     pub game_args: Vec<String>,
@@ -15,10 +16,10 @@ impl Profile {
         let mut result = Vec::new();
         let mut seen = BTreeSet::new();
 
-        // Apply load_order (filtered by enabled_mods)
+        // Apply load_order (filtered by enabled_mods and disabled_mods)
         if let Some(l_order) = &self.load_order {
             for l_mod in l_order {
-                if self.enabled_mods.contains(l_mod) {
+                if self.enabled_mods.contains(l_mod) && !self.disabled_mods.contains(l_mod) {
                     result.push(l_mod.clone());
                     seen.insert(l_mod.clone());
                 }
@@ -26,11 +27,11 @@ impl Profile {
         }
 
         // Append enabled mods not in load_order
-        for l_mod in &self.enabled_mods {
-            if !seen.contains(l_mod) {
-                result.push(l_mod.clone());
-            }
-        }
+        // for l_mod in &self.enabled_mods {
+        //     if !seen.contains(l_mod) {
+        //         result.push(l_mod.clone());
+        //     }
+        // }
 
         result
     }
@@ -41,7 +42,7 @@ impl Profile {
 
     #[expect(unused)]
     pub fn has_mod(&self, mod_name: &str) -> bool {
-        self.enabled_mods.contains(mod_name)
+        self.enabled_mods.contains(mod_name) && !self.disabled_mods.contains(mod_name)
     }
 
     pub fn set_env_overrides_into(&self, target: &mut BTreeMap<String, String>) {

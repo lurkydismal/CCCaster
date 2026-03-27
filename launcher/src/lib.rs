@@ -114,6 +114,13 @@ pub fn run_cli() -> Result<()> {
                         .flatten()
                         .cloned()
                         .collect(),
+                    disabled_mods: l_args
+                        .disable
+                        .as_ref()
+                        .into_iter()
+                        .flatten()
+                        .cloned()
+                        .collect(),
                     load_order: l_args.load_order.as_deref().map(|l_s| {
                         l_s.split(';')
                             .map(|l_part| l_part.to_string())
@@ -138,7 +145,21 @@ pub fn run_cli() -> Result<()> {
             let mut l_game_args = l_args.game_args.clone();
             l_profile.append_game_args_into(&mut l_game_args);
 
+            let addon = Some({
+                let mut l_vec = l_args.addon.clone().unwrap_or_default();
+                l_vec.extend(l_profile.enabled_mods.iter().cloned());
+                l_vec
+            });
+
+            let disable = Some({
+                let mut l_vec = l_args.disable.clone().unwrap_or_default();
+                l_vec.extend(l_profile.disabled_mods.iter().cloned());
+                l_vec
+            });
+
             let l_new_args = Args {
+                addon,
+                disable,
                 load_order: Some(l_profile.load_order_string()),
                 game_args: l_game_args,
                 profile: None,
