@@ -53,6 +53,18 @@ const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 bool g_timingsEnabled = false;
 
+auto setWrapperEnv( const char* _key, const char* _value ) -> bool {
+    const BOOL l_result = SetEnvironmentVariableA( _key, _value );
+
+    if ( l_result == 0 ) {
+        logg::error( "Failed to set env var '{}' (error={})", _key,
+                     GetLastError() );
+        return ( false );
+    }
+
+    return ( true );
+}
+
 auto isTruthy( const char* _value ) -> bool {
     if ( _value == nullptr ) {
         logg::trace( "isTruthy: value is null -> false" );
@@ -537,9 +549,17 @@ auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
         logg::trace( "config parsed: trace={}, verbose={}", l_cfg->trace,
                      l_cfg->verbose );
 
-        setenv( "WRAPPER_TRACE", ( l_cfg->trace ? "1" : "0" ), true );
-        setenv( "WRAPPER_DEBUG", ( ( l_cfg->verbose >= 3 ) ? "1" : "0" ),
-                true );
+        const bool l_traceSet =
+            setWrapperEnv( "WRAPPER_TRACE", ( l_cfg->trace ? "1" : "0" ) );
+        const bool l_debugSet =
+            setWrapperEnv( "WRAPPER_DEBUG",
+                           ( ( l_cfg->verbose >= 3 ) ? "1" : "0" ) );
+
+        if ( !l_traceSet || !l_debugSet ) {
+            logg::warning(
+                "Config env update incomplete: trace_set={}, debug_set={}",
+                l_traceSet, l_debugSet );
+        }
     }
 
     logg::debug( "parseWrapperData(shared): JSON parse succeeded" );
