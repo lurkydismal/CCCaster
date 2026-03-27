@@ -2,11 +2,13 @@
 
 #include <array>
 #include <cctype>
+#include <charconv>
 #include <cstdlib>
 #include <cstring>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <mutex>
 #include <string>
 #include <type_traits>
@@ -40,14 +42,23 @@ auto isTruthy( const char* _value ) -> bool {
 }
 
 auto getVerboseLevel() -> uint8_t {
-    std::string_view l_level = std::getenv( "WRAPPER_VERBOSE" );
-    uint8_t l_verboseLevel = 0;
+    const char* l_env = std::getenv( "WRAPPER_VERBOSE" );
 
-    if ( !l_verboseLevel ) {
-        std::from_chars( l_level.begin(), l_level.end(), l_verboseLevel );
+    if ( l_env == nullptr ) {
+        return ( 0 );
     }
 
-    return ( l_verboseLevel );
+    const std::string_view l_level{ l_env };
+    unsigned l_verboseLevel = 0;
+    const auto [ l_ptr, l_error ] =
+        std::from_chars( l_level.begin(), l_level.end(), l_verboseLevel );
+
+    if ( ( l_error != std::errc() ) || ( l_ptr != l_level.end() ) ||
+         ( l_verboseLevel > std::numeric_limits< uint8_t >::max() ) ) {
+        return ( 0 );
+    }
+
+    return ( static_cast< uint8_t >( l_verboseLevel ) );
 }
 
 auto isDebugEnabled() -> bool {

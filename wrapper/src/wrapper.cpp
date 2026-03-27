@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
+#include <limits>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -48,7 +49,7 @@ using wrapperData_t = struct wrapperData {
     bool no_patches{};
 };
 
-constexpr const std::string g_cccasterName = "./main.so";
+const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 bool g_timingsEnabled = false;
 
@@ -652,7 +653,7 @@ auto attach() -> bool {
 
     logg::info( "CALLING INIT()" );
 
-    const std::string l_value = l_data->value;
+    const std::string l_value{ l_data->value, l_data->size };
 
     logg::trace( "attach: init json value='{}'", l_value.c_str() );
 
