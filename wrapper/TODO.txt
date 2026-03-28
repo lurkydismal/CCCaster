@@ -1,0 +1,1 @@
+Apply flags from JSON to env
