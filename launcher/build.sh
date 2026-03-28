@@ -74,6 +74,8 @@ fi
 l_target=""
 if ((l_windows)); then
     l_target="--target=i686-pc-windows-gnu"
+else
+    l_target="--target=i686-unknown-linux-gnu"
 fi
 
 RUSTFLAGS='-C target-cpu=native' \
