@@ -117,6 +117,9 @@ auto log( level_t _level, const std::string& _message ) -> void {
         } else if ( _level == level_t::warning ) {
             l_allow = isDebugEnabled() || isTraceEnabled() ||
                       ( getVerboseLevel() >= 1 );
+
+        } else if ( _level == level_t::error ) {
+            l_allow = true;
         }
 
         if ( !l_allow ) {
