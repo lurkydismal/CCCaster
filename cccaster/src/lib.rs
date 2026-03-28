@@ -60,3 +60,11 @@ unsafe fn remove_patch_raw(id: Handle) -> bool {
 
     unsafe { (api.remove_patch)(id) }
 }
+
+struct ModMeta {
+    id: String,
+    version: Version,
+    dependencies: Vec<Dependency>, // { id, version_req, optional }
+    events: Vec<Event>,
+    api_version: u8,
+}

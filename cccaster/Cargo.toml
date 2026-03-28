@@ -10,6 +10,8 @@ crate-type = ["dylib", "rlib"]
 color-print = "0.3.7"
 lazy_static = "1.5.0"
 mlua = { version = "0.11.6", features = ["luau-jit", "vendored", "async", "serde", "mlua_derive", "macros"] }
+petgraph = { version = "0.8.3", features = ["rayon", "serde-1"] }
+semver = { version = "1.0.27", features = ["serde"] }
 serde = "1.0.228"
 serde_json = "1.0.149"
 tokio = { version = "1.50.0", features = ["macros", "fs", "rt", "time", "parking_lot"] }
