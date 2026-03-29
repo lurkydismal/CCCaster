@@ -53,6 +53,12 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 api_version: raw.api_version,
                 events: raw.events.clone(),
             };
+            crate::modloader_info!(
+                "Discovered mod {} (api_version={}, events={})",
+                meta.id,
+                meta.api_version,
+                meta.events.len()
+            );
 
             mod_entries.push((meta, path.clone()));
         }
