@@ -1,55 +1,57 @@
-#[derive(Serialize, Debug)]
-pub struct ModloaderData<'a> {
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ModloaderData {
     // Core execution modes
     /// Default behavior. Launch + inject + run normally.
-    pub play: &'a bool,
+    pub play: bool,
 
     /// Validate addons, dependency graph, patches, paths — do not launch.
-    pub dry_run: &'a bool,
+    pub dry_run: bool,
 
     /// Load only specific addons (override auto-load).
-    pub addon: &'a Option<Vec<String>>,
+    pub addon: Option<Vec<String>>,
 
     // Addon loading & resolution control
     /// Override default `addons/`.
-    pub addons_dir: &'a Option<String>,
+    pub addons_dir: Option<String>,
 
     /// Explicit load order override (bypass dependency resolver).
-    pub load_order: &'a Option<String>,
+    pub load_order: Option<String>,
 
     /// Ignore dependencies (dangerous but useful for debugging).
-    pub no_deps: &'a bool,
+    pub no_deps: bool,
 
     /// Ignore version/ API mismatches.
-    pub force: &'a bool,
+    pub force: bool,
 
     /// Blacklist specific addons.
-    pub disable: &'a Option<Vec<String>>,
+    pub disable: Option<Vec<String>>,
 
     // Debugging & diagnostics
     /// Increase logging verbosity (-v, -vv, -vvv).
     /// Each additional `-v` increases detail level.
-    pub verbose: &'a u8,
+    pub verbose: u8,
 
     /// Very noisy: patching, hooks, loader internals.
-    pub trace: &'a bool,
+    pub trace: bool,
 
     /// Output resolved patches after dependency resolution.
-    pub dump_patches: &'a bool,
+    pub dump_patches: bool,
 
     /// Output mod dependency graph.
-    pub dump_graph: &'a bool,
+    pub dump_graph: bool,
 
     /// Measure load/ injection phases.
-    pub timings: &'a bool,
+    pub timings: bool,
 
     // Safety/ isolation controls
     /// Disable all mods except core/ runtime.
-    pub safe_mode: &'a bool,
+    pub safe_mode: bool,
 
     /// Restrict file access (NOTE: stub, no VFS yet).
-    pub sandbox: &'a bool,
+    pub sandbox: bool,
 
     /// Load mods but don’t apply binary patches (script-only testing).
-    pub no_patches: &'a bool,
+    pub no_patches: bool,
 }
