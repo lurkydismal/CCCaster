@@ -34,6 +34,7 @@ pub fn log_level_from_args(args: &ModloaderData) -> u8 {
 }
 
 pub fn set_enabled_log_level(level: u8) {
+    modloader_debug!("set_enabled_log_level called with level={}", level);
     ENABLED_LOG_LEVEL.store(level, Ordering::Relaxed);
 }
 
@@ -42,6 +43,7 @@ pub fn enabled_log_level() -> u8 {
 }
 
 pub fn parse_args(json: &str) -> Result<()> {
+    modloader_debug!("parse_args received json payload ({} bytes)", json.len());
     match serde_json::from_str(json) {
         Ok(data) => {
             set_enabled_log_level(log_level_from_args(&data));
@@ -49,12 +51,25 @@ pub fn parse_args(json: &str) -> Result<()> {
             // TODO: Get env vars and apply
 
             modloader_trace!(
-                "parse_args accepted args: addons_dir={:?}, load_order={:?}, trace={}, verbose={}",
+                "parse_args accepted args: play={}, dry_run={}, addon={:?}, addons_dir={:?}, load_order={:?}, no_deps={}, force={}, disable={:?}, trace={}, verbose={}, dump_patches={}, dump_graph={}, timings={}, safe_mode={}, sandbox={}",
+                data.play,
+                data.dry_run,
+                data.addon,
                 data.addons_dir,
                 data.load_order,
+                data.no_deps,
+                data.force,
+                data.disable,
                 data.trace,
                 data.verbose,
+                data.dump_patches,
+                data.dump_graph,
+                data.timings,
+                data.safe_mode,
+                data.sandbox,
             );
+
+            modloader_info!("CLI/runtime arguments parsed successfully");
 
             Ok(())
         }
