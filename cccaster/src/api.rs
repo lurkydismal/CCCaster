@@ -1,5 +1,7 @@
 use std::os::raw::c_char;
 
+use crate::main;
+
 pub type Handle = u32;
 
 pub type MakePatchFn = unsafe extern "C" fn(addr: usize, bytes: *const u8, len: usize) -> Handle;
@@ -35,6 +37,14 @@ pub extern "C" fn init(
 
     let slice = unsafe { std::slice::from_raw_parts(json as *const u8, json_len) };
     let _json_str = std::str::from_utf8(slice);
+
+    if let Err(err) = main() {
+        eprintln!("Error: {}", err);
+
+        for (i, cause) in err.chain().skip(1).enumerate() {
+            eprintln!("Caused by [{}]: {}", i, cause);
+        }
+    }
 
     true
 }
