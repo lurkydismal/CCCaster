@@ -42,13 +42,39 @@ pub fn enabled_log_level() -> u8 {
     ENABLED_LOG_LEVEL.load(Ordering::Relaxed)
 }
 
+fn env_bool(name: &str) -> Option<bool> {
+    std::env::var(name)
+        .ok()
+        .and_then(|v| match v.to_ascii_lowercase().as_str() {
+            "1" | "true" | "yes" | "on" => Some(true),
+            "0" | "false" | "no" | "off" => Some(false),
+            _ => None,
+        })
+}
+
+fn env_string(name: &str) -> Option<String> {
+    std::env::var(name).ok()
+}
+
 pub fn parse_args(json: &str) -> Result<()> {
     modloader_debug!("parse_args received json payload ({} bytes)", json.len());
-    match serde_json::from_str(json) {
-        Ok(data) => {
-            set_enabled_log_level(log_level_from_args(&data));
+    match serde_json::from_str::<ModloaderData>(json) {
+        Ok(mut data) => {
+            // --- overrides ---
+            if env_bool("MODLOADER_DEBUG").unwrap_or(false) {
+                data.verbose = data.verbose.max(LOG_DEBUG);
+            }
 
-            // TODO: Get env vars and apply
+            if let Some(v) = env_bool("MODLOADER_TRACE") {
+                data.trace = data.trace || v;
+            }
+
+            if let Some(v) = env_string("MODLOADER_LOAD_ORDER") {
+                data.load_order = Some(v);
+            }
+            // ------------------
+
+            set_enabled_log_level(log_level_from_args(&data));
 
             modloader_trace!(
                 "parse_args accepted args: play={}, dry_run={}, addon={:?}, addons_dir={:?}, load_order={:?}, no_deps={}, force={}, disable={:?}, trace={}, verbose={}, dump_patches={}, dump_graph={}, timings={}, safe_mode={}, sandbox={}",
