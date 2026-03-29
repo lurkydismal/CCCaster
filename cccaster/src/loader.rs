@@ -6,7 +6,6 @@ use mlua::{Function, Lua, Table};
 use petgraph::algo::toposort;
 use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
-use serde_json;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tokio::fs;
