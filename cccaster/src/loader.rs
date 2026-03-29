@@ -1,5 +1,6 @@
 use crate::patch::{PatchEntry, Patches};
 use crate::types::{Dependency, ModMeta, RawModInfo};
+use crate::{modloader_error, modloader_warning};
 use anyhow::{Result, anyhow};
 use mlua::{Function, Lua, Table};
 use petgraph::algo::toposort;
@@ -21,7 +22,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
         if path.is_dir() {
             // Sanitize path to avoid traversal attacks
             if !is_safe_path(addons_dir, &path) {
-                eprintln!("Skipping unsafe directory path: {:?}", path);
+                modloader_warning!("Skipping unsafe directory path: {:?}", path);
                 continue;
             }
 
@@ -29,7 +30,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
             let info_path = path.join("info.json");
             let info_data = fs::read(&info_path).await;
             if info_data.is_err() {
-                eprintln!("Failed to read info.json for mod at {:?}, skipping", path);
+                modloader_error!("Failed to read info.json for mod at {:?}, skipping", path);
                 continue;
             }
             let raw: RawModInfo = serde_json::from_slice(&info_data.unwrap())?;
@@ -88,13 +89,15 @@ pub async fn load_mods_from_addons() -> Result<()> {
                     let this_idx = indices[&meta.id];
                     graph.add_edge(dep_idx, this_idx, ());
                 } else if !dep.optional {
-                    println!(
+                    modloader_warning!(
                         "Dependency version mismatch: {} requires {}, found {}",
-                        meta.id, dep.version_req, target_meta.version
+                        meta.id,
+                        dep.version_req,
+                        target_meta.version
                     );
                 }
             } else if !dep.optional {
-                println!("Missing required dependency {} for mod {}", dep.id, meta.id);
+                modloader_warning!("Missing required dependency {} for mod {}", dep.id, meta.id);
             }
         }
     });

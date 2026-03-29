@@ -1,6 +1,6 @@
 use std::os::raw::c_char;
 
-use crate::main;
+use crate::{main, modloader_error};
 
 pub type Handle = u32;
 
@@ -39,10 +39,10 @@ pub extern "C" fn init(
     let _json_str = std::str::from_utf8(slice);
 
     if let Err(err) = main() {
-        eprintln!("Error: {}", err);
+        modloader_error!("Error: {}", err);
 
         for (i, cause) in err.chain().skip(1).enumerate() {
-            eprintln!("Caused by [{}]: {}", i, cause);
+            modloader_error!("Caused by [{}]: {}", i, cause);
         }
     }
 

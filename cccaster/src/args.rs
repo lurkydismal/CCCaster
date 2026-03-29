@@ -51,7 +51,4 @@ pub struct ModloaderData {
 
     /// Restrict file access (NOTE: stub, no VFS yet).
     pub sandbox: bool,
-
-    /// Load mods but don’t apply binary patches (script-only testing).
-    pub no_patches: bool,
 }
