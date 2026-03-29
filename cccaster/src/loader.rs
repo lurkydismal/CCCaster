@@ -1,5 +1,4 @@
 use crate::patch::{PatchEntry, Patches};
-use crate::types::RawDependency;
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use anyhow::{Result, anyhow};
 use mlua::{Function, Lua, Table};
@@ -78,7 +77,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
         indices.insert(meta.id.clone(), graph.add_node(i));
     }
     // Add edges for dependencies
-    for (i, (meta, _path)) in mod_entries.iter().enumerate() {
+    mod_entries.iter().for_each(|(meta, _path)| {
         for dep in &meta.dependencies {
             if let Some(&dep_idx) = indices.get(&dep.id) {
                 // Check version constraint
@@ -98,7 +97,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 println!("Missing required dependency {} for mod {}", dep.id, meta.id);
             }
         }
-    }
+    });
 
     // Step 4: Detect cycles and compute load order
     let sorted = toposort(&graph, None).map_err(|cycle| {
@@ -131,10 +130,10 @@ pub async fn load_mods_from_addons() -> Result<()> {
         let returned: Table = lua.load(&script).eval()?;
         // Register returned table under Engine
         let engine_table: Table = globals.get("Engine")?;
-        engine_table.set(&meta.id, returned.clone())?;
+        engine_table.set(meta.id.clone(), returned.clone())?;
         // Call init callback if present
-        if let Ok(init_fn) = returned.get::<_, Function>("init") {
-            let _ = init_fn.call(());
+        if let Ok(init_fn) = returned.get::<Function>("init") {
+            let _ = init_fn.call::<()>(());
         }
     }
 
@@ -142,9 +141,9 @@ pub async fn load_mods_from_addons() -> Result<()> {
     let engine_table: Table = globals.get("Engine")?;
     for &mod_index in &load_order {
         let (meta, _path) = &mod_entries[mod_index];
-        let mod_table: Table = engine_table.get(&meta.id)?;
-        if let Ok(post_fn) = mod_table.get::<_, Function>("post_init") {
-            let _ = post_fn.call(());
+        let mod_table: Table = engine_table.get(meta.id.clone())?;
+        if let Ok(post_fn) = mod_table.get::<Function>("post_init") {
+            let _ = post_fn.call::<()>(());
         }
     }
 
