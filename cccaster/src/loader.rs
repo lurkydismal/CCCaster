@@ -1,7 +1,7 @@
 use crate::patch::{PatchEntry, Patches};
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning};
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 use mlua::{Function, Lua, Table};
 use petgraph::algo::toposort;
 use petgraph::graph::Graph;
@@ -18,8 +18,14 @@ pub async fn load_mods_from_addons() -> Result<()> {
     modloader_info!("Starting mod discovery in {:?}", addons_dir);
 
     // Step 1: List all mods in addons/
-    let mut dir = fs::read_dir(addons_dir).await?;
-    while let Some(entry) = dir.next_entry().await? {
+    let mut dir = fs::read_dir(addons_dir)
+        .await
+        .with_context(|| format!("unable to open addons directory at {:?}", addons_dir))?;
+    while let Some(entry) = dir
+        .next_entry()
+        .await
+        .with_context(|| format!("failed while iterating entries in {:?}", addons_dir))?
+    {
         let path = entry.path();
         modloader_trace!("Inspecting addon entry at {:?}", path);
         if path.is_dir() {
@@ -34,11 +40,27 @@ pub async fn load_mods_from_addons() -> Result<()> {
             let info_path = path.join("info.json");
             modloader_trace!("Reading manifest {:?}", info_path);
             let info_data = fs::read(&info_path).await;
-            if info_data.is_err() {
-                modloader_error!("Failed to read info.json for mod at {:?}, skipping", path);
+            if let Err(err) = info_data.as_ref() {
+                modloader_error!(
+                    "Failed to read mod manifest {:?} for {:?}: {}. Skipping this addon.",
+                    info_path,
+                    path,
+                    err
+                );
                 continue;
             }
-            let raw: RawModInfo = serde_json::from_slice(&info_data.unwrap())?;
+            let raw: RawModInfo = match serde_json::from_slice(&info_data.unwrap()) {
+                Ok(raw) => raw,
+                Err(err) => {
+                    modloader_error!(
+                        "Failed to parse manifest {:?} for {:?}: {}. Skipping this addon.",
+                        info_path,
+                        path,
+                        err
+                    );
+                    continue;
+                }
+            };
             modloader_debug!(
                 "Loaded manifest for mod id={} version={} dependencies={}",
                 raw.id,
@@ -46,9 +68,22 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 raw.dependencies.len()
             );
             // Parse version
-            let version = Version::parse(&raw.version)?;
+            let version = match Version::parse(&raw.version) {
+                Ok(version) => version,
+                Err(err) => {
+                    modloader_error!(
+                        "Invalid version '{}' in {:?} for mod {}: {}. Skipping this addon.",
+                        raw.version,
+                        info_path,
+                        raw.id,
+                        err
+                    );
+                    continue;
+                }
+            };
             // Parse dependencies
             let mut deps = Vec::new();
+            let mut dep_parse_failed = false;
             for rd in raw.dependencies {
                 modloader_trace!(
                     "Parsing dependency for mod {} => id={}, req={}, optional={}",
@@ -57,12 +92,34 @@ pub async fn load_mods_from_addons() -> Result<()> {
                     rd.version_req,
                     rd.optional
                 );
-                let ver_req = VersionReq::parse(&rd.version_req)?;
+                let ver_req = match VersionReq::parse(&rd.version_req) {
+                    Ok(ver_req) => ver_req,
+                    Err(err) => {
+                        modloader_error!(
+                            "Invalid dependency version requirement '{}' in {:?} (mod {}, dependency {}): {}. Skipping this addon.",
+                            rd.version_req,
+                            info_path,
+                            raw.id,
+                            rd.id,
+                            err
+                        );
+                        dep_parse_failed = true;
+                        break;
+                    }
+                };
                 deps.push(Dependency {
                     id: rd.id,
                     version_req: ver_req,
                     optional: rd.optional,
                 });
+            }
+            if dep_parse_failed {
+                modloader_warning!(
+                    "Dependency parsing failed for mod {} in {:?}; addon will be skipped.",
+                    raw.id,
+                    path
+                );
+                continue;
             }
             let meta = ModMeta {
                 id: raw.id.clone(),
@@ -101,8 +158,19 @@ pub async fn load_mods_from_addons() -> Result<()> {
         modloader_trace!("Checking for patch file {:?}", patch_path);
         if patch_path.exists() {
             modloader_debug!("Loading patches for mod {} from {:?}", meta.id, patch_path);
-            let patch_data = fs::read(&patch_path).await?;
-            let patch_entries: Vec<PatchEntry> = serde_json::from_slice(&patch_data)?;
+            let patch_data = fs::read(&patch_path).await.with_context(|| {
+                format!(
+                    "failed to read patch file {:?} for mod {}",
+                    patch_path, meta.id
+                )
+            })?;
+            let patch_entries: Vec<PatchEntry> =
+                serde_json::from_slice(&patch_data).with_context(|| {
+                    format!(
+                        "failed to parse patch file {:?} for mod {}",
+                        patch_path, meta.id
+                    )
+                })?;
             modloader_info!(
                 "Applying {} patch entries for mod {}",
                 patch_entries.len(),
@@ -211,10 +279,20 @@ pub async fn load_mods_from_addons() -> Result<()> {
         // Load main.luau script
         let main_path = path.join("main.luau");
         modloader_trace!("Reading script {:?}", main_path);
-        let script = fs::read_to_string(&main_path).await?;
+        let script = fs::read_to_string(&main_path).await.with_context(|| {
+            format!(
+                "failed to read main script {:?} for mod {}",
+                main_path, meta.id
+            )
+        })?;
         modloader_debug!("Read {} bytes of script for mod {}", script.len(), meta.id);
         // Execute script, expecting it returns a table
-        let returned: Table = lua.load(&script).eval()?;
+        let returned: Table = lua.load(&script).eval().with_context(|| {
+            format!(
+                "failed to evaluate Lua script {:?} for mod {}",
+                main_path, meta.id
+            )
+        })?;
         modloader_debug!("Script for mod {} evaluated successfully", meta.id);
         // Register returned table under Engine
         let engine_table: Table = globals.get("Engine")?;
@@ -223,7 +301,9 @@ pub async fn load_mods_from_addons() -> Result<()> {
         // Call init callback if present
         if let Ok(init_fn) = returned.get::<Function>("init") {
             modloader_debug!("Calling init() for mod {}", meta.id);
-            let _ = init_fn.call::<()>(());
+            if let Err(err) = init_fn.call::<()>(()) {
+                modloader_error!("init() failed for mod {}: {}", meta.id, err);
+            }
         } else {
             modloader_trace!("Mod {} has no init() callback", meta.id);
         }
@@ -237,7 +317,9 @@ pub async fn load_mods_from_addons() -> Result<()> {
         let mod_table: Table = engine_table.get(meta.id.clone())?;
         if let Ok(post_fn) = mod_table.get::<Function>("post_init") {
             modloader_debug!("Calling post_init() for mod {}", meta.id);
-            let _ = post_fn.call::<()>(());
+            if let Err(err) = post_fn.call::<()>(()) {
+                modloader_error!("post_init() failed for mod {}: {}", meta.id, err);
+            }
         } else {
             modloader_trace!("Mod {} has no post_init() callback", meta.id);
         }

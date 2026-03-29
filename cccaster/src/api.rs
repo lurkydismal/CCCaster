@@ -53,7 +53,7 @@ pub extern "C" fn init(
             modloader_trace!("init JSON preview (first 120 chars): {}", preview);
 
             if let Err(err) = parse_args(json_str) {
-                modloader_error!("Error: {err}");
+                modloader_error!("Failed to parse modloader init arguments JSON: {err}");
 
                 return false;
             }
@@ -68,10 +68,10 @@ pub extern "C" fn init(
     modloader_info!("Calling async modloader main entrypoint");
 
     if let Err(err) = main() {
-        modloader_error!("Error: {}", err);
+        modloader_error!("Modloader startup failed: {}", err);
 
         for (i, cause) in err.chain().skip(1).enumerate() {
-            modloader_error!("Caused by [{}]: {}", i, cause);
+            modloader_error!("Root cause [{}]: {}", i, cause);
         }
     } else {
         modloader_info!("Modloader main entrypoint completed successfully");
