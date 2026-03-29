@@ -100,7 +100,7 @@ pub fn parse_args(json: &str) -> Result<()> {
             Ok(())
         }
         Err(err) => {
-            modloader_error!("{err}");
+            modloader_error!("Failed to deserialize ModloaderData from init JSON: {err}");
 
             Err(AppError::Message(err.to_string()))
         }
