@@ -1,7 +1,7 @@
 pub mod error;
 
+mod MODLOADER;
 mod args;
-mod launcher;
 mod profile;
 
 #[cfg(target_os = "windows")]
@@ -24,7 +24,7 @@ pub const LOG_TRACE: u8 = 4;
 static ENABLED_LOG_LEVEL: AtomicU8 = AtomicU8::new(LOG_ERROR);
 
 pub fn log_level_from_args(args: &Args) -> u8 {
-    launcher_trace!(
+    modloader_trace!(
         "log_level_from_args accepted args: trace={}, verbose={}",
         args.trace,
         args.verbose
@@ -45,14 +45,11 @@ pub fn enabled_log_level() -> u8 {
 }
 
 fn collect_env() -> std::collections::BTreeMap<String, String> {
-    launcher_trace!("collect_env accepted args");
+    modloader_trace!("collect_env accepted args");
     let mut l_map = std::collections::BTreeMap::new();
 
     for (l_key, l_value) in std::env::vars() {
-        if l_key.starts_with("LAUNCHER_")
-            || l_key.starts_with("MODLOADER_")
-            || l_key.starts_with("WRAPPER_")
-        {
+        if l_key.starts_with("MODLOADER_") {
             l_map.insert(l_key, l_value);
         }
     }
@@ -63,7 +60,7 @@ fn collect_env() -> std::collections::BTreeMap<String, String> {
 pub fn parse_args() -> Result<()> {
     let l_args = args::Args::parse();
     set_enabled_log_level(log_level_from_args(&l_args));
-    launcher_trace!(
+    modloader_trace!(
         "parse_args accepted args: addons_dir={:?}, load_order={:?}, trace={}, verbose={}",
         l_args.addons_dir,
         l_args.load_order,
@@ -73,50 +70,50 @@ pub fn parse_args() -> Result<()> {
 }
 
 #[macro_export]
-macro_rules! launcher_trace {
+macro_rules! modloader_trace {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_TRACE {
-            color_print::ceprint!("<m!>[LAUNCHER]</> [TRACE] ");
+            color_print::ceprint!("<m!>[MODLOADER]</> [TRACE] ");
             eprintln!($($arg)*);
         }
     }};
 }
 
 #[macro_export]
-macro_rules! launcher_debug {
+macro_rules! modloader_debug {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_DEBUG {
-            color_print::cprint!("<m!>[LAUNCHER]</> <c!>[DEBUG]</> ");
+            color_print::cprint!("<m!>[MODLOADER]</> <c!>[DEBUG]</> ");
             println!($($arg)*);
         }
     }};
 }
 
 #[macro_export]
-macro_rules! launcher_info {
+macro_rules! modloader_info {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_INFO {
-            color_print::cprint!("<m!>[LAUNCHER]</> <g!>[INFO]</> ");
+            color_print::cprint!("<m!>[MODLOADER]</> <g!>[INFO]</> ");
             println!($($arg)*);
         }
     }};
 }
 
 #[macro_export]
-macro_rules! launcher_warning {
+macro_rules! modloader_warning {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_WARNING {
-            color_print::ceprint!("<m!>[LAUNCHER]</> <y!>[WARNING]</> ");
+            color_print::ceprint!("<m!>[MODLOADER]</> <y!>[WARNING]</> ");
             eprintln!($($arg)*);
         }
     }};
 }
 
 #[macro_export]
-macro_rules! launcher_error {
+macro_rules! modloader_error {
     ($($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $crate::LOG_ERROR {
-            color_print::ceprint!("<m!>[LAUNCHER]</> <r!>[ERROR]</> ");
+            color_print::ceprint!("<m!>[MODLOADER]</> <r!>[ERROR]</> ");
             eprintln!($($arg)*);
         }
     }};
