@@ -1,0 +1,2 @@
+P6
+Replace dtor with some function
