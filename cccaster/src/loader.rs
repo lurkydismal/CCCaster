@@ -17,9 +17,7 @@ use petgraph::algo::toposort;
 use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
 use std::collections::{HashMap, HashSet};
-use std::ffi::c_int;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
@@ -35,11 +33,6 @@ enum ControlMessage {
 
 static HOT_RELOAD_THREAD: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
 static SHUTDOWN_SIGNAL: Lazy<Mutex<Option<ShutdownSender>>> = Lazy::new(|| Mutex::new(None));
-static HOT_RELOAD_READY: AtomicBool = AtomicBool::new(false);
-#[cfg(target_os = "linux")]
-static GUARD_CHILD_PID: Lazy<Mutex<Option<libc::pid_t>>> = Lazy::new(|| Mutex::new(None));
-#[cfg(target_os = "linux")]
-static GUARD_PARENT_DIED: AtomicBool = AtomicBool::new(false);
 
 struct LoadedMod {
     /// Fully parsed metadata from `info.json`.
@@ -82,7 +75,6 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 thread_signal.clone(),
                 control_rx,
             )) {
-                HOT_RELOAD_READY.store(false, Ordering::Release);
                 modloader_error!("Modloader runtime exited with error: {}", err);
                 send_startup_signal(&thread_signal, Err(err));
             }
@@ -370,9 +362,6 @@ async fn start_hot_reload_loop(
     }
 
     modloader_info!("Hot-reload watcher started for {} mods", loaded_mods.len());
-    #[cfg(target_os = "linux")]
-    spawn_parent_death_guard(&lua, &loaded_mods)?;
-    HOT_RELOAD_READY.store(true, Ordering::Release);
     send_startup_signal(&ready_signal, Ok(()));
 
     loop {
@@ -381,7 +370,6 @@ async fn start_hot_reload_loop(
                 ControlMessage::Shutdown => {
                     modloader_info!("Shutdown signal received; invoking quit callbacks");
                     call_quit_callbacks(&lua, &loaded_mods)?;
-                    HOT_RELOAD_READY.store(false, Ordering::Release);
                     return Ok(());
                 }
             }
@@ -395,11 +383,6 @@ async fn start_hot_reload_loop(
             }
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
             Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                modloader_warning!(
-                    "Hot-reload watcher disconnected; invoking quit callbacks before shutdown"
-                );
-                call_quit_callbacks(&lua, &loaded_mods)?;
-                HOT_RELOAD_READY.store(false, Ordering::Release);
                 return Err(anyhow!("hot-reload file watcher channel disconnected"));
             }
         };
@@ -437,9 +420,6 @@ async fn start_hot_reload_loop(
 }
 
 pub fn shutdown_before_unload() {
-    #[cfg(target_os = "linux")]
-    stop_parent_death_guard();
-    let runtime_was_ready = HOT_RELOAD_READY.load(Ordering::Acquire);
     let tx = match SHUTDOWN_SIGNAL.lock() {
         Ok(mut guard) => guard.take(),
         Err(_) => {
@@ -450,14 +430,7 @@ pub fn shutdown_before_unload() {
     if let Some(tx) = tx
         && let Err(err) = tx.send(ControlMessage::Shutdown)
     {
-        if runtime_was_ready {
-            modloader_warning!(
-                "Failed to signal hot-reload shutdown while runtime was active: {}",
-                err
-            );
-        } else {
-            modloader_debug!("Hot-reload channel already closed during unload; skipping warning");
-        }
+        modloader_warning!("Failed to signal hot-reload shutdown: {}", err);
     }
 
     let thread_handle = match HOT_RELOAD_THREAD.lock() {
@@ -471,99 +444,6 @@ pub fn shutdown_before_unload() {
         && let Err(_panic) = handle.join()
     {
         modloader_error!("Hot-reload thread panicked while shutting down");
-    }
-    HOT_RELOAD_READY.store(false, Ordering::Release);
-}
-
-#[cfg(target_os = "linux")]
-fn spawn_parent_death_guard(lua: &Lua, loaded_mods: &[LoadedMod]) -> Result<()> {
-    let existing_guard = GUARD_CHILD_PID
-        .lock()
-        .map_err(|_| anyhow!("guard pid mutex poisoned"))?;
-    if existing_guard.is_some() {
-        return Ok(());
-    }
-    drop(existing_guard);
-
-    let fork_pid = unsafe { libc::fork() };
-    if fork_pid < 0 {
-        return Err(anyhow!("fork() failed while creating parent-death guard"));
-    }
-    if fork_pid == 0 {
-        run_guard_child(lua, loaded_mods);
-    }
-
-    if let Ok(mut guard_pid) = GUARD_CHILD_PID.lock() {
-        *guard_pid = Some(fork_pid);
-    }
-    modloader_debug!("Started parent-death guard child process pid={}", fork_pid);
-    Ok(())
-}
-
-#[cfg(target_os = "linux")]
-fn stop_parent_death_guard() {
-    let guard_pid = match GUARD_CHILD_PID.lock() {
-        Ok(mut guard) => guard.take(),
-        Err(_) => {
-            modloader_error!("Failed to lock guard pid while stopping parent-death guard");
-            None
-        }
-    };
-
-    if let Some(pid) = guard_pid {
-        unsafe {
-            libc::kill(pid, libc::SIGTERM);
-            let mut status: c_int = 0;
-            let _ = libc::waitpid(pid, &mut status as *mut c_int, 0);
-        }
-    }
-}
-
-#[cfg(target_os = "linux")]
-fn run_guard_child(lua: &Lua, loaded_mods: &[LoadedMod]) -> ! {
-    unsafe {
-        libc::signal(
-            libc::SIGUSR1,
-            guard_parent_dead_signal_handler as *const () as usize,
-        );
-        libc::signal(
-            libc::SIGTERM,
-            guard_parent_dead_signal_handler as *const () as usize,
-        );
-        libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGUSR1);
-    }
-
-    // Parent may have exited before PR_SET_PDEATHSIG was installed.
-    if unsafe { libc::getppid() } == 1 {
-        GUARD_PARENT_DIED.store(true, Ordering::Release);
-    }
-
-    while !GUARD_PARENT_DIED.load(Ordering::Acquire) {
-        unsafe {
-            libc::pause();
-        }
-    }
-
-    if let Err(err) = call_quit_callbacks(lua, loaded_mods) {
-        modloader_error!(
-            "Guard failed to invoke quit callbacks after parent death: {}",
-            err
-        );
-    }
-
-    unsafe {
-        libc::_exit(0);
-    }
-}
-
-#[cfg(target_os = "linux")]
-extern "C" fn guard_parent_dead_signal_handler(signal: c_int) {
-    if signal == libc::SIGUSR1 {
-        GUARD_PARENT_DIED.store(true, Ordering::Release);
-    } else if signal == libc::SIGTERM {
-        unsafe {
-            libc::_exit(0);
-        }
     }
 }
 
