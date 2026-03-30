@@ -329,6 +329,7 @@ async fn run_with_load_order(
     let globals = lua.globals();
     let engine_table = lua.create_table()?;
     install_engine_log_api(&lua, &engine_table)?;
+    install_engine_dispatch_api(&lua, &engine_table, load_order, mod_entries)?;
     globals.set("Engine", engine_table)?;
 
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
@@ -998,6 +999,60 @@ fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
     engine_table.set("LOG_INFO", LOG_INFO)?;
     engine_table.set("LOG_DEBUG", LOG_DEBUG)?;
     engine_table.set("LOG_TRACE", LOG_TRACE)?;
+    Ok(())
+}
+
+fn install_engine_dispatch_api(
+    lua: &Lua,
+    engine_table: &Table,
+    load_order: &[usize],
+    mod_entries: &[(ModMeta, PathBuf)],
+) -> Result<()> {
+    let dispatch_targets: Vec<(String, HashSet<String>)> = load_order
+        .iter()
+        .map(|index| {
+            let meta = &mod_entries[*index].0;
+            (
+                meta.id.clone(),
+                meta.events.iter().cloned().collect::<HashSet<String>>(),
+            )
+        })
+        .collect();
+
+    let dispatch_fn = lua.create_function(move |lua, mut args: mlua::MultiValue| {
+        let event_name = match args.pop_front() {
+            Some(Value::String(name)) => match name.to_str() {
+                Ok(value) => value.to_owned(),
+                Err(_) => return Ok(()),
+            },
+            _ => return Ok(()),
+        };
+
+        let engine_table: Table = match lua.globals().get("Engine") {
+            Ok(table) => table,
+            Err(_) => return Ok(()),
+        };
+
+        for (mod_id, events) in &dispatch_targets {
+            if !events.contains(event_name.as_str()) {
+                continue;
+            }
+
+            let mod_table = match engine_table.get::<Table>(mod_id.as_str()) {
+                Ok(table) => table,
+                Err(_) => continue,
+            };
+            let handler = match mod_table.get::<Function>(event_name.as_str()) {
+                Ok(function) => function,
+                Err(_) => continue,
+            };
+            let _ = handler.call::<()>(args.clone());
+        }
+
+        Ok(())
+    })?;
+
+    engine_table.set("dispatch", dispatch_fn)?;
     Ok(())
 }
 
