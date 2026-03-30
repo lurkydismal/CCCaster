@@ -4,25 +4,34 @@ use crate::patch::{
 };
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{
-    modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
-    runtime_args,
+    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
+    modloader_info, modloader_trace, modloader_warning, runtime_args,
 };
 use anyhow::{Context, Result, anyhow};
 use blake3::Hash;
 use mlua::{Function, Lua, Table, Value};
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use once_cell::sync::Lazy;
 use petgraph::algo::toposort;
 use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 use tokio::fs;
 use tokio::sync::oneshot;
 
 type StartupSignal = Arc<Mutex<Option<oneshot::Sender<Result<()>>>>>;
+type ShutdownSender = std::sync::mpsc::Sender<ControlMessage>;
+
+enum ControlMessage {
+    Shutdown,
+}
+
+static HOT_RELOAD_THREAD: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
+static SHUTDOWN_SIGNAL: Lazy<Mutex<Option<ShutdownSender>>> = Lazy::new(|| Mutex::new(None));
 
 struct LoadedMod {
     /// Fully parsed metadata from `info.json`.
@@ -40,10 +49,11 @@ struct LoadedMod {
 /// Scans the addons directory, initializes mods, and starts hot-reload in a background thread.
 pub async fn load_mods_from_addons() -> Result<()> {
     let (ready_tx, ready_rx) = oneshot::channel::<Result<()>>();
+    let (control_tx, control_rx) = std::sync::mpsc::channel::<ControlMessage>();
     let ready_signal = Arc::new(Mutex::new(Some(ready_tx)));
     let thread_signal = ready_signal.clone();
 
-    thread::Builder::new()
+    let hot_reload_thread = thread::Builder::new()
         .name("cccaster-hot-reload".to_string())
         .spawn(move || {
             let runtime = match tokio::runtime::Builder::new_current_thread()
@@ -60,12 +70,28 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 }
             };
 
-            if let Err(err) = runtime.block_on(load_mods_from_addons_async(thread_signal.clone())) {
+            if let Err(err) = runtime.block_on(load_mods_from_addons_async(
+                thread_signal.clone(),
+                control_rx,
+            )) {
                 modloader_error!("Modloader runtime exited with error: {}", err);
                 send_startup_signal(&thread_signal, Err(err));
             }
         })
         .map_err(|err| anyhow!("failed to spawn hot-reload thread: {}", err))?;
+
+    {
+        let mut shutdown_guard = SHUTDOWN_SIGNAL
+            .lock()
+            .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?;
+        *shutdown_guard = Some(control_tx);
+    }
+    {
+        let mut thread_guard = HOT_RELOAD_THREAD
+            .lock()
+            .map_err(|_| anyhow!("hot-reload thread mutex poisoned"))?;
+        *thread_guard = Some(hot_reload_thread);
+    }
 
     ready_rx
         .await
@@ -73,7 +99,10 @@ pub async fn load_mods_from_addons() -> Result<()> {
 }
 
 /// Scans the 'addons' directory, loads mods, resolves dependencies, and initializes mods.
-async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> {
+async fn load_mods_from_addons_async(
+    ready_signal: StartupSignal,
+    control_rx: std::sync::mpsc::Receiver<ControlMessage>,
+) -> Result<()> {
     let args = runtime_args();
     let startup_started = Instant::now();
     let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
@@ -241,6 +270,7 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
             args.dry_run || !args.play,
             args.timings,
             startup_started,
+            control_rx,
         )
         .await;
     }
@@ -252,6 +282,7 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
         args.dry_run || !args.play,
         args.timings,
         startup_started,
+        control_rx,
     )
     .await
 }
@@ -263,6 +294,7 @@ async fn run_with_load_order(
     dry_run: bool,
     timings: bool,
     startup_started: Instant,
+    control_rx: std::sync::mpsc::Receiver<ControlMessage>,
 ) -> Result<()> {
     if dry_run {
         modloader_info!(
@@ -279,6 +311,7 @@ async fn run_with_load_order(
     lua.sandbox(true)?;
     let globals = lua.globals();
     let engine_table = lua.create_table()?;
+    install_engine_log_api(&lua, &engine_table)?;
     globals.set("Engine", engine_table)?;
 
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
@@ -305,13 +338,14 @@ async fn run_with_load_order(
     if timings {
         modloader_trace!("Startup completed in {:?}", startup_started.elapsed());
     }
-    start_hot_reload_loop(lua, loaded_mods, ready_signal).await
+    start_hot_reload_loop(lua, loaded_mods, ready_signal, control_rx).await
 }
 
 async fn start_hot_reload_loop(
     lua: Lua,
     mut loaded_mods: Vec<LoadedMod>,
     ready_signal: StartupSignal,
+    control_rx: std::sync::mpsc::Receiver<ControlMessage>,
 ) -> Result<()> {
     let (tx, rx) = std::sync::mpsc::channel::<notify::Result<Event>>();
     let mut watcher: RecommendedWatcher = notify::recommended_watcher(move |event| {
@@ -326,6 +360,16 @@ async fn start_hot_reload_loop(
     send_startup_signal(&ready_signal, Ok(()));
 
     loop {
+        if let Ok(message) = control_rx.try_recv() {
+            match message {
+                ControlMessage::Shutdown => {
+                    modloader_info!("Shutdown signal received; invoking quit callbacks");
+                    call_quit_callbacks(&lua, &loaded_mods)?;
+                    return Ok(());
+                }
+            }
+        }
+
         let event = match rx.recv_timeout(Duration::from_millis(250)) {
             Ok(Ok(event)) => event,
             Ok(Err(err)) => {
@@ -367,6 +411,34 @@ async fn start_hot_reload_loop(
                 modloader_info!("Hot-reloaded mod {} from {:?}", meta.id, path);
             }
         }
+    }
+}
+
+pub fn shutdown_before_unload() {
+    let tx = match SHUTDOWN_SIGNAL.lock() {
+        Ok(mut guard) => guard.take(),
+        Err(_) => {
+            modloader_error!("Failed to lock shutdown signal for unload");
+            None
+        }
+    };
+    if let Some(tx) = tx
+        && let Err(err) = tx.send(ControlMessage::Shutdown)
+    {
+        modloader_warning!("Failed to signal hot-reload shutdown: {}", err);
+    }
+
+    let thread_handle = match HOT_RELOAD_THREAD.lock() {
+        Ok(mut guard) => guard.take(),
+        Err(_) => {
+            modloader_error!("Failed to lock hot-reload thread handle for unload");
+            None
+        }
+    };
+    if let Some(handle) = thread_handle
+        && let Err(_panic) = handle.join()
+    {
+        modloader_error!("Hot-reload thread panicked while shutting down");
     }
 }
 
@@ -755,6 +827,45 @@ fn call_post_init_callbacks(
             }
         }
     }
+    Ok(())
+}
+
+fn call_quit_callbacks(lua: &Lua, loaded_mods: &[LoadedMod]) -> Result<()> {
+    let engine_table: Table = lua.globals().get("Engine")?;
+    for loaded in loaded_mods.iter().rev() {
+        let mod_table: Table = engine_table.get(loaded.meta.id.clone())?;
+        if let Ok(quit_fn) = mod_table.get::<Function>("quit") {
+            modloader_debug!("Calling quit() for mod {}", loaded.meta.id);
+            if let Err(err) = quit_fn.call::<()>(()) {
+                modloader_error!("quit() failed for mod {}: {}", loaded.meta.id, err);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+    let log_fn = lua.create_function(|_, (level, message): (u8, String)| {
+        match level {
+            LOG_ERROR => modloader_error!("{}", message),
+            LOG_WARNING => modloader_warning!("{}", message),
+            LOG_INFO => modloader_info!("{}", message),
+            LOG_DEBUG => modloader_debug!("{}", message),
+            LOG_TRACE => modloader_trace!("{}", message),
+            other => modloader_warning!(
+                "Engine.log received unsupported level {} with message: {}",
+                other,
+                message
+            ),
+        }
+        Ok(())
+    })?;
+    engine_table.set("log", log_fn)?;
+    engine_table.set("LOG_ERROR", LOG_ERROR)?;
+    engine_table.set("LOG_WARNING", LOG_WARNING)?;
+    engine_table.set("LOG_INFO", LOG_INFO)?;
+    engine_table.set("LOG_DEBUG", LOG_DEBUG)?;
+    engine_table.set("LOG_TRACE", LOG_TRACE)?;
     Ok(())
 }
 

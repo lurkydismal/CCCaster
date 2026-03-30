@@ -1,8 +1,8 @@
 use std::os::raw::c_char;
 
 use crate::{
-    main, modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
-    parse_args,
+    loader, main, modloader_debug, modloader_error, modloader_info, modloader_trace,
+    modloader_warning, parse_args,
 };
 
 pub type Handle = u32;
@@ -21,6 +21,12 @@ pub struct Api {
 
 lazy_static::lazy_static! {
     static ref API: std::sync::OnceLock<Api> = std::sync::OnceLock::new();
+}
+
+#[ctor::dtor]
+fn cccaster_dtor() {
+    modloader_info!("cccaster dtor invoked; shutting down addons");
+    loader::shutdown_before_unload();
 }
 
 #[unsafe(no_mangle)]
