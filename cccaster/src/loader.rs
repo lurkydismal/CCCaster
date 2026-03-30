@@ -6,7 +6,7 @@ use mlua::{Function, Lua, Table};
 use petgraph::algo::toposort;
 use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use tokio::fs;
 
@@ -276,6 +276,8 @@ pub async fn load_mods_from_addons() -> Result<()> {
     for &mod_index in &load_order {
         let (meta, path) = &mod_entries[mod_index];
         modloader_info!("Loading mod {} from {:?}", meta.id, path);
+        register_engine_require(&lua, path.clone())
+            .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
         // Load main.luau script
         let main_path = path.join("main.luau");
         modloader_trace!("Reading script {:?}", main_path);
@@ -328,6 +330,161 @@ pub async fn load_mods_from_addons() -> Result<()> {
     modloader_info!("Mod loading completed successfully");
 
     Ok(())
+}
+
+fn register_engine_require(lua: &Lua, mod_path: PathBuf) -> Result<()> {
+    let globals = lua.globals();
+    let engine_table: Table = globals.get("Engine")?;
+    let require_fn = lua.create_function(move |lua, requested_path: String| {
+        let trimmed = requested_path.trim();
+        if trimmed.is_empty() {
+            return Err(mlua::Error::runtime(
+                "Engine.require file name cannot be empty",
+            ));
+        }
+
+        let mod_root = mod_path.canonicalize().map_err(|err| {
+            mlua::Error::runtime(format!("failed to resolve mod directory: {err}"))
+        })?;
+        let file_path = resolve_required_file_path(&mod_root, trimmed)?;
+
+        if !file_path.starts_with(&mod_root) {
+            return Err(mlua::Error::runtime(format!(
+                "Engine.require cannot access file outside mod directory: {trimmed}"
+            )));
+        }
+
+        let script = std::fs::read_to_string(&file_path).map_err(|err| {
+            mlua::Error::runtime(format!(
+                "failed to read required file {:?}: {err}",
+                file_path
+            ))
+        })?;
+        let env = lua.create_table()?;
+        let env_mt = lua.create_table()?;
+        env_mt.set("__index", lua.globals())?;
+        env.set_metatable(Some(env_mt))?;
+        let chunk_result: mlua::Value = lua
+            .load(&script)
+            .set_name(file_path.to_string_lossy().as_ref())
+            .set_environment(env.clone())
+            .eval()?;
+
+        let mut exports = lua.create_table()?;
+        let mut seen_keys: HashSet<String> = HashSet::new();
+        for pair in env.pairs::<mlua::Value, mlua::Value>() {
+            let (key, value) = pair?;
+            if let (mlua::Value::String(key), mlua::Value::Function(_)) = (&key, &value) {
+                let key_str = key.to_str()?.to_owned();
+                exports.set(key_str.clone(), value)?;
+                seen_keys.insert(key_str);
+            }
+        }
+
+        if !matches!(chunk_result, mlua::Value::Nil) {
+            let rel_path = file_path.strip_prefix(&mod_root).map_err(|err| {
+                mlua::Error::runtime(format!("failed to build export path for {trimmed}: {err}"))
+            })?;
+            insert_named_return_value(lua, &mut exports, rel_path, chunk_result, &mut seen_keys)?;
+        }
+
+        Ok(exports)
+    })?;
+
+    engine_table.set("require", require_fn)?;
+    Ok(())
+}
+
+fn resolve_required_file_path(mod_root: &Path, requested_path: &str) -> mlua::Result<PathBuf> {
+    let relative = Path::new(requested_path);
+    if relative.is_absolute() {
+        return Err(mlua::Error::runtime(format!(
+            "Engine.require expects a relative path, got absolute path: {requested_path}"
+        )));
+    }
+
+    let joined = mod_root.join(relative);
+    if joined.exists() {
+        return joined.canonicalize().map_err(|err| {
+            mlua::Error::runtime(format!(
+                "failed to resolve required file {}: {err}",
+                joined.display()
+            ))
+        });
+    }
+
+    let with_ext = joined.with_extension("luau");
+    if with_ext.exists() {
+        return with_ext.canonicalize().map_err(|err| {
+            mlua::Error::runtime(format!(
+                "failed to resolve required file {}: {err}",
+                with_ext.display()
+            ))
+        });
+    }
+
+    Err(mlua::Error::runtime(format!(
+        "required file not found for path: {requested_path}"
+    )))
+}
+
+fn insert_named_return_value(
+    lua: &Lua,
+    exports: &mut Table,
+    rel_path: &Path,
+    value: mlua::Value,
+    seen_keys: &mut HashSet<String>,
+) -> mlua::Result<()> {
+    let mut segments: Vec<String> = rel_path
+        .iter()
+        .map(|part| sanitize_identifier(part.to_string_lossy().as_ref()))
+        .collect();
+    if let Some(last) = segments.last_mut()
+        && let Some(stripped) = last.strip_suffix(".luau")
+    {
+        *last = stripped.to_string();
+    }
+    if segments.is_empty() || segments.iter().any(|segment| segment.is_empty()) {
+        return Err(mlua::Error::runtime(
+            "required file path produced invalid empty export field name",
+        ));
+    }
+
+    let mut cursor = exports.clone();
+    for segment in &segments[0..segments.len().saturating_sub(1)] {
+        if cursor.contains_key(segment.as_str())? {
+            match cursor.get::<mlua::Value>(segment.as_str())? {
+                mlua::Value::Table(existing_table) => cursor = existing_table,
+                _ => {
+                    return Err(mlua::Error::runtime(format!(
+                        "cannot place required return object at '{}': field already exists",
+                        segment
+                    )));
+                }
+            }
+        } else {
+            let next = lua.create_table()?;
+            cursor.set(segment.as_str(), next.clone())?;
+            cursor = next;
+        }
+    }
+
+    let final_field = segments
+        .last()
+        .expect("segments already checked to be non-empty");
+    if seen_keys.contains(final_field) || cursor.contains_key(final_field.as_str())? {
+        return Err(mlua::Error::runtime(format!(
+            "cannot export required return object: field '{}' is already occupied",
+            final_field
+        )));
+    }
+    cursor.set(final_field.as_str(), value)?;
+    seen_keys.insert(final_field.clone());
+    Ok(())
+}
+
+fn sanitize_identifier(name: &str) -> String {
+    name.replace(' ', "_")
 }
 
 /// Checks if the child path is inside the base directory (to prevent traversal).
