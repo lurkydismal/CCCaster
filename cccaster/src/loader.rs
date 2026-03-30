@@ -105,8 +105,10 @@ async fn load_mods_from_addons_async(
 ) -> Result<()> {
     let args = runtime_args();
     let startup_started = Instant::now();
-    let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
-    let addons_dir_path = addons_dir.as_path();
+    // FIX: Somehow resolve windows path here or in launcher
+    // let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
+    // let addons_dir_path = addons_dir.as_path();
+    let addons_dir_path = Path::new("addons");
     let addon_filter: Option<HashSet<&str>> = args
         .addon
         .as_ref()
