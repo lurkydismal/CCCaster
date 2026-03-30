@@ -16,8 +16,6 @@ pub struct RawDependency {
 /// Raw JSON payload from `addons/<mod>/info.json`.
 #[derive(Deserialize)]
 pub struct RawModInfo {
-    /// Unique mod id.
-    pub id: String,
     /// Semantic version string parsed into [`Version`].
     pub version: String,
     #[serde(default)]
