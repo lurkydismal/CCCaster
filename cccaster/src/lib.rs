@@ -14,6 +14,7 @@ mod loader;
 mod patch;
 mod types;
 
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU8, Ordering};
 
 pub use error::{AppError, Result};
@@ -27,6 +28,7 @@ pub const LOG_DEBUG: u8 = 3;
 pub const LOG_TRACE: u8 = 4;
 
 static ENABLED_LOG_LEVEL: AtomicU8 = AtomicU8::new(LOG_ERROR);
+static RUNTIME_ARGS: OnceLock<ModloaderData> = OnceLock::new();
 
 /// Computes the effective log level from parsed launcher arguments.
 pub fn log_level_from_args(args: &ModloaderData) -> u8 {
@@ -51,6 +53,13 @@ pub fn set_enabled_log_level(level: u8) {
 /// Reads the currently enabled global log level.
 pub fn enabled_log_level() -> u8 {
     ENABLED_LOG_LEVEL.load(Ordering::Relaxed)
+}
+
+/// Returns parsed runtime arguments captured during `init`.
+pub fn runtime_args() -> &'static ModloaderData {
+    RUNTIME_ARGS
+        .get()
+        .expect("runtime args not initialized before main startup")
 }
 
 fn env_bool(name: &str) -> Option<bool> {
@@ -116,6 +125,8 @@ pub fn parse_args(json: &str) -> Result<()> {
             );
 
             modloader_info!("CLI/runtime arguments parsed successfully");
+
+            let _ = RUNTIME_ARGS.set(data);
 
             Ok(())
         }
