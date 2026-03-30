@@ -48,6 +48,13 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 modloader_warning!("Skipping unsafe directory path: {:?}", path);
                 continue;
             }
+            let mod_id = match derive_mod_id(&path) {
+                Some(id) => id,
+                None => {
+                    modloader_warning!("Skipping addon path with invalid directory name: {:?}", path);
+                    continue;
+                }
+            };
 
             let info_path = path.join("info.json");
             let info_data = fs::read(&info_path).await;
@@ -80,7 +87,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
                         "Invalid version '{}' in {:?} for mod {}: {}. Skipping this addon.",
                         raw.version,
                         info_path,
-                        raw.id,
+                        mod_id,
                         err
                     );
                     continue;
@@ -97,7 +104,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
                             "Invalid dependency version requirement '{}' in {:?} (mod {}, dependency {}): {}. Skipping this addon.",
                             rd.version_req,
                             info_path,
-                            raw.id,
+                            mod_id,
                             rd.id,
                             err
                         );
@@ -117,7 +124,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
 
             mod_entries.push((
                 ModMeta {
-                    id: raw.id.clone(),
+                    id: mod_id.clone(),
                     version,
                     dependencies: deps,
                     api_version: raw.api_version,
@@ -125,7 +132,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 },
                 path.clone(),
             ));
-            modloader_debug!("Registered addon candidate '{}' from {:?}", raw.id, path);
+            modloader_debug!("Registered addon candidate '{}' from {:?}", mod_id, path);
         }
     }
 
@@ -213,6 +220,12 @@ async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Res
             }
         }
     }
+}
+
+fn derive_mod_id(path: &Path) -> Option<String> {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.replace(' ', "_"))
 }
 
 /// Determines whether a watched file changed content for any loaded mod.
