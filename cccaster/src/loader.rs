@@ -10,10 +10,13 @@ use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
+use std::thread;
 use std::time::Duration;
 use tokio::fs;
+use tokio::sync::oneshot;
+
+type StartupSignal = Arc<Mutex<Option<oneshot::Sender<Result<()>>>>>;
 
 struct LoadedMod {
     /// Fully parsed metadata from `info.json`.
@@ -26,8 +29,43 @@ struct LoadedMod {
     watched_hashes: HashMap<PathBuf, Option<Hash>>,
 }
 
-/// Scans the 'addons' directory, loads mods, resolves dependencies, and initializes mods.
+/// Scans the addons directory, initializes mods, and starts hot-reload in a background thread.
 pub async fn load_mods_from_addons() -> Result<()> {
+    let (ready_tx, ready_rx) = oneshot::channel::<Result<()>>();
+    let ready_signal = Arc::new(Mutex::new(Some(ready_tx)));
+    let thread_signal = ready_signal.clone();
+
+    thread::Builder::new()
+        .name("cccaster-hot-reload".to_string())
+        .spawn(move || {
+            let runtime = match tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+            {
+                Ok(runtime) => runtime,
+                Err(err) => {
+                    send_startup_signal(
+                        &thread_signal,
+                        Err(anyhow!("failed to create hot-reload runtime: {}", err)),
+                    );
+                    return;
+                }
+            };
+
+            if let Err(err) = runtime.block_on(load_mods_from_addons_async(thread_signal.clone())) {
+                modloader_error!("Modloader runtime exited with error: {}", err);
+                send_startup_signal(&thread_signal, Err(err));
+            }
+        })
+        .map_err(|err| anyhow!("failed to spawn hot-reload thread: {}", err))?;
+
+    ready_rx
+        .await
+        .map_err(|err| anyhow!("failed waiting for modloader startup: {}", err))?
+}
+
+/// Scans the 'addons' directory, loads mods, resolves dependencies, and initializes mods.
+async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> {
     let addons_dir = Path::new("addons");
     let mut mod_entries: Vec<(ModMeta, PathBuf)> = Vec::new();
 
@@ -165,11 +203,15 @@ pub async fn load_mods_from_addons() -> Result<()> {
 
     modloader_info!("All mods loaded; invoking post_init callbacks");
     call_post_init_callbacks(&lua, &load_order, &mod_entries)?;
-    start_hot_reload_loop(lua, loaded_mods).await
+    start_hot_reload_loop(lua, loaded_mods, ready_signal).await
 }
 
-async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Result<()> {
-    let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
+async fn start_hot_reload_loop(
+    lua: Lua,
+    mut loaded_mods: Vec<LoadedMod>,
+    ready_signal: StartupSignal,
+) -> Result<()> {
+    let (tx, rx) = std::sync::mpsc::channel::<notify::Result<Event>>();
     let mut watcher: RecommendedWatcher = notify::recommended_watcher(move |event| {
         let _ = tx.send(event);
     })?;
@@ -179,6 +221,7 @@ async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Res
     }
 
     modloader_info!("Hot-reload watcher started for {} mods", loaded_mods.len());
+    send_startup_signal(&ready_signal, Ok(()));
 
     loop {
         let event = match rx.recv_timeout(Duration::from_millis(250)) {
@@ -187,8 +230,8 @@ async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Res
                 modloader_warning!("File watcher reported an error: {}", err);
                 continue;
             }
-            Err(mpsc::RecvTimeoutError::Timeout) => continue,
-            Err(mpsc::RecvTimeoutError::Disconnected) => {
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
+            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
                 return Err(anyhow!("hot-reload file watcher channel disconnected"));
             }
         };
@@ -222,6 +265,14 @@ async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Res
                 modloader_info!("Hot-reloaded mod {} from {:?}", meta.id, path);
             }
         }
+    }
+}
+
+fn send_startup_signal(ready_signal: &StartupSignal, result: Result<()>) {
+    if let Ok(mut guard) = ready_signal.lock()
+        && let Some(sender) = guard.take()
+    {
+        let _ = sender.send(result);
     }
 }
 
@@ -301,7 +352,18 @@ async fn load_mod(
         .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
 
     let patch_path = path.join("patch.json");
-    let patches = if patch_path.exists() {
+    let has_patch_file = patch_path.exists();
+    let main_path = path.join("main.luau");
+    let has_main_script = main_path.exists();
+
+    if !has_patch_file && !has_main_script {
+        return Err(anyhow!(
+            "mod {} must provide at least one of main.luau or patch.json",
+            meta.id
+        ));
+    }
+
+    let patches = if has_patch_file {
         modloader_trace!("Found patch file for mod {} at {:?}", meta.id, patch_path);
         let patch_data = fs::read(&patch_path).await.with_context(|| {
             format!(
@@ -327,20 +389,27 @@ async fn load_mod(
         None
     };
 
-    let main_path = path.join("main.luau");
-    let script = fs::read_to_string(&main_path).await.with_context(|| {
-        format!(
-            "failed to read main script {:?} for mod {}",
-            main_path, meta.id
-        )
-    })?;
+    let returned: Table = if has_main_script {
+        let script = fs::read_to_string(&main_path).await.with_context(|| {
+            format!(
+                "failed to read main script {:?} for mod {}",
+                main_path, meta.id
+            )
+        })?;
 
-    let returned: Table = lua.load(&script).eval().with_context(|| {
-        format!(
-            "failed to evaluate Lua script {:?} for mod {}",
-            main_path, meta.id
-        )
-    })?;
+        lua.load(&script).eval().with_context(|| {
+            format!(
+                "failed to evaluate Lua script {:?} for mod {}",
+                main_path, meta.id
+            )
+        })?
+    } else {
+        modloader_info!(
+            "Mod {} has no main.luau; loading patches-only addon",
+            meta.id
+        );
+        lua.create_table()?
+    };
 
     let engine_table: Table = lua.globals().get("Engine")?;
     engine_table.set(meta.id.clone(), returned.clone())?;
