@@ -40,7 +40,7 @@ This tool controls how the game is started with addon support enabled. It handle
 pub struct Args {
     // Core execution modes
     /// Default behavior. Launch + inject + run normally.
-    #[arg(long)]
+    #[arg(long, default_value_t = true)]
     pub play: bool,
 
     /// Launch game without touching it (baseline comparison, debugging crashes).
