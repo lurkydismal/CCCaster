@@ -678,6 +678,11 @@ auto attach() -> bool {
                     return ( false );
                 }
 
+                const bool l_noPatches = l_wrapperData.value().no_patches;
+                wrapper::setNoPatches( l_noPatches );
+
+                logg::debug( "attach: no patches enabled={}", l_noPatches );
+
                 g_timingsEnabled = l_wrapperData.value().timings;
                 l_attachTimer.setEnabled( g_timingsEnabled );
 

@@ -7,6 +7,8 @@
 
 namespace wrapper {
 
+auto setNoPatches( bool _value ) -> bool;
+
 [[nodiscard]] auto makePatch( uintptr_t _address,
                               const std::byte* _bytes,
                               size_t _bytesAmount ) -> storage_t::handle_t;
