@@ -23,6 +23,7 @@ pub struct RawModInfo {
 }
 
 /// Resolved dependency with semver version requirement.
+#[derive(Clone)]
 pub struct Dependency {
     pub id: String,
     pub version_req: VersionReq,
@@ -30,6 +31,7 @@ pub struct Dependency {
 }
 
 /// Metadata for a mod, extracted from info.json
+#[derive(Clone)]
 pub struct ModMeta {
     pub id: String,
     pub version: Version,
