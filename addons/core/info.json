@@ -1,9 +1,13 @@
 {
+    "id": "SOME ID",
     "author": "me",
     "version": "0.0.0",
     "dependencies": [],
     "events": [
-        "on_init"
+        "init",
+        "post_init",
+        "unload",
+        "load"
     ],
     "api_version": 1
 }
