@@ -6,7 +6,8 @@
         "init",
         "post_init",
         "unload",
-        "load"
+        "load",
+        "quit"
     ],
     "api_version": 1
 }
