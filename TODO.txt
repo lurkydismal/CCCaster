@@ -1,9 +1,6 @@
 P6
 Fix release not finding default.profraw
 
-P4
-Implement profile support in launcher
-
 P2
 Implement main:
 1. List all mods in addons/
@@ -24,7 +21,7 @@ Implement main:
     - Lazy vs eager loading: do you load all mods at startup or only when needed?
     - Restricting filesystem/network access unless explicitly allowed.
         - Maybe VFS
-9. Hotreload:
+9. Hot-reload:
     - Add tracking of loaded scripts and hooks.
     - Plan for unloading or reloading safely, including dependency checks.
     - Hashing or signing mods for integrity.

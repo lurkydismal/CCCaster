@@ -1,78 +1,27 @@
 #include "logg.hpp"
 
 #include <array>
-#include <cctype>
-#include <charconv>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <limits>
 #include <mutex>
 #include <string>
 #include <type_traits>
 
-namespace logg {
+namespace {
 
 std::mutex g_mutex;
 
+std::atomic< logg::level_t > g_enabledLogLevel{ logg::level_t::error };
+
+} // namespace
+
+namespace logg {
+
 namespace detail {
-
-auto normalizeFlag( const char* _value ) -> std::string {
-    if ( _value == nullptr ) {
-        return ( "" );
-    }
-
-    std::string l_value = _value;
-
-    for ( char& l_char : l_value ) {
-        l_char = static_cast< char >(
-            std::tolower( static_cast< unsigned char >( l_char ) ) );
-    }
-
-    return ( l_value );
-}
-
-auto isTruthy( const char* _value ) -> bool {
-    const std::string l_value = normalizeFlag( _value );
-
-    return ( l_value == "1" ) || ( l_value == "true" ) || ( l_value == "ok" ) ||
-           ( l_value == "yes" );
-}
-
-auto getVerboseLevel() -> uint8_t {
-    const char* l_env = std::getenv( "WRAPPER_VERBOSE" );
-
-    if ( l_env == nullptr ) {
-        return ( 0 );
-    }
-
-    const std::string_view l_level{ l_env };
-    unsigned l_verboseLevel = 0;
-    const auto [ l_ptr, l_error ] =
-        std::from_chars( l_level.begin(), l_level.end(), l_verboseLevel );
-
-    if ( ( l_error != std::errc() ) || ( l_ptr != l_level.end() ) ||
-         ( l_verboseLevel > std::numeric_limits< uint8_t >::max() ) ) {
-        return ( 0 );
-    }
-
-    return ( static_cast< uint8_t >( l_verboseLevel ) );
-}
-
-auto isDebugEnabled() -> bool {
-    const bool l_debugEnabled = isTruthy( std::getenv( "WRAPPER_DEBUG" ) ) ||
-                                isTruthy( std::getenv( "WRAPPER_TRACE" ) );
-
-    return ( l_debugEnabled );
-}
-
-auto isTraceEnabled() -> bool {
-    const bool l_traceEnabled = isTruthy( std::getenv( "WRAPPER_TRACE" ) );
-
-    return ( l_traceEnabled );
-}
 
 auto tryGetLogPath() -> const std::string* {
     static const std::string l_logPath = []() -> std::string {
@@ -96,39 +45,20 @@ auto tryGetLogPath() -> const std::string* {
     return ( &l_logPath );
 }
 
+constexpr auto checkLogLevel( level_t _level ) {
+    return ( g_enabledLogLevel >= _level );
+}
+
 auto log( level_t _level, const std::string& _message ) -> void {
     static_assert( static_cast< std::underlying_type_t< level_t > >(
-                       level_t::error ) == 4 );
+                       level_t::trace ) == 4 );
 
-    {
-        bool l_allow = false;
-
-        if ( _level == level_t::trace ) {
-            l_allow = isTraceEnabled();
-
-        } else if ( _level == level_t::debug ) {
-            l_allow = isDebugEnabled() || isTraceEnabled() ||
-                      ( getVerboseLevel() >= 3 );
-
-        } else if ( _level == level_t::info ) {
-            l_allow = isDebugEnabled() || isTraceEnabled() ||
-                      ( getVerboseLevel() >= 2 );
-
-        } else if ( _level == level_t::warning ) {
-            l_allow = isDebugEnabled() || isTraceEnabled() ||
-                      ( getVerboseLevel() >= 1 );
-
-        } else if ( _level == level_t::error ) {
-            l_allow = true;
-        }
-
-        if ( !l_allow ) {
-            return;
-        }
+    if ( !checkLogLevel( _level ) ) {
+        return;
     }
 
     static constexpr std::array l_prefixes = {
-        "[TRACE]", "[DEBUG]", "[INFO]", "[WARN]", "[ERROR]",
+        "[ERROR]", "[WARN]", "[INFO]", "[DEBUG]", "[TRACE]",
     };
 
     const bool l_isError =
@@ -158,5 +88,15 @@ auto log( level_t _level, const std::string& _message ) -> void {
 }
 
 } // namespace detail
+
+auto setLogLevel( level_t _level ) -> bool {
+    if ( ( _level < level_t::error ) || ( _level > level_t::trace ) ) {
+        return ( false );
+    }
+
+    g_enabledLogLevel = _level;
+
+    return ( true );
+}
 
 } // namespace logg

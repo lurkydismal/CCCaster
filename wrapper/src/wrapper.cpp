@@ -53,18 +53,6 @@ const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 bool g_timingsEnabled = false;
 
-auto setWrapperEnv( const char* _key, const char* _value ) -> bool {
-    const BOOL l_result = SetEnvironmentVariableA( _key, _value );
-
-    if ( l_result == 0 ) {
-        logg::error( "Failed to set env var '{}' (error={})", _key,
-                     GetLastError() );
-        return ( false );
-    }
-
-    return ( true );
-}
-
 auto isTruthy( const char* _value ) -> bool {
     if ( _value == nullptr ) {
         logg::trace( "isTruthy: value is null -> false" );
@@ -549,16 +537,26 @@ auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
         logg::trace( "config parsed: trace={}, verbose={}", l_cfg->trace,
                      l_cfg->verbose );
 
-        const bool l_traceSet =
-            setWrapperEnv( "WRAPPER_TRACE", ( l_cfg->trace ? "1" : "0" ) );
-        const bool l_debugSet =
-            setWrapperEnv( "WRAPPER_DEBUG",
-                           ( ( l_cfg->verbose >= 3 ) ? "1" : "0" ) );
+        bool l_verboseSet = false;
+        bool l_traceSet = false;
 
-        if ( !l_traceSet || !l_debugSet ) {
+        if ( l_cfg->verbose ) {
+            l_verboseSet = logg::setLogLevel(
+                static_cast< logg::level_t >( l_cfg->verbose ) );
+        }
+
+        if ( l_cfg->trace ) {
+            l_traceSet = logg::setLogLevel( logg::level_t::trace );
+        }
+
+        if ( !l_traceSet || !l_verboseSet ) {
             logg::warning(
-                "Config env update incomplete: trace_set={}, debug_set={}",
-                l_traceSet, l_debugSet );
+                "Config logg update incomplete: trace_set={}, verbose_set={}",
+                l_traceSet, l_verboseSet );
+
+        } else {
+            logg::trace( "config set: trace={}, verbose={}", l_cfg->trace,
+                         l_cfg->verbose );
         }
     }
 
@@ -569,137 +567,166 @@ auto parseWrapperData( const data_t* _data ) -> std::optional< wrapperData_t > {
 auto attach() -> bool {
     timer::scoped_t l_attachTimer{ "wrapper::attach", false };
 
-    logg::info( "attach: startup begin" );
+    // Log begin
+    {
+        logg::info( "attach: startup begin" );
 
-    waitForDebuggerIfNeeded();
-    logEnabledEnvironmentVariables();
+        waitForDebuggerIfNeeded();
+        logEnabledEnvironmentVariables();
 
-    logg::info( "WRAPPER ATTACHED" );
-    logg::debug( "attach: loading '{}'", g_cccasterName );
-
-    g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
-
-    if ( !g_cccasterHandle ) {
-        logg::error( "CCCASTER FAILED TO LOAD: {}", dlerror() );
-        return ( false );
+        logg::info( "WRAPPER ATTACHED" );
     }
 
-    logg::debug( "attach: library loaded at handle {}", g_cccasterHandle );
-
-    dlerror();
-
-    const auto l_initFunction = std::bit_cast< wrapper::initFunction_t >(
-        dlsym( g_cccasterHandle, "init" ) );
-
+    // Load and init
     {
-        const char* l_error = dlerror();
+        // Load modloader
+        {
+            logg::debug( "attach: loading '{}'", g_cccasterName );
 
-        if ( l_error != nullptr ) {
-            logg::error( "dlsym failed: {}", l_error );
+            g_cccasterHandle = dlopen( g_cccasterName.c_str(), RTLD_NOW );
 
-            dlclose( g_cccasterHandle );
-            g_cccasterHandle = nullptr;
+            if ( !g_cccasterHandle ) {
+                logg::error( "CCCASTER FAILED TO LOAD: {}", dlerror() );
+                return ( false );
+            }
 
-            return ( false );
+            logg::debug( "attach: library loaded at handle {}",
+                         g_cccasterHandle );
+        }
+
+        dlerror();
+
+        // Locate init()
+        {
+            const auto l_initFunction =
+                std::bit_cast< wrapper::initFunction_t >(
+                    dlsym( g_cccasterHandle, "init" ) );
+
+            {
+                const char* l_error = dlerror();
+
+                if ( l_error != nullptr ) {
+                    logg::error( "dlsym failed: {}", l_error );
+
+                    dlclose( g_cccasterHandle );
+                    g_cccasterHandle = nullptr;
+
+                    return ( false );
+                }
+            }
+
+            logg::debug( "attach: init symbol resolved" );
+
+            // Read shared file mapping from launcher
+            {
+                HANDLE l_mapping = OpenFileMappingA( FILE_MAP_READ, FALSE,
+                                                     "Local\\MySharedData" );
+
+                if ( !l_mapping ) {
+                    logg::warning( "OpenFileMappingA failed: {}",
+                                   GetLastError() );
+
+                    dlclose( g_cccasterHandle );
+                    g_cccasterHandle = nullptr;
+
+                    return ( false );
+                }
+
+                logg::debug( "attach: shared mapping opened" );
+
+                LPVOID l_view =
+                    MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
+
+                if ( !l_view ) {
+                    logg::warning( "MapViewOfFile failed: {}", GetLastError() );
+
+                    CloseHandle( l_mapping );
+                    dlclose( g_cccasterHandle );
+                    g_cccasterHandle = nullptr;
+
+                    return ( false );
+                }
+
+                logg::debug( "attach: shared view mapped at {}", l_view );
+
+                const auto l_data = std::bit_cast< data_t* >( l_view );
+
+                if ( l_data == nullptr ) {
+                    logg::error( "attach: shared data pointer is null" );
+
+                    UnmapViewOfFile( l_view );
+                    CloseHandle( l_mapping );
+                    dlclose( g_cccasterHandle );
+                    g_cccasterHandle = nullptr;
+
+                    return ( false );
+                }
+
+                logg::trace( "attach: shared data {}", *l_data );
+
+                std::optional< wrapperData_t > l_wrapperData =
+                    parseWrapperData( l_data );
+
+                if ( !l_wrapperData ) {
+                    logg::error( "attach: wrapper configuration parse failed" );
+
+                    UnmapViewOfFile( l_view );
+                    CloseHandle( l_mapping );
+                    dlclose( g_cccasterHandle );
+                    g_cccasterHandle = nullptr;
+
+                    return ( false );
+                }
+
+                g_timingsEnabled = l_wrapperData.value().timings;
+                l_attachTimer.setEnabled( g_timingsEnabled );
+
+                logg::debug( "attach: timings enabled={}", g_timingsEnabled );
+                logg::debug(
+                    "attach: config verbose={}, trace={}, timings={}, "
+                    "no_patches={}",
+                    static_cast< unsigned >( l_wrapperData->verbose ),
+                    l_wrapperData->trace, l_wrapperData->timings,
+                    l_wrapperData->no_patches );
+
+                // Call init()
+                {
+                    logg::info( "CALLING INIT()" );
+
+                    const std::string l_value{ l_data->value, l_data->size };
+
+                    logg::trace( "attach: init json value='{}'",
+                                 l_value.c_str() );
+
+                    const bool l_result = l_initFunction(
+                        wrapper::makePatch, wrapper::removePatch,
+                        l_value.c_str(), l_data->size );
+
+                    if ( l_result ) {
+                        logg::info( "CCCASTER LOADED" );
+
+                    } else {
+                        logg::error( "CCCASTER FAILED TO INIT" );
+
+                        dlclose( g_cccasterHandle );
+                        g_cccasterHandle = nullptr;
+                    }
+
+                    logg::debug( "attach: unmapping shared view" );
+                    UnmapViewOfFile( l_view );
+
+                    logg::debug( "attach: closing shared mapping handle" );
+                    CloseHandle( l_mapping );
+
+                    logg::info( "attach: completed with result={}", l_result );
+
+                    return ( l_result );
+                }
+            }
         }
     }
 
-    logg::debug( "attach: init symbol resolved" );
-
-    HANDLE l_mapping =
-        OpenFileMappingA( FILE_MAP_READ, FALSE, "Local\\MySharedData" );
-
-    if ( !l_mapping ) {
-        logg::warning( "OpenFileMappingA failed: {}", GetLastError() );
-
-        dlclose( g_cccasterHandle );
-        g_cccasterHandle = nullptr;
-
-        return ( false );
-    }
-
-    logg::debug( "attach: shared mapping opened" );
-
-    LPVOID l_view = MapViewOfFile( l_mapping, FILE_MAP_READ, 0, 0, 0 );
-
-    if ( !l_view ) {
-        logg::warning( "MapViewOfFile failed: {}", GetLastError() );
-
-        CloseHandle( l_mapping );
-        dlclose( g_cccasterHandle );
-        g_cccasterHandle = nullptr;
-
-        return ( false );
-    }
-
-    logg::debug( "attach: shared view mapped at {}", l_view );
-
-    const auto l_data = std::bit_cast< data_t* >( l_view );
-
-    if ( l_data == nullptr ) {
-        logg::error( "attach: shared data pointer is null" );
-
-        UnmapViewOfFile( l_view );
-        CloseHandle( l_mapping );
-        dlclose( g_cccasterHandle );
-        g_cccasterHandle = nullptr;
-
-        return ( false );
-    }
-
-    logg::trace( "attach: shared data {}", *l_data );
-
-    std::optional< wrapperData_t > l_wrapperData = parseWrapperData( l_data );
-
-    if ( !l_wrapperData ) {
-        logg::error( "attach: wrapper configuration parse failed" );
-
-        UnmapViewOfFile( l_view );
-        CloseHandle( l_mapping );
-        dlclose( g_cccasterHandle );
-        g_cccasterHandle = nullptr;
-
-        return ( false );
-    }
-
-    g_timingsEnabled = l_wrapperData.value().timings;
-    l_attachTimer.setEnabled( g_timingsEnabled );
-
-    logg::debug( "attach: timings enabled={}", g_timingsEnabled );
-    logg::debug(
-        "attach: config verbose={}, trace={}, timings={}, no_patches={}",
-        static_cast< unsigned >( l_wrapperData->verbose ), l_wrapperData->trace,
-        l_wrapperData->timings, l_wrapperData->no_patches );
-
-    logg::info( "CALLING INIT()" );
-
-    const std::string l_value{ l_data->value, l_data->size };
-
-    logg::trace( "attach: init json value='{}'", l_value.c_str() );
-
-    const bool l_result =
-        l_initFunction( wrapper::makePatch, wrapper::removePatch,
-                        l_value.c_str(), l_data->size );
-
-    if ( l_result ) {
-        logg::info( "CCCASTER LOADED" );
-
-    } else {
-        logg::error( "CCCASTER FAILED TO INIT" );
-
-        dlclose( g_cccasterHandle );
-        g_cccasterHandle = nullptr;
-    }
-
-    logg::debug( "attach: unmapping shared view" );
-    UnmapViewOfFile( l_view );
-
-    logg::debug( "attach: closing shared mapping handle" );
-    CloseHandle( l_mapping );
-
-    logg::info( "attach: completed with result={}", l_result );
-
-    return ( l_result );
+    return ( false );
 }
 
 auto detach() -> bool {
@@ -727,6 +754,22 @@ extern "C" auto APIENTRY DllMain( [[maybe_unused]] HMODULE _hModule,
                                   DWORD _ulReasonForCall,
                                   [[maybe_unused]] LPVOID _lpReserved )
     -> BOOL {
+    // Check env if trace or debug is enabled
+    {
+        const char* l_trace = std::getenv( "WRAPPER_TRACE" );
+
+        if ( isTruthy( l_trace ) ) {
+            logg::setLogLevel( logg::level_t::trace );
+
+        } else {
+            const char* l_debug = std::getenv( "WRAPPER_DEBUG" );
+
+            if ( isTruthy( l_debug ) ) {
+                logg::setLogLevel( logg::level_t::debug );
+            }
+        }
+    }
+
     logg::trace( "DllMain: reason={}", _ulReasonForCall );
 
     switch ( _ulReasonForCall ) {

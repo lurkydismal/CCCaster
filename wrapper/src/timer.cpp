@@ -29,7 +29,7 @@ scoped::~scoped() {
     double l_us = ( l_elapsed * 1'000'000.0 ) / _mFrequency.QuadPart;
     double l_s = ( l_elapsed * 1.0 ) / _mFrequency.QuadPart;
 
-    logg::info( "[Timer] {}: ms, {} µs, {} s", _mName, l_ms, l_us, l_s );
+    logg::info( "[TIMER] {}: {} ms, {} µs, {} s", _mName, l_ms, l_us, l_s );
 }
 
 auto scoped::setEnabled( bool _enabled ) -> void {

@@ -8,28 +8,20 @@
 namespace logg {
 
 using level_t = enum class level : uint8_t {
-    trace,
-    debug,
-    info,
-    warning,
-    error,
+    trace = 4,
+    debug = 3,
+    info = 2,
+    warning = 1,
+    error = 0,
 };
 
 namespace detail {
 
-auto normalizeFlag( const char* _value ) -> std::string;
-
-auto isTruthy( const char* _value ) -> bool;
-
-auto isDebugEnabled() -> bool;
-
-auto isTraceEnabled() -> bool;
-
-auto tryGetLogPath() -> const std::string*;
-
 auto log( level_t _level, const std::string& _message ) -> void;
 
 } // namespace detail
+
+auto setLogLevel( level_t _level ) -> bool;
 
 template < typename... Args >
 auto trace( std::format_string< Args... > _format, Args&&... _arguments )
