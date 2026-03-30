@@ -7,10 +7,13 @@ use crate::{
 
 pub type Handle = u32;
 
+/// FFI callback for creating a patch in the host process.
 pub type MakePatchFn = unsafe extern "C" fn(addr: usize, bytes: *const u8, len: usize) -> Handle;
 
+/// FFI callback for removing a previously created patch.
 pub type RemovePatchFn = unsafe extern "C" fn(id: Handle) -> bool;
 
+/// Immutable API table provided by the host at initialization time.
 pub struct Api {
     pub make_patch: MakePatchFn,
     pub remove_patch: RemovePatchFn,
@@ -80,6 +83,7 @@ pub extern "C" fn init(
     true
 }
 
+/// Safe wrapper around the raw FFI patch-creation callback.
 pub fn make_patch(addr: usize, bytes: &[u8]) -> Handle {
     modloader_trace!(
         "make_patch requested: addr=0x{:X}, len={}, bytes_preview={:02X?}",
@@ -90,12 +94,14 @@ pub fn make_patch(addr: usize, bytes: &[u8]) -> Handle {
     unsafe { make_patch_raw(addr, bytes.as_ptr(), bytes.len()) }
 }
 
+/// Safe wrapper around the raw FFI patch-removal callback.
 pub fn remove_patch(id: Handle) -> bool {
     modloader_trace!("remove_patch requested: handle={}", id);
     unsafe { remove_patch_raw(id) }
 }
 
 /// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
 unsafe fn make_patch_raw(addr: usize, bytes: *const u8, len: usize) -> Handle {
     let api = API.get().expect("API not initialized");
 
@@ -110,6 +116,7 @@ unsafe fn make_patch_raw(addr: usize, bytes: *const u8, len: usize) -> Handle {
 }
 
 /// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
 unsafe fn remove_patch_raw(id: Handle) -> bool {
     let api = API.get().expect("API not initialized");
 
