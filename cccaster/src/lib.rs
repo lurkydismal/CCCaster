@@ -179,6 +179,5 @@ macro_rules! modloader_error {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    loader::load_mods_from_addons().await?;
-    Ok(())
+    loader::load_mods_from_addons().await
 }
