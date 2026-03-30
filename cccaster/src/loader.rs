@@ -1,4 +1,4 @@
-use crate::api::make_patch;
+use crate::api::{make_patch, remove_patch};
 use crate::patch::{
     OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
     resolve_patch_entries, spans_for_patches,
@@ -962,10 +962,10 @@ fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
         Ok(true)
     })?;
 
-    let patch_fn = lua.create_function(|lua, args: mlua::MultiValue| {
+    let patch_make_fn = lua.create_function(|lua, args: mlua::MultiValue| {
         let patches = parse_script_patch_args(args)?;
         if patches.is_empty() {
-            modloader_warning!("Engine.memory.patch failed: no patch entries provided");
+            modloader_warning!("Engine.memory.patch.make failed: no patch entries provided");
             return Ok(Value::Nil);
         }
 
@@ -975,7 +975,7 @@ fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
                 Some(value) => value,
                 None => {
                     modloader_warning!(
-                        "Engine.memory.patch failed: address overflow at 0x{:X}",
+                        "Engine.memory.patch.make failed: address overflow at 0x{:X}",
                         patch.address
                     );
                     return Ok(Value::Nil);
@@ -984,7 +984,7 @@ fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
 
             if !is_probably_writable(patch.address, patch.bytes.len()) {
                 modloader_warning!(
-                    "Engine.memory.patch failed: unwritable range 0x{:X}..0x{:X}",
+                    "Engine.memory.patch.make failed: unwritable range 0x{:X}..0x{:X}",
                     patch.address,
                     end
                 );
@@ -1006,9 +1006,14 @@ fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
         Ok(Value::Table(out))
     })?;
 
+    let patch_remove_fn = lua.create_function(|_, id: u32| Ok(remove_patch(id)))?;
+
     memory_table.set("read", read_fn)?;
     memory_table.set("write", write_fn)?;
-    memory_table.set("patch", patch_fn)?;
+    let patch_table = lua.create_table()?;
+    patch_table.set("make", patch_make_fn)?;
+    patch_table.set("remove", patch_remove_fn)?;
+    memory_table.set("patch", patch_table)?;
     engine_table.set("memory", memory_table)?;
     Ok(())
 }
@@ -1031,7 +1036,7 @@ fn parse_script_patch_args(args: mlua::MultiValue) -> mlua::Result<Vec<ScriptPat
     while idx < values.len() {
         if idx + 1 >= values.len() {
             return Err(mlua::Error::runtime(
-                "Engine.memory.patch expects (address, bytes[, pattern]) groups",
+                "Engine.memory.patch.make expects (address, bytes[, pattern]) groups",
             ));
         }
         let address = parse_lua_address(values[idx].clone()).map_err(mlua::Error::runtime)?;
@@ -1065,7 +1070,7 @@ fn parse_script_patch_table(table: Table) -> mlua::Result<Vec<ScriptPatch>> {
             Value::Table(entry) => entry,
             _ => {
                 return Err(mlua::Error::runtime(
-                    "Engine.memory.patch table entries must be patch objects",
+                    "Engine.memory.patch.make table entries must be patch objects",
                 ));
             }
         };
