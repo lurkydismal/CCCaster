@@ -51,7 +51,10 @@ pub async fn load_mods_from_addons() -> Result<()> {
             let mod_id = match derive_mod_id(&path) {
                 Some(id) => id,
                 None => {
-                    modloader_warning!("Skipping addon path with invalid directory name: {:?}", path);
+                    modloader_warning!(
+                        "Skipping addon path with invalid directory name: {:?}",
+                        path
+                    );
                     continue;
                 }
             };
@@ -156,7 +159,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
         modloader_info!("Loading mod '{}' from {:?}", meta.id, path);
         let loaded = load_mod(&lua, meta.clone(), path.clone(), false, Value::Nil)
             .await
-            .with_context(|| format!("initial load failed for mod {}", meta.id))?;
+            .with_context(|| format!("initial load failed for mod '{}'", meta.id))?;
         loaded_mods.push(loaded);
     }
 
