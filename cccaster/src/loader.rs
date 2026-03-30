@@ -3,7 +3,10 @@ use crate::patch::{
     resolve_patch_entries, spans_for_patches,
 };
 use crate::types::{Dependency, ModMeta, RawModInfo};
-use crate::{modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning};
+use crate::{
+    modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
+    runtime_args,
+};
 use anyhow::{Context, Result, anyhow};
 use blake3::Hash;
 use mlua::{Function, Lua, Table, Value};
@@ -15,7 +18,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::fs;
 use tokio::sync::oneshot;
 
@@ -71,23 +74,35 @@ pub async fn load_mods_from_addons() -> Result<()> {
 
 /// Scans the 'addons' directory, loads mods, resolves dependencies, and initializes mods.
 async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> {
-    let addons_dir = Path::new("addons");
+    let args = runtime_args();
+    let startup_started = Instant::now();
+    let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
+    let addons_dir_path = addons_dir.as_path();
+    let addon_filter: Option<HashSet<&str>> = args
+        .addon
+        .as_ref()
+        .map(|entries| entries.iter().map(String::as_str).collect());
+    let disable_filter: HashSet<&str> = args
+        .disable
+        .as_ref()
+        .map(|entries| entries.iter().map(String::as_str).collect())
+        .unwrap_or_default();
     let mut mod_entries: Vec<(ModMeta, PathBuf)> = Vec::new();
 
-    modloader_info!("Starting mod discovery in {:?}", addons_dir);
+    modloader_info!("Starting mod discovery in {:?}", addons_dir_path);
 
-    let mut dir = fs::read_dir(addons_dir)
+    let mut dir = fs::read_dir(addons_dir_path)
         .await
-        .with_context(|| format!("unable to open addons directory at {:?}", addons_dir))?;
+        .with_context(|| format!("unable to open addons directory at {:?}", addons_dir_path))?;
     while let Some(entry) = dir
         .next_entry()
         .await
-        .with_context(|| format!("failed while iterating entries in {:?}", addons_dir))?
+        .with_context(|| format!("failed while iterating entries in {:?}", addons_dir_path))?
     {
         let path = entry.path();
         modloader_trace!("Inspecting addon entry at {:?}", path);
         if path.is_dir() {
-            if !is_safe_path(addons_dir, &path) {
+            if !is_safe_path(addons_dir_path, &path) {
                 modloader_warning!("Skipping unsafe directory path: {:?}", path);
                 continue;
             }
@@ -101,6 +116,20 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
                     continue;
                 }
             };
+            if args.safe_mode && mod_id != "core" && mod_id != "runtime" {
+                modloader_debug!("safe_mode skipping addon '{}'", mod_id);
+                continue;
+            }
+            if disable_filter.contains(mod_id.as_str()) {
+                modloader_debug!("Skipping disabled addon '{}'", mod_id);
+                continue;
+            }
+            if let Some(filter) = addon_filter.as_ref()
+                && !filter.contains(mod_id.as_str())
+            {
+                modloader_trace!("Skipping '{}' because it is not in --addon filter", mod_id);
+                continue;
+            }
 
             let info_path = path.join("info.json");
             let info_data = fs::read(&info_path).await;
@@ -186,9 +215,65 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
         "Discovered {} addon candidates; resolving dependency load order",
         mod_entries.len()
     );
-    let load_order = resolve_load_order(&mod_entries)?;
+    let load_order = resolve_load_order(&mod_entries, args.no_deps)?;
+    if args.dump_graph {
+        for &mod_index in &load_order {
+            let (meta, _path) = &mod_entries[mod_index];
+            let deps: Vec<String> = meta
+                .dependencies
+                .iter()
+                .map(|dep| format!("{}{}", dep.id, if dep.optional { "?" } else { "" }))
+                .collect();
+            modloader_info!("graph: {} -> [{}]", meta.id, deps.join(", "));
+        }
+    }
+    if let Some(load_order_override) = args.load_order.as_deref() {
+        let explicit_order =
+            resolve_explicit_load_order(load_order_override, &mod_entries, args.force)?;
+        modloader_info!(
+            "Applying explicit load order override ({} entries)",
+            explicit_order.len()
+        );
+        return run_with_load_order(
+            ready_signal,
+            &mod_entries,
+            &explicit_order,
+            args.dry_run || !args.play,
+            args.timings,
+            startup_started,
+        )
+        .await;
+    }
     modloader_debug!("Resolved load order indexes: {:?}", load_order);
+    run_with_load_order(
+        ready_signal,
+        &mod_entries,
+        &load_order,
+        args.dry_run || !args.play,
+        args.timings,
+        startup_started,
+    )
+    .await
+}
 
+async fn run_with_load_order(
+    ready_signal: StartupSignal,
+    mod_entries: &[(ModMeta, PathBuf)],
+    load_order: &[usize],
+    dry_run: bool,
+    timings: bool,
+    startup_started: Instant,
+) -> Result<()> {
+    if dry_run {
+        modloader_info!(
+            "dry_run enabled; validated {} mods without runtime initialization",
+            load_order.len()
+        );
+        send_startup_signal(&ready_signal, Ok(()));
+        return Ok(());
+    }
+
+    let args = runtime_args();
     modloader_info!("Initializing Lua runtime with sandbox enabled");
     let lua = Lua::new();
     lua.sandbox(true)?;
@@ -197,7 +282,7 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
     globals.set("Engine", engine_table)?;
 
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
-    for &mod_index in &load_order {
+    for &mod_index in load_order {
         let (meta, path) = &mod_entries[mod_index];
         modloader_info!("Loading mod '{}' from {:?}", meta.id, path);
         let occupied = collect_occupied_spans(&loaded_mods, None);
@@ -208,6 +293,7 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
             false,
             Value::Nil,
             &occupied,
+            args.dump_patches,
         )
         .await
         .with_context(|| format!("initial load failed for mod '{}'", meta.id))?;
@@ -215,7 +301,10 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
     }
 
     modloader_info!("All mods loaded; invoking post_init callbacks");
-    call_post_init_callbacks(&lua, &load_order, &mod_entries)?;
+    call_post_init_callbacks(&lua, load_order, mod_entries)?;
+    if timings {
+        modloader_trace!("Startup completed in {:?}", startup_started.elapsed());
+    }
     start_hot_reload_loop(lua, loaded_mods, ready_signal).await
 }
 
@@ -334,6 +423,7 @@ fn collect_occupied_spans<'a>(
 }
 
 async fn hot_reload_mod(lua: &Lua, loaded_mods: &mut [LoadedMod], mod_index: usize) -> Result<()> {
+    let args = runtime_args();
     modloader_info!(
         "Starting hot-reload for mod {}",
         loaded_mods[mod_index].meta.id
@@ -347,6 +437,7 @@ async fn hot_reload_mod(lua: &Lua, loaded_mods: &mut [LoadedMod], mod_index: usi
         true,
         unload_payload,
         &occupied,
+        args.dump_patches,
     )
     .await?;
     loaded_mods[mod_index] = reloaded;
@@ -381,6 +472,7 @@ async fn load_mod(
     is_hot_reload: bool,
     unload_payload: Value,
     occupied_spans: &[OwnedPatchSpan<'_>],
+    dump_patches: bool,
 ) -> Result<LoadedMod> {
     modloader_debug!(
         "Loading mod '{}' (hot_reload={}) from {:?}",
@@ -422,6 +514,17 @@ async fn load_mod(
         let resolved_entries: Vec<ResolvedPatch> = resolve_patch_entries(&patch_entries, &meta.id)?;
         let spans = spans_for_patches(&resolved_entries)?;
         ensure_no_overlap(&meta.id, &spans, occupied_spans)?;
+        if dump_patches {
+            for (idx, patch) in resolved_entries.iter().enumerate() {
+                modloader_info!(
+                    "patch[{}] {} => 0x{:X} ({} bytes)",
+                    idx,
+                    meta.id,
+                    patch.address,
+                    patch.bytes.len()
+                );
+            }
+        }
         modloader_info!(
             "Applying {} patch entries for mod {}",
             resolved_entries.len(),
@@ -516,7 +619,11 @@ fn build_watched_files(
     files
 }
 
-fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)]) -> Result<Vec<usize>> {
+fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)], no_deps: bool) -> Result<Vec<usize>> {
+    if no_deps {
+        modloader_warning!("no_deps enabled; using filesystem discovery order");
+        return Ok((0..mod_entries.len()).collect());
+    }
     modloader_debug!(
         "Resolving dependency graph for {} mod entries",
         mod_entries.len()
@@ -567,6 +674,69 @@ fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)]) -> Result<Vec<usize>> 
         .into_iter()
         .map(|idx| *graph.node_weight(idx).unwrap())
         .collect())
+}
+
+fn resolve_explicit_load_order(
+    raw_order: &str,
+    mod_entries: &[(ModMeta, PathBuf)],
+    force: bool,
+) -> Result<Vec<usize>> {
+    let mut explicit = Vec::new();
+    let mut consumed = HashSet::new();
+    for token in raw_order.split(';') {
+        let trimmed = token.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        let (mod_id, version_raw) = trimmed
+            .split_once('@')
+            .ok_or_else(|| anyhow!("invalid load_order token '{}': missing '@version'", trimmed))?;
+        if mod_id.trim().is_empty() || version_raw.trim().is_empty() {
+            return Err(anyhow!(
+                "invalid load_order token '{}': both mod and version are required",
+                trimmed
+            ));
+        }
+        let version_req = VersionReq::parse(version_raw.trim()).with_context(|| {
+            format!(
+                "invalid load_order version '{}' for mod '{}'",
+                version_raw, mod_id
+            )
+        })?;
+        let found = mod_entries
+            .iter()
+            .enumerate()
+            .find(|(_idx, (meta, _path))| {
+                meta.id == mod_id.trim() && version_req.matches(&meta.version)
+            })
+            .map(|(idx, _)| idx);
+        let selected = if let Some(idx) = found {
+            idx
+        } else if force {
+            mod_entries
+                .iter()
+                .enumerate()
+                .find(|(_idx, (meta, _path))| meta.id == mod_id.trim())
+                .map(|(idx, _)| idx)
+                .ok_or_else(|| anyhow!("load_order references missing mod '{}'", mod_id.trim()))?
+        } else {
+            return Err(anyhow!(
+                "load_order requires '{}' with version '{}', but no matching addon was found",
+                mod_id.trim(),
+                version_raw.trim()
+            ));
+        };
+        if consumed.insert(selected) {
+            explicit.push(selected);
+        }
+    }
+
+    for idx in 0..mod_entries.len() {
+        if consumed.insert(idx) {
+            explicit.push(idx);
+        }
+    }
+    Ok(explicit)
 }
 
 fn call_post_init_callbacks(
