@@ -17,11 +17,7 @@ use petgraph::algo::toposort;
 use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
 use std::collections::{HashMap, HashSet};
-use std::io;
-use std::io::ErrorKind;
-use std::os::fd::RawFd;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
@@ -37,17 +33,6 @@ enum ControlMessage {
 
 static HOT_RELOAD_THREAD: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
 static SHUTDOWN_SIGNAL: Lazy<Mutex<Option<ShutdownSender>>> = Lazy::new(|| Mutex::new(None));
-static SHUTDOWN_GUARD: Lazy<Mutex<Option<ShutdownGuard>>> = Lazy::new(|| Mutex::new(None));
-static PARENT_DIED_SIGNALLED: AtomicBool = AtomicBool::new(false);
-
-struct ShutdownGuard {
-    pid: libc::pid_t,
-    notify_fd: RawFd,
-}
-
-unsafe extern "C" fn parent_died_handler(_signal: libc::c_int) {
-    PARENT_DIED_SIGNALLED.store(true, Ordering::SeqCst);
-}
 
 struct LoadedMod {
     /// Fully parsed metadata from `info.json`.
@@ -378,7 +363,6 @@ async fn start_hot_reload_loop(
 
     modloader_info!("Hot-reload watcher started for {} mods", loaded_mods.len());
     send_startup_signal(&ready_signal, Ok(()));
-    start_shutdown_guard(&lua, &loaded_mods)?;
 
     loop {
         if let Ok(message) = control_rx.try_recv() {
@@ -399,7 +383,6 @@ async fn start_hot_reload_loop(
             }
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
             Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                call_quit_callbacks(&lua, &loaded_mods)?;
                 return Err(anyhow!("hot-reload file watcher channel disconnected"));
             }
         };
@@ -436,120 +419,7 @@ async fn start_hot_reload_loop(
     }
 }
 
-fn start_shutdown_guard(lua: &Lua, loaded_mods: &[LoadedMod]) -> Result<()> {
-    let mut fds = [0; 2];
-    if unsafe { libc::pipe(fds.as_mut_ptr()) } != 0 {
-        return Err(anyhow!(
-            "failed to create shutdown guard pipe: {}",
-            io::Error::last_os_error()
-        ));
-    }
-
-    let fork_pid = unsafe { libc::fork() };
-    if fork_pid < 0 {
-        unsafe {
-            libc::close(fds[0]);
-            libc::close(fds[1]);
-        }
-        return Err(anyhow!(
-            "failed to fork shutdown guard process: {}",
-            io::Error::last_os_error()
-        ));
-    }
-
-    if fork_pid == 0 {
-        unsafe {
-            libc::close(fds[1]);
-        }
-        run_shutdown_guard_child(fds[0], lua, loaded_mods);
-    }
-
-    unsafe {
-        libc::close(fds[0]);
-    }
-    let mut guard = SHUTDOWN_GUARD
-        .lock()
-        .map_err(|_| anyhow!("shutdown guard mutex poisoned"))?;
-    *guard = Some(ShutdownGuard {
-        pid: fork_pid,
-        notify_fd: fds[1],
-    });
-    Ok(())
-}
-
-fn run_shutdown_guard_child(read_fd: RawFd, lua: &Lua, loaded_mods: &[LoadedMod]) -> ! {
-    let prctl_result = unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGUSR1) };
-    if prctl_result != 0 {
-        modloader_error!(
-            "Shutdown guard failed to set parent-death signal: {}",
-            io::Error::last_os_error()
-        );
-        unsafe { libc::_exit(1) }
-    }
-
-    let mut sig_action: libc::sigaction = unsafe { std::mem::zeroed() };
-    sig_action.sa_flags = 0;
-    sig_action.sa_sigaction = parent_died_handler as *const () as usize;
-    unsafe {
-        libc::sigemptyset(&mut sig_action.sa_mask);
-        if libc::sigaction(libc::SIGUSR1, &sig_action, std::ptr::null_mut()) != 0 {
-            modloader_error!(
-                "Shutdown guard failed to install signal handler: {}",
-                io::Error::last_os_error()
-            );
-            libc::_exit(1);
-        }
-    }
-
-    if unsafe { libc::getppid() } == 1 {
-        PARENT_DIED_SIGNALLED.store(true, Ordering::SeqCst);
-    }
-
-    let mut buf = [0u8; 1];
-    loop {
-        if PARENT_DIED_SIGNALLED.load(Ordering::SeqCst) {
-            modloader_warning!("Parent process died; invoking quit callbacks from guard process");
-            let _ = call_quit_callbacks(lua, loaded_mods);
-            unsafe { libc::_exit(0) }
-        }
-
-        let read_result = unsafe { libc::read(read_fd, buf.as_mut_ptr().cast(), 1) };
-        if read_result == 0 {
-            unsafe { libc::_exit(0) }
-        }
-        if read_result > 0 {
-            unsafe { libc::_exit(0) }
-        }
-
-        let err = io::Error::last_os_error();
-        if err.kind() == ErrorKind::Interrupted {
-            continue;
-        }
-        modloader_error!("Shutdown guard read failed: {}", err);
-        unsafe { libc::_exit(1) }
-    }
-}
-
-fn stop_shutdown_guard() {
-    let guard = match SHUTDOWN_GUARD.lock() {
-        Ok(mut lock) => lock.take(),
-        Err(_) => {
-            modloader_error!("Failed to lock shutdown guard state");
-            None
-        }
-    };
-    if let Some(guard) = guard {
-        let _ = unsafe { libc::write(guard.notify_fd, [1u8; 1].as_ptr().cast(), 1) };
-        unsafe {
-            libc::close(guard.notify_fd);
-        }
-        let mut status = 0;
-        let _ = unsafe { libc::waitpid(guard.pid, &mut status, 0) };
-    }
-}
-
 pub fn shutdown_before_unload() {
-    stop_shutdown_guard();
     let tx = match SHUTDOWN_SIGNAL.lock() {
         Ok(mut guard) => guard.take(),
         Err(_) => {
