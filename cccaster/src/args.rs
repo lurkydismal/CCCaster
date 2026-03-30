@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Launcher-provided runtime configuration for the modloader.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ModloaderData {
     // Core execution modes

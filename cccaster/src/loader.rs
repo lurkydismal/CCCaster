@@ -16,9 +16,13 @@ use std::time::Duration;
 use tokio::fs;
 
 struct LoadedMod {
+    /// Fully parsed metadata from `info.json`.
     meta: ModMeta,
+    /// Absolute path to the addon directory.
     path: PathBuf,
+    /// Active patch set for this mod.
     _patches: Option<Patches>,
+    /// Files (and last hash) used for hot-reload invalidation.
     watched_hashes: HashMap<PathBuf, Option<Hash>>,
 }
 
@@ -121,10 +125,16 @@ pub async fn load_mods_from_addons() -> Result<()> {
                 },
                 path.clone(),
             ));
+            modloader_debug!("Registered addon candidate '{}' from {:?}", raw.id, path);
         }
     }
 
+    modloader_info!(
+        "Discovered {} addon candidates; resolving dependency load order",
+        mod_entries.len()
+    );
     let load_order = resolve_load_order(&mod_entries)?;
+    modloader_debug!("Resolved load order indexes: {:?}", load_order);
 
     modloader_info!("Initializing Lua runtime with sandbox enabled");
     let lua = Lua::new();
@@ -136,12 +146,14 @@ pub async fn load_mods_from_addons() -> Result<()> {
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
     for &mod_index in &load_order {
         let (meta, path) = &mod_entries[mod_index];
+        modloader_info!("Loading mod '{}' from {:?}", meta.id, path);
         let loaded = load_mod(&lua, meta.clone(), path.clone(), false, Value::Nil)
             .await
             .with_context(|| format!("initial load failed for mod {}", meta.id))?;
         loaded_mods.push(loaded);
     }
 
+    modloader_info!("All mods loaded; invoking post_init callbacks");
     call_post_init_callbacks(&lua, &load_order, &mod_entries)?;
     start_hot_reload_loop(lua, loaded_mods).await
 }
@@ -170,6 +182,11 @@ async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Res
                 return Err(anyhow!("hot-reload file watcher channel disconnected"));
             }
         };
+        modloader_trace!(
+            "Watcher event received: kind={:?}, paths={:?}",
+            event.kind,
+            event.paths
+        );
 
         if !matches!(
             event.kind,
@@ -198,6 +215,7 @@ async fn start_hot_reload_loop(lua: Lua, mut loaded_mods: Vec<LoadedMod>) -> Res
     }
 }
 
+/// Determines whether a watched file changed content for any loaded mod.
 fn detect_changed_mod(loaded_mods: &mut [LoadedMod], path: &Path) -> Option<usize> {
     let normalized = normalize_path(path);
     for (idx, loaded) in loaded_mods.iter_mut().enumerate() {
@@ -217,6 +235,7 @@ fn detect_changed_mod(loaded_mods: &mut [LoadedMod], path: &Path) -> Option<usiz
 }
 
 async fn hot_reload_mod(lua: &Lua, loaded_mod: &mut LoadedMod) -> Result<()> {
+    modloader_info!("Starting hot-reload for mod {}", loaded_mod.meta.id);
     let unload_payload = run_unload(lua, &loaded_mod.meta.id)?;
     let reloaded = load_mod(
         lua,
@@ -227,9 +246,11 @@ async fn hot_reload_mod(lua: &Lua, loaded_mod: &mut LoadedMod) -> Result<()> {
     )
     .await?;
     *loaded_mod = reloaded;
+    modloader_info!("Finished hot-reload for mod {}", loaded_mod.meta.id);
     Ok(())
 }
 
+/// Invokes a mod's optional `unload()` callback and returns its payload.
 fn run_unload(lua: &Lua, mod_id: &str) -> Result<Value> {
     let engine_table: Table = lua.globals().get("Engine")?;
     let existing_mod: Table = engine_table
@@ -253,12 +274,19 @@ async fn load_mod(
     is_hot_reload: bool,
     unload_payload: Value,
 ) -> Result<LoadedMod> {
+    modloader_debug!(
+        "Loading mod '{}' (hot_reload={}) from {:?}",
+        meta.id,
+        is_hot_reload,
+        path
+    );
     let required_files = Arc::new(Mutex::new(HashSet::new()));
     register_engine_require(lua, path.clone(), required_files.clone())
         .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
 
     let patch_path = path.join("patch.json");
     let patches = if patch_path.exists() {
+        modloader_trace!("Found patch file for mod {} at {:?}", meta.id, patch_path);
         let patch_data = fs::read(&patch_path).await.with_context(|| {
             format!(
                 "failed to read patch file {:?} for mod {}",
@@ -272,8 +300,14 @@ async fn load_mod(
                     patch_path, meta.id
                 )
             })?;
+        modloader_info!(
+            "Applying {} patch entries for mod {}",
+            patch_entries.len(),
+            meta.id
+        );
         Some(Patches::new(&patch_entries))
     } else {
+        modloader_trace!("No patch.json present for mod {}", meta.id);
         None
     };
 
@@ -294,6 +328,7 @@ async fn load_mod(
 
     let engine_table: Table = lua.globals().get("Engine")?;
     engine_table.set(meta.id.clone(), returned.clone())?;
+    modloader_trace!("Registered Engine['{}'] table", meta.id);
 
     if is_hot_reload {
         if let Ok(load) = returned.get::<Function>("load") {
@@ -317,6 +352,11 @@ async fn load_mod(
     for watched_path in build_watched_files(&path, &required_files) {
         watched_hashes.insert(watched_path.clone(), hash_file(&watched_path));
     }
+    modloader_debug!(
+        "Tracking {} watched files for mod {}",
+        watched_hashes.len(),
+        meta.id
+    );
 
     Ok(LoadedMod {
         meta,
@@ -330,6 +370,7 @@ fn build_watched_files(
     mod_path: &Path,
     required_files: &Arc<Mutex<HashSet<PathBuf>>>,
 ) -> Vec<PathBuf> {
+    // Core mod files are always watched.
     let mut files = vec![
         normalize_path(&mod_path.join("patch.json")),
         normalize_path(&mod_path.join("info.json")),
@@ -346,6 +387,10 @@ fn build_watched_files(
 }
 
 fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)]) -> Result<Vec<usize>> {
+    modloader_debug!(
+        "Resolving dependency graph for {} mod entries",
+        mod_entries.len()
+    );
     let mut graph = Graph::<usize, ()>::new();
     let mut indices: HashMap<String, petgraph::graph::NodeIndex> = HashMap::new();
     for (i, (meta, _path)) in mod_entries.iter().enumerate() {
@@ -354,12 +399,19 @@ fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)]) -> Result<Vec<usize>> 
 
     mod_entries.iter().for_each(|(meta, _path)| {
         for dep in &meta.dependencies {
+            modloader_trace!(
+                "Inspecting dependency edge: {} -> {} ({})",
+                meta.id,
+                dep.id,
+                dep.version_req
+            );
             if let Some(&dep_idx) = indices.get(&dep.id) {
                 let target_index = *graph.node_weight(dep_idx).unwrap();
                 let target_meta = &mod_entries[target_index].0;
                 if dep.version_req.matches(&target_meta.version) {
                     let this_idx = indices[&meta.id];
                     graph.add_edge(dep_idx, this_idx, ());
+                    modloader_trace!("Accepted dependency edge {} -> {}", dep.id, meta.id);
                 } else if !dep.optional {
                     modloader_warning!(
                         "Dependency version mismatch: {} requires {}, found {}",
@@ -406,6 +458,7 @@ fn call_post_init_callbacks(
     Ok(())
 }
 
+/// Installs an `Engine.require(path)` function scoped to the currently loading mod.
 fn register_engine_require(
     lua: &Lua,
     mod_path: PathBuf,
@@ -413,6 +466,7 @@ fn register_engine_require(
 ) -> Result<()> {
     let globals = lua.globals();
     let engine_table: Table = globals.get("Engine")?;
+    let require_mod_path = mod_path.clone();
     let require_fn = lua.create_function(move |lua, requested_path: String| {
         let trimmed = requested_path.trim();
         if trimmed.is_empty() {
@@ -421,10 +475,11 @@ fn register_engine_require(
             ));
         }
 
-        let mod_root = mod_path.canonicalize().map_err(|err| {
+        let mod_root = require_mod_path.canonicalize().map_err(|err| {
             mlua::Error::runtime(format!("failed to resolve mod directory: {err}"))
         })?;
         let file_path = resolve_required_file_path(&mod_root, trimmed)?;
+        modloader_trace!("Engine.require resolving '{}' to {:?}", trimmed, file_path);
 
         if !file_path.starts_with(&mod_root) {
             return Err(mlua::Error::runtime(format!(
@@ -475,9 +530,11 @@ fn register_engine_require(
     })?;
 
     engine_table.set("require", require_fn)?;
+    modloader_trace!("Engine.require installed for mod root {:?}", mod_path);
     Ok(())
 }
 
+/// Resolves a relative require path into a canonical `.luau` script path.
 fn resolve_required_file_path(mod_root: &Path, requested_path: &str) -> mlua::Result<PathBuf> {
     let relative = Path::new(requested_path);
     if relative.is_absolute() {
@@ -566,14 +623,17 @@ fn insert_named_return_value(
     Ok(())
 }
 
+/// Sanitizes path segments for nested table export field names.
 fn sanitize_identifier(name: &str) -> String {
     name.replace(' ', "_")
 }
 
+/// Attempts to canonicalize a path; falls back to original path on failure.
 fn normalize_path(path: &Path) -> PathBuf {
     path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
 }
 
+/// Hashes file bytes for content-based hot-reload detection.
 fn hash_file(path: &Path) -> Option<Hash> {
     match std::fs::read(path) {
         Ok(data) => Some(blake3::hash(&data)),
@@ -581,6 +641,7 @@ fn hash_file(path: &Path) -> Option<Hash> {
     }
 }
 
+/// Ensures an addon path is contained within the configured addons base.
 fn is_safe_path(base: &Path, child: &Path) -> bool {
     match (base.canonicalize(), child.canonicalize()) {
         (Ok(b), Ok(c)) => c.starts_with(&b),
