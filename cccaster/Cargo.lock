@@ -99,6 +99,7 @@ dependencies = [
  "color-print",
  "ctor",
  "lazy_static",
+ "libc",
  "mlua",
  "notify",
  "once_cell",

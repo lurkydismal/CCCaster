@@ -12,6 +12,7 @@ blake3 = { version = "1.8.3", features = ["rayon"] }
 color-print = "0.3.7"
 ctor = "0.8.0"
 lazy_static = "1.5.0"
+libc = "0.2.183"
 mlua = { version = "0.11.6", features = [
     "luau-jit",
     "vendored",
