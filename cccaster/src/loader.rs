@@ -1,4 +1,7 @@
-use crate::patch::{PatchEntry, Patches};
+use crate::patch::{
+    OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
+    resolve_patch_entries, spans_for_patches,
+};
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning};
 use anyhow::{Context, Result, anyhow};
@@ -25,6 +28,8 @@ struct LoadedMod {
     path: PathBuf,
     /// Active patch set for this mod.
     _patches: Option<Patches>,
+    /// Active patch ranges for overlap detection.
+    patch_spans: Vec<PatchSpan>,
     /// Files (and last hash) used for hot-reload invalidation.
     watched_hashes: HashMap<PathBuf, Option<Hash>>,
 }
@@ -195,9 +200,17 @@ async fn load_mods_from_addons_async(ready_signal: StartupSignal) -> Result<()> 
     for &mod_index in &load_order {
         let (meta, path) = &mod_entries[mod_index];
         modloader_info!("Loading mod '{}' from {:?}", meta.id, path);
-        let loaded = load_mod(&lua, meta.clone(), path.clone(), false, Value::Nil)
-            .await
-            .with_context(|| format!("initial load failed for mod '{}'", meta.id))?;
+        let occupied = collect_occupied_spans(&loaded_mods, None);
+        let loaded = load_mod(
+            &lua,
+            meta.clone(),
+            path.clone(),
+            false,
+            Value::Nil,
+            &occupied,
+        )
+        .await
+        .with_context(|| format!("initial load failed for mod '{}'", meta.id))?;
         loaded_mods.push(loaded);
     }
 
@@ -259,7 +272,7 @@ async fn start_hot_reload_loop(
             let meta = loaded_mods[mod_index].meta.clone();
             let path = loaded_mods[mod_index].path.clone();
 
-            if let Err(err) = hot_reload_mod(&lua, &mut loaded_mods[mod_index]).await {
+            if let Err(err) = hot_reload_mod(&lua, &mut loaded_mods, mod_index).await {
                 modloader_error!("Hot-reload failed for mod {}: {}", meta.id, err);
             } else {
                 modloader_info!("Hot-reloaded mod {} from {:?}", meta.id, path);
@@ -301,19 +314,46 @@ fn detect_changed_mod(loaded_mods: &mut [LoadedMod], path: &Path) -> Option<usiz
     None
 }
 
-async fn hot_reload_mod(lua: &Lua, loaded_mod: &mut LoadedMod) -> Result<()> {
-    modloader_info!("Starting hot-reload for mod {}", loaded_mod.meta.id);
-    let unload_payload = run_unload(lua, &loaded_mod.meta.id)?;
+fn collect_occupied_spans<'a>(
+    loaded_mods: &'a [LoadedMod],
+    skip_mod_index: Option<usize>,
+) -> Vec<OwnedPatchSpan<'a>> {
+    let mut occupied = Vec::new();
+    for (idx, loaded) in loaded_mods.iter().enumerate() {
+        if skip_mod_index.is_some_and(|skip| skip == idx) {
+            continue;
+        }
+        for span in &loaded.patch_spans {
+            occupied.push(OwnedPatchSpan {
+                owner: loaded.meta.id.as_str(),
+                span: *span,
+            });
+        }
+    }
+    occupied
+}
+
+async fn hot_reload_mod(lua: &Lua, loaded_mods: &mut [LoadedMod], mod_index: usize) -> Result<()> {
+    modloader_info!(
+        "Starting hot-reload for mod {}",
+        loaded_mods[mod_index].meta.id
+    );
+    let unload_payload = run_unload(lua, &loaded_mods[mod_index].meta.id)?;
+    let occupied = collect_occupied_spans(loaded_mods, Some(mod_index));
     let reloaded = load_mod(
         lua,
-        loaded_mod.meta.clone(),
-        loaded_mod.path.clone(),
+        loaded_mods[mod_index].meta.clone(),
+        loaded_mods[mod_index].path.clone(),
         true,
         unload_payload,
+        &occupied,
     )
     .await?;
-    *loaded_mod = reloaded;
-    modloader_info!("Finished hot-reload for mod {}", loaded_mod.meta.id);
+    loaded_mods[mod_index] = reloaded;
+    modloader_info!(
+        "Finished hot-reload for mod {}",
+        loaded_mods[mod_index].meta.id
+    );
     Ok(())
 }
 
@@ -340,6 +380,7 @@ async fn load_mod(
     path: PathBuf,
     is_hot_reload: bool,
     unload_payload: Value,
+    occupied_spans: &[OwnedPatchSpan<'_>],
 ) -> Result<LoadedMod> {
     modloader_debug!(
         "Loading mod '{}' (hot_reload={}) from {:?}",
@@ -363,7 +404,7 @@ async fn load_mod(
         ));
     }
 
-    let patches = if has_patch_file {
+    let (patches, patch_spans) = if has_patch_file {
         modloader_trace!("Found patch file for mod {} at {:?}", meta.id, patch_path);
         let patch_data = fs::read(&patch_path).await.with_context(|| {
             format!(
@@ -378,15 +419,18 @@ async fn load_mod(
                     patch_path, meta.id
                 )
             })?;
+        let resolved_entries: Vec<ResolvedPatch> = resolve_patch_entries(&patch_entries, &meta.id)?;
+        let spans = spans_for_patches(&resolved_entries)?;
+        ensure_no_overlap(&meta.id, &spans, occupied_spans)?;
         modloader_info!(
             "Applying {} patch entries for mod {}",
-            patch_entries.len(),
+            resolved_entries.len(),
             meta.id
         );
-        Some(Patches::new(&patch_entries))
+        (Some(Patches::new(&resolved_entries)), spans)
     } else {
         modloader_trace!("No patch.json present for mod {}", meta.id);
-        None
+        (None, Vec::new())
     };
 
     let returned: Table = if has_main_script {
@@ -447,6 +491,7 @@ async fn load_mod(
         meta,
         path,
         _patches: patches,
+        patch_spans,
         watched_hashes,
     })
 }
