@@ -595,13 +595,21 @@ fn register_engine_require(
 
         let mut exports = lua.create_table()?;
         let mut seen_keys: HashSet<String> = HashSet::new();
+
         for pair in env.pairs::<mlua::Value, mlua::Value>() {
             let (key, value) = pair?;
-            if let (mlua::Value::String(key), mlua::Value::Function(_)) = (&key, &value) {
-                let key_str = key.to_str()?.to_owned();
-                exports.set(key_str.clone(), value)?;
-                seen_keys.insert(key_str);
+
+            if matches!(value, mlua::Value::Nil) {
+                continue;
             }
+
+            let key_str = match key {
+                mlua::Value::String(s) => s.to_str()?.to_owned(),
+                _ => continue,
+            };
+
+            exports.set(key_str.clone(), value)?;
+            seen_keys.insert(key_str);
         }
 
         if !matches!(chunk_result, mlua::Value::Nil) {
