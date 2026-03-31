@@ -1,6 +1,6 @@
-/// Engine dispatch/require integration and platform memory accessibility checks.
-use crate::modloader_trace;
 use crate::types::ModMeta;
+/// Engine dispatch/require integration and platform memory accessibility checks.
+use crate::{modloader_error, modloader_trace};
 use anyhow::Result;
 use mlua::{Function, Lua, Table, Value};
 use std::collections::HashSet;
@@ -133,6 +133,7 @@ pub(super) fn install_engine_dispatch_api(
 /// Installs an `Engine.require(path)` function scoped to the currently loading mod.
 pub(super) fn register_engine_require(
     lua: &Lua,
+    mod_id: String,
     mod_path: PathBuf,
     required_files: Arc<Mutex<HashSet<PathBuf>>>,
 ) -> Result<()> {
@@ -170,13 +171,26 @@ pub(super) fn register_engine_require(
             ))
         })?;
 
+        let chunk_name = file_path.to_string_lossy().to_string();
+        if let Err(err) = lua.load(&script).set_name(&chunk_name).into_function() {
+            modloader_error!(
+                "Luau precheck failed for mod '{}' required file '{}': {}",
+                mod_id,
+                chunk_name,
+                err
+            );
+            return Err(mlua::Error::runtime(format!(
+                "Engine.require precheck failed for {trimmed}: {err}"
+            )));
+        }
+
         let env = lua.create_table()?;
         let env_mt = lua.create_table()?;
         env_mt.set("__index", lua.globals())?;
         env.set_metatable(Some(env_mt))?;
         let chunk_result: mlua::Value = lua
             .load(&script)
-            .set_name(file_path.to_string_lossy().as_ref())
+            .set_name(&chunk_name)
             .set_environment(env.clone())
             .eval()?;
 
