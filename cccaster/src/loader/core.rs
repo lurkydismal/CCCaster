@@ -23,6 +23,7 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 use tokio::fs;
 use tokio::sync::oneshot;
+use tree_sitter::Parser;
 
 use super::engine_fs::{install_engine_env_api, register_engine_fs_local};
 use super::engine_memory::{install_engine_log_api, install_engine_memory_api};
@@ -628,13 +629,33 @@ async fn load_mod(
                 main_path, meta.id
             )
         })?;
+        let used_script_paths = collect_used_script_files(&meta.id, &path, &main_path, &script)
+            .with_context(|| format!("failed to discover used Luau files for mod {}", meta.id))?;
+        for used_path in &used_script_paths {
+            let source = fs::read_to_string(used_path).await.with_context(|| {
+                format!(
+                    "failed to read used script {:?} for mod {} during precheck",
+                    used_path, meta.id
+                )
+            })?;
+            precheck_luau_chunk(lua, &meta.id, used_path, &source)
+                .with_context(|| format!("Luau precheck failed for mod {}", meta.id))?;
+        }
+        if let Ok(mut guard) = required_files.lock() {
+            for used_path in used_script_paths {
+                guard.insert(normalize_path(&used_path));
+            }
+        }
 
-        lua.load(&script).eval().with_context(|| {
-            format!(
-                "failed to evaluate Lua script {:?} for mod {}",
-                main_path, meta.id
-            )
-        })?
+        lua.load(&script)
+            .set_name(main_path.to_string_lossy().as_ref())
+            .eval()
+            .with_context(|| {
+                format!(
+                    "failed to evaluate Lua script {:?} for mod {}",
+                    main_path, meta.id
+                )
+            })?
     } else {
         modloader_info!(
             "Mod {} has no main.luau; loading patches-only addon",
@@ -682,6 +703,171 @@ async fn load_mod(
         patch_spans,
         watched_hashes,
     })
+}
+
+fn precheck_luau_chunk(lua: &Lua, mod_id: &str, script_path: &Path, source: &str) -> Result<()> {
+    let chunk_name = script_path.to_string_lossy().to_string();
+    lua.load(source)
+        .set_name(&chunk_name)
+        .into_function()
+        .map_err(|err| {
+            anyhow!(
+                "precheck failed in mod '{}' for file '{}': syntax/type/static check error: {}",
+                mod_id,
+                chunk_name,
+                err
+            )
+        })?;
+    modloader_trace!(
+        "Luau precheck passed for mod '{}' file '{}'",
+        mod_id,
+        chunk_name
+    );
+    Ok(())
+}
+
+fn collect_used_script_files(
+    mod_id: &str,
+    mod_root: &Path,
+    main_path: &Path,
+    main_source: &str,
+) -> Result<Vec<PathBuf>> {
+    let mut ordered: Vec<PathBuf> = Vec::new();
+    let mut visited: HashSet<PathBuf> = HashSet::new();
+    let mut stack: Vec<(PathBuf, String)> =
+        vec![(normalize_path(main_path), main_source.to_owned())];
+
+    while let Some((current, source)) = stack.pop() {
+        if !visited.insert(current.clone()) {
+            continue;
+        }
+        ordered.push(current.clone());
+
+        for request in parse_engine_require_literals(&source)? {
+            let resolved = resolve_mod_relative_luau_path(mod_root, &request).with_context(|| {
+                format!(
+                    "mod '{}' uses Engine.require('{}') in '{}' but the target could not be resolved",
+                    mod_id,
+                    request,
+                    current.display()
+                )
+            })?;
+            let normalized_resolved = normalize_path(&resolved);
+            if visited.contains(&normalized_resolved) {
+                continue;
+            }
+
+            let required_source =
+                std::fs::read_to_string(&normalized_resolved).with_context(|| {
+                    format!(
+                        "failed to read required file '{}' while analyzing mod '{}'",
+                        normalized_resolved.display(),
+                        mod_id
+                    )
+                })?;
+            stack.push((normalized_resolved, required_source));
+        }
+    }
+
+    Ok(ordered)
+}
+
+fn parse_engine_require_literals(source: &str) -> Result<Vec<String>> {
+    let mut parser = Parser::new();
+    parser
+        .set_language(&tree_sitter_luau::LANGUAGE.into())
+        .map_err(|err| {
+            anyhow!("failed to initialize Lua parser for Engine.require analysis: {err}")
+        })?;
+    let tree = parser
+        .parse(source, None)
+        .ok_or_else(|| anyhow!("failed to parse Lua source while searching for Engine.require"))?;
+
+    let root = tree.root_node();
+    if root.has_error() {
+        return Err(anyhow!(
+            "Lua AST contains parse errors; cannot reliably inspect Engine.require calls"
+        ));
+    }
+
+    let mut calls = Vec::new();
+    let mut cursor = root.walk();
+    let mut visit_stack = vec![root];
+
+    while let Some(node) = visit_stack.pop() {
+        if node.kind() == "function_call"
+            && let Some(request) = extract_engine_require_argument(node, source)
+        {
+            calls.push(request);
+        }
+
+        for child in node.children(&mut cursor) {
+            visit_stack.push(child);
+        }
+    }
+
+    Ok(calls)
+}
+
+fn extract_engine_require_argument(call_node: tree_sitter::Node, source: &str) -> Option<String> {
+    let call_text = call_node.utf8_text(source.as_bytes()).ok()?.trim();
+    let mut prefixes = ["Engine.require(\"", "Engine.require('"];
+    let prefix = prefixes
+        .iter_mut()
+        .find(|prefix| call_text.starts_with(**prefix))?;
+    let quote = prefix.chars().last()?;
+    let tail = &call_text[prefix.len()..];
+    let end_idx = tail.find(quote)?;
+    Some(tail[..end_idx].to_owned())
+}
+
+fn resolve_mod_relative_luau_path(mod_root: &Path, requested_path: &str) -> Result<PathBuf> {
+    let relative = Path::new(requested_path);
+    if relative.is_absolute() {
+        return Err(anyhow!(
+            "Engine.require path must be relative, got '{}'",
+            requested_path
+        ));
+    }
+
+    let candidate = mod_root.join(relative);
+    if candidate.exists() {
+        let canonical = candidate.canonicalize().with_context(|| {
+            format!(
+                "failed to canonicalize required path '{}'",
+                candidate.display()
+            )
+        })?;
+        if canonical.starts_with(mod_root) {
+            return Ok(canonical);
+        }
+        return Err(anyhow!(
+            "Engine.require path '{}' resolves outside mod root",
+            requested_path
+        ));
+    }
+
+    let with_ext = candidate.with_extension("luau");
+    if with_ext.exists() {
+        let canonical = with_ext.canonicalize().with_context(|| {
+            format!(
+                "failed to canonicalize required path '{}'",
+                with_ext.display()
+            )
+        })?;
+        if canonical.starts_with(mod_root) {
+            return Ok(canonical);
+        }
+        return Err(anyhow!(
+            "Engine.require path '{}' resolves outside mod root",
+            requested_path
+        ));
+    }
+
+    Err(anyhow!(
+        "Engine.require target not found for '{}'",
+        requested_path
+    ))
 }
 
 fn build_watched_files(
@@ -849,8 +1035,19 @@ fn call_quit_callbacks(lua: &Lua, loaded_mods: &[LoadedMod]) -> Result<()> {
         let mod_table: Table = engine_table.get(loaded.meta.id.clone())?;
         if let Ok(quit_fn) = mod_table.get::<Function>("quit") {
             modloader_debug!("Calling quit() for mod {}", loaded.meta.id);
+            let quit_info = quit_fn.info();
+            let quit_location = match (quit_info.short_src, quit_info.line_defined) {
+                (Some(file), Some(line)) => format!("{file}:{line}"),
+                (Some(file), None) => file,
+                _ => "<unknown location>".to_string(),
+            };
             if let Err(err) = quit_fn.call::<()>(()) {
-                modloader_error!("quit() failed for mod {}: {}", loaded.meta.id, err);
+                modloader_error!(
+                    "quit() failed for mod {} at {}: {}",
+                    loaded.meta.id,
+                    quit_location,
+                    err
+                );
             }
         }
     }
