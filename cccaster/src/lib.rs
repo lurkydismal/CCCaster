@@ -207,7 +207,7 @@ macro_rules! modloader_trace {
         $crate::modloader_log!(
             $crate::LOG_TRACE,
             true,
-            color_print::cformat!("<m!>[MODLOADER]</> [TRACE]"),
+            color_print::cformat!("[TRACE]"),
             $($arg)*
         );
     }};
