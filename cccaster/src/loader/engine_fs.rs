@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read};
 
-
 #[derive(Clone)]
 enum LocalWriteMode {
     Write,
@@ -20,11 +19,14 @@ impl LocalWriteMode {
             .map(|value| value.to_ascii_lowercase())
             .as_deref()
         {
-            None | Some("write") | Some("w") => Ok(Self::Write),
+            Some("write") | Some("w") => Ok(Self::Write),
             Some("append") | Some("a") => Ok(Self::Append),
             Some(other) => Err(mlua::Error::runtime(format!(
                 "unsupported Engine.fs.local.write mode '{other}'"
             ))),
+            None => Err(mlua::Error::runtime(
+                "unsupported Engine.fs.local.write mode 'empty'".to_string(),
+            )),
         }
     }
 }
@@ -50,10 +52,7 @@ impl DeferredLocalVfs {
     fn ensure_loaded(&mut self) -> anyhow::Result<&mut LocalVfs> {
         if self.state.is_none() {
             let loaded = load_or_initialize_vfs(&self.archive_path).with_context(|| {
-                format!(
-                    "failed to initialize local VFS at {:?}",
-                    self.archive_path
-                )
+                format!("failed to initialize local VFS at {:?}", self.archive_path)
             })?;
             self.state = Some(loaded);
         }
@@ -92,8 +91,6 @@ pub(super) fn register_engine_fs_local(
     };
 
     let mode_table = lua.create_table()?;
-    mode_table.set("WRITE", "write")?;
-    mode_table.set("APPEND", "append")?;
     mode_table.set("write", "write")?;
     mode_table.set("append", "append")?;
     fs_table.set("mode", mode_table)?;
@@ -189,7 +186,9 @@ fn normalize_vfs_path(path: &str) -> mlua::Result<String> {
     }
 
     if parts.is_empty() {
-        return Err(mlua::Error::runtime("path cannot resolve to an empty value"));
+        return Err(mlua::Error::runtime(
+            "path cannot resolve to an empty value",
+        ));
     }
 
     Ok(parts.join("/"))
@@ -260,13 +259,19 @@ fn persist_vfs(archive_path: &std::path::Path, state: &LocalVfs) -> anyhow::Resu
                 .append_data(&mut header, path.as_str(), Cursor::new(content))
                 .with_context(|| format!("failed writing VFS entry {path}"))?;
         }
-        builder.finish().context("failed finalizing VFS tar archive")?;
+        builder
+            .finish()
+            .context("failed finalizing VFS tar archive")?;
     }
 
     let file = File::create(archive_path)
         .with_context(|| format!("failed creating VFS archive {}", archive_path.display()))?;
-    let mut encoder = zstd::stream::write::Encoder::new(file, 3)
-        .with_context(|| format!("failed to create zstd encoder for {}", archive_path.display()))?;
+    let mut encoder = zstd::stream::write::Encoder::new(file, 3).with_context(|| {
+        format!(
+            "failed to create zstd encoder for {}",
+            archive_path.display()
+        )
+    })?;
     std::io::copy(&mut Cursor::new(tar_payload), &mut encoder)
         .with_context(|| format!("failed writing VFS archive {}", archive_path.display()))?;
     encoder
