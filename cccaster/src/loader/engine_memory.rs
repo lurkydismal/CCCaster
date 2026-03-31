@@ -10,27 +10,94 @@ use mlua::{Lua, Table, Value};
 use super::engine_require_dispatch::is_probably_writable;
 
 pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
-    let log_fn = lua.create_function(|_, (level, message): (u8, String)| {
+    let log_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let (id, level, message) = match args.len() {
+            2 => {
+                let mut values = args.into_iter();
+                let level = match values.next() {
+                    Some(Value::Integer(v)) => v as u8,
+                    Some(_) | None => {
+                        return Err(mlua::Error::runtime(
+                            "Engine.log expects (level, message) or (id, level, message)",
+                        ));
+                    }
+                };
+                let message = match values.next() {
+                    Some(Value::String(s)) => s.to_str()?.to_string(),
+                    Some(_) | None => {
+                        return Err(mlua::Error::runtime(
+                            "Engine.log expects (level, message) or (id, level, message)",
+                        ));
+                    }
+                };
+                ("unknown".to_string(), level, message)
+            }
+            3 => {
+                let mut values = args.into_iter();
+                let id = match values.next() {
+                    Some(Value::String(s)) => s.to_str()?.to_string(),
+                    Some(_) | None => {
+                        return Err(mlua::Error::runtime(
+                            "Engine.log expects (level, message) or (id, level, message)",
+                        ));
+                    }
+                };
+                let level = match values.next() {
+                    Some(Value::Integer(v)) => v as u8,
+                    Some(_) | None => {
+                        return Err(mlua::Error::runtime(
+                            "Engine.log expects (level, message) or (id, level, message)",
+                        ));
+                    }
+                };
+                let message = match values.next() {
+                    Some(Value::String(s)) => s.to_str()?.to_string(),
+                    Some(_) | None => {
+                        return Err(mlua::Error::runtime(
+                            "Engine.log expects (level, message) or (id, level, message)",
+                        ));
+                    }
+                };
+                (id, level, message)
+            }
+            _ => {
+                return Err(mlua::Error::runtime(
+                    "Engine.log expects (level, message) or (id, level, message)",
+                ));
+            }
+        };
+
+        let prefixed = format!("[{}] {}", id, message);
         match level {
-            LOG_ERROR => modloader_error!("{}", message),
-            LOG_WARNING => modloader_warning!("{}", message),
-            LOG_INFO => modloader_info!("{}", message),
-            LOG_DEBUG => modloader_debug!("{}", message),
-            LOG_TRACE => modloader_trace!("{}", message),
+            LOG_ERROR => modloader_error!("{}", prefixed),
+            LOG_WARNING => modloader_warning!("{}", prefixed),
+            LOG_INFO => modloader_info!("{}", prefixed),
+            LOG_DEBUG => modloader_debug!("{}", prefixed),
+            LOG_TRACE => modloader_trace!("{}", prefixed),
             other => modloader_warning!(
                 "Engine.log received unsupported level {} with message: {}",
                 other,
-                message
+                prefixed
             ),
         }
         Ok(())
     })?;
-    engine_table.set("log", log_fn)?;
-    engine_table.set("LOG_ERROR", LOG_ERROR)?;
-    engine_table.set("LOG_WARNING", LOG_WARNING)?;
-    engine_table.set("LOG_INFO", LOG_INFO)?;
-    engine_table.set("LOG_DEBUG", LOG_DEBUG)?;
-    engine_table.set("LOG_TRACE", LOG_TRACE)?;
+    let log_level_table = lua.create_table()?;
+    log_level_table.set("error", LOG_ERROR)?;
+    log_level_table.set("warning", LOG_WARNING)?;
+    log_level_table.set("info", LOG_INFO)?;
+    log_level_table.set("debug", LOG_DEBUG)?;
+    log_level_table.set("trace", LOG_TRACE)?;
+
+    let log_table = lua.create_table()?;
+    log_table.set("level", log_level_table)?;
+    log_table.set("write", log_fn.clone())?;
+    let log_meta = lua.create_table()?;
+    log_meta.set("__call", log_fn)?;
+    log_table.set_metatable(Some(log_meta))?;
+
+    engine_table.set("log", log_table)?;
+
     Ok(())
 }
 
