@@ -147,6 +147,7 @@ fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
         }
 
         if handles.len() == 1 {
+            // NOTE: This MUST be i32, because the game is 32bit and modloader too
             return Ok(Value::Integer(handles[0] as i32));
         }
 
@@ -366,4 +367,3 @@ fn resolve_script_pattern_patch(
     }
     Ok(resolved)
 }
-

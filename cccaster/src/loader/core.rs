@@ -1,5 +1,4 @@
 /// Core modloader lifecycle, discovery, load-order resolution, and hot-reload runtime.
-
 use crate::api::{make_patch, remove_patch};
 use crate::patch::{
     OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
@@ -319,6 +318,7 @@ async fn run_with_load_order(
     install_engine_log_api(&lua, &engine_table)?;
     install_engine_memory_api(&lua, &engine_table)?;
     install_engine_dispatch_api(&lua, &engine_table, load_order, mod_entries)?;
+    install_engine_env_api(&lua, &engine_table)?;
     globals.set("Engine", engine_table)?;
 
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
@@ -562,6 +562,8 @@ async fn load_mod(
     let required_files = Arc::new(Mutex::new(HashSet::new()));
     register_engine_require(lua, path.clone(), required_files.clone())
         .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
+    register_engine_fs_local(lua, path.clone())
+        .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
 
     let patch_path = path.join("patch.json");
     let has_patch_file = patch_path.exists();
@@ -850,4 +852,3 @@ fn call_quit_callbacks(lua: &Lua, loaded_mods: &[LoadedMod]) -> Result<()> {
     }
     Ok(())
 }
-
