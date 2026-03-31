@@ -16,6 +16,7 @@ use once_cell::sync::Lazy;
 use petgraph::algo::toposort;
 use petgraph::graph::Graph;
 use semver::{Version, VersionReq};
+use serde_json::Value as JsonValue;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -37,10 +38,49 @@ type ShutdownSender = std::sync::mpsc::Sender<ControlMessage>;
 
 enum ControlMessage {
     Shutdown,
+    RegisterEngineVariable { name: String, value: JsonValue },
 }
 
 static HOT_RELOAD_THREAD: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
 static SHUTDOWN_SIGNAL: Lazy<Mutex<Option<ShutdownSender>>> = Lazy::new(|| Mutex::new(None));
+static PENDING_ENGINE_VARIABLES: Lazy<Mutex<HashMap<String, JsonValue>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
+    let trimmed_name = name.trim();
+    if trimmed_name.is_empty() {
+        return Err(anyhow!("Engine variable name cannot be empty"));
+    }
+
+    let key = trimmed_name.to_owned();
+    {
+        let mut pending = PENDING_ENGINE_VARIABLES
+            .lock()
+            .map_err(|_| anyhow!("engine variable registry mutex poisoned"))?;
+        pending.insert(key.clone(), value.clone());
+    }
+
+    let tx = SHUTDOWN_SIGNAL
+        .lock()
+        .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?
+        .as_ref()
+        .cloned();
+
+    if let Some(tx) = tx
+        && let Err(err) = tx.send(ControlMessage::RegisterEngineVariable {
+            name: key.clone(),
+            value,
+        })
+    {
+        modloader_warning!(
+            "Failed to send live Engine variable update for '{}': {}",
+            key,
+            err
+        );
+    }
+
+    Ok(())
+}
 
 struct LoadedMod {
     /// Fully parsed metadata from `info.json`.
@@ -326,6 +366,7 @@ async fn run_with_load_order(
     install_engine_memory_api(&lua, &engine_table)?;
     install_engine_dispatch_api(&lua, &engine_table, load_order, mod_entries)?;
     install_engine_env_api(&lua, &engine_table)?;
+    apply_registered_engine_variables(&lua, &engine_table)?;
     globals.set("Engine", engine_table)?;
 
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
@@ -380,6 +421,11 @@ async fn start_hot_reload_loop(
                     modloader_info!("Shutdown signal received; invoking quit callbacks");
                     call_quit_callbacks(&lua, &loaded_mods)?;
                     return Ok(());
+                }
+                ControlMessage::RegisterEngineVariable { name, value } => {
+                    let engine_table: Table = lua.globals().get("Engine")?;
+                    set_engine_variable(&lua, &engine_table, &name, &value)?;
+                    modloader_info!("Applied runtime Engine variable override '{}'", name);
                 }
             }
         }
@@ -544,6 +590,78 @@ fn set_engine_log_mod_id(lua: &Lua, mod_id: Option<&str>) -> Result<()> {
             .context("failed to clear Engine.log mod context")?,
     }
     Ok(())
+}
+
+fn apply_registered_engine_variables(lua: &Lua, engine_table: &Table) -> Result<()> {
+    let pending = PENDING_ENGINE_VARIABLES
+        .lock()
+        .map_err(|_| anyhow!("engine variable registry mutex poisoned"))?;
+    for (name, value) in pending.iter() {
+        set_engine_variable(lua, engine_table, name, value)?;
+        modloader_debug!(
+            "Registered Engine['{}'] from external dynamic library value",
+            name
+        );
+    }
+    Ok(())
+}
+
+fn set_engine_variable(
+    lua: &Lua,
+    engine_table: &Table,
+    name: &str,
+    value: &JsonValue,
+) -> Result<()> {
+    let lua_value = json_value_to_lua(lua, value)?;
+    let external_table = match engine_table.get::<Value>("external")? {
+        Value::Nil => {
+            let table = lua.create_table()?;
+            engine_table.set("external", table.clone())?;
+            table
+        }
+        Value::Table(table) => table,
+        _ => {
+            return Err(anyhow!(
+                "Engine.external exists but is not a table; cannot register '{}'",
+                name
+            ));
+        }
+    };
+    external_table.set(name, lua_value)?;
+    Ok(())
+}
+
+fn json_value_to_lua(lua: &Lua, value: &JsonValue) -> Result<Value> {
+    match value {
+        JsonValue::Null => Ok(Value::Nil),
+        JsonValue::Bool(boolean) => Ok(Value::Boolean(*boolean)),
+        JsonValue::Number(number) => {
+            if let Some(integer) = number.as_i64() {
+                Ok(Value::Integer(integer.try_into().map_err(|_| {
+                    anyhow!("integer out of range for target type")
+                })?))
+            } else if let Some(float) = number.as_f64() {
+                Ok(Value::Number(float))
+            } else {
+                Err(anyhow!("unsupported numeric value in JSON payload"))
+            }
+        }
+        JsonValue::String(text) => Ok(Value::String(lua.create_string(text)?)),
+        JsonValue::Array(items) => {
+            let table = lua.create_table()?;
+            for (idx, item) in items.iter().enumerate() {
+                table.set((idx + 1) as i64, json_value_to_lua(lua, item)?)?;
+            }
+            Ok(Value::Table(table))
+        }
+        JsonValue::Object(entries) => {
+            let table = lua.create_table()?;
+            for (key, entry) in entries {
+                table.set(key.as_str(), json_value_to_lua(lua, entry)?)?;
+            }
+            Ok(Value::Table(table))
+        }
+    }
 }
 
 /// Invokes a mod's optional `unload()` callback and returns its payload.

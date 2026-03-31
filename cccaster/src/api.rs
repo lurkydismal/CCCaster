@@ -4,6 +4,7 @@ use crate::{
     loader, main, modloader_debug, modloader_error, modloader_info, modloader_trace,
     modloader_warning, parse_args,
 };
+use serde_json::Value as JsonValue;
 
 pub type Handle = u32;
 
@@ -37,11 +38,7 @@ fn cccaster_dtor() {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn init(
-    vtable: *const Api,
-    json: *const c_char,
-    json_len: usize,
-) -> bool {
+pub extern "C" fn init(vtable: *const Api, json: *const c_char, json_len: usize) -> bool {
     modloader_info!("Initializing C API bridge");
     if vtable.is_null() {
         modloader_error!("init received null vtable pointer");
@@ -98,6 +95,79 @@ pub extern "C" fn init(
     true
 }
 
+#[unsafe(no_mangle)]
+pub extern "C" fn register_engine_variable_json(
+    name: *const c_char,
+    name_len: usize,
+    value_json: *const c_char,
+    value_json_len: usize,
+) -> bool {
+    if name.is_null() {
+        modloader_error!("register_engine_variable_json received null name pointer");
+        return false;
+    }
+
+    let name_slice = unsafe { std::slice::from_raw_parts(name as *const u8, name_len) };
+    let name = match std::str::from_utf8(name_slice) {
+        Ok(name) => name.trim(),
+        Err(err) => {
+            modloader_error!(
+                "register_engine_variable_json received invalid UTF-8 name: {}",
+                err
+            );
+            return false;
+        }
+    };
+    if name.is_empty() {
+        modloader_error!("register_engine_variable_json received empty name");
+        return false;
+    }
+
+    let parsed_value = if value_json.is_null() {
+        JsonValue::Null
+    } else {
+        let value_slice =
+            unsafe { std::slice::from_raw_parts(value_json as *const u8, value_json_len) };
+        let value_str = match std::str::from_utf8(value_slice) {
+            Ok(value) => value,
+            Err(err) => {
+                modloader_error!(
+                    "register_engine_variable_json received invalid UTF-8 JSON payload for '{}': {}",
+                    name,
+                    err
+                );
+                return false;
+            }
+        };
+        match serde_json::from_str::<JsonValue>(value_str) {
+            Ok(value) => value,
+            Err(err) => {
+                modloader_error!(
+                    "register_engine_variable_json failed to parse JSON payload for '{}': {}",
+                    name,
+                    err
+                );
+                return false;
+            }
+        }
+    };
+
+    match loader::register_engine_variable(name.to_owned(), parsed_value) {
+        Ok(()) => {
+            modloader_info!("Registered external Engine override for key '{}'", name);
+            true
+        }
+        Err(err) => {
+            modloader_error!(
+                "Failed to register external Engine override for key '{}': {}",
+                name,
+                err
+            );
+            false
+        }
+    }
+}
+
 /// Safe wrapper around the raw FFI patch-creation callback.
 pub fn make_patch(addr: usize, bytes: &[u8]) -> Handle {
     modloader_trace!(
@@ -123,7 +193,11 @@ pub fn read_memory(addr: usize, len: usize) -> Option<Vec<u8>> {
 
     let mut out = vec![0u8; len];
     let ok = unsafe { read_memory_raw(addr, out.as_mut_ptr(), out.len()) };
-    if ok { Some(out) } else { None }
+    if ok {
+        Some(out)
+    } else {
+        None
+    }
 }
 
 /// Safe wrapper around the raw FFI memory-write callback.
