@@ -26,7 +26,9 @@ use tokio::sync::oneshot;
 use tree_sitter::Parser;
 
 use super::engine_fs::{install_engine_env_api, register_engine_fs_local};
-use super::engine_memory::{install_engine_log_api, install_engine_memory_api};
+use super::engine_memory::{
+    ENGINE_LOG_MOD_ID_KEY, install_engine_log_api, install_engine_memory_api,
+};
 use super::engine_require_dispatch::{install_engine_dispatch_api, register_engine_require};
 use super::path_utils::{hash_file, is_safe_path, normalize_path};
 
@@ -532,6 +534,18 @@ async fn hot_reload_mod(lua: &Lua, loaded_mods: &mut [LoadedMod], mod_index: usi
     Ok(())
 }
 
+fn set_engine_log_mod_id(lua: &Lua, mod_id: Option<&str>) -> Result<()> {
+    match mod_id {
+        Some(value) => lua
+            .set_named_registry_value(ENGINE_LOG_MOD_ID_KEY, value)
+            .context("failed to set Engine.log mod context")?,
+        None => lua
+            .unset_named_registry_value(ENGINE_LOG_MOD_ID_KEY)
+            .context("failed to clear Engine.log mod context")?,
+    }
+    Ok(())
+}
+
 /// Invokes a mod's optional `unload()` callback and returns its payload.
 fn run_unload(lua: &Lua, mod_id: &str) -> Result<Value> {
     let engine_table: Table = lua.globals().get("Engine")?;
@@ -541,9 +555,12 @@ fn run_unload(lua: &Lua, mod_id: &str) -> Result<Value> {
 
     if let Ok(unload) = existing_mod.get::<Function>("unload") {
         modloader_debug!("Calling unload() for mod {}", mod_id);
-        return unload
+        set_engine_log_mod_id(lua, Some(mod_id))?;
+        let result = unload
             .call::<Value>(())
             .with_context(|| format!("unload() failed for mod {}", mod_id));
+        set_engine_log_mod_id(lua, None)?;
+        return result;
     }
 
     Ok(Value::Nil)
@@ -647,7 +664,9 @@ async fn load_mod(
             }
         }
 
-        lua.load(&script)
+        set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
+        let eval_result = lua
+            .load(&script)
             .set_name(main_path.to_string_lossy().as_ref())
             .eval()
             .with_context(|| {
@@ -655,7 +674,9 @@ async fn load_mod(
                     "failed to evaluate Lua script {:?} for mod {}",
                     main_path, meta.id
                 )
-            })?
+            });
+        set_engine_log_mod_id(lua, None)?;
+        eval_result?
     } else {
         modloader_info!(
             "Mod {} has no main.luau; loading patches-only addon",
@@ -671,17 +692,23 @@ async fn load_mod(
     if is_hot_reload {
         if let Ok(load) = returned.get::<Function>("load") {
             modloader_debug!("Calling load() for mod {}", meta.id);
-            if matches!(unload_payload, Value::Nil) {
+            set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
+            let load_result = if matches!(unload_payload, Value::Nil) {
                 load.call::<()>(())
-                    .with_context(|| format!("load() failed for mod {}", meta.id))?;
+                    .with_context(|| format!("load() failed for mod {}", meta.id))
             } else {
                 load.call::<()>(unload_payload)
-                    .with_context(|| format!("load() failed for mod {}", meta.id))?;
-            }
+                    .with_context(|| format!("load() failed for mod {}", meta.id))
+            };
+            set_engine_log_mod_id(lua, None)?;
+            load_result?;
         }
     } else if let Ok(init_fn) = returned.get::<Function>("init") {
         modloader_debug!("Calling init() for mod {}", meta.id);
-        if let Err(err) = init_fn.call::<()>(()) {
+        set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
+        let init_result = init_fn.call::<()>(());
+        set_engine_log_mod_id(lua, None)?;
+        if let Err(err) = init_result {
             modloader_error!("init() failed for mod {}: {}", meta.id, err);
         }
     }
@@ -1021,7 +1048,10 @@ fn call_post_init_callbacks(
         let mod_table: Table = engine_table.get(meta.id.clone())?;
         if let Ok(post_fn) = mod_table.get::<Function>("post_init") {
             modloader_debug!("Calling post_init() for mod {}", meta.id);
-            if let Err(err) = post_fn.call::<()>(()) {
+            set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
+            let post_result = post_fn.call::<()>(());
+            set_engine_log_mod_id(lua, None)?;
+            if let Err(err) = post_result {
                 modloader_error!("post_init() failed for mod {}: {}", meta.id, err);
             }
         }
@@ -1041,7 +1071,10 @@ fn call_quit_callbacks(lua: &Lua, loaded_mods: &[LoadedMod]) -> Result<()> {
                 (Some(file), None) => file,
                 _ => "<unknown location>".to_string(),
             };
-            if let Err(err) = quit_fn.call::<()>(()) {
+            set_engine_log_mod_id(lua, Some(loaded.meta.id.as_str()))?;
+            let quit_result = quit_fn.call::<()>(());
+            set_engine_log_mod_id(lua, None)?;
+            if let Err(err) = quit_result {
                 modloader_error!(
                     "quit() failed for mod {} at {}: {}",
                     loaded.meta.id,

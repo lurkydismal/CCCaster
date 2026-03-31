@@ -1,27 +1,30 @@
 /// Engine logging/memory APIs and script patch parsing helpers.
 use crate::api::{make_patch, read_memory, remove_patch, write_memory};
 use crate::{
-    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
-    modloader_info, modloader_trace, modloader_warning,
+    modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
+    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING,
 };
 use anyhow::Result;
 use mlua::{Lua, Table, Value};
 
 use super::engine_require_dispatch::is_probably_writable;
 
+pub(super) const ENGINE_LOG_MOD_ID_KEY: &str = "__engine_log_mod_id";
+
 pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
-    let log_fn = lua.create_function(|_, args: mlua::MultiValue| {
+    let log_fn = lua.create_function(|lua, args: mlua::MultiValue| {
         let (level, message) = parse_log_args(args)?;
+        let prefixed = current_log_message(lua, &message);
         match level {
-            LOG_ERROR => modloader_error!("{}", message),
-            LOG_WARNING => modloader_warning!("{}", message),
-            LOG_INFO => modloader_info!("{}", message),
-            LOG_DEBUG => modloader_debug!("{}", message),
-            LOG_TRACE => modloader_trace!("{}", message),
+            LOG_ERROR => modloader_error!("{}", prefixed),
+            LOG_WARNING => modloader_warning!("{}", prefixed),
+            LOG_INFO => modloader_info!("{}", prefixed),
+            LOG_DEBUG => modloader_debug!("{}", prefixed),
+            LOG_TRACE => modloader_trace!("{}", prefixed),
             other => modloader_warning!(
                 "Engine.log received unsupported level {} with message: {}",
                 other,
-                message
+                prefixed
             ),
         }
         Ok(())
@@ -43,6 +46,18 @@ pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<
     engine_table.set("log", log_table)?;
 
     Ok(())
+}
+
+fn current_log_message(lua: &Lua, message: &str) -> String {
+    let mod_id = lua
+        .named_registry_value::<String>(ENGINE_LOG_MOD_ID_KEY)
+        .ok()
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty());
+    match mod_id {
+        Some(id) => format!("[{}] {}", id, message),
+        None => message.to_owned(),
+    }
 }
 
 fn parse_log_args(args: mlua::MultiValue) -> mlua::Result<(u8, String)> {
