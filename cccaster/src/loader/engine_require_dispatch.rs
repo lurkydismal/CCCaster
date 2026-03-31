@@ -1,12 +1,21 @@
 /// Engine dispatch/require integration and platform memory accessibility checks.
+use crate::modloader_trace;
+use crate::types::ModMeta;
+use anyhow::Result;
+use mlua::{Function, Lua, Table, Value};
+use std::collections::HashSet;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+
+use super::path_utils::{normalize_path, sanitize_identifier};
 
 #[cfg(unix)]
-fn is_probably_readable(address: usize, length: usize) -> bool {
+pub(super) fn is_probably_readable(address: usize, length: usize) -> bool {
     is_probably_accessible_unix(address, length, libc::PROT_READ)
 }
 
 #[cfg(unix)]
-fn is_probably_writable(address: usize, length: usize) -> bool {
+pub(super) fn is_probably_writable(address: usize, length: usize) -> bool {
     is_probably_accessible_unix(address, length, libc::PROT_WRITE)
 }
 
@@ -67,7 +76,7 @@ fn is_probably_accessible_unix(address: usize, length: usize, required_flags: i3
 //     address.checked_add(length).is_some()
 // }
 
-fn install_engine_dispatch_api(
+pub(super) fn install_engine_dispatch_api(
     lua: &Lua,
     engine_table: &Table,
     load_order: &[usize],
@@ -122,7 +131,7 @@ fn install_engine_dispatch_api(
 }
 
 /// Installs an `Engine.require(path)` function scoped to the currently loading mod.
-fn register_engine_require(
+pub(super) fn register_engine_require(
     lua: &Lua,
     mod_path: PathBuf,
     required_files: Arc<Mutex<HashSet<PathBuf>>>,
@@ -293,4 +302,3 @@ fn insert_named_return_value(
     seen_keys.insert(final_field.clone());
     Ok(())
 }
-

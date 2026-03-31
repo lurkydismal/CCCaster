@@ -1,6 +1,15 @@
 /// Engine logging/memory APIs and script patch parsing helpers.
+use crate::api::{make_patch, remove_patch};
+use crate::{
+    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
+    modloader_info, modloader_trace, modloader_warning,
+};
+use anyhow::Result;
+use mlua::{Lua, Table, Value};
 
-fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+use super::engine_require_dispatch::{is_probably_readable, is_probably_writable};
+
+pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
     let log_fn = lua.create_function(|_, (level, message): (u8, String)| {
         match level {
             LOG_ERROR => modloader_error!("{}", message),
@@ -25,7 +34,7 @@ fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
     Ok(())
 }
 
-fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
     let memory_table = lua.create_table()?;
 
     let read_fn = lua.create_function(|lua, (address, length): (Value, usize)| {
@@ -147,7 +156,7 @@ fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
         }
 
         if handles.len() == 1 {
-            // NOTE: This MUST be i32, because the game is 32bit and modloader too
+            // NOTE: handle values are 32-bit for game compatibility.
             return Ok(Value::Integer(handles[0] as i32));
         }
 

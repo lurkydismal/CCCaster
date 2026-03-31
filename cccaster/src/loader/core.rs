@@ -1,13 +1,12 @@
 /// Core modloader lifecycle, discovery, load-order resolution, and hot-reload runtime.
-use crate::api::{make_patch, remove_patch};
 use crate::patch::{
     OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
     resolve_patch_entries, spans_for_patches,
 };
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{
-    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
-    modloader_info, modloader_trace, modloader_warning, runtime_args,
+    modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
+    runtime_args,
 };
 use anyhow::{Context, Result, anyhow};
 use blake3::Hash;
@@ -24,6 +23,11 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 use tokio::fs;
 use tokio::sync::oneshot;
+
+use super::engine_fs::{install_engine_env_api, register_engine_fs_local};
+use super::engine_memory::{install_engine_log_api, install_engine_memory_api};
+use super::engine_require_dispatch::{install_engine_dispatch_api, register_engine_require};
+use super::path_utils::{hash_file, is_safe_path, normalize_path};
 
 type StartupSignal = Arc<Mutex<Option<oneshot::Sender<Result<()>>>>>;
 type ShutdownSender = std::sync::mpsc::Sender<ControlMessage>;
