@@ -43,6 +43,7 @@ enum ControlMessage {
 
 static HOT_RELOAD_THREAD: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
 static SHUTDOWN_SIGNAL: Lazy<Mutex<Option<ShutdownSender>>> = Lazy::new(|| Mutex::new(None));
+static PENDING_UNLOADS: Lazy<Mutex<HashSet<String>>> = Lazy::new(|| Mutex::new(HashSet::new()));
 static PENDING_ENGINE_VARIABLES: Lazy<Mutex<HashMap<String, JsonValue>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
@@ -372,6 +373,7 @@ async fn run_with_load_order(
     install_engine_memory_api(&lua, &engine_table)?;
     install_engine_dispatch_api(&lua, &engine_table, load_order, mod_entries)?;
     install_engine_env_api(&lua, &engine_table)?;
+    install_engine_unload_api(&lua, &engine_table)?;
     apply_registered_engine_variables(&lua, &engine_table)?;
     globals.set("Engine", engine_table)?;
 
@@ -421,6 +423,8 @@ async fn start_hot_reload_loop(
     send_startup_signal(&ready_signal, Ok(()));
 
     loop {
+        process_pending_unloads(&lua, &mut watcher, &mut loaded_mods);
+
         if let Ok(message) = control_rx.try_recv() {
             match message {
                 ControlMessage::Shutdown => {
@@ -513,6 +517,8 @@ async fn start_hot_reload_loop(
                 modloader_info!("Hot-reloaded mod {} from {:?}", meta.id, path);
             }
         }
+
+        process_pending_unloads(&lua, &mut watcher, &mut loaded_mods);
     }
 }
 
@@ -679,6 +685,94 @@ fn set_engine_log_mod_id(lua: &Lua, mod_id: Option<&str>) -> Result<()> {
             .context("failed to clear Engine.log mod context")?,
     }
     Ok(())
+}
+
+fn install_engine_unload_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+    let unload_fn = lua.create_function(|lua, ()| {
+        let mod_id = lua
+            .named_registry_value::<String>(ENGINE_LOG_MOD_ID_KEY)
+            .ok()
+            .map(|id| id.trim().to_owned())
+            .filter(|id| !id.is_empty());
+
+        let Some(mod_id) = mod_id else {
+            return Err(mlua::Error::runtime(
+                "Engine.unload must be called from a mod callback context",
+            ));
+        };
+
+        if let Ok(mut guard) = PENDING_UNLOADS.lock() {
+            guard.insert(mod_id);
+            return Ok(true);
+        }
+
+        Err(mlua::Error::runtime(
+            "Engine.unload failed: pending unload queue is unavailable",
+        ))
+    })?;
+
+    engine_table.set("unload", unload_fn)?;
+    Ok(())
+}
+
+fn drain_pending_unloads() -> HashSet<String> {
+    if let Ok(mut guard) = PENDING_UNLOADS.lock() {
+        return std::mem::take(&mut *guard);
+    }
+    HashSet::new()
+}
+
+fn process_pending_unloads(
+    lua: &Lua,
+    watcher: &mut RecommendedWatcher,
+    loaded_mods: &mut Vec<LoadedMod>,
+) {
+    let to_unload = drain_pending_unloads();
+    if to_unload.is_empty() {
+        return;
+    }
+
+    let engine_table: Table = match lua.globals().get("Engine") {
+        Ok(table) => table,
+        Err(err) => {
+            modloader_error!(
+                "Failed to fetch Engine table for unload processing: {}",
+                err
+            );
+            return;
+        }
+    };
+
+    for mod_id in &to_unload {
+        if let Some(index) = loaded_mods
+            .iter()
+            .position(|loaded| loaded.meta.id == *mod_id)
+        {
+            let unloaded = loaded_mods.remove(index);
+            if let Err(err) = watcher.unwatch(&unloaded.path) {
+                modloader_warning!(
+                    "Failed to stop hot-reload watch for mod {} at {:?}: {}",
+                    mod_id,
+                    unloaded.path,
+                    err
+                );
+            }
+            if let Err(err) = engine_table.set(mod_id.as_str(), Value::Nil) {
+                modloader_warning!(
+                    "Failed to unregister Engine table entry for mod {}: {}",
+                    mod_id,
+                    err
+                );
+            }
+            modloader_info!("Unloaded mod {} and removed it from hot-reload", mod_id);
+            continue;
+        }
+
+        modloader_warning!(
+            "Engine.unload requested for unknown/unloaded mod {}; ignoring",
+            mod_id
+        );
+    }
 }
 
 fn apply_registered_engine_variables(lua: &Lua, engine_table: &Table) -> Result<()> {
