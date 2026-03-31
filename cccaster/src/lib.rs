@@ -79,9 +79,10 @@ fn log_file() -> Option<&'static Mutex<std::fs::File>> {
             match OpenOptions::new().create(true).append(true).open(&path) {
                 Ok(file) => Some(Mutex::new(file)),
                 Err(err) => {
-                    eprintln!(
-                        "[MODLOADER] [WARNING] Failed to open log file '{}': {}",
-                        path, err
+                    color_print::ceprintln!(
+                        "<m!>[MODLOADER]</> <y!>[WARNING]</> Failed to open log file '{}': {}",
+                        path,
+                        err
                     );
                     None
                 }
@@ -95,17 +96,20 @@ pub fn emit_log_line(line: String, use_stderr: bool) {
         if let Ok(mut file) = file_lock.lock() {
             let _ = writeln!(file, "{}", line);
         } else {
-            eprintln!("[MODLOADER] [WARNING] Failed to lock log file; falling back to console");
+            color_print::ceprintln!(
+                "<m!>[MODLOADER]</> <y!>[WARNING]</> Failed to lock log file; falling back to console"
+            );
+
             if use_stderr {
-                eprintln!("{line}");
+                color_print::ceprintln!("{line}");
             } else {
-                println!("{line}");
+                color_print::cprintln!("{line}");
             }
         }
     } else if use_stderr {
-        eprintln!("{line}");
+        color_print::ceprintln!("{line}");
     } else {
-        println!("{line}");
+        color_print::cprintln!("{line}");
     }
 }
 
@@ -190,7 +194,7 @@ macro_rules! modloader_log {
     ($level:expr, $is_stderr:expr, $prefix:expr, $($arg:tt)*) => {{
         if $crate::enabled_log_level() >= $level {
             $crate::emit_log_line(
-                format!("<m!>[MODLOADER]</> {} {}", $prefix, format!($($arg)*)),
+                color_print::cformat!("<m!>[MODLOADER]</> {} {}", $prefix, format!($($arg)*)),
                 $is_stderr,
             );
         }
