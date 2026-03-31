@@ -1,8 +1,18 @@
-/// Engine environment and local virtual filesystem APIs.
+/// Engine environment and local/global virtual filesystem APIs.
 use anyhow::Context;
+use easy_fuser::templates::DefaultFuseHandler;
+use easy_fuser::templates::mirror_fs::{MirrorFs, MirrorFsTrait};
+use glob::Pattern;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read};
+use std::path::{Component, Path, PathBuf};
+use std::sync::{Arc, Mutex};
+
+type AssetConverterFn = fn(&[u8]) -> anyhow::Result<Vec<u8>>;
+
+static GLOBAL_ASSET_CONVERTERS: once_cell::sync::Lazy<Mutex<HashMap<String, AssetConverterFn>>> =
+    once_cell::sync::Lazy::new(|| Mutex::new(HashMap::new()));
 
 #[derive(Clone)]
 enum LocalWriteMode {
@@ -63,6 +73,163 @@ impl DeferredLocalVfs {
     }
 }
 
+#[derive(Default)]
+struct GlobalVfs {
+    entries: HashMap<String, Vec<u8>>,
+}
+
+struct GlobalPassthroughFs {
+    launcher_root: PathBuf,
+    whitelist: Vec<Pattern>,
+    vfs: GlobalVfs,
+}
+
+impl GlobalPassthroughFs {
+    fn new(launcher_root: PathBuf, whitelist_patterns: Vec<String>) -> anyhow::Result<Self> {
+        let mut whitelist = Vec::new();
+        for pattern in whitelist_patterns {
+            whitelist.push(
+                Pattern::new(pattern.trim())
+                    .with_context(|| format!("invalid whitelist glob pattern '{}'", pattern))?,
+            );
+        }
+
+        let mirror = MirrorFs::new(launcher_root.clone(), DefaultFuseHandler::new());
+        let _ = mirror.source_dir();
+
+        Ok(Self {
+            launcher_root,
+            whitelist,
+            vfs: GlobalVfs::default(),
+        })
+    }
+
+    fn is_whitelisted(&self, relative_path: &str) -> bool {
+        self.whitelist.iter().any(|pattern| {
+            pattern.matches(relative_path)
+                || relative_path
+                    .rsplit('/')
+                    .next()
+                    .is_some_and(|name| pattern.matches(name))
+        })
+    }
+
+    fn read_text(&self, relative_path: &str) -> anyhow::Result<Option<String>> {
+        if !self.is_whitelisted(relative_path)
+            && let Some(content) = self.vfs.entries.get(relative_path)
+        {
+            return Ok(Some(String::from_utf8_lossy(content).into_owned()));
+        }
+
+        let host_path = resolve_path_within_launcher(&self.launcher_root, relative_path)?;
+        if !host_path.exists() {
+            return Ok(None);
+        }
+
+        let bytes = std::fs::read(&host_path)
+            .with_context(|| format!("failed to read '{}'", host_path.display()))?;
+        Ok(Some(String::from_utf8_lossy(&bytes).into_owned()))
+    }
+
+    fn write_text(
+        &mut self,
+        relative_path: &str,
+        content: &str,
+        mode: LocalWriteMode,
+    ) -> anyhow::Result<bool> {
+        if self.is_whitelisted(relative_path) {
+            return Ok(false);
+        }
+
+        match mode {
+            LocalWriteMode::Write => {
+                self.vfs
+                    .entries
+                    .insert(relative_path.to_string(), content.as_bytes().to_vec());
+            }
+            LocalWriteMode::Append => {
+                self.vfs
+                    .entries
+                    .entry(relative_path.to_string())
+                    .or_default()
+                    .extend_from_slice(content.as_bytes());
+            }
+        }
+
+        Ok(true)
+    }
+
+    fn import_asset(
+        &mut self,
+        host_path: &Path,
+        relative_path: &str,
+        ignore_patterns: &[Pattern],
+        convert_map: &HashMap<String, HashMap<String, String>>,
+    ) -> anyhow::Result<()> {
+        if self.is_whitelisted(relative_path) {
+            return Ok(());
+        }
+        if ignore_patterns.iter().any(|pattern| {
+            pattern.matches(relative_path)
+                || relative_path
+                    .rsplit('/')
+                    .next()
+                    .is_some_and(|name| pattern.matches(name))
+        }) {
+            return Ok(());
+        }
+
+        let bytes = std::fs::read(host_path)
+            .with_context(|| format!("failed reading asset file '{}'", host_path.display()))?;
+
+        let extension = Path::new(relative_path)
+            .extension()
+            .map(|value| value.to_string_lossy().to_ascii_lowercase());
+        if let Some(from_ext) = extension
+            && let Some(targets) = convert_map.get(from_ext.as_str())
+        {
+            let converters = GLOBAL_ASSET_CONVERTERS
+                .lock()
+                .map_err(|_| anyhow::anyhow!("asset converter map mutex poisoned"))?;
+            for (to_ext, converter_name) in targets {
+                let converter = converters.get(converter_name).with_context(|| {
+                    format!("missing asset converter '{converter_name}' for '{relative_path}'")
+                })?;
+                let converted = converter(&bytes).with_context(|| {
+                    format!("asset conversion failed for '{}'", host_path.display())
+                })?;
+                let converted_relative =
+                    replace_extension(relative_path, to_ext).with_context(|| {
+                        format!(
+                            "failed to rewrite extension of '{}' to '{}'",
+                            relative_path, to_ext
+                        )
+                    })?;
+                self.vfs.entries.insert(converted_relative, converted);
+            }
+            return Ok(());
+        }
+
+        self.vfs.entries.insert(relative_path.to_string(), bytes);
+        Ok(())
+    }
+}
+
+static GLOBAL_FS: once_cell::sync::Lazy<Arc<Mutex<GlobalPassthroughFs>>> =
+    once_cell::sync::Lazy::new(|| {
+        let launcher_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        let whitelist_path = launcher_root.join("whitelist.json");
+        let patterns = load_whitelist_patterns(&whitelist_path).unwrap_or_default();
+        let global_fs = GlobalPassthroughFs::new(launcher_root, patterns).unwrap_or_else(|_| {
+            GlobalPassthroughFs {
+                launcher_root: PathBuf::from("."),
+                whitelist: Vec::new(),
+                vfs: GlobalVfs::default(),
+            }
+        });
+        Arc::new(Mutex::new(global_fs))
+    });
+
 pub(super) fn install_engine_env_api(
     lua: &mlua::Lua,
     engine_table: &mlua::Table,
@@ -77,7 +244,61 @@ pub(super) fn install_engine_env_api(
     Ok(())
 }
 
-/// Installs Engine.fs.local APIs scoped to the currently loading mod directory.
+pub(super) fn load_global_assets_for_mod(
+    mod_path: &Path,
+    ignore_globs: &[String],
+    convert_map: &HashMap<String, HashMap<String, String>>,
+) -> anyhow::Result<()> {
+    let assets_root = mod_path.join("assets");
+    if !assets_root.exists() {
+        return Ok(());
+    }
+
+    let mut ignore_patterns = Vec::new();
+    for raw_pattern in ignore_globs {
+        ignore_patterns
+            .push(Pattern::new(raw_pattern).with_context(|| {
+                format!("invalid assets.ignore glob pattern '{}'", raw_pattern)
+            })?);
+    }
+
+    let launcher_root = std::env::current_dir().context("failed to resolve launcher path")?;
+    let mut stack = vec![assets_root.clone()];
+
+    while let Some(current) = stack.pop() {
+        for entry in std::fs::read_dir(&current)
+            .with_context(|| format!("failed reading assets directory '{}'", current.display()))?
+        {
+            let entry = entry.with_context(|| {
+                format!("failed reading assets entry in '{}'", current.display())
+            })?;
+            let path = entry.path();
+
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if !path.is_file() {
+                continue;
+            }
+
+            let relative_to_launcher = path
+                .strip_prefix(&launcher_root)
+                .ok()
+                .map(|value| value.to_string_lossy().replace('\\', "/"))
+                .context("asset path escaped launcher directory")?;
+
+            let mut guard = GLOBAL_FS
+                .lock()
+                .map_err(|_| anyhow::anyhow!("global filesystem mutex poisoned"))?;
+            guard.import_asset(&path, &relative_to_launcher, &ignore_patterns, convert_map)?;
+        }
+    }
+
+    Ok(())
+}
+
+/// Installs Engine.fs.local and Engine.fs.global APIs.
 pub(super) fn register_engine_fs_local(
     lua: &mlua::Lua,
     mod_path: std::path::PathBuf,
@@ -155,6 +376,35 @@ pub(super) fn register_engine_fs_local(
     local_table.set("write", write_fn)?;
     fs_table.set("local", local_table)?;
 
+    let global_table = lua.create_table()?;
+
+    let global_read_fn = lua.create_function(move |_, path: String| {
+        let normalized = normalize_vfs_path(&path)?;
+        let guard = GLOBAL_FS
+            .lock()
+            .map_err(|_| mlua::Error::runtime("global VFS mutex poisoned"))?;
+        guard
+            .read_text(&normalized)
+            .map_err(|err| mlua::Error::runtime(err.to_string()))
+    })?;
+
+    let global_write_fn = lua.create_function(
+        move |_, (path, content, mode): (String, String, Option<String>)| {
+            let normalized = normalize_vfs_path(&path)?;
+            let selected_mode = LocalWriteMode::from_lua_value(mode)?;
+            let mut guard = GLOBAL_FS
+                .lock()
+                .map_err(|_| mlua::Error::runtime("global VFS mutex poisoned"))?;
+            guard
+                .write_text(&normalized, &content, selected_mode)
+                .map_err(|err| mlua::Error::runtime(err.to_string()))
+        },
+    )?;
+
+    global_table.set("read", global_read_fn)?;
+    global_table.set("write", global_write_fn)?;
+    fs_table.set("global", global_table)?;
+
     engine_table.set("fs", fs_table)?;
     Ok(())
 }
@@ -192,6 +442,58 @@ fn normalize_vfs_path(path: &str) -> mlua::Result<String> {
     }
 
     Ok(parts.join("/"))
+}
+
+fn resolve_path_within_launcher(
+    launcher_root: &Path,
+    relative_path: &str,
+) -> anyhow::Result<PathBuf> {
+    let mut result = launcher_root.to_path_buf();
+    for component in Path::new(relative_path).components() {
+        match component {
+            Component::Normal(segment) => result.push(segment),
+            Component::CurDir => {}
+            _ => {
+                return Err(anyhow::anyhow!(
+                    "path traversal is not allowed: '{}'",
+                    relative_path
+                ));
+            }
+        }
+    }
+    Ok(result)
+}
+
+fn load_whitelist_patterns(path: &Path) -> anyhow::Result<Vec<String>> {
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let data = std::fs::read(path)
+        .with_context(|| format!("failed reading whitelist file '{}'", path.display()))?;
+    serde_json::from_slice::<Vec<String>>(&data)
+        .with_context(|| format!("failed parsing whitelist file '{}'", path.display()))
+}
+
+fn replace_extension(relative_path: &str, target_extension: &str) -> anyhow::Result<String> {
+    let cleaned_extension = target_extension.trim().trim_start_matches('.').to_string();
+    if cleaned_extension.is_empty() {
+        return Err(anyhow::anyhow!("target extension cannot be empty"));
+    }
+
+    let path = Path::new(relative_path);
+    let stem = path
+        .file_stem()
+        .map(|value| value.to_string_lossy().to_string())
+        .context("source path is missing file stem")?;
+    let parent = path.parent().filter(|value| !value.as_os_str().is_empty());
+
+    let file_name = format!("{stem}.{cleaned_extension}");
+    let rebuilt = if let Some(parent_path) = parent {
+        parent_path.join(file_name)
+    } else {
+        PathBuf::from(file_name)
+    };
+    Ok(rebuilt.to_string_lossy().replace('\\', "/"))
 }
 
 fn load_or_initialize_vfs(archive_path: &std::path::Path) -> anyhow::Result<LocalVfs> {
