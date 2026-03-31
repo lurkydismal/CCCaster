@@ -1,4 +1,5 @@
 /// Engine dispatch/require integration and platform memory accessibility checks.
+use super::engine_memory::ENGINE_LOG_MOD_ID_KEY;
 use crate::modloader_trace;
 use crate::types::ModMeta;
 use anyhow::Result;
@@ -120,7 +121,9 @@ pub(super) fn install_engine_dispatch_api(
                 Ok(function) => function,
                 Err(_) => continue,
             };
+            let _ = lua.set_named_registry_value(ENGINE_LOG_MOD_ID_KEY, mod_id.as_str());
             let _ = handler.call::<()>(args.clone());
+            let _ = lua.unset_named_registry_value(ENGINE_LOG_MOD_ID_KEY);
         }
 
         Ok(())
