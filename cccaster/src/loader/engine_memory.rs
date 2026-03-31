@@ -1,5 +1,5 @@
 /// Engine logging/memory APIs and script patch parsing helpers.
-use crate::api::{make_patch, remove_patch};
+use crate::api::{make_patch, read_memory, remove_patch, write_memory};
 use crate::{
     LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
     modloader_info, modloader_trace, modloader_warning,
@@ -7,7 +7,7 @@ use crate::{
 use anyhow::Result;
 use mlua::{Lua, Table, Value};
 
-use super::engine_require_dispatch::{is_probably_readable, is_probably_writable};
+use super::engine_require_dispatch::is_probably_writable;
 
 pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
     let log_fn = lua.create_function(|_, (level, message): (u8, String)| {
@@ -46,29 +46,20 @@ pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Resu
             }
         };
 
-        let end = match addr.checked_add(length) {
-            Some(value) => value,
+        let bytes = match read_memory(addr, length) {
+            Some(bytes) => bytes,
             None => {
                 modloader_warning!(
-                    "Engine.memory.read failed: address overflow for range 0x{:X}..+{}",
+                    "Engine.memory.read failed: host denied range read 0x{:X}..+{}",
                     addr,
                     length
                 );
                 return Ok(Value::Nil);
             }
         };
-        if !is_probably_readable(addr, length) {
-            modloader_warning!(
-                "Engine.memory.read failed: unreadable range 0x{:X}..0x{:X}",
-                addr,
-                end
-            );
-            return Ok(Value::Nil);
-        }
 
         let out = lua.create_table()?;
-        for idx in 0..length {
-            let byte = unsafe { ((addr + idx) as *const u8).read() };
+        for (idx, byte) in bytes.iter().copied().enumerate() {
             out.set(idx + 1, format!("{:02X}", byte))?;
         }
         Ok(Value::Table(out))
@@ -95,29 +86,13 @@ pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Resu
             return Ok(false);
         }
 
-        let end = match addr.checked_add(parsed.len()) {
-            Some(value) => value,
-            None => {
-                modloader_warning!(
-                    "Engine.memory.write failed: address overflow for range 0x{:X}..+{}",
-                    addr,
-                    parsed.len()
-                );
-                return Ok(false);
-            }
-        };
-
-        if !is_probably_writable(addr, parsed.len()) {
+        if !write_memory(addr, &parsed) {
             modloader_warning!(
-                "Engine.memory.write failed: unwritable range 0x{:X}..0x{:X}",
+                "Engine.memory.write failed: host denied range write 0x{:X}..+{}",
                 addr,
-                end
+                parsed.len()
             );
             return Ok(false);
-        }
-
-        unsafe {
-            std::ptr::copy_nonoverlapping(parsed.as_ptr(), addr as *mut u8, parsed.len());
         }
         Ok(true)
     })?;
@@ -333,13 +308,14 @@ fn resolve_script_pattern_patch(
             .first()
             .copied()
             .ok_or_else(|| format!("invalid pattern byte '{token}'"))?;
-        if !is_probably_readable(address + idx, 1) {
-            return Err(format!(
-                "pattern check failed at 0x{:X}: address is not readable",
-                address + idx
-            ));
-        }
-        let found = unsafe { ((address + idx) as *const u8).read() };
+        let found = read_memory(address + idx, 1)
+            .and_then(|bytes| bytes.first().copied())
+            .ok_or_else(|| {
+                format!(
+                    "pattern check failed at 0x{:X}: address is not readable",
+                    address + idx
+                )
+            })?;
         if found != expected {
             return Err(format!(
                 "pattern mismatch at 0x{:X}: expected {:02X}, found {:02X}",

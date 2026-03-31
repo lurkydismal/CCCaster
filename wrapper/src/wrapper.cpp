@@ -52,6 +52,12 @@ using wrapperData_t = struct wrapperData {
 const std::string g_cccasterName = "./main.so";
 void* g_cccasterHandle = nullptr;
 bool g_timingsEnabled = false;
+const wrapper::apiVtable_t g_apiVtable{
+    .makePatch = wrapper::makePatch,
+    .removePatch = wrapper::removePatch,
+    .readMemory = wrapper::readMemory,
+    .writeMemory = wrapper::writeMemory,
+};
 
 auto isTruthy( const char* _value ) -> bool {
     if ( _value == nullptr ) {
@@ -704,8 +710,7 @@ auto attach() -> bool {
                                  l_value.c_str() );
 
                     const bool l_result = l_initFunction(
-                        wrapper::makePatch, wrapper::removePatch,
-                        l_value.c_str(), l_data->size );
+                        &g_apiVtable, l_value.c_str(), l_data->size );
 
                     if ( l_result ) {
                         logg::info( "CCCASTER LOADED" );
