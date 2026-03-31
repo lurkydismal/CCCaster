@@ -1,8 +1,8 @@
 /// Engine logging/memory APIs and script patch parsing helpers.
 use crate::api::{make_patch, read_memory, remove_patch, write_memory};
 use crate::{
-    modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
-    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING,
+    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
+    modloader_info, modloader_trace, modloader_warning,
 };
 use anyhow::Result;
 use mlua::{Lua, Table, Value};
