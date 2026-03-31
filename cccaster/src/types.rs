@@ -24,16 +24,6 @@ pub struct RawModInfo {
     pub api_version: u8,
     #[serde(default)]
     pub events: Vec<String>,
-    #[serde(default)]
-    pub assets: RawAssetsConfig,
-}
-
-#[derive(Deserialize, Default, Clone)]
-pub struct RawAssetsConfig {
-    #[serde(default)]
-    pub ignore: Vec<String>,
-    #[serde(default)]
-    pub convert: std::collections::HashMap<String, std::collections::HashMap<String, String>>,
 }
 
 /// Resolved dependency with semver version requirement.
@@ -60,6 +50,4 @@ pub struct ModMeta {
     pub api_version: u8,
     /// Declared event hooks for future dispatch layers.
     pub events: Vec<String>,
-    /// Asset loading options.
-    pub assets: RawAssetsConfig,
 }

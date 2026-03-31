@@ -25,9 +25,7 @@ use tokio::fs;
 use tokio::sync::oneshot;
 use tree_sitter::Parser;
 
-use super::engine_fs::{
-    install_engine_env_api, load_global_assets_for_mod, register_engine_fs_local,
-};
+use super::engine_fs::{install_engine_env_api, register_engine_fs_local};
 use super::engine_memory::{
     ENGINE_LOG_MOD_ID_KEY, install_engine_log_api, install_engine_memory_api,
 };
@@ -246,7 +244,6 @@ async fn load_mods_from_addons_async(
                     dependencies: deps,
                     api_version: raw.api_version,
                     events: raw.events.clone(),
-                    assets: raw.assets.clone(),
                 },
                 path.clone(),
             ));
@@ -585,8 +582,6 @@ async fn load_mod(
         path
     );
     let required_files = Arc::new(Mutex::new(HashSet::new()));
-    load_global_assets_for_mod(&path, &meta.assets.ignore, &meta.assets.convert)
-        .with_context(|| format!("failed to load assets for mod {}", meta.id))?;
     register_engine_require(lua, path.clone(), required_files.clone())
         .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
     register_engine_fs_local(lua, path.clone())
