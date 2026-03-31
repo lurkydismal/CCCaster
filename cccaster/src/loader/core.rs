@@ -564,7 +564,7 @@ async fn load_mod(
         path
     );
     let required_files = Arc::new(Mutex::new(HashSet::new()));
-    register_engine_require(lua, meta.id.clone(), path.clone(), required_files.clone())
+    register_engine_require(lua, path.clone(), required_files.clone())
         .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
     register_engine_fs_local(lua, path.clone())
         .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
@@ -628,8 +628,6 @@ async fn load_mod(
                 main_path, meta.id
             )
         })?;
-        precheck_luau_chunk(lua, &meta.id, &main_path, &script)
-            .with_context(|| format!("Luau precheck failed for mod {}", meta.id))?;
 
         lua.load(&script).eval().with_context(|| {
             format!(
@@ -684,27 +682,6 @@ async fn load_mod(
         patch_spans,
         watched_hashes,
     })
-}
-
-fn precheck_luau_chunk(lua: &Lua, mod_id: &str, script_path: &Path, source: &str) -> Result<()> {
-    let chunk_name = script_path.to_string_lossy().to_string();
-    lua.load(source)
-        .set_name(&chunk_name)
-        .into_function()
-        .map_err(|err| {
-            anyhow!(
-                "precheck failed in mod '{}' for file '{}': syntax/type/static check error: {}",
-                mod_id,
-                chunk_name,
-                err
-            )
-        })?;
-    modloader_trace!(
-        "Luau precheck passed for mod '{}' file '{}'",
-        mod_id,
-        chunk_name
-    );
-    Ok(())
 }
 
 fn build_watched_files(
