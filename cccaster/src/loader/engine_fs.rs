@@ -34,6 +34,36 @@ struct LocalVfs {
     entries: HashMap<String, Vec<u8>>,
 }
 
+struct DeferredLocalVfs {
+    archive_path: std::path::PathBuf,
+    state: Option<LocalVfs>,
+}
+
+impl DeferredLocalVfs {
+    fn new(archive_path: std::path::PathBuf) -> Self {
+        Self {
+            archive_path,
+            state: None,
+        }
+    }
+
+    fn ensure_loaded(&mut self) -> anyhow::Result<&mut LocalVfs> {
+        if self.state.is_none() {
+            let loaded = load_or_initialize_vfs(&self.archive_path).with_context(|| {
+                format!(
+                    "failed to initialize local VFS at {:?}",
+                    self.archive_path
+                )
+            })?;
+            self.state = Some(loaded);
+        }
+
+        self.state
+            .as_mut()
+            .context("local VFS was not initialized after loading")
+    }
+}
+
 pub(super) fn install_engine_env_api(
     lua: &mlua::Lua,
     engine_table: &mlua::Table,
@@ -69,20 +99,23 @@ pub(super) fn register_engine_fs_local(
     fs_table.set("mode", mode_table)?;
 
     let archive_path = mod_path.join("vfs.tar.zstd");
-    let vfs_state = std::sync::Arc::new(std::sync::Mutex::new(
-        load_or_initialize_vfs(&archive_path)
-            .with_context(|| format!("failed to initialize local VFS at {:?}", archive_path))?,
-    ));
+    let vfs_state = std::sync::Arc::new(std::sync::Mutex::new(DeferredLocalVfs::new(
+        archive_path.clone(),
+    )));
 
     let local_table = lua.create_table()?;
 
     let read_state = vfs_state.clone();
     let read_fn = lua.create_function(move |_, path: String| {
         let normalized = normalize_vfs_path(&path)?;
-        let guard = read_state
+        let mut guard = read_state
             .lock()
             .map_err(|_| mlua::Error::runtime("local VFS mutex poisoned"))?;
-        match guard.entries.get(&normalized) {
+        let loaded = guard
+            .ensure_loaded()
+            .map_err(|err| mlua::Error::runtime(err.to_string()))?;
+
+        match loaded.entries.get(&normalized) {
             Some(bytes) => Ok(Some(String::from_utf8_lossy(bytes).into_owned())),
             None => Ok(None),
         }
@@ -98,13 +131,16 @@ pub(super) fn register_engine_fs_local(
             let mut guard = write_state
                 .lock()
                 .map_err(|_| mlua::Error::runtime("local VFS mutex poisoned"))?;
+            let loaded = guard
+                .ensure_loaded()
+                .map_err(|err| mlua::Error::runtime(err.to_string()))?;
 
             match selected_mode {
                 LocalWriteMode::Write => {
-                    guard.entries.insert(normalized, content.into_bytes());
+                    loaded.entries.insert(normalized, content.into_bytes());
                 }
                 LocalWriteMode::Append => {
-                    guard
+                    loaded
                         .entries
                         .entry(normalized)
                         .or_default()
@@ -112,7 +148,7 @@ pub(super) fn register_engine_fs_local(
                 }
             }
 
-            persist_vfs(&write_archive_path, &guard)
+            persist_vfs(&write_archive_path, loaded)
                 .map_err(|err| mlua::Error::runtime(err.to_string()))?;
             Ok(true)
         },
