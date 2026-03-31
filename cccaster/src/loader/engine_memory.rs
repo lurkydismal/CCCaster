@@ -11,73 +11,17 @@ use super::engine_require_dispatch::is_probably_writable;
 
 pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
     let log_fn = lua.create_function(|_, args: mlua::MultiValue| {
-        let (id, level, message) = match args.len() {
-            2 => {
-                let mut values = args.into_iter();
-                let level = match values.next() {
-                    Some(Value::Integer(v)) => v as u8,
-                    Some(_) | None => {
-                        return Err(mlua::Error::runtime(
-                            "Engine.log expects (level, message) or (id, level, message)",
-                        ));
-                    }
-                };
-                let message = match values.next() {
-                    Some(Value::String(s)) => s.to_str()?.to_string(),
-                    Some(_) | None => {
-                        return Err(mlua::Error::runtime(
-                            "Engine.log expects (level, message) or (id, level, message)",
-                        ));
-                    }
-                };
-                ("unknown".to_string(), level, message)
-            }
-            3 => {
-                let mut values = args.into_iter();
-                let id = match values.next() {
-                    Some(Value::String(s)) => s.to_str()?.to_string(),
-                    Some(_) | None => {
-                        return Err(mlua::Error::runtime(
-                            "Engine.log expects (level, message) or (id, level, message)",
-                        ));
-                    }
-                };
-                let level = match values.next() {
-                    Some(Value::Integer(v)) => v as u8,
-                    Some(_) | None => {
-                        return Err(mlua::Error::runtime(
-                            "Engine.log expects (level, message) or (id, level, message)",
-                        ));
-                    }
-                };
-                let message = match values.next() {
-                    Some(Value::String(s)) => s.to_str()?.to_string(),
-                    Some(_) | None => {
-                        return Err(mlua::Error::runtime(
-                            "Engine.log expects (level, message) or (id, level, message)",
-                        ));
-                    }
-                };
-                (id, level, message)
-            }
-            _ => {
-                return Err(mlua::Error::runtime(
-                    "Engine.log expects (level, message) or (id, level, message)",
-                ));
-            }
-        };
-
-        let prefixed = format!("[{}] {}", id, message);
+        let (level, message) = parse_log_args(args)?;
         match level {
-            LOG_ERROR => modloader_error!("{}", prefixed),
-            LOG_WARNING => modloader_warning!("{}", prefixed),
-            LOG_INFO => modloader_info!("{}", prefixed),
-            LOG_DEBUG => modloader_debug!("{}", prefixed),
-            LOG_TRACE => modloader_trace!("{}", prefixed),
+            LOG_ERROR => modloader_error!("{}", message),
+            LOG_WARNING => modloader_warning!("{}", message),
+            LOG_INFO => modloader_info!("{}", message),
+            LOG_DEBUG => modloader_debug!("{}", message),
+            LOG_TRACE => modloader_trace!("{}", message),
             other => modloader_warning!(
                 "Engine.log received unsupported level {} with message: {}",
                 other,
-                prefixed
+                message
             ),
         }
         Ok(())
@@ -99,6 +43,50 @@ pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<
     engine_table.set("log", log_table)?;
 
     Ok(())
+}
+
+fn parse_log_args(args: mlua::MultiValue) -> mlua::Result<(u8, String)> {
+    let values: Vec<Value> = args.into_iter().collect();
+    if values.len() < 2 {
+        return Err(mlua::Error::runtime(
+            "Engine.log expects (level, message) arguments",
+        ));
+    }
+
+    let start_idx = match values.first() {
+        Some(Value::Table(_)) => 1,
+        _ => 0,
+    };
+    if values.len() <= start_idx + 1 {
+        return Err(mlua::Error::runtime(
+            "Engine.log expects (level, message) arguments",
+        ));
+    }
+
+    let level = match &values[start_idx] {
+        Value::Integer(v) if *v >= 0 && *v <= u8::MAX as i32 => *v as u8,
+        Value::Number(v) if v.is_finite() && *v >= 0.0 && *v <= u8::MAX as f64 => *v as u8,
+        Value::String(v) => v.to_str()?.parse::<u8>().map_err(mlua::Error::runtime)?,
+        _ => {
+            return Err(mlua::Error::runtime(
+                "Engine.log level must be a number or numeric string",
+            ));
+        }
+    };
+
+    let message = match &values[start_idx + 1] {
+        Value::String(v) => v.to_str()?.to_string(),
+        Value::Integer(v) => v.to_string(),
+        Value::Number(v) => v.to_string(),
+        Value::Boolean(v) => v.to_string(),
+        _ => {
+            return Err(mlua::Error::runtime(
+                "Engine.log message must be a string or scalar value",
+            ));
+        }
+    };
+
+    Ok((level, message))
 }
 
 pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
