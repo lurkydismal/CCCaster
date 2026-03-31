@@ -12,11 +12,18 @@ pub type MakePatchFn = unsafe extern "C" fn(addr: usize, bytes: *const u8, len: 
 
 /// FFI callback for removing a previously created patch.
 pub type RemovePatchFn = unsafe extern "C" fn(id: Handle) -> bool;
+/// FFI callback for reading memory from the host process.
+pub type ReadMemoryFn = unsafe extern "C" fn(addr: usize, out: *mut u8, len: usize) -> bool;
+/// FFI callback for writing memory to the host process.
+pub type WriteMemoryFn = unsafe extern "C" fn(addr: usize, bytes: *const u8, len: usize) -> bool;
 
 /// Immutable API table provided by the host at initialization time.
+#[repr(C)]
 pub struct Api {
     pub make_patch: MakePatchFn,
     pub remove_patch: RemovePatchFn,
+    pub read_memory: ReadMemoryFn,
+    pub write_memory: WriteMemoryFn,
 }
 
 lazy_static::lazy_static! {
@@ -31,18 +38,20 @@ fn cccaster_dtor() {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn init(
-    make_patch: MakePatchFn,
-    remove_patch: RemovePatchFn,
+    vtable: *const Api,
     json: *const c_char,
     json_len: usize,
 ) -> bool {
     modloader_info!("Initializing C API bridge");
-    API.set(Api {
-        make_patch,
-        remove_patch,
-    })
-    .ok();
-    modloader_debug!("Registered patch API function pointers");
+    if vtable.is_null() {
+        modloader_error!("init received null vtable pointer");
+        return false;
+    }
+    // SAFETY: `vtable` is checked for null above and points to an immutable C table.
+    let api = unsafe { std::ptr::read(vtable) };
+
+    API.set(api).ok();
+    modloader_debug!("Registered API vtable function pointers");
 
     // Convert JSON if needed
     if json.is_null() {
@@ -106,6 +115,25 @@ pub fn remove_patch(id: Handle) -> bool {
     unsafe { remove_patch_raw(id) }
 }
 
+/// Safe wrapper around the raw FFI memory-read callback.
+pub fn read_memory(addr: usize, len: usize) -> Option<Vec<u8>> {
+    if len == 0 {
+        return Some(Vec::new());
+    }
+
+    let mut out = vec![0u8; len];
+    let ok = unsafe { read_memory_raw(addr, out.as_mut_ptr(), out.len()) };
+    if ok { Some(out) } else { None }
+}
+
+/// Safe wrapper around the raw FFI memory-write callback.
+pub fn write_memory(addr: usize, bytes: &[u8]) -> bool {
+    if bytes.is_empty() {
+        return false;
+    }
+    unsafe { write_memory_raw(addr, bytes.as_ptr(), bytes.len()) }
+}
+
 /// # Safety
 /// Requires that `API` has already been initialized and pointers are valid.
 unsafe fn make_patch_raw(addr: usize, bytes: *const u8, len: usize) -> Handle {
@@ -129,4 +157,18 @@ unsafe fn remove_patch_raw(id: Handle) -> bool {
     let removed = unsafe { (api.remove_patch)(id) };
     modloader_debug!("remove_patch_raw handle={} removed={}", id, removed);
     removed
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn read_memory_raw(addr: usize, out: *mut u8, len: usize) -> bool {
+    let api = API.get().expect("API not initialized");
+    unsafe { (api.read_memory)(addr, out, len) }
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn write_memory_raw(addr: usize, bytes: *const u8, len: usize) -> bool {
+    let api = API.get().expect("API not initialized");
+    unsafe { (api.write_memory)(addr, bytes, len) }
 }
