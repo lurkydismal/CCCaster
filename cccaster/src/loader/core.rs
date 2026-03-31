@@ -95,6 +95,12 @@ struct LoadedMod {
     watched_hashes: HashMap<PathBuf, Option<Hash>>,
 }
 
+#[derive(Default)]
+struct PendingReload {
+    changed_paths: Vec<PathBuf>,
+    patch_changed: bool,
+}
+
 /// Scans the addons directory, initializes mods, and starts hot-reload in a background thread.
 pub async fn load_mods_from_addons() -> Result<()> {
     let (ready_tx, ready_rx) = oneshot::channel::<Result<()>>();
@@ -454,18 +460,54 @@ async fn start_hot_reload_loop(
             continue;
         }
 
-        let mut mods_to_reload: HashSet<usize> = HashSet::new();
+        let mut mods_to_reload: HashMap<usize, PendingReload> = HashMap::new();
         for path in &event.paths {
             if let Some(changed_index) = detect_changed_mod(&mut loaded_mods, path) {
-                mods_to_reload.insert(changed_index);
+                let normalized = normalize_path(path);
+                let is_patch_change =
+                    normalized == loaded_mods[changed_index].path.join("patch.json");
+                let pending = mods_to_reload.entry(changed_index).or_default();
+                pending.changed_paths.push(normalized);
+                pending.patch_changed |= is_patch_change;
             }
         }
 
-        for mod_index in mods_to_reload {
+        for (mod_index, pending) in mods_to_reload {
             let meta = loaded_mods[mod_index].meta.clone();
             let path = loaded_mods[mod_index].path.clone();
+            let args = runtime_args();
 
-            if let Err(err) = hot_reload_mod(&lua, &mut loaded_mods, mod_index).await {
+            let changed_non_patch = pending
+                .changed_paths
+                .iter()
+                .any(|changed| changed != &loaded_mods[mod_index].path.join("patch.json"));
+            let reload_result = if pending.patch_changed && !changed_non_patch {
+                let occupied = collect_occupied_spans(&loaded_mods, Some(mod_index));
+                match hot_reload_patches_only(
+                    &loaded_mods[mod_index].meta,
+                    &loaded_mods[mod_index].path,
+                    &occupied,
+                    args.dump_patches,
+                )
+                .await
+                {
+                    Ok((patches, spans, patch_count)) => {
+                        loaded_mods[mod_index]._patches = patches;
+                        loaded_mods[mod_index].patch_spans = spans;
+                        modloader_info!(
+                            "Hot-reloaded only patch.json for mod {} ({} patch entries)",
+                            loaded_mods[mod_index].meta.id,
+                            patch_count
+                        );
+                        Ok(())
+                    }
+                    Err(err) => Err(err),
+                }
+            } else {
+                hot_reload_mod(&lua, &mut loaded_mods, mod_index).await
+            };
+
+            if let Err(err) = reload_result {
                 modloader_error!("Hot-reload failed for mod {}: {}", meta.id, err);
             } else {
                 modloader_info!("Hot-reloaded mod {} from {:?}", meta.id, path);
@@ -520,14 +562,15 @@ fn derive_mod_id(path: &Path) -> Option<String> {
 fn detect_changed_mod(loaded_mods: &mut [LoadedMod], path: &Path) -> Option<usize> {
     let normalized = normalize_path(path);
     for (idx, loaded) in loaded_mods.iter_mut().enumerate() {
-        if let Some(previous_hash) = loaded.watched_hashes.get(&normalized).copied() {
+        if let Some(previous_hash) = loaded.watched_hashes.get_mut(&normalized) {
             let current_hash = hash_file(&normalized);
-            if previous_hash != current_hash {
+            if *previous_hash != current_hash {
                 modloader_debug!(
                     "Detected actual content change for mod {} in {:?}",
                     loaded.meta.id,
                     normalized
                 );
+                *previous_hash = current_hash;
                 return Some(idx);
             }
         }
@@ -578,6 +621,52 @@ async fn hot_reload_mod(lua: &Lua, loaded_mods: &mut [LoadedMod], mod_index: usi
         loaded_mods[mod_index].meta.id
     );
     Ok(())
+}
+
+async fn hot_reload_patches_only(
+    meta: &ModMeta,
+    mod_path: &Path,
+    occupied_spans: &[OwnedPatchSpan<'_>],
+    dump_patches: bool,
+) -> Result<(Option<Patches>, Vec<PatchSpan>, usize)> {
+    let patch_path = mod_path.join("patch.json");
+    if !patch_path.exists() {
+        return Ok((None, Vec::new(), 0));
+    }
+
+    let patch_data = fs::read(&patch_path).await.with_context(|| {
+        format!(
+            "failed to read patch file {:?} for mod {}",
+            patch_path, meta.id
+        )
+    })?;
+    let patch_entries: Vec<PatchEntry> =
+        serde_json::from_slice(&patch_data).with_context(|| {
+            format!(
+                "failed to parse patch file {:?} for mod {}",
+                patch_path, meta.id
+            )
+        })?;
+    let resolved_entries: Vec<ResolvedPatch> = resolve_patch_entries(&patch_entries, &meta.id)?;
+    let spans = spans_for_patches(&resolved_entries)?;
+    ensure_no_overlap(&meta.id, &spans, occupied_spans)?;
+
+    if dump_patches {
+        for (idx, patch) in resolved_entries.iter().enumerate() {
+            modloader_info!(
+                "patch[{}] {} => 0x{:X} ({} bytes)",
+                idx,
+                meta.id,
+                patch.address,
+                patch.bytes.len()
+            );
+        }
+    }
+    Ok((
+        Some(Patches::new(&resolved_entries)),
+        spans,
+        resolved_entries.len(),
+    ))
 }
 
 fn set_engine_log_mod_id(lua: &Lua, mod_id: Option<&str>) -> Result<()> {
