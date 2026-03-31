@@ -1,5 +1,7 @@
-include!("core.rs");
-include!("engine_memory.rs");
-include!("engine_fs.rs");
-include!("engine_require_dispatch.rs");
-include!("path_utils.rs");
+mod core;
+mod engine_fs;
+mod engine_memory;
+mod engine_require_dispatch;
+mod path_utils;
+
+pub use core::{load_mods_from_addons, shutdown_before_unload};

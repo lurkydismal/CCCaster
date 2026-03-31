@@ -1,5 +1,6 @@
 /// Engine environment and local virtual filesystem APIs.
-
+use anyhow::Context;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read};
 
@@ -33,7 +34,10 @@ struct LocalVfs {
     entries: HashMap<String, Vec<u8>>,
 }
 
-fn install_engine_env_api(lua: &mlua::Lua, engine_table: &mlua::Table) -> anyhow::Result<()> {
+pub(super) fn install_engine_env_api(
+    lua: &mlua::Lua,
+    engine_table: &mlua::Table,
+) -> anyhow::Result<()> {
     let env_table = lua.create_table()?;
     for (key, value) in std::env::vars() {
         if key.starts_with("ADDON_") {
@@ -45,7 +49,10 @@ fn install_engine_env_api(lua: &mlua::Lua, engine_table: &mlua::Table) -> anyhow
 }
 
 /// Installs Engine.fs.local APIs scoped to the currently loading mod directory.
-fn register_engine_fs_local(lua: &mlua::Lua, mod_path: std::path::PathBuf) -> anyhow::Result<()> {
+pub(super) fn register_engine_fs_local(
+    lua: &mlua::Lua,
+    mod_path: std::path::PathBuf,
+) -> anyhow::Result<()> {
     let globals = lua.globals();
     let engine_table: mlua::Table = globals.get("Engine")?;
 
