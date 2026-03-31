@@ -14,8 +14,14 @@ mod loader;
 mod patch;
 mod types;
 
-use std::sync::OnceLock;
-use std::sync::atomic::{AtomicU8, Ordering};
+use std::{
+    fs::OpenOptions,
+    io::Write,
+    sync::{
+        Mutex, OnceLock,
+        atomic::{AtomicU8, Ordering},
+    },
+};
 
 pub use error::{AppError, Result};
 
@@ -29,6 +35,7 @@ pub const LOG_TRACE: u8 = 4;
 
 static ENABLED_LOG_LEVEL: AtomicU8 = AtomicU8::new(LOG_ERROR);
 static RUNTIME_ARGS: OnceLock<ModloaderData> = OnceLock::new();
+static LOG_FILE: OnceLock<Option<Mutex<std::fs::File>>> = OnceLock::new();
 
 /// Computes the effective log level from parsed launcher arguments.
 pub fn log_level_from_args(args: &ModloaderData) -> u8 {
@@ -60,6 +67,46 @@ pub fn runtime_args() -> &'static ModloaderData {
     RUNTIME_ARGS
         .get()
         .expect("runtime args not initialized before main startup")
+}
+
+fn log_file() -> Option<&'static Mutex<std::fs::File>> {
+    LOG_FILE
+        .get_or_init(|| {
+            let path = std::env::var("MODLOADER_LOG")
+                .ok()
+                .map(|value| value.trim().to_owned())
+                .filter(|value| !value.is_empty())?;
+            match OpenOptions::new().create(true).append(true).open(&path) {
+                Ok(file) => Some(Mutex::new(file)),
+                Err(err) => {
+                    eprintln!(
+                        "[MODLOADER] [WARNING] Failed to open log file '{}': {}",
+                        path, err
+                    );
+                    None
+                }
+            }
+        })
+        .as_ref()
+}
+
+pub fn emit_log_line(line: String, use_stderr: bool) {
+    if let Some(file_lock) = log_file() {
+        if let Ok(mut file) = file_lock.lock() {
+            let _ = writeln!(file, "{}", line);
+        } else {
+            eprintln!("[MODLOADER] [WARNING] Failed to lock log file; falling back to console");
+            if use_stderr {
+                eprintln!("{line}");
+            } else {
+                println!("{line}");
+            }
+        }
+    } else if use_stderr {
+        eprintln!("{line}");
+    } else {
+        println!("{line}");
+    }
 }
 
 fn env_bool(name: &str) -> Option<bool> {
@@ -139,52 +186,74 @@ pub fn parse_args(json: &str) -> Result<()> {
 }
 
 #[macro_export]
+macro_rules! modloader_log {
+    ($level:expr, $is_stderr:expr, $prefix:expr, $($arg:tt)*) => {{
+        if $crate::enabled_log_level() >= $level {
+            $crate::emit_log_line(
+                format!("<m!>[MODLOADER]</> {} {}", $prefix, format!($($arg)*)),
+                $is_stderr,
+            );
+        }
+    }};
+}
+
+#[macro_export]
 macro_rules! modloader_trace {
     ($($arg:tt)*) => {{
-        if $crate::enabled_log_level() >= $crate::LOG_TRACE {
-            color_print::ceprint!("<m!>[MODLOADER]</> [TRACE] ");
-            eprintln!($($arg)*);
-        }
+        $crate::modloader_log!(
+            $crate::LOG_TRACE,
+            true,
+            color_print::cformat!("<m!>[MODLOADER]</> [TRACE]"),
+            $($arg)*
+        );
     }};
 }
 
 #[macro_export]
 macro_rules! modloader_debug {
     ($($arg:tt)*) => {{
-        if $crate::enabled_log_level() >= $crate::LOG_DEBUG {
-            color_print::cprint!("<m!>[MODLOADER]</> <c!>[DEBUG]</> ");
-            println!($($arg)*);
-        }
+        $crate::modloader_log!(
+            $crate::LOG_DEBUG,
+            false,
+            color_print::cformat!("<c!>[DEBUG]</>"),
+            $($arg)*
+        );
     }};
 }
 
 #[macro_export]
 macro_rules! modloader_info {
     ($($arg:tt)*) => {{
-        if $crate::enabled_log_level() >= $crate::LOG_INFO {
-            color_print::cprint!("<m!>[MODLOADER]</> <g!>[INFO]</> ");
-            println!($($arg)*);
-        }
+        $crate::modloader_log!(
+            $crate::LOG_INFO,
+            false,
+            color_print::cformat!("<g!>[INFO]</>"),
+            $($arg)*
+        );
     }};
 }
 
 #[macro_export]
 macro_rules! modloader_warning {
     ($($arg:tt)*) => {{
-        if $crate::enabled_log_level() >= $crate::LOG_WARNING {
-            color_print::ceprint!("<m!>[MODLOADER]</> <y!>[WARNING]</> ");
-            eprintln!($($arg)*);
-        }
+        $crate::modloader_log!(
+            $crate::LOG_WARNING,
+            true,
+            color_print::cformat!("<y!>[WARNING]</>"),
+            $($arg)*
+        );
     }};
 }
 
 #[macro_export]
 macro_rules! modloader_error {
     ($($arg:tt)*) => {{
-        if $crate::enabled_log_level() >= $crate::LOG_ERROR {
-            color_print::ceprint!("<m!>[MODLOADER]</> <r!>[ERROR]</> ");
-            eprintln!($($arg)*);
-        }
+        $crate::modloader_log!(
+            $crate::LOG_ERROR,
+            true,
+            color_print::cformat!("<r!>[ERROR]</>"),
+            $($arg)*
+        );
     }};
 }
 
