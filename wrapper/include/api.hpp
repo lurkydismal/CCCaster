@@ -18,7 +18,8 @@ auto setNoPatches( bool _value ) -> bool;
                                size_t _bytesAmount ) -> bool;
 [[nodiscard]] auto writeMemory( uintptr_t _address,
                                 const std::byte* _bytes,
-                                size_t _bytesAmount ) -> bool;
+                                size_t _bytesAmount,
+                                bool _suspendProcess ) -> bool;
 
 using apiVtable_t = struct apiVtable {
     decltype( &wrapper::makePatch ) makePatch;

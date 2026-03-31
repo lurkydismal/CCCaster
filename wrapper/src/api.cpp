@@ -4,12 +4,16 @@
 #define NOMINMAX
 #include <windows.h>
 
+#include <tlhelp32.h>
+
 #include <atomic>
 #include <bit>
 #include <cstdint>
 #include <cstring>
 #include <mutex>
+#include <optional>
 #include <span>
+#include <vector>
 
 #include "logg.hpp"
 #include "memoryLock.hpp"
@@ -81,6 +85,77 @@ auto isRangeAccessible( uintptr_t _address, size_t _bytesAmount, bool _write )
     return ( true );
 }
 
+using processSuspendGuard_t = struct processSuspendGuard {
+    processSuspendGuard() {
+        _suspendedThreadHandles.reserve( 64 );
+
+        const DWORD l_processId = GetCurrentProcessId();
+        const DWORD l_currentThreadId = GetCurrentThreadId();
+
+        const HANDLE l_snapshot =
+            CreateToolhelp32Snapshot( TH32CS_SNAPTHREAD, 0 );
+
+        if ( l_snapshot == INVALID_HANDLE_VALUE ) {
+            logg::error(
+                "processSuspendGuard: failed to enumerate process threads" );
+            return;
+        }
+
+        THREADENTRY32 l_entry{};
+        l_entry.dwSize = sizeof( l_entry );
+
+        if ( !Thread32First( l_snapshot, &l_entry ) ) {
+            logg::error( "processSuspendGuard: Thread32First failed" );
+            CloseHandle( l_snapshot );
+            return;
+        }
+
+        do {
+            if ( l_entry.th32OwnerProcessID != l_processId ) {
+                continue;
+            }
+
+            if ( l_entry.th32ThreadID == l_currentThreadId ) {
+                continue;
+            }
+
+            HANDLE l_thread = OpenThread(
+                THREAD_SUSPEND_RESUME | THREAD_QUERY_LIMITED_INFORMATION, FALSE,
+                l_entry.th32ThreadID );
+
+            if ( l_thread == nullptr ) {
+                continue;
+            }
+
+            const DWORD l_previousCount = SuspendThread( l_thread );
+
+            if ( l_previousCount == static_cast< DWORD >( -1 ) ) {
+                CloseHandle( l_thread );
+                continue;
+            }
+
+            if ( l_previousCount == 0 ) {
+                _suspendedThreadHandles.push_back( l_thread );
+            } else {
+                ( void )ResumeThread( l_thread );
+                CloseHandle( l_thread );
+            }
+        } while ( Thread32Next( l_snapshot, &l_entry ) );
+
+        CloseHandle( l_snapshot );
+    }
+
+    ~processSuspendGuard() {
+        for ( HANDLE l_thread : _suspendedThreadHandles ) {
+            ( void )ResumeThread( l_thread );
+            CloseHandle( l_thread );
+        }
+    }
+
+private:
+    std::vector< HANDLE > _suspendedThreadHandles;
+};
+
 } // namespace
 
 namespace wrapper {
@@ -120,6 +195,8 @@ auto setNoPatches( bool _value ) -> bool {
         return ( storage_t::g_invalidHandle );
     }
 
+    const processSuspendGuard_t l_suspendGuard;
+
     const auto l_handle =
         g_patches.addPatch( _address, std::span{ _bytes, _bytesAmount } );
 
@@ -140,6 +217,8 @@ auto setNoPatches( bool _value ) -> bool {
 
         return ( false );
     }
+
+    const processSuspendGuard_t l_suspendGuard;
 
     const bool l_result = g_patches.removePatch( _id );
 
@@ -183,12 +262,19 @@ auto setNoPatches( bool _value ) -> bool {
 
 [[nodiscard]] auto writeMemory( uintptr_t _address,
                                 const std::byte* _bytes,
-                                size_t _bytesAmount ) -> bool {
-    logg::trace( "wrapper::writeMemory addr={} size={}", _address,
-                 _bytesAmount );
+                                size_t _bytesAmount,
+                                bool _suspendProcess ) -> bool {
+    logg::trace( "wrapper::writeMemory addr={} size={} suspend={}", _address,
+                 _bytesAmount, _suspendProcess );
 
     if ( !_address || !_bytes || !_bytesAmount ) {
         logg::warning( "wrapper::writeMemory invalid arguments" );
+        return ( false );
+    }
+
+    if ( g_noPatches ) {
+        logg::warning( "wrapper::writeMemory no patches is enabled" );
+
         return ( false );
     }
 
@@ -204,6 +290,10 @@ auto setNoPatches( bool _value ) -> bool {
                        l_address, _bytesAmount );
         return ( false );
     }
+
+    const std::optional< processSuspendGuard_t > l_suspendGuard =
+        _suspendProcess ? std::make_optional< processSuspendGuard_t >()
+                        : std::nullopt;
 
     const memoryLock_t l_lock( l_address, _bytesAmount );
 
