@@ -5,7 +5,4 @@ mod engine_require_dispatch;
 mod overlay_vfs;
 mod path_utils;
 
-pub use core::{
-    init_process_local_overlay, load_mods_from_addons, register_engine_variable,
-    shutdown_before_unload,
-};
+pub use core::{load_mods_from_addons, register_engine_variable, shutdown_before_unload};
