@@ -49,6 +49,22 @@ static PENDING_UNLOADS: Lazy<Mutex<HashSet<String>>> = Lazy::new(|| Mutex::new(H
 static PENDING_ENGINE_VARIABLES: Lazy<Mutex<HashMap<String, JsonValue>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
+pub fn init_process_local_overlay() -> Result<()> {
+    let modloader_exe = std::env::current_exe().map_err(|err| {
+        AppError::Message(format!("Failed to resolve current modloader path: {err}"))
+    })?;
+    let modloader_root = modloader_exe.parent().map(PathBuf::from).ok_or_else(|| {
+        AppError::Message(format!(
+            "Modloader path has no parent directory: {}",
+            modloader_exe.display()
+        ))
+    })?;
+
+    init_overlay_registry(&modloader_root)?;
+    mount_process_local_overlay()?;
+    Ok(())
+}
+
 pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
     modloader_trace!(
         "register_engine_variable called: raw_name='{}' value={}",
@@ -191,29 +207,20 @@ async fn load_mods_from_addons_async(
     // let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
     // let addons_dir_path = addons_dir.as_path();
     // TODO: Accept launcher root and use here
-    let modloader_root = std::env::current_exe().map_err(|err| {
+    let launcher_exe = std::env::current_exe().map_err(|err| {
         AppError::Message(format!("Failed to resolve current modloader path: {err}"))
     })?;
     modloader_debug!(
         "Resolved current modloader path: {}",
-        modloader_root.display()
+        launcher_exe.display()
     );
 
-    modloader_root.parent().map(PathBuf::from).ok_or_else(|| {
+    let modloader_root = launcher_exe.parent().map(PathBuf::from).ok_or_else(|| {
         AppError::Message(format!(
             "Modloader path has no parent directory: {}",
-            modloader_root.display()
+            launcher_exe.display()
         ))
     })?;
-
-    // let modloader_root = std::env::current_exe()
-    //     .ok()
-    //     .and_then(|exe| exe.parent().map(|parent| parent.to_path_buf()))
-    //     .unwrap_or_else(|| PathBuf::from("."))
-    //     .canonicalize()
-    //     .unwrap_or_else(|_| PathBuf::from("."));
-    init_overlay_registry(&modloader_root)?;
-    mount_process_local_overlay()?;
 
     let addons_dir = modloader_root.join("addons");
     let addons_dir_path = addons_dir.as_path();

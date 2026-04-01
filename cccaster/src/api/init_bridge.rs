@@ -72,6 +72,11 @@ pub extern "C" fn init(vtable: *const Api, json: *const c_char, json_len: usize)
         return false;
     }
 
+    if let Err(err) = loader::init_process_local_overlay() {
+        modloader_error!("Failed to initialize process-local overlay: {}", err);
+        return false;
+    }
+
     run_main();
     true
 }
