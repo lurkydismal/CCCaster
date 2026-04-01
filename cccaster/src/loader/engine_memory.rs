@@ -79,7 +79,7 @@ fn parse_log_args(args: mlua::MultiValue) -> mlua::Result<(u8, String)> {
     }
 
     let level = match &values[start_idx] {
-        Value::Integer(v) if *v >= 0 && *v <= u8::MAX as i32 => *v as u8,
+        Value::Integer(v) if *v >= 0 && *v <= i32::from(u8::MAX) => *v as u8,
         Value::Number(v) if v.is_finite() && *v >= 0.0 && *v <= u8::MAX as f64 => *v as u8,
         Value::String(v) => v.to_str()?.parse::<u8>().map_err(mlua::Error::runtime)?,
         _ => {
@@ -202,7 +202,7 @@ pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Resu
 
         if handles.len() == 1 {
             // NOTE: handle values are 32-bit for game compatibility.
-            return Ok(Value::Integer(handles[0] as i32));
+            return Ok(Value::Integer(handles[0].try_into().unwrap()));
         }
 
         let out = lua.create_table()?;

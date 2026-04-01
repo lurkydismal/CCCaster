@@ -5,7 +5,7 @@ use crate::patch::{
 };
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{
-    modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
+    AppError, modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
     runtime_args,
 };
 use anyhow::{Context, Result, anyhow};
@@ -32,6 +32,7 @@ use super::engine_memory::{
     install_engine_memory_api,
 };
 use super::engine_require_dispatch::{install_engine_dispatch_api, register_engine_require};
+use super::overlay_vfs::{init_overlay_registry, mount_process_local_overlay, register_mod_assets};
 use super::path_utils::{hash_file, is_safe_path, normalize_path};
 
 type StartupSignal = Arc<Mutex<Option<oneshot::Sender<Result<()>>>>>;
@@ -189,7 +190,33 @@ async fn load_mods_from_addons_async(
     // FIX: Somehow resolve windows path here or in launcher
     // let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
     // let addons_dir_path = addons_dir.as_path();
-    let addons_dir_path = Path::new("addons");
+    // TODO: Accept launcher root and use here
+    let modloader_root = std::env::current_exe().map_err(|err| {
+        AppError::Message(format!("Failed to resolve current modloader path: {err}"))
+    })?;
+    modloader_debug!(
+        "Resolved current modloader path: {}",
+        modloader_root.display()
+    );
+
+    modloader_root.parent().map(PathBuf::from).ok_or_else(|| {
+        AppError::Message(format!(
+            "Modloader path has no parent directory: {}",
+            modloader_root.display()
+        ))
+    })?;
+
+    // let modloader_root = std::env::current_exe()
+    //     .ok()
+    //     .and_then(|exe| exe.parent().map(|parent| parent.to_path_buf()))
+    //     .unwrap_or_else(|| PathBuf::from("."))
+    //     .canonicalize()
+    //     .unwrap_or_else(|_| PathBuf::from("."));
+    init_overlay_registry(&modloader_root)?;
+    mount_process_local_overlay()?;
+
+    let addons_dir = modloader_root.join("addons");
+    let addons_dir_path = addons_dir.as_path();
     let addon_filter: Option<HashSet<&str>> = args
         .addon
         .as_ref()
@@ -316,6 +343,7 @@ async fn load_mods_from_addons_async(
                     dependencies: deps,
                     api_version: raw.api_version,
                     events: raw.events.clone(),
+                    assets_ignore: raw.assets.ignore.clone(),
                 },
                 path.clone(),
             ));
@@ -407,6 +435,7 @@ async fn run_with_load_order(
     for &mod_index in load_order {
         let (meta, path) = &mod_entries[mod_index];
         modloader_info!("Loading mod '{}' from {:?}", meta.id, path);
+        register_mod_assets(path, &meta.assets_ignore)?;
         let occupied = collect_occupied_spans(&loaded_mods, None);
         let loaded = load_mod(
             &lua,

@@ -4,6 +4,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read};
 
+use super::overlay_vfs;
+
 #[derive(Clone)]
 enum LocalWriteMode {
     Write,
@@ -154,6 +156,28 @@ pub(super) fn register_engine_fs_local(
     local_table.set("read", read_fn)?;
     local_table.set("write", write_fn)?;
     fs_table.set("local", local_table)?;
+
+    let global_table = lua.create_table()?;
+    let global_read = lua.create_function(|_, path: String| {
+        let normalized = normalize_vfs_path(&path)?;
+        Ok(overlay_vfs::read_global(&normalized))
+    })?;
+    let global_write = lua.create_function(
+        |_, (path, content, mode): (String, String, Option<String>)| {
+            let normalized = normalize_vfs_path(&path)?;
+            let selected_mode = LocalWriteMode::from_lua_value(mode)?;
+            overlay_vfs::write_global(
+                normalized,
+                content.into_bytes(),
+                matches!(selected_mode, LocalWriteMode::Append),
+            )
+            .map_err(|err| mlua::Error::runtime(err.to_string()))?;
+            Ok(true)
+        },
+    )?;
+    global_table.set("read", global_read)?;
+    global_table.set("write", global_write)?;
+    fs_table.set("global", global_table)?;
 
     engine_table.set("fs", fs_table)?;
     Ok(())
