@@ -164,6 +164,20 @@ pub fn mount_process_local_overlay() -> Result<()> {
     };
 
     unsafe {
+        if libc::unshare(libc::CLONE_NEWUSER) != 0 {
+            anyhow::bail!(
+                "unshare(CLONE_NEWUSER) failed: {}",
+                std::io::Error::last_os_error()
+            );
+        }
+
+        // deny setgroups if needed
+        // write("/proc/self/setgroups", "deny");
+
+        // write("/proc/self/uid_map", "0 <your_uid> 1");
+        // write("/proc/self/gid_map", "0 <your_gid> 1");
+        // write uid_map / gid_map here
+
         if libc::unshare(libc::CLONE_NEWNS) != 0 {
             anyhow::bail!(
                 "unshare(CLONE_NEWNS) failed: {}",
