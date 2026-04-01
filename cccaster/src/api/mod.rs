@@ -1,6 +1,6 @@
-use std::{os::raw::c_char, sync::OnceLock};
+use std::sync::OnceLock;
 
-use crate::{modloader_debug, modloader_trace};
+use crate::{modloader_debug, modloader_error, modloader_trace, modloader_warning};
 
 pub mod engine_variables;
 pub mod init_bridge;
@@ -31,12 +31,19 @@ lazy_static::lazy_static! {
 }
 
 pub(crate) fn set_api_from_ptr(vtable: *const Api) -> bool {
+    modloader_trace!("set_api_from_ptr called with vtable={:p}", vtable);
     if vtable.is_null() {
+        modloader_error!("set_api_from_ptr received null vtable");
         return false;
     }
     // SAFETY: `vtable` points to a C ABI table validated by the caller.
     let api = unsafe { std::ptr::read(vtable) };
-    API.set(api).ok();
+    let set_result = API.set(api);
+    if set_result.is_err() {
+        modloader_warning!("set_api_from_ptr called more than once; keeping original API table");
+    } else {
+        modloader_debug!("set_api_from_ptr stored API table successfully");
+    }
     true
 }
 
@@ -61,23 +68,52 @@ pub fn remove_patch(id: Handle) -> bool {
 
 /// Safe wrapper around the raw FFI memory-read callback.
 pub fn read_memory(addr: usize, len: usize) -> Option<Vec<u8>> {
+    modloader_trace!("read_memory requested: addr=0x{:X}, len={}", addr, len);
     if len == 0 {
+        modloader_debug!("read_memory requested with len=0; returning empty buffer");
         return Some(Vec::new());
     }
 
     let mut out = vec![0u8; len];
     // SAFETY: `out` is valid for writes of `len` bytes.
     let ok = unsafe { read_memory_raw(addr, out.as_mut_ptr(), out.len()) };
-    ok.then_some(out)
+    if ok {
+        modloader_debug!("read_memory succeeded: addr=0x{:X}, len={}", addr, len);
+        Some(out)
+    } else {
+        modloader_warning!("read_memory failed: addr=0x{:X}, len={}", addr, len);
+        None
+    }
 }
 
 /// Safe wrapper around the raw FFI memory-write callback.
 pub fn write_memory(addr: usize, bytes: &[u8]) -> bool {
+    modloader_trace!(
+        "write_memory requested: addr=0x{:X}, len={}, bytes_preview={:02X?}",
+        addr,
+        bytes.len(),
+        bytes.iter().take(8).copied().collect::<Vec<u8>>()
+    );
     if bytes.is_empty() {
+        modloader_warning!("write_memory requested with empty bytes");
         return false;
     }
     // SAFETY: `bytes` is valid for reads of `bytes.len()` bytes.
-    unsafe { write_memory_raw(addr, bytes.as_ptr(), bytes.len()) }
+    let ok = unsafe { write_memory_raw(addr, bytes.as_ptr(), bytes.len()) };
+    if ok {
+        modloader_debug!(
+            "write_memory succeeded: addr=0x{:X}, len={}",
+            addr,
+            bytes.len()
+        );
+    } else {
+        modloader_warning!(
+            "write_memory failed: addr=0x{:X}, len={}",
+            addr,
+            bytes.len()
+        );
+    }
+    ok
 }
 
 /// # Safety
@@ -112,7 +148,14 @@ unsafe fn remove_patch_raw(id: Handle) -> bool {
 unsafe fn read_memory_raw(addr: usize, out: *mut u8, len: usize) -> bool {
     let api = API.get().expect("API not initialized");
     // SAFETY: callback pointer and argument contract come from host process.
-    unsafe { (api.read_memory)(addr, out, len) }
+    let ok = unsafe { (api.read_memory)(addr, out, len) };
+    modloader_trace!(
+        "read_memory_raw callback result: addr=0x{:X}, len={}, ok={}",
+        addr,
+        len,
+        ok
+    );
+    ok
 }
 
 /// # Safety
@@ -120,5 +163,12 @@ unsafe fn read_memory_raw(addr: usize, out: *mut u8, len: usize) -> bool {
 unsafe fn write_memory_raw(addr: usize, bytes: *const u8, len: usize) -> bool {
     let api = API.get().expect("API not initialized");
     // SAFETY: callback pointer and argument contract come from host process.
-    unsafe { (api.write_memory)(addr, bytes, len) }
+    let ok = unsafe { (api.write_memory)(addr, bytes, len) };
+    modloader_trace!(
+        "write_memory_raw callback result: addr=0x{:X}, len={}, ok={}",
+        addr,
+        len,
+        ok
+    );
+    ok
 }

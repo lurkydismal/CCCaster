@@ -48,8 +48,14 @@ static PENDING_ENGINE_VARIABLES: Lazy<Mutex<HashMap<String, JsonValue>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
 pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
+    modloader_trace!(
+        "register_engine_variable called: raw_name='{}' value={}",
+        name,
+        value
+    );
     let trimmed_name = name.trim();
     if trimmed_name.is_empty() {
+        modloader_error!("register_engine_variable rejected empty name");
         return Err(anyhow!("Engine variable name cannot be empty"));
     }
 
@@ -59,6 +65,11 @@ pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
             .lock()
             .map_err(|_| anyhow!("engine variable registry mutex poisoned"))?;
         pending.insert(key.clone(), value.clone());
+        modloader_debug!(
+            "register_engine_variable staged '{}' (pending count={})",
+            key,
+            pending.len()
+        );
     }
 
     let tx = SHUTDOWN_SIGNAL
@@ -79,6 +90,7 @@ pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
             err
         );
     }
+    modloader_info!("register_engine_variable accepted '{}'", key);
 
     Ok(())
 }
@@ -104,6 +116,7 @@ struct PendingReload {
 
 /// Scans the addons directory, initializes mods, and starts hot-reload in a background thread.
 pub async fn load_mods_from_addons() -> Result<()> {
+    modloader_info!("load_mods_from_addons: creating startup and control channels");
     let (ready_tx, ready_rx) = oneshot::channel::<Result<()>>();
     let (control_tx, control_rx) = std::sync::mpsc::channel::<ControlMessage>();
     let ready_signal = Arc::new(Mutex::new(Some(ready_tx)));
@@ -112,6 +125,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
     let hot_reload_thread = thread::Builder::new()
         .name("cccaster-hot-reload".to_string())
         .spawn(move || {
+            modloader_debug!("hot-reload thread booting runtime");
             let runtime = match tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
@@ -141,14 +155,17 @@ pub async fn load_mods_from_addons() -> Result<()> {
             .lock()
             .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?;
         *shutdown_guard = Some(control_tx);
+        modloader_trace!("load_mods_from_addons: stored shutdown signal sender");
     }
     {
         let mut thread_guard = HOT_RELOAD_THREAD
             .lock()
             .map_err(|_| anyhow!("hot-reload thread mutex poisoned"))?;
         *thread_guard = Some(hot_reload_thread);
+        modloader_trace!("load_mods_from_addons: stored hot-reload thread handle");
     }
 
+    modloader_debug!("load_mods_from_addons: waiting for startup signal");
     ready_rx
         .await
         .map_err(|err| anyhow!("failed waiting for modloader startup: {}", err))?
@@ -160,6 +177,13 @@ async fn load_mods_from_addons_async(
     control_rx: std::sync::mpsc::Receiver<ControlMessage>,
 ) -> Result<()> {
     let args = runtime_args();
+    modloader_trace!(
+        "load_mods_from_addons_async args snapshot: play={} dry_run={} safe_mode={} timings={}",
+        args.play,
+        args.dry_run,
+        args.safe_mode,
+        args.timings
+    );
     let startup_started = Instant::now();
     // FIX: Somehow resolve windows path here or in launcher
     // let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
@@ -523,6 +547,7 @@ async fn start_hot_reload_loop(
 }
 
 pub fn shutdown_before_unload() {
+    modloader_info!("shutdown_before_unload requested");
     let tx = match SHUTDOWN_SIGNAL.lock() {
         Ok(mut guard) => guard.take(),
         Err(_) => {
@@ -530,10 +555,14 @@ pub fn shutdown_before_unload() {
             None
         }
     };
-    if let Some(tx) = tx
-        && let Err(err) = tx.send(ControlMessage::Shutdown)
-    {
-        modloader_warning!("Failed to signal hot-reload shutdown: {}", err);
+    if let Some(tx) = tx {
+        if let Err(err) = tx.send(ControlMessage::Shutdown) {
+            modloader_warning!("Failed to signal hot-reload shutdown: {}", err);
+        } else {
+            modloader_debug!("shutdown_before_unload sent shutdown signal");
+        }
+    } else {
+        modloader_trace!("shutdown_before_unload found no active shutdown signal sender");
     }
 
     let thread_handle = match HOT_RELOAD_THREAD.lock() {
@@ -543,18 +572,26 @@ pub fn shutdown_before_unload() {
             None
         }
     };
-    if let Some(handle) = thread_handle
-        && let Err(_panic) = handle.join()
-    {
-        modloader_error!("Hot-reload thread panicked while shutting down");
+    if let Some(handle) = thread_handle {
+        if let Err(_panic) = handle.join() {
+            modloader_error!("Hot-reload thread panicked while shutting down");
+        } else {
+            modloader_info!("shutdown_before_unload completed");
+        }
+    } else {
+        modloader_trace!("shutdown_before_unload had no hot-reload thread to join");
     }
 }
 
 fn send_startup_signal(ready_signal: &StartupSignal, result: Result<()>) {
+    modloader_trace!("send_startup_signal invoked");
     if let Ok(mut guard) = ready_signal.lock()
         && let Some(sender) = guard.take()
     {
+        modloader_trace!("send_startup_signal delivering startup result");
         let _ = sender.send(result);
+    } else {
+        modloader_warning!("send_startup_signal skipped because signal was already consumed");
     }
 }
 
