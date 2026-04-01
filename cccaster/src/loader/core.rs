@@ -28,7 +28,8 @@ use tree_sitter::Parser;
 
 use super::engine_fs::{install_engine_env_api, register_engine_fs_local};
 use super::engine_memory::{
-    ENGINE_LOG_MOD_ID_KEY, install_engine_log_api, install_engine_memory_api,
+    ENGINE_LOG_MOD_ID_KEY, install_engine_assert_api, install_engine_log_api,
+    install_engine_memory_api,
 };
 use super::engine_require_dispatch::{install_engine_dispatch_api, register_engine_require};
 use super::path_utils::{hash_file, is_safe_path, normalize_path};
@@ -394,6 +395,7 @@ async fn run_with_load_order(
     let globals = lua.globals();
     let engine_table = lua.create_table()?;
     install_engine_log_api(&lua, &engine_table)?;
+    install_engine_assert_api(&lua, &engine_table)?;
     install_engine_memory_api(&lua, &engine_table)?;
     install_engine_dispatch_api(&lua, &engine_table, load_order, mod_entries)?;
     install_engine_env_api(&lua, &engine_table)?;
@@ -884,6 +886,171 @@ fn json_value_to_lua(lua: &Lua, value: &JsonValue) -> Result<Value> {
     }
 }
 
+async fn run_mod_tests(lua: &Lua, mod_id: &str, mod_path: &Path, tests_path: &Path) -> Result<()> {
+    modloader_info!("Running tests.luau for mod {}", mod_id);
+    let script = fs::read_to_string(tests_path).await.with_context(|| {
+        format!(
+            "failed to read tests script {:?} for mod {}",
+            tests_path, mod_id
+        )
+    })?;
+    let used_script_paths = collect_used_script_files(mod_id, mod_path, tests_path, &script)
+        .with_context(|| format!("failed to discover used Luau test files for mod {}", mod_id))?;
+    for used_path in &used_script_paths {
+        let source = fs::read_to_string(used_path).await.with_context(|| {
+            format!(
+                "failed to read used test script {:?} for mod {} during precheck",
+                used_path, mod_id
+            )
+        })?;
+        precheck_luau_chunk(lua, mod_id, used_path, &source)
+            .with_context(|| format!("Luau test precheck failed for mod {}", mod_id))?;
+    }
+
+    register_engine_require(
+        lua,
+        mod_path.to_path_buf(),
+        Arc::new(Mutex::new(HashSet::new())),
+    )
+    .with_context(|| {
+        format!(
+            "failed to register Engine.require for tests in mod {}",
+            mod_id
+        )
+    })?;
+
+    let engine_table: Table = lua.globals().get("Engine")?;
+    with_mocked_test_apis(lua, &engine_table, || {
+        set_engine_log_mod_id(lua, Some(mod_id))?;
+        let run_result = (|| -> Result<()> {
+            let returned: Table = lua
+                .load(&script)
+                .set_name(tests_path.to_string_lossy().as_ref())
+                .eval()
+                .with_context(|| {
+                    format!(
+                        "failed to evaluate tests script {:?} for mod {}",
+                        tests_path, mod_id
+                    )
+                })?;
+            let main: Function = returned.get("main").with_context(|| {
+                format!(
+                    "tests.luau for mod {} must return a table with main()",
+                    mod_id
+                )
+            })?;
+            let outcome = main
+                .call::<bool>(())
+                .with_context(|| format!("tests.luau main() failed for mod {}", mod_id))?;
+            if !outcome {
+                return Err(anyhow!(
+                    "tests.luau main() returned false for mod {}",
+                    mod_id
+                ));
+            }
+            Ok(())
+        })();
+        set_engine_log_mod_id(lua, None)?;
+        run_result
+    })?;
+
+    modloader_info!("tests.luau passed for mod {}", mod_id);
+    Ok(())
+}
+
+fn with_mocked_test_apis<F>(lua: &Lua, engine_table: &Table, run: F) -> Result<()>
+where
+    F: FnOnce() -> Result<()>,
+{
+    let original_fs: Value = engine_table.get("fs").unwrap_or(Value::Nil);
+    let original_memory: Value = engine_table.get("memory").unwrap_or(Value::Nil);
+    let mocked = install_mock_test_apis(lua, engine_table);
+    if let Err(err) = mocked {
+        return Err(anyhow!(err.to_string()));
+    }
+
+    let result = run();
+    if matches!(original_fs, Value::Nil) {
+        engine_table.raw_remove("fs")?;
+    } else {
+        engine_table.set("fs", original_fs)?;
+    }
+    if matches!(original_memory, Value::Nil) {
+        engine_table.raw_remove("memory")?;
+    } else {
+        engine_table.set("memory", original_memory)?;
+    }
+    result
+}
+
+fn install_mock_test_apis(lua: &Lua, engine_table: &Table) -> mlua::Result<()> {
+    let fs_table = lua.create_table()?;
+    let local_table = lua.create_table()?;
+    let mode_table = lua.create_table()?;
+    mode_table.set("write", "write")?;
+    mode_table.set("append", "append")?;
+    fs_table.set("mode", mode_table)?;
+
+    let fs_entries = Arc::new(Mutex::new(HashMap::<String, String>::new()));
+    let read_entries = fs_entries.clone();
+    local_table.set(
+        "read",
+        lua.create_function(move |_, path: String| {
+            let guard = read_entries
+                .lock()
+                .map_err(|_| mlua::Error::runtime("mock fs lock poisoned"))?;
+            Ok(guard.get(path.trim()).cloned())
+        })?,
+    )?;
+    let write_entries = fs_entries.clone();
+    local_table.set(
+        "write",
+        lua.create_function(
+            move |_, (path, content, mode): (String, String, Option<String>)| {
+                let key = path.trim().to_owned();
+                let mut guard = write_entries
+                    .lock()
+                    .map_err(|_| mlua::Error::runtime("mock fs lock poisoned"))?;
+                let is_append = mode
+                    .as_deref()
+                    .map(str::trim)
+                    .map(|value| {
+                        value.eq_ignore_ascii_case("append") || value.eq_ignore_ascii_case("a")
+                    })
+                    .unwrap_or(false);
+                if is_append {
+                    guard.entry(key).or_default().push_str(&content);
+                } else {
+                    guard.insert(key, content);
+                }
+                Ok(true)
+            },
+        )?,
+    )?;
+    fs_table.set("local", local_table)?;
+
+    let memory_table = lua.create_table()?;
+    memory_table.set(
+        "read",
+        lua.create_function(|_, (_addr, _len): (Value, usize)| Ok(Value::Nil))?,
+    )?;
+    memory_table.set(
+        "write",
+        lua.create_function(|_, (_addr, _bytes): (Value, String)| Ok(true))?,
+    )?;
+    let patch_table = lua.create_table()?;
+    patch_table.set(
+        "make",
+        lua.create_function(|_, _args: mlua::MultiValue| Ok(Value::Integer(1)))?,
+    )?;
+    patch_table.set("remove", lua.create_function(|_, _id: u32| Ok(true))?)?;
+    memory_table.set("patch", patch_table)?;
+
+    engine_table.set("fs", fs_table)?;
+    engine_table.set("memory", memory_table)?;
+    Ok(())
+}
+
 /// Invokes a mod's optional `unload()` callback and returns its payload.
 fn run_unload(lua: &Lua, mod_id: &str) -> Result<Value> {
     let engine_table: Table = lua.globals().get("Engine")?;
@@ -919,16 +1086,12 @@ async fn load_mod(
         is_hot_reload,
         path
     );
-    let required_files = Arc::new(Mutex::new(HashSet::new()));
-    register_engine_require(lua, path.clone(), required_files.clone())
-        .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
-    register_engine_fs_local(lua, path.clone())
-        .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
-
     let patch_path = path.join("patch.json");
     let has_patch_file = patch_path.exists();
     let main_path = path.join("main.luau");
     let has_main_script = main_path.exists();
+    let tests_path = path.join("tests.luau");
+    let has_tests_script = tests_path.exists();
 
     if !has_patch_file && !has_main_script {
         return Err(anyhow!(
@@ -936,6 +1099,18 @@ async fn load_mod(
             meta.id
         ));
     }
+
+    if has_tests_script {
+        run_mod_tests(lua, &meta.id, &path, &tests_path)
+            .await
+            .with_context(|| format!("tests.luau failed for mod {}", meta.id))?;
+    }
+
+    let required_files = Arc::new(Mutex::new(HashSet::new()));
+    register_engine_require(lua, path.clone(), required_files.clone())
+        .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
+    register_engine_fs_local(lua, path.clone())
+        .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
 
     let (patches, patch_spans) = if has_patch_file {
         modloader_trace!("Found patch file for mod {} at {:?}", meta.id, patch_path);

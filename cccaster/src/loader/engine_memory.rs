@@ -5,7 +5,7 @@ use crate::{
     modloader_info, modloader_trace, modloader_warning,
 };
 use anyhow::Result;
-use mlua::{Lua, Table, Value};
+use mlua::{Function, Lua, Table, Value};
 
 use super::engine_require_dispatch::is_probably_writable;
 
@@ -222,6 +222,210 @@ pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Resu
     memory_table.set("patch", patch_table)?;
     engine_table.set("memory", memory_table)?;
     Ok(())
+}
+
+pub(super) fn install_engine_assert_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+    engine_table.set("EQ", "eq")?;
+    engine_table.set("NE", "ne")?;
+    engine_table.set("LT", "lt")?;
+    engine_table.set("LE", "le")?;
+    engine_table.set("GT", "gt")?;
+    engine_table.set("GE", "ge")?;
+
+    let expect_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let parsed = parse_expect_args(args)?;
+        Ok(matches_comparison(
+            &parsed.mode,
+            &parsed.left,
+            &parsed.right,
+        ))
+    })?;
+
+    let assert_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let parsed = parse_expect_args(args)?;
+        if matches_comparison(&parsed.mode, &parsed.left, &parsed.right) {
+            return Ok(true);
+        }
+
+        let detail = parsed.message.unwrap_or_else(|| {
+            format_comparison_failure(&parsed.mode, &parsed.left, &parsed.right)
+        });
+        Err(mlua::Error::runtime(format!(
+            "Engine.assert failed: {detail}"
+        )))
+    })?;
+
+    let expect_death_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let parsed = parse_expect_death_args(args)?;
+        match parsed.callback.call::<Value>(()) {
+            Ok(_) => Ok(false),
+            Err(err) => {
+                if let Some((mode, expected)) = parsed.comparison {
+                    let actual = err.to_string();
+                    Ok(matches_string_comparison(&mode, &actual, &expected))
+                } else {
+                    Ok(true)
+                }
+            }
+        }
+    })?;
+
+    engine_table.set("expect", expect_fn)?;
+    engine_table.set("assert", assert_fn)?;
+    engine_table.set("expect_death", expect_death_fn)?;
+    Ok(())
+}
+
+struct ExpectArgs {
+    mode: String,
+    left: Value,
+    right: Value,
+    message: Option<String>,
+}
+
+fn parse_expect_args(args: mlua::MultiValue) -> mlua::Result<ExpectArgs> {
+    let values: Vec<Value> = args.into_iter().collect();
+    let start_idx = match values.first() {
+        Some(Value::Table(_)) => 1,
+        _ => 0,
+    };
+    if values.len() < start_idx + 3 {
+        return Err(mlua::Error::runtime(
+            "expected (mode, left, right[, message]) arguments",
+        ));
+    }
+
+    let mode = normalize_compare_mode(&values[start_idx])?;
+    let message = if values.len() > start_idx + 3 {
+        Some(value_as_string(values[start_idx + 3].clone())?)
+    } else {
+        None
+    };
+
+    Ok(ExpectArgs {
+        mode,
+        left: values[start_idx + 1].clone(),
+        right: values[start_idx + 2].clone(),
+        message,
+    })
+}
+
+struct ExpectDeathArgs {
+    callback: Function,
+    comparison: Option<(String, Value)>,
+}
+
+fn parse_expect_death_args(args: mlua::MultiValue) -> mlua::Result<ExpectDeathArgs> {
+    let values: Vec<Value> = args.into_iter().collect();
+    let start_idx = match values.first() {
+        Some(Value::Table(_)) => 1,
+        _ => 0,
+    };
+    if values.len() <= start_idx {
+        return Err(mlua::Error::runtime(
+            "expected (callback) or (mode, callback, expected) arguments",
+        ));
+    }
+
+    if let Value::Function(callback) = &values[start_idx] {
+        return Ok(ExpectDeathArgs {
+            callback: callback.clone(),
+            comparison: None,
+        });
+    }
+
+    if values.len() < start_idx + 3 {
+        return Err(mlua::Error::runtime(
+            "expected (mode, callback, expected) arguments",
+        ));
+    }
+    let mode = normalize_compare_mode(&values[start_idx])?;
+    let callback = match &values[start_idx + 1] {
+        Value::Function(fn_value) => fn_value.clone(),
+        _ => {
+            return Err(mlua::Error::runtime(
+                "expect_death callback must be a function",
+            ));
+        }
+    };
+
+    Ok(ExpectDeathArgs {
+        callback,
+        comparison: Some((mode, values[start_idx + 2].clone())),
+    })
+}
+
+fn normalize_compare_mode(mode: &Value) -> mlua::Result<String> {
+    let raw = value_as_string(mode.clone())?;
+    Ok(raw.trim().to_ascii_lowercase())
+}
+
+fn matches_comparison(mode: &str, left: &Value, right: &Value) -> bool {
+    match mode {
+        "eq" => compare_values(left, right).is_some_and(|ord| ord == std::cmp::Ordering::Equal),
+        "ne" => compare_values(left, right).is_some_and(|ord| ord != std::cmp::Ordering::Equal),
+        "lt" => compare_values(left, right).is_some_and(|ord| ord == std::cmp::Ordering::Less),
+        "le" => compare_values(left, right).is_some_and(|ord| ord != std::cmp::Ordering::Greater),
+        "gt" => compare_values(left, right).is_some_and(|ord| ord == std::cmp::Ordering::Greater),
+        "ge" => compare_values(left, right).is_some_and(|ord| ord != std::cmp::Ordering::Less),
+        _ => false,
+    }
+}
+
+fn compare_values(left: &Value, right: &Value) -> Option<std::cmp::Ordering> {
+    match (left, right) {
+        (Value::Integer(a), Value::Integer(b)) => Some(a.cmp(b)),
+        (Value::Integer(a), Value::Number(b)) => (*a as f64).partial_cmp(b),
+        (Value::Number(a), Value::Integer(b)) => a.partial_cmp(&(*b as f64)),
+        (Value::Number(a), Value::Number(b)) => a.partial_cmp(b),
+        (Value::String(a), Value::String(b)) => Some(a.as_bytes().cmp(&b.as_bytes())),
+        (Value::Boolean(a), Value::Boolean(b)) => Some(a.cmp(b)),
+        _ => None,
+    }
+}
+
+fn format_comparison_failure(mode: &str, left: &Value, right: &Value) -> String {
+    format!(
+        "mode={} left={} right={}",
+        mode,
+        debug_value(left),
+        debug_value(right)
+    )
+}
+
+fn matches_string_comparison(mode: &str, actual: &str, expected: &Value) -> bool {
+    let expected_text = match expected {
+        Value::String(value) => value.to_string_lossy().to_string(),
+        _ => return false,
+    };
+    match mode {
+        "eq" => actual == expected_text,
+        "ne" => actual != expected_text,
+        "lt" => actual < expected_text.as_str(),
+        "le" => actual <= expected_text.as_str(),
+        "gt" => actual > expected_text.as_str(),
+        "ge" => actual >= expected_text.as_str(),
+        _ => false,
+    }
+}
+
+fn debug_value(value: &Value) -> String {
+    match value {
+        Value::Nil => "nil".to_string(),
+        Value::Boolean(v) => v.to_string(),
+        Value::Integer(v) => v.to_string(),
+        Value::Number(v) => v.to_string(),
+        Value::String(v) => v.to_string_lossy(),
+        Value::Table(_) => "<table>".to_string(),
+        Value::Function(_) => "<function>".to_string(),
+        Value::Thread(_) => "<thread>".to_string(),
+        Value::UserData(_) => "<userdata>".to_string(),
+        Value::LightUserData(_) => "<lightuserdata>".to_string(),
+        Value::Vector(_) => "<vector>".to_string(),
+        Value::Buffer(_) => "<buffer>".to_string(),
+        Value::Error(err) => format!("<error:{err}>"),
+        Value::Other(_) => "<other>".to_string(),
+    }
 }
 
 struct ScriptPatch {
