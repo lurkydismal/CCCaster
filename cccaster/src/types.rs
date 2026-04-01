@@ -1,6 +1,12 @@
 use semver::{Version, VersionReq};
 use serde::Deserialize;
 
+#[derive(Clone, Default, Deserialize)]
+pub struct RawAssetsInfo {
+    #[serde(default)]
+    pub ignore: Vec<String>,
+}
+
 /// Intermediate structure for deserializing info.json
 #[derive(Deserialize)]
 pub struct RawDependency {
@@ -24,6 +30,8 @@ pub struct RawModInfo {
     pub api_version: u8,
     #[serde(default)]
     pub events: Vec<String>,
+    #[serde(default)]
+    pub assets: RawAssetsInfo,
 }
 
 /// Resolved dependency with semver version requirement.
@@ -47,7 +55,10 @@ pub struct ModMeta {
     /// Dependency requirements for load order computation.
     pub dependencies: Vec<Dependency>,
     /// Host API compatibility level.
+    #[expect(dead_code)]
     pub api_version: u8,
     /// Declared event hooks for future dispatch layers.
     pub events: Vec<String>,
+    /// Asset path globs ignored for this mod's assets overlay.
+    pub assets_ignore: Vec<String>,
 }

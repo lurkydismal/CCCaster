@@ -1,2 +1,4 @@
 P6
-Replace dtor with some function
+Call dtor from fork().
+Accept launcher root and use.
+Use addons_dir.

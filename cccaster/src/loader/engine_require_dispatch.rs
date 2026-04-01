@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 use super::path_utils::{normalize_path, sanitize_identifier};
 
 #[cfg(unix)]
+#[expect(dead_code)]
 pub(super) fn is_probably_readable(address: usize, length: usize) -> bool {
     is_probably_accessible_unix(address, length, libc::PROT_READ)
 }
