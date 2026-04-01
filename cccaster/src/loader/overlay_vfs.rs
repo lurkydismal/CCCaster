@@ -8,7 +8,6 @@ use once_cell::sync::OnceCell;
 use std::collections::{BTreeSet, HashMap};
 use std::ffi::OsStr;
 use std::fs;
-use std::io::ErrorKind;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -109,37 +108,6 @@ impl OverlayRegistry {
     fn is_passthrough_excluded(&self, rel: &str) -> bool {
         self.whitelist.is_match(rel)
     }
-
-    fn overlay_file_exists(&self, rel_path: &str) -> bool {
-        self.read_overlay(rel_path).is_some()
-    }
-
-    fn overlay_dir_exists(&self, rel_path: &str) -> bool {
-        let prefix = if rel_path.is_empty() {
-            None
-        } else {
-            Some(format!("{rel_path}/"))
-        };
-
-        let has_overlay_entry = self.global_entries.keys().any(|key| match &prefix {
-            Some(prefix) => key.starts_with(prefix),
-            None => true,
-        });
-        if has_overlay_entry {
-            return true;
-        }
-
-        for source in self.assets.iter().rev() {
-            let candidate = source.root.join(rel_path);
-            if let Ok(meta) = fs::metadata(&candidate)
-                && meta.is_dir()
-            {
-                return true;
-            }
-        }
-
-        false
-    }
 }
 
 static REGISTRY: OnceCell<Arc<Mutex<OverlayRegistry>>> = OnceCell::new();
@@ -196,28 +164,26 @@ pub fn mount_process_local_overlay() -> Result<()> {
     };
 
     unsafe {
-        let flags = libc::CLONE_NEWUSER | libc::CLONE_NEWNS | libc::CLONE_NEWPID;
-        if libc::unshare(flags) != 0 {
+        if libc::unshare(libc::CLONE_NEWUSER) != 0 {
             anyhow::bail!(
-                "unshare(CLONE_NEWUSER|CLONE_NEWNS|CLONE_NEWPID) failed: {}",
+                "unshare(CLONE_NEWUSER) failed: {}",
                 std::io::Error::last_os_error()
             );
         }
-    }
 
-    let uid = unsafe { libc::geteuid() };
-    let gid = unsafe { libc::getegid() };
-    if let Err(err) = fs::write("/proc/self/setgroups", "deny\n")
-        && err.kind() != ErrorKind::NotFound
-    {
-        return Err(err).context("failed writing /proc/self/setgroups");
-    }
-    fs::write("/proc/self/uid_map", format!("0 {uid} 1\n"))
-        .context("failed writing /proc/self/uid_map")?;
-    fs::write("/proc/self/gid_map", format!("0 {gid} 1\n"))
-        .context("failed writing /proc/self/gid_map")?;
+        // deny setgroups if needed
+        // write("/proc/self/setgroups", "deny");
 
-    unsafe {
+        // write("/proc/self/uid_map", "0 <your_uid> 1");
+        // write("/proc/self/gid_map", "0 <your_gid> 1");
+        // write uid_map / gid_map here
+
+        if libc::unshare(libc::CLONE_NEWNS) != 0 {
+            anyhow::bail!(
+                "unshare(CLONE_NEWNS) failed: {}",
+                std::io::Error::last_os_error()
+            );
+        }
         if libc::mount(
             std::ptr::null(),
             c"/".as_ptr(),
@@ -391,27 +357,6 @@ impl Filesystem for OverlayFs {
             return reply.entry(&TTL, &attr, Generation(0));
         }
 
-        if state.overlay_dir_exists(&rel) {
-            let attr = FileAttr {
-                ino,
-                size: 0,
-                blocks: 0,
-                atime: SystemTime::UNIX_EPOCH,
-                mtime: SystemTime::UNIX_EPOCH,
-                ctime: SystemTime::UNIX_EPOCH,
-                crtime: SystemTime::UNIX_EPOCH,
-                kind: FileType::Directory,
-                perm: 0o755,
-                nlink: 2,
-                uid: 0,
-                gid: 0,
-                rdev: 0,
-                flags: 0,
-                blksize: 4096,
-            };
-            return reply.entry(&TTL, &attr, Generation(0));
-        }
-
         let real = state.passthrough_path(&rel);
         if let Some(attr) = real_attr(&real, ino) {
             return reply.entry(&TTL, &attr, Generation(0));
@@ -468,27 +413,6 @@ impl Filesystem for OverlayFs {
             return reply.attr(&TTL, &attr);
         }
 
-        if state.overlay_dir_exists(&rel) {
-            let attr = FileAttr {
-                ino,
-                size: 0,
-                blocks: 0,
-                atime: SystemTime::UNIX_EPOCH,
-                mtime: SystemTime::UNIX_EPOCH,
-                ctime: SystemTime::UNIX_EPOCH,
-                crtime: SystemTime::UNIX_EPOCH,
-                kind: FileType::Directory,
-                perm: 0o755,
-                nlink: 2,
-                uid: 0,
-                gid: 0,
-                rdev: 0,
-                flags: 0,
-                blksize: 4096,
-            };
-            return reply.attr(&TTL, &attr);
-        }
-
         let real = state.passthrough_path(&rel);
         if let Some(attr) = real_attr(&real, ino) {
             return reply.attr(&TTL, &attr);
@@ -510,7 +434,7 @@ impl Filesystem for OverlayFs {
         };
         let state = self.state.lock().expect("state mutex");
         let dir = state.passthrough_path(&rel);
-        if !dir.is_dir() && !state.overlay_dir_exists(&rel) {
+        if !dir.is_dir() {
             return reply.error(Errno::ENOENT);
         }
 
@@ -545,31 +469,29 @@ impl Filesystem for OverlayFs {
             }
         }
 
-        let mut all_entries: Vec<(INodeNo, FileType, String)> = Vec::new();
-        all_entries.push((ino, FileType::Directory, ".".to_string()));
-        all_entries.push((INodeNo(1), FileType::Directory, "..".to_string()));
+        let mut offset_idx = 0u64;
+        if offset <= offset_idx {
+            let _ = reply.add(ino, offset_idx + 1, FileType::Directory, ".");
+        }
+        offset_idx += 1;
+        if offset <= offset_idx {
+            let _ = reply.add(INodeNo(1), offset_idx + 1, FileType::Directory, "..");
+        }
 
-        for name in entries {
+        for name in entries.into_iter().skip(offset as usize) {
+            offset_idx += 1;
             let child_rel = if rel.is_empty() {
                 name.clone()
             } else {
                 format!("{rel}/{name}")
             };
             let child_ino = self.inode_for(&child_rel);
-            let file_type = if state.passthrough_path(&child_rel).is_dir()
-                || state.overlay_dir_exists(&child_rel)
-            {
+            let file_type = if state.passthrough_path(&child_rel).is_dir() {
                 FileType::Directory
             } else {
                 FileType::RegularFile
             };
-            all_entries.push((child_ino, file_type, name));
-        }
-
-        for (idx, (entry_ino, file_type, name)) in
-            all_entries.into_iter().enumerate().skip(offset as usize)
-        {
-            if reply.add(entry_ino, (idx + 1) as u64, file_type, name) {
+            if reply.add(child_ino, offset_idx + 1, file_type, name) {
                 break;
             }
         }
@@ -582,11 +504,11 @@ impl Filesystem for OverlayFs {
             return reply.error(Errno::ENOENT);
         };
         let state = self.state.lock().expect("state mutex");
-        if state.overlay_file_exists(&rel) || state.passthrough_path(&rel).is_file() {
+        if state.read_overlay(&rel).is_some() || state.passthrough_path(&rel).is_file() {
             // WARN: Enable cache
             return reply.opened(FileHandle(0), FopenFlags::FOPEN_DIRECT_IO);
         }
-        if state.passthrough_path(&rel).is_dir() || state.overlay_dir_exists(&rel) {
+        if state.passthrough_path(&rel).is_dir() {
             return reply.error(Errno::EISDIR);
         }
         reply.error(Errno::ENOENT)
