@@ -49,22 +49,6 @@ static PENDING_UNLOADS: Lazy<Mutex<HashSet<String>>> = Lazy::new(|| Mutex::new(H
 static PENDING_ENGINE_VARIABLES: Lazy<Mutex<HashMap<String, JsonValue>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
-pub fn init_process_local_overlay() -> Result<()> {
-    let modloader_exe = std::env::current_exe().map_err(|err| {
-        AppError::Message(format!("Failed to resolve current modloader path: {err}"))
-    })?;
-    let modloader_root = modloader_exe.parent().map(PathBuf::from).ok_or_else(|| {
-        AppError::Message(format!(
-            "Modloader path has no parent directory: {}",
-            modloader_exe.display()
-        ))
-    })?;
-
-    init_overlay_registry(&modloader_root)?;
-    mount_process_local_overlay()?;
-    Ok(())
-}
-
 pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
     modloader_trace!(
         "register_engine_variable called: raw_name='{}' value={}",
@@ -134,6 +118,19 @@ struct PendingReload {
 
 /// Scans the addons directory, initializes mods, and starts hot-reload in a background thread.
 pub async fn load_mods_from_addons() -> Result<()> {
+    let modloader_exe = std::env::current_exe().map_err(|err| {
+        AppError::Message(format!("Failed to resolve current modloader path: {err}"))
+    })?;
+    let modloader_root = modloader_exe.parent().map(PathBuf::from).ok_or_else(|| {
+        AppError::Message(format!(
+            "Modloader path has no parent directory: {}",
+            modloader_exe.display()
+        ))
+    })?;
+
+    init_overlay_registry(&modloader_root)?;
+    mount_process_local_overlay()?;
+
     modloader_info!("load_mods_from_addons: creating startup and control channels");
     let (ready_tx, ready_rx) = oneshot::channel::<Result<()>>();
     let (control_tx, control_rx) = std::sync::mpsc::channel::<ControlMessage>();
@@ -207,18 +204,18 @@ async fn load_mods_from_addons_async(
     // let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
     // let addons_dir_path = addons_dir.as_path();
     // TODO: Accept launcher root and use here
-    let launcher_exe = std::env::current_exe().map_err(|err| {
+    let modloader_exe = std::env::current_exe().map_err(|err| {
         AppError::Message(format!("Failed to resolve current modloader path: {err}"))
     })?;
     modloader_debug!(
         "Resolved current modloader path: {}",
-        launcher_exe.display()
+        modloader_exe.display()
     );
 
-    let modloader_root = launcher_exe.parent().map(PathBuf::from).ok_or_else(|| {
+    let modloader_root = modloader_exe.parent().map(PathBuf::from).ok_or_else(|| {
         AppError::Message(format!(
             "Modloader path has no parent directory: {}",
-            launcher_exe.display()
+            modloader_exe.display()
         ))
     })?;
 

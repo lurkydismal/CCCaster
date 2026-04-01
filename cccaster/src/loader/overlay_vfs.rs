@@ -8,7 +8,6 @@ use once_cell::sync::OnceCell;
 use std::collections::{BTreeSet, HashMap};
 use std::ffi::OsStr;
 use std::fs;
-use std::io::ErrorKind;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -194,28 +193,6 @@ pub fn mount_process_local_overlay() -> Result<()> {
         Some(value) => value.clone(),
         None => return Ok(()),
     };
-
-    unsafe {
-        let flags = libc::CLONE_NEWUSER | libc::CLONE_NEWNS | libc::CLONE_NEWPID;
-        if libc::unshare(flags) != 0 {
-            anyhow::bail!(
-                "unshare(CLONE_NEWUSER|CLONE_NEWNS|CLONE_NEWPID) failed: {}",
-                std::io::Error::last_os_error()
-            );
-        }
-    }
-
-    let uid = unsafe { libc::geteuid() };
-    let gid = unsafe { libc::getegid() };
-    if let Err(err) = fs::write("/proc/self/setgroups", "deny\n")
-        && err.kind() != ErrorKind::NotFound
-    {
-        return Err(err).context("failed writing /proc/self/setgroups");
-    }
-    fs::write("/proc/self/uid_map", format!("0 {uid} 1\n"))
-        .context("failed writing /proc/self/uid_map")?;
-    fs::write("/proc/self/gid_map", format!("0 {gid} 1\n"))
-        .context("failed writing /proc/self/gid_map")?;
 
     unsafe {
         if libc::mount(

@@ -1,4 +1,4 @@
-use std::{fs, os::raw::c_char};
+use std::os::raw::c_char;
 
 use crate::{
     loader, main, modloader_debug, modloader_error, modloader_info, modloader_trace,
@@ -58,17 +58,6 @@ fn run_main() {
     }
 }
 
-fn has_multiple_threads() -> std::io::Result<bool> {
-    let s = fs::read_to_string("/proc/self/status")?;
-    for line in s.lines() {
-        if let Some(rest) = line.strip_prefix("Threads:") {
-            let n: usize = rest.trim().parse().unwrap_or(1);
-            return Ok(n > 1);
-        }
-    }
-    Ok(false)
-}
-
 #[unsafe(no_mangle)]
 pub extern "C" fn init(vtable: *const Api, json: *const c_char, json_len: usize) -> bool {
     modloader_info!("Initializing C API bridge");
@@ -80,16 +69,6 @@ pub extern "C" fn init(vtable: *const Api, json: *const c_char, json_len: usize)
     modloader_debug!("Registered API vtable function pointers");
 
     if !parse_init_json(json, json_len) {
-        return false;
-    }
-
-    if has_multiple_threads().unwrap_or(true) {
-        modloader_error!("Failed to initialize process-local overlay: not single-threaded");
-        return false;
-    }
-
-    if let Err(err) = loader::init_process_local_overlay() {
-        modloader_error!("Failed to initialize process-local overlay: {}", err);
         return false;
     }
 
