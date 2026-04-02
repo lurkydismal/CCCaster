@@ -89,22 +89,14 @@ pub fn execute_replaced_bytes(call_site: usize) -> Result<bool> {
 #[unsafe(naked)]
 pub unsafe extern "C" fn hook_entry() {
     std::arch::naked_asm!(
-        "sub esp, 4",
         "pushfd",
         "pushad",
         "mov eax, esp",
         "push eax",
         "call {dispatch}",
         "add esp, 4",
-        "mov [esp + 36], eax",
         "popad",
         "popfd",
-        "mov eax, [esp]",
-        "add esp, 4",
-        "test eax, eax",
-        "jz 2f",
-        "jmp eax",
-        "2:",
         "ret",
         dispatch = sym hook_dispatch,
     );
@@ -113,15 +105,15 @@ pub unsafe extern "C" fn hook_entry() {
 #[cfg(not(target_arch = "x86"))]
 pub unsafe extern "C" fn hook_entry() {}
 
-extern "C" fn hook_dispatch(frame_ptr: *const HookFrame) -> usize {
+extern "C" fn hook_dispatch(frame_ptr: *const HookFrame) {
     if frame_ptr.is_null() {
-        return 0;
+        return;
     }
     let frame = unsafe { &*frame_ptr };
     let ret = frame.ret_addr as usize;
 
     let Some(call_site) = (unsafe { find_call_site(ret as *const u8) }).map(|p| p as usize) else {
-        return 0;
+        return;
     };
 
     let metadata = match HOOKS.lock() {
@@ -129,7 +121,7 @@ extern "C" fn hook_dispatch(frame_ptr: *const HookFrame) -> usize {
         Err(_) => None,
     };
     let Some(metadata) = metadata else {
-        return 0;
+        return;
     };
 
     let payload = json!({
@@ -161,28 +153,77 @@ extern "C" fn hook_dispatch(frame_ptr: *const HookFrame) -> usize {
             call_site
         );
     }
-
-    metadata.trampoline_addr
 }
 
+/// Try to recover the address of the instruction that performed the call.
+///
+/// This scans backward up to 15 bytes from the return address and checks for
+/// two common x86 call encodings:
+///
+/// - `E8 rel32`
+///   Direct near call. This is the simplest case and is often exactly 5 bytes.
+/// - `FF /2`
+///   Indirect near call through a register or memory operand.
+///
+/// The search is intentionally small because x86 instructions are variable
+/// length and 15 bytes is the maximum instruction length on x86.
+///
+/// Returns:
+/// - `Some(call_site)` if a plausible call instruction is found.
+/// - `None` if no match is found.
+///
+/// Safety:
+/// - `ret` must point to readable executable memory.
+/// - This is only a heuristic; it does not fully decode instructions.
+/// - False positives are possible if arbitrary bytes happen to match.
+///
+/// Important:
+/// - For direct calls, `ret - 5` is typically the correct call-site.
+/// - The `FF /2` case is broader and less precise without full decoding.
 unsafe fn find_call_site(ret: *const u8) -> Option<*const u8> {
+    // Scan backward from the return address by a small bounded amount.
+    // This is a heuristic search, not a full disassembly.
     for i in 1..=15 {
         let p = unsafe { ret.sub(i) };
+
+        // Direct near call:
+        //   E8 xx xx xx xx
+        // If we see `E8` at the right offset, we assume this is the call site.
         if unsafe { *p } == 0xE8 {
             return Some(p);
         }
+
+        // Indirect near call:
+        //   FF /2
+        //
+        // `FF` is an opcode group. The ModR/M byte selects the actual operation.
+        // For `/2`, the `reg` field in the ModR/M byte must be `2`.
         if unsafe { *p } == 0xFF {
             let modrm = unsafe { *p.add(1) };
+
+            // Bits 5..3 select the /digit for opcode groups.
             let reg = (modrm >> 3) & 0b111;
+
+            // Bits 7..6 select the addressing mode:
+            //   00 = memory
+            //   01 = memory + 8-bit displacement
+            //   10 = memory + 32-bit displacement
+            //   11 = register-direct
+            //
+            // Keeping `mode != 0b11` avoids treating register-direct forms
+            // as a memory-style call site match.
             let mode = modrm >> 6;
+
             if reg == 2 && mode != 0b11 {
                 return Some(p);
             }
         }
     }
+
     modloader_error!(
         "failed to locate call instruction near return address {:p}",
         ret
     );
+
     None
 }
