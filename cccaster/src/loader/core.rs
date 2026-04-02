@@ -130,7 +130,12 @@ pub async fn load_mods_from_addons() -> Result<()> {
         ))
     })?;
 
-    ensure_archived_directory_available(&modloader_root, "converts", &["converts.tar.zstd"])?;
+    ensure_root_archive_available(&modloader_root, &["cccaster.tar.zstd"])?;
+    ensure_archived_directory_available(
+        &modloader_root,
+        "converts",
+        &["converts.tar.zstd", "cccaster.tar.zstd"],
+    )?;
     init_overlay_registry(&modloader_root)?;
     mount_process_local_overlay()?;
 
@@ -231,7 +236,11 @@ async fn load_mods_from_addons_async(
         .ok_or_else(|| AppError::Message("Invalid executable path\n".to_string()))?;
 
     let addons_dir = modloader_root.join("addons");
-    ensure_archived_directory_available(modloader_root, "addons", &["addons.tar.zstd"])?;
+    ensure_archived_directory_available(
+        modloader_root,
+        "addons",
+        &["addons.tar.zstd", "cccaster.tar.zstd"],
+    )?;
     let addons_dir_path = addons_dir.as_path();
     let addon_filter: Option<HashSet<&str>> = args
         .addon
@@ -276,20 +285,26 @@ async fn load_mods_from_addons_async(
     {
         let path = entry.path();
         modloader_trace!("Inspecting addon entry at {:?}", path);
-        if path.is_dir() {
+        if path.is_dir() || is_tar_zstd_archive(&path) {
             if !is_safe_path(addons_dir_path, &path) {
                 modloader_warning!("Skipping unsafe directory path: {:?}", path);
                 continue;
             }
-            let mod_id = match derive_mod_id(&path) {
-                Some(id) => id,
-                None => {
+            let (mod_id, mod_root) = if path.is_dir() {
+                let Some(id) = derive_mod_id(&path) else {
                     modloader_warning!(
                         "Skipping addon path with invalid directory name: {:?}",
                         path
                     );
                     continue;
-                }
+                };
+                (id, path.clone())
+            } else {
+                let Some((id, extracted_root)) = prepare_archived_mod_dir(modloader_root, &path)?
+                else {
+                    continue;
+                };
+                (id, extracted_root)
             };
             if args.safe_mode && mod_id != "core" && mod_id != "runtime" {
                 modloader_debug!("safe_mode skipping addon '{}'", mod_id);
@@ -306,13 +321,13 @@ async fn load_mods_from_addons_async(
                 continue;
             }
 
-            let info_path = path.join("info.json");
+            let info_path = mod_root.join("info.json");
             let info_data = fs::read(&info_path).await;
             if let Err(err) = info_data.as_ref() {
                 modloader_error!(
                     "Failed to read mod manifest {:?} for {:?}: {}. Skipping this addon.",
                     info_path,
-                    path,
+                    mod_root,
                     err
                 );
                 continue;
@@ -323,7 +338,7 @@ async fn load_mods_from_addons_async(
                     modloader_error!(
                         "Failed to parse manifest {:?} for {:?}: {}. Skipping this addon.",
                         info_path,
-                        path,
+                        mod_root,
                         err
                     );
                     continue;
@@ -381,9 +396,13 @@ async fn load_mods_from_addons_async(
                     events: raw.events.clone(),
                     assets_ignore: raw.assets.ignore.clone(),
                 },
-                path.clone(),
+                mod_root.clone(),
             ));
-            modloader_debug!("Registered addon candidate '{}' from {:?}", mod_id, path);
+            modloader_debug!(
+                "Registered addon candidate '{}' from {:?}",
+                mod_id,
+                mod_root
+            );
         }
     }
 
@@ -723,11 +742,13 @@ fn is_asset_path(mod_path: &Path, normalized_path: &Path) -> bool {
 fn classify_hot_reload_path(mod_path: &Path, changed: &Path) -> (&'static str, bool, bool, bool) {
     let patch_path = normalize_path(&mod_path.join("patch.json"));
     let main_path = normalize_path(&mod_path.join("main.luau"));
+    let script_archive_path = normalize_path(&mod_path.join("script.tar.zstd"));
     let is_patch = changed == patch_path;
     let is_asset = is_asset_path(mod_path, changed);
     let is_script = !is_patch
         && !is_asset
         && (changed == main_path
+            || changed == script_archive_path
             || changed
                 .extension()
                 .and_then(|ext| ext.to_str())
@@ -770,22 +791,27 @@ async fn hot_reload_scripts_only(
 ) -> Result<()> {
     let meta = loaded_mods[mod_index].meta.clone();
     let path = loaded_mods[mod_index].path.clone();
-    let main_path = path.join("main.luau");
-
-    modloader_info!("Starting script-only hot-reload for mod {}", meta.id);
-    let unload_payload = run_unload(lua, &meta.id)?;
-
-    if !main_path.exists() {
+    let archive_scripts_root = prepare_script_archive_dir(&path)?;
+    let Some(main_path) = resolve_script_path(&path, archive_scripts_root.as_deref(), "main.luau")
+    else {
         modloader_warning!(
             "Skipping script-only hot-reload for mod {} because main.luau is missing",
             meta.id
         );
         return Ok(());
-    }
+    };
+
+    modloader_info!("Starting script-only hot-reload for mod {}", meta.id);
+    let unload_payload = run_unload(lua, &meta.id)?;
 
     let required_files = Arc::new(Mutex::new(HashSet::new()));
-    register_engine_require(lua, path.clone(), required_files.clone())
-        .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
+    register_engine_require(
+        lua,
+        path.clone(),
+        archive_scripts_root.clone(),
+        required_files.clone(),
+    )
+    .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
     register_engine_fs_local(lua, path.clone())
         .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
 
@@ -795,8 +821,14 @@ async fn hot_reload_scripts_only(
             main_path, meta.id
         )
     })?;
-    let used_script_paths = collect_used_script_files(&meta.id, &path, &main_path, &script)
-        .with_context(|| format!("failed to discover used Luau files for mod {}", meta.id))?;
+    let used_script_paths = collect_used_script_files(
+        &meta.id,
+        &path,
+        archive_scripts_root.as_deref(),
+        &main_path,
+        &script,
+    )
+    .with_context(|| format!("failed to discover used Luau files for mod {}", meta.id))?;
     for used_path in &used_script_paths {
         let source = fs::read_to_string(used_path).await.with_context(|| {
             format!(
@@ -1079,7 +1111,7 @@ async fn run_mod_tests(lua: &Lua, mod_id: &str, mod_path: &Path, tests_path: &Pa
             tests_path, mod_id
         )
     })?;
-    let used_script_paths = collect_used_script_files(mod_id, mod_path, tests_path, &script)
+    let used_script_paths = collect_used_script_files(mod_id, mod_path, None, tests_path, &script)
         .with_context(|| format!("failed to discover used Luau test files for mod {}", mod_id))?;
     for used_path in &used_script_paths {
         let source = fs::read_to_string(used_path).await.with_context(|| {
@@ -1095,6 +1127,7 @@ async fn run_mod_tests(lua: &Lua, mod_id: &str, mod_path: &Path, tests_path: &Pa
     register_engine_require(
         lua,
         mod_path.to_path_buf(),
+        None,
         Arc::new(Mutex::new(HashSet::new())),
     )
     .with_context(|| {
@@ -1273,30 +1306,41 @@ async fn load_mod(
     );
     let patch_path = path.join("patch.json");
     let has_patch_file = patch_path.exists();
-    let main_path = path.join("main.luau");
-    let has_main_script = main_path.exists();
-    let tests_path = path.join("tests.luau");
-    let has_tests_script = tests_path.exists();
+    let archive_scripts_root = prepare_script_archive_dir(&path)?;
+    let main_path = resolve_script_path(&path, archive_scripts_root.as_deref(), "main.luau");
+    let has_main_script = main_path.is_some();
+    let tests_path = resolve_script_path(&path, archive_scripts_root.as_deref(), "tests.luau");
 
     let assets_path = path.join("assets");
     let has_assets_dir = assets_path.exists() && assets_path.is_dir();
     let has_assets_archive = path.join("assets.tar.zstd").is_file();
-    if !has_patch_file && !has_main_script && !has_assets_dir && !has_assets_archive {
+    let has_scripts_archive = path.join("script.tar.zstd").is_file();
+    if !has_patch_file
+        && !has_main_script
+        && !has_assets_dir
+        && !has_assets_archive
+        && !has_scripts_archive
+    {
         return Err(anyhow!(
-            "mod {} must provide at least one of main.luau, patch.json, assets/, or assets.tar.zstd",
+            "mod {} must provide at least one of main.luau, script.tar.zstd, patch.json, assets/, or assets.tar.zstd",
             meta.id
         ));
     }
 
-    if has_tests_script {
-        run_mod_tests(lua, &meta.id, &path, &tests_path)
+    if let Some(tests_path) = tests_path.as_ref() {
+        run_mod_tests(lua, &meta.id, &path, tests_path)
             .await
             .with_context(|| format!("tests.luau failed for mod {}", meta.id))?;
     }
 
     let required_files = Arc::new(Mutex::new(HashSet::new()));
-    register_engine_require(lua, path.clone(), required_files.clone())
-        .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
+    register_engine_require(
+        lua,
+        path.clone(),
+        archive_scripts_root.clone(),
+        required_files.clone(),
+    )
+    .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
     register_engine_fs_local(lua, path.clone())
         .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
 
@@ -1340,15 +1384,21 @@ async fn load_mod(
         (None, Vec::new())
     };
 
-    let returned: Table = if has_main_script {
-        let script = fs::read_to_string(&main_path).await.with_context(|| {
+    let returned: Table = if let Some(main_path) = main_path.as_ref() {
+        let script = fs::read_to_string(main_path).await.with_context(|| {
             format!(
                 "failed to read main script {:?} for mod {}",
                 main_path, meta.id
             )
         })?;
-        let used_script_paths = collect_used_script_files(&meta.id, &path, &main_path, &script)
-            .with_context(|| format!("failed to discover used Luau files for mod {}", meta.id))?;
+        let used_script_paths = collect_used_script_files(
+            &meta.id,
+            &path,
+            archive_scripts_root.as_deref(),
+            main_path,
+            &script,
+        )
+        .with_context(|| format!("failed to discover used Luau files for mod {}", meta.id))?;
         for used_path in &used_script_paths {
             let source = fs::read_to_string(used_path).await.with_context(|| {
                 format!(
@@ -1457,6 +1507,7 @@ fn precheck_luau_chunk(lua: &Lua, mod_id: &str, script_path: &Path, source: &str
 fn collect_used_script_files(
     mod_id: &str,
     mod_root: &Path,
+    archive_root: Option<&Path>,
     main_path: &Path,
     main_source: &str,
 ) -> Result<Vec<PathBuf>> {
@@ -1472,14 +1523,15 @@ fn collect_used_script_files(
         ordered.push(current.clone());
 
         for request in parse_engine_require_literals(&source)? {
-            let resolved = resolve_mod_relative_luau_path(mod_root, &request).with_context(|| {
-                format!(
-                    "mod '{}' uses Engine.require('{}') in '{}' but the target could not be resolved",
-                    mod_id,
-                    request,
-                    current.display()
-                )
-            })?;
+            let resolved = resolve_mod_relative_luau_path(mod_root, archive_root, &request)
+                .with_context(|| {
+                    format!(
+                        "mod '{}' uses Engine.require('{}') in '{}' but the target could not be resolved",
+                        mod_id,
+                        request,
+                        current.display()
+                    )
+                })?;
             let normalized_resolved = normalize_path(&resolved);
             if visited.contains(&normalized_resolved) {
                 continue;
@@ -1549,7 +1601,11 @@ fn extract_engine_require_argument(call_node: tree_sitter::Node, source: &str) -
     Some(tail[..end_idx].to_owned())
 }
 
-fn resolve_mod_relative_luau_path(mod_root: &Path, requested_path: &str) -> Result<PathBuf> {
+fn resolve_mod_relative_luau_path(
+    mod_root: &Path,
+    archive_root: Option<&Path>,
+    requested_path: &str,
+) -> Result<PathBuf> {
     let relative = Path::new(requested_path);
     if relative.is_absolute() {
         return Err(anyhow!(
@@ -1558,44 +1614,58 @@ fn resolve_mod_relative_luau_path(mod_root: &Path, requested_path: &str) -> Resu
         ));
     }
 
-    let candidate = mod_root.join(relative);
-    if candidate.exists() {
-        let canonical = candidate.canonicalize().with_context(|| {
-            format!(
-                "failed to canonicalize required path '{}'",
-                candidate.display()
-            )
-        })?;
-        if canonical.starts_with(mod_root) {
-            return Ok(canonical);
+    for root in [Some(mod_root), archive_root].into_iter().flatten() {
+        let candidate = root.join(relative);
+        if candidate.exists() {
+            let canonical = candidate.canonicalize().with_context(|| {
+                format!(
+                    "failed to canonicalize required path '{}'",
+                    candidate.display()
+                )
+            })?;
+            if canonical.starts_with(root) {
+                return Ok(canonical);
+            }
+            return Err(anyhow!(
+                "Engine.require path '{}' resolves outside mod root",
+                requested_path
+            ));
         }
-        return Err(anyhow!(
-            "Engine.require path '{}' resolves outside mod root",
-            requested_path
-        ));
-    }
 
-    let with_ext = candidate.with_extension("luau");
-    if with_ext.exists() {
-        let canonical = with_ext.canonicalize().with_context(|| {
-            format!(
-                "failed to canonicalize required path '{}'",
-                with_ext.display()
-            )
-        })?;
-        if canonical.starts_with(mod_root) {
-            return Ok(canonical);
+        let with_ext = candidate.with_extension("luau");
+        if with_ext.exists() {
+            let canonical = with_ext.canonicalize().with_context(|| {
+                format!(
+                    "failed to canonicalize required path '{}'",
+                    with_ext.display()
+                )
+            })?;
+            if canonical.starts_with(root) {
+                return Ok(canonical);
+            }
+            return Err(anyhow!(
+                "Engine.require path '{}' resolves outside mod root",
+                requested_path
+            ));
         }
-        return Err(anyhow!(
-            "Engine.require path '{}' resolves outside mod root",
-            requested_path
-        ));
     }
 
     Err(anyhow!(
         "Engine.require target not found for '{}'",
         requested_path
     ))
+}
+
+fn resolve_script_path(
+    mod_root: &Path,
+    archive_root: Option<&Path>,
+    script_name: &str,
+) -> Option<PathBuf> {
+    [Some(mod_root), archive_root]
+        .into_iter()
+        .flatten()
+        .map(|root| root.join(script_name))
+        .find(|path| path.is_file())
 }
 
 fn build_watched_files(
@@ -1620,6 +1690,7 @@ fn build_watched_files(
     }
     files.push(normalize_path(&mod_path.join("assets.tar.zstd")));
     files.push(normalize_path(&mod_path.join("converts.tar.zstd")));
+    files.push(normalize_path(&mod_path.join("script.tar.zstd")));
 
     files.sort();
     files.dedup();
@@ -1650,6 +1721,106 @@ fn collect_mod_asset_files(assets_root: &Path) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+fn prepare_script_archive_dir(mod_path: &Path) -> Result<Option<PathBuf>> {
+    let archive_path = mod_path.join("script.tar.zstd");
+    if !archive_path.is_file() {
+        return Ok(None);
+    }
+
+    let target_dir = mod_path.join(".ccaster_script_archive");
+    if target_dir.exists() {
+        std::fs::remove_dir_all(&target_dir).with_context(|| {
+            format!(
+                "failed clearing extracted script archive directory {}",
+                target_dir.display()
+            )
+        })?;
+    }
+    std::fs::create_dir_all(&target_dir).with_context(|| {
+        format!(
+            "failed creating extracted script archive directory {}",
+            target_dir.display()
+        )
+    })?;
+    extract_tar_zstd_into(&archive_path, &target_dir)?;
+    Ok(Some(target_dir))
+}
+
+fn is_tar_zstd_archive(path: &Path) -> bool {
+    path.is_file()
+        && path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.ends_with(".tar.zstd"))
+}
+
+fn prepare_archived_mod_dir(root: &Path, archive_path: &Path) -> Result<Option<(String, PathBuf)>> {
+    let Some(file_name) = archive_path.file_name().and_then(|name| name.to_str()) else {
+        return Ok(None);
+    };
+    let Some(mod_id) = file_name.strip_suffix(".tar.zstd").map(str::to_owned) else {
+        return Ok(None);
+    };
+    if mod_id.is_empty() || mod_id == "addons" || mod_id == "converts" || mod_id == "cccaster" {
+        return Ok(None);
+    }
+
+    let extract_root = root.join(".cccaster").join("addons_archives").join(&mod_id);
+    if extract_root.exists() {
+        std::fs::remove_dir_all(&extract_root).with_context(|| {
+            format!(
+                "failed clearing extracted addon archive directory {}",
+                extract_root.display()
+            )
+        })?;
+    }
+    std::fs::create_dir_all(&extract_root).with_context(|| {
+        format!(
+            "failed creating extracted addon archive directory {}",
+            extract_root.display()
+        )
+    })?;
+    extract_tar_zstd_into(archive_path, &extract_root)?;
+    let info_at_root = extract_root.join("info.json").is_file();
+    if info_at_root {
+        return Ok(Some((mod_id, extract_root)));
+    }
+    let nested_dirs: Vec<PathBuf> = std::fs::read_dir(&extract_root)
+        .with_context(|| {
+            format!(
+                "failed reading extracted archive {}",
+                extract_root.display()
+            )
+        })?
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .filter(|path| path.is_dir())
+        .collect();
+    if nested_dirs.len() == 1 && nested_dirs[0].join("info.json").is_file() {
+        return Ok(Some((mod_id, nested_dirs[0].clone())));
+    }
+    Ok(Some((mod_id, extract_root)))
+}
+
+fn ensure_root_archive_available(root: &Path, archive_names: &[&str]) -> Result<()> {
+    let should_extract = !root.join("addons").exists() || !root.join("converts").exists();
+    if !should_extract {
+        return Ok(());
+    }
+    let Some(archive_path) = archive_names
+        .iter()
+        .map(|name| root.join(name))
+        .find(|candidate| candidate.is_file())
+    else {
+        return Ok(());
+    };
+    modloader_info!(
+        "Detected missing addons/ or converts/; extracting root archive {}",
+        archive_path.display()
+    );
+    extract_tar_zstd_into(&archive_path, root)
+        .with_context(|| format!("failed extracting {}", archive_path.display()))
+}
+
 fn ensure_archived_directory_available(
     root: &Path,
     dir_name: &str,
@@ -1673,8 +1844,17 @@ fn ensure_archived_directory_available(
         dir_name,
         archive_path.display()
     );
-    extract_tar_zstd_into(&archive_path, &target_dir)
-        .with_context(|| format!("failed extracting {}", archive_path.display()))
+    if archive_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name == "cccaster.tar.zstd")
+    {
+        extract_tar_zstd_into(&archive_path, root)
+            .with_context(|| format!("failed extracting {}", archive_path.display()))
+    } else {
+        extract_tar_zstd_into(&archive_path, &target_dir)
+            .with_context(|| format!("failed extracting {}", archive_path.display()))
+    }
 }
 
 fn extract_tar_zstd_into(archive_path: &Path, target_dir: &Path) -> Result<()> {
