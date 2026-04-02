@@ -494,23 +494,44 @@ fn read_zstd_tar_entries(archive_path: &Path) -> Result<Vec<SelectedAsset>> {
 
 fn load_converters(launcher_root: &Path) -> Result<Vec<ConverterEntry>> {
     let converts_dir = launcher_root.join("converts");
-    if !converts_dir.exists() {
+    let archive_converts_dir = prepare_converts_archive_dir(launcher_root)?;
+    if !converts_dir.exists() && archive_converts_dir.is_none() {
         return Ok(Vec::new());
     }
 
-    let converter_files = collect_files(&converts_dir)?;
+    let mut converter_files = if converts_dir.exists() {
+        collect_files(&converts_dir)?
+    } else {
+        Vec::new()
+    };
+    if let Some(archive_dir) = archive_converts_dir.as_ref() {
+        let archive_files = collect_files(archive_dir)?;
+        for archive_file in archive_files {
+            let rel = archive_file.strip_prefix(archive_dir).ok();
+            if let Some(rel) = rel
+                && !converts_dir.join(rel).exists()
+            {
+                converter_files.push(archive_file);
+            }
+        }
+    }
     let mut converters = Vec::new();
     for wasm_path in converter_files
         .into_iter()
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("wasm"))
     {
-        let relative =
-            wasmtime::error::Context::with_context(wasm_path.strip_prefix(&converts_dir), || {
+        let relative = if let Ok(rel) = wasm_path.strip_prefix(&converts_dir) {
+            rel
+        } else if let Some(archive_dir) = archive_converts_dir.as_ref() {
+            wasmtime::error::Context::with_context(wasm_path.strip_prefix(archive_dir), || {
                 format!(
-                    "failed to strip converts directory prefix for {}",
+                    "failed to strip converts archive prefix for {}",
                     wasm_path.display()
                 )
-            })?;
+            })?
+        } else {
+            continue;
+        };
         let Some(parent) = relative.parent() else {
             continue;
         };
@@ -532,6 +553,47 @@ fn load_converters(launcher_root: &Path) -> Result<Vec<ConverterEntry>> {
     }
 
     Ok(converters)
+}
+
+fn prepare_converts_archive_dir(launcher_root: &Path) -> Result<Option<PathBuf>> {
+    let archive_path = launcher_root.join("converts.tar.zstd");
+    if !archive_path.is_file() {
+        return Ok(None);
+    }
+    let extract_dir = launcher_root.join(".ccaster").join("converts_archive");
+    if extract_dir.exists() {
+        Context::with_context(fs::remove_dir_all(&extract_dir), || {
+            format!(
+                "failed clearing extracted converts archive directory {}",
+                extract_dir.display()
+            )
+        })?;
+    }
+    Context::with_context(fs::create_dir_all(&extract_dir), || {
+        format!(
+            "failed creating extracted converts archive directory {}",
+            extract_dir.display()
+        )
+    })?;
+
+    let file = Context::with_context(fs::File::open(&archive_path), || {
+        format!("failed to open converts archive {}", archive_path.display())
+    })?;
+    let mut decoder = Context::with_context(zstd::stream::read::Decoder::new(file), || {
+        format!(
+            "failed to decode converts archive {}",
+            archive_path.display()
+        )
+    })?;
+    let mut archive = tar::Archive::new(&mut decoder);
+    Context::with_context(archive.unpack(&extract_dir), || {
+        format!(
+            "failed to unpack converts archive {} into {}",
+            archive_path.display(),
+            extract_dir.display()
+        )
+    })?;
+    Ok(Some(extract_dir))
 }
 
 fn run_converter(

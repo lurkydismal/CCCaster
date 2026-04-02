@@ -138,6 +138,7 @@ pub(super) fn install_engine_dispatch_api(
 pub(super) fn register_engine_require(
     lua: &Lua,
     mod_path: PathBuf,
+    archived_script_path: Option<PathBuf>,
     required_files: Arc<Mutex<HashSet<PathBuf>>>,
 ) -> Result<()> {
     let globals = lua.globals();
@@ -154,7 +155,10 @@ pub(super) fn register_engine_require(
         let mod_root = require_mod_path.canonicalize().map_err(|err| {
             mlua::Error::runtime(format!("failed to resolve mod directory: {err}"))
         })?;
-        let file_path = resolve_required_file_path(&mod_root, trimmed)?;
+        let archive_root = archived_script_path
+            .as_ref()
+            .and_then(|path| path.canonicalize().ok());
+        let file_path = resolve_required_file_path(&mod_root, archive_root.as_deref(), trimmed)?;
         modloader_trace!("Engine.require resolving '{}' to {:?}", trimmed, file_path);
 
         if !file_path.starts_with(&mod_root) {
@@ -219,7 +223,11 @@ pub(super) fn register_engine_require(
 }
 
 /// Resolves a relative require path into a canonical `.luau` script path.
-fn resolve_required_file_path(mod_root: &Path, requested_path: &str) -> mlua::Result<PathBuf> {
+fn resolve_required_file_path(
+    mod_root: &Path,
+    archive_root: Option<&Path>,
+    requested_path: &str,
+) -> mlua::Result<PathBuf> {
     let relative = Path::new(requested_path);
     if relative.is_absolute() {
         return Err(mlua::Error::runtime(format!(
@@ -227,24 +235,26 @@ fn resolve_required_file_path(mod_root: &Path, requested_path: &str) -> mlua::Re
         )));
     }
 
-    let joined = mod_root.join(relative);
-    if joined.exists() {
-        return joined.canonicalize().map_err(|err| {
-            mlua::Error::runtime(format!(
-                "failed to resolve required file {}: {err}",
-                joined.display()
-            ))
-        });
-    }
+    for root in [Some(mod_root), archive_root].into_iter().flatten() {
+        let joined = root.join(relative);
+        if joined.exists() {
+            return joined.canonicalize().map_err(|err| {
+                mlua::Error::runtime(format!(
+                    "failed to resolve required file {}: {err}",
+                    joined.display()
+                ))
+            });
+        }
 
-    let with_ext = joined.with_extension("luau");
-    if with_ext.exists() {
-        return with_ext.canonicalize().map_err(|err| {
-            mlua::Error::runtime(format!(
-                "failed to resolve required file {}: {err}",
-                with_ext.display()
-            ))
-        });
+        let with_ext = joined.with_extension("luau");
+        if with_ext.exists() {
+            return with_ext.canonicalize().map_err(|err| {
+                mlua::Error::runtime(format!(
+                    "failed to resolve required file {}: {err}",
+                    with_ext.display()
+                ))
+            });
+        }
     }
 
     Err(mlua::Error::runtime(format!(
