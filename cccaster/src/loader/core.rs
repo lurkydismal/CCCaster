@@ -114,6 +114,8 @@ struct LoadedMod {
 struct PendingReload {
     changed_paths: Vec<PathBuf>,
     patch_changed: bool,
+    script_changed: bool,
+    asset_changed: bool,
 }
 
 /// Scans the addons directory, initializes mods, and starts hot-reload in a background thread.
@@ -204,20 +206,28 @@ async fn load_mods_from_addons_async(
     // let addons_dir = PathBuf::from(args.addons_dir.as_deref().unwrap_or("addons"));
     // let addons_dir_path = addons_dir.as_path();
     // TODO: Accept launcher root and use here
-    let modloader_exe = std::env::current_exe().map_err(|err| {
-        AppError::Message(format!("Failed to resolve current modloader path: {err}"))
-    })?;
+    let arg0 = std::env::args()
+        .next()
+        .ok_or_else(|| AppError::Message("Missing argv[0]\n".to_string()))?;
+
+    let mut modloader_exe = PathBuf::from(arg0);
+
+    // If it's not absolute, resolve it against current working dir
+    if modloader_exe.is_relative() {
+        let cwd = std::env::current_dir()
+            .map_err(|_| AppError::Message("Failed to resolve current directory\n".to_string()))?;
+
+        modloader_exe = cwd.join(modloader_exe);
+    }
+
     modloader_debug!(
         "Resolved current modloader path: {}",
         modloader_exe.display()
     );
 
-    let modloader_root = modloader_exe.parent().map(PathBuf::from).ok_or_else(|| {
-        AppError::Message(format!(
-            "Modloader path has no parent directory: {}",
-            modloader_exe.display()
-        ))
-    })?;
+    let modloader_root = modloader_exe
+        .parent()
+        .ok_or_else(|| AppError::Message("Invalid executable path\n".to_string()))?;
 
     let addons_dir = modloader_root.join("addons");
     let addons_dir_path = addons_dir.as_path();
@@ -234,9 +244,29 @@ async fn load_mods_from_addons_async(
 
     modloader_info!("Starting mod discovery in {:?}", addons_dir_path);
 
-    let mut dir = fs::read_dir(addons_dir_path)
-        .await
-        .with_context(|| format!("unable to open addons directory at {:?}", addons_dir_path))?;
+    if !addons_dir_path.exists() {
+        modloader_warning!(
+            "addons directory does not exist at {:?}; starting without addons",
+            addons_dir_path
+        );
+    }
+
+    let mut dir = match fs::read_dir(addons_dir_path).await {
+        Ok(dir) => dir,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            modloader_warning!(
+                "addons directory missing at {:?}; continuing with zero discovered addons",
+                addons_dir_path
+            );
+            send_startup_signal(&ready_signal, Ok(()));
+            return Ok(());
+        }
+        Err(err) => {
+            return Err(err).with_context(|| {
+                format!("unable to open addons directory at {:?}", addons_dir_path)
+            });
+        }
+    };
     while let Some(entry) = dir
         .next_entry()
         .await
@@ -527,11 +557,21 @@ async fn start_hot_reload_loop(
         for path in &event.paths {
             if let Some(changed_index) = detect_changed_mod(&mut loaded_mods, path) {
                 let normalized = normalize_path(path);
-                let is_patch_change =
-                    normalized == loaded_mods[changed_index].path.join("patch.json");
+                let (kind, is_patch_change, is_script_change, is_asset_change) =
+                    classify_hot_reload_path(&loaded_mods[changed_index].path, &normalized);
+                if !is_patch_change && !is_script_change && !is_asset_change {
+                    continue;
+                }
                 let pending = mods_to_reload.entry(changed_index).or_default();
                 pending.changed_paths.push(normalized);
                 pending.patch_changed |= is_patch_change;
+                pending.script_changed |= is_script_change;
+                pending.asset_changed |= is_asset_change;
+                modloader_trace!(
+                    "Queued {} hot-reload update for mod {}",
+                    kind,
+                    loaded_mods[changed_index].meta.id
+                );
             }
         }
 
@@ -540,34 +580,37 @@ async fn start_hot_reload_loop(
             let path = loaded_mods[mod_index].path.clone();
             let args = runtime_args();
 
-            let changed_non_patch = pending
-                .changed_paths
-                .iter()
-                .any(|changed| changed != &loaded_mods[mod_index].path.join("patch.json"));
-            let reload_result = if pending.patch_changed && !changed_non_patch {
-                let occupied = collect_occupied_spans(&loaded_mods, Some(mod_index));
-                match hot_reload_patches_only(
-                    &loaded_mods[mod_index].meta,
-                    &loaded_mods[mod_index].path,
-                    &occupied,
-                    args.dump_patches,
-                )
-                .await
-                {
-                    Ok((patches, spans, patch_count)) => {
-                        loaded_mods[mod_index]._patches = patches;
-                        loaded_mods[mod_index].patch_spans = spans;
-                        modloader_info!(
-                            "Hot-reloaded only patch.json for mod {} ({} patch entries)",
-                            loaded_mods[mod_index].meta.id,
-                            patch_count
-                        );
-                        Ok(())
-                    }
-                    Err(err) => Err(err),
-                }
+            let reload_result = if pending.script_changed {
+                hot_reload_scripts_only(&lua, &mut loaded_mods, mod_index).await
             } else {
-                hot_reload_mod(&lua, &mut loaded_mods, mod_index).await
+                if pending.patch_changed {
+                    let occupied = collect_occupied_spans(&loaded_mods, Some(mod_index));
+                    let (patches, spans, patch_count) = hot_reload_patches_only(
+                        &loaded_mods[mod_index].meta,
+                        &loaded_mods[mod_index].path,
+                        &occupied,
+                        args.dump_patches,
+                    )
+                    .await?;
+                    loaded_mods[mod_index]._patches = patches;
+                    loaded_mods[mod_index].patch_spans = spans;
+                    modloader_info!(
+                        "Hot-reloaded patch.json for mod {} ({} patch entries)",
+                        loaded_mods[mod_index].meta.id,
+                        patch_count
+                    );
+                }
+                if pending.asset_changed {
+                    register_mod_assets(
+                        &loaded_mods[mod_index].path,
+                        &loaded_mods[mod_index].meta.assets_ignore,
+                    )?;
+                    modloader_info!(
+                        "Hot-reloaded assets for mod {}",
+                        loaded_mods[mod_index].meta.id
+                    );
+                }
+                Ok(())
             };
 
             if let Err(err) = reload_result {
@@ -640,20 +683,62 @@ fn derive_mod_id(path: &Path) -> Option<String> {
 fn detect_changed_mod(loaded_mods: &mut [LoadedMod], path: &Path) -> Option<usize> {
     let normalized = normalize_path(path);
     for (idx, loaded) in loaded_mods.iter_mut().enumerate() {
-        if let Some(previous_hash) = loaded.watched_hashes.get_mut(&normalized) {
-            let current_hash = hash_file(&normalized);
-            if *previous_hash != current_hash {
-                modloader_debug!(
-                    "Detected actual content change for mod {} in {:?}",
-                    loaded.meta.id,
-                    normalized
-                );
-                *previous_hash = current_hash;
-                return Some(idx);
-            }
+        let mut watched = loaded.watched_hashes.contains_key(&normalized);
+        if !watched && is_asset_path(&loaded.path, &normalized) {
+            watched = true;
+            loaded.watched_hashes.insert(normalized.clone(), None);
+        }
+        if !watched {
+            continue;
+        }
+
+        let previous_hash = loaded
+            .watched_hashes
+            .get(&normalized)
+            .copied()
+            .unwrap_or(None);
+        let current_hash = hash_file(&normalized);
+        if previous_hash != current_hash {
+            modloader_debug!(
+                "Detected actual content change for mod {} in {:?}",
+                loaded.meta.id,
+                normalized
+            );
+            loaded
+                .watched_hashes
+                .insert(normalized.clone(), current_hash);
+            return Some(idx);
         }
     }
     None
+}
+
+fn is_asset_path(mod_path: &Path, normalized_path: &Path) -> bool {
+    normalized_path.starts_with(normalize_path(&mod_path.join("assets")))
+}
+
+fn classify_hot_reload_path(mod_path: &Path, changed: &Path) -> (&'static str, bool, bool, bool) {
+    let patch_path = normalize_path(&mod_path.join("patch.json"));
+    let main_path = normalize_path(&mod_path.join("main.luau"));
+    let is_patch = changed == patch_path;
+    let is_asset = is_asset_path(mod_path, changed);
+    let is_script = !is_patch
+        && !is_asset
+        && (changed == main_path
+            || changed
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("luau")));
+    let kind = if is_patch {
+        "patch"
+    } else if is_asset {
+        "asset"
+    } else if is_script {
+        "script"
+    } else {
+        "other"
+    };
+    (kind, is_patch, is_script, is_asset)
 }
 
 fn collect_occupied_spans<'a>(
@@ -675,29 +760,93 @@ fn collect_occupied_spans<'a>(
     occupied
 }
 
-async fn hot_reload_mod(lua: &Lua, loaded_mods: &mut [LoadedMod], mod_index: usize) -> Result<()> {
-    let args = runtime_args();
-    modloader_info!(
-        "Starting hot-reload for mod {}",
-        loaded_mods[mod_index].meta.id
-    );
-    let unload_payload = run_unload(lua, &loaded_mods[mod_index].meta.id)?;
-    let occupied = collect_occupied_spans(loaded_mods, Some(mod_index));
-    let reloaded = load_mod(
-        lua,
-        loaded_mods[mod_index].meta.clone(),
-        loaded_mods[mod_index].path.clone(),
-        true,
-        unload_payload,
-        &occupied,
-        args.dump_patches,
-    )
-    .await?;
-    loaded_mods[mod_index] = reloaded;
-    modloader_info!(
-        "Finished hot-reload for mod {}",
-        loaded_mods[mod_index].meta.id
-    );
+async fn hot_reload_scripts_only(
+    lua: &Lua,
+    loaded_mods: &mut [LoadedMod],
+    mod_index: usize,
+) -> Result<()> {
+    let meta = loaded_mods[mod_index].meta.clone();
+    let path = loaded_mods[mod_index].path.clone();
+    let main_path = path.join("main.luau");
+
+    modloader_info!("Starting script-only hot-reload for mod {}", meta.id);
+    let unload_payload = run_unload(lua, &meta.id)?;
+
+    if !main_path.exists() {
+        modloader_warning!(
+            "Skipping script-only hot-reload for mod {} because main.luau is missing",
+            meta.id
+        );
+        return Ok(());
+    }
+
+    let required_files = Arc::new(Mutex::new(HashSet::new()));
+    register_engine_require(lua, path.clone(), required_files.clone())
+        .with_context(|| format!("failed to register Engine.require for mod {}", meta.id))?;
+    register_engine_fs_local(lua, path.clone())
+        .with_context(|| format!("failed to register Engine.fs.local for mod {}", meta.id))?;
+
+    let script = fs::read_to_string(&main_path).await.with_context(|| {
+        format!(
+            "failed to read main script {:?} for mod {}",
+            main_path, meta.id
+        )
+    })?;
+    let used_script_paths = collect_used_script_files(&meta.id, &path, &main_path, &script)
+        .with_context(|| format!("failed to discover used Luau files for mod {}", meta.id))?;
+    for used_path in &used_script_paths {
+        let source = fs::read_to_string(used_path).await.with_context(|| {
+            format!(
+                "failed to read used script {:?} for mod {} during precheck",
+                used_path, meta.id
+            )
+        })?;
+        precheck_luau_chunk(lua, &meta.id, used_path, &source)
+            .with_context(|| format!("Luau precheck failed for mod {}", meta.id))?;
+    }
+    if let Ok(mut guard) = required_files.lock() {
+        for used_path in used_script_paths {
+            guard.insert(normalize_path(&used_path));
+        }
+    }
+
+    set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
+    let eval_result = lua
+        .load(&script)
+        .set_name(main_path.to_string_lossy().as_ref())
+        .eval()
+        .with_context(|| {
+            format!(
+                "failed to evaluate Lua script {:?} for mod {}",
+                main_path, meta.id
+            )
+        });
+    set_engine_log_mod_id(lua, None)?;
+    let returned: Table = eval_result?;
+
+    let engine_table: Table = lua.globals().get("Engine")?;
+    engine_table.set(meta.id.clone(), returned.clone())?;
+    if let Ok(load) = returned.get::<Function>("load") {
+        modloader_debug!("Calling load() for mod {}", meta.id);
+        set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
+        let load_result = if matches!(unload_payload, Value::Nil) {
+            load.call::<()>(())
+                .with_context(|| format!("load() failed for mod {}", meta.id))
+        } else {
+            load.call::<()>(unload_payload)
+                .with_context(|| format!("load() failed for mod {}", meta.id))
+        };
+        set_engine_log_mod_id(lua, None)?;
+        load_result?;
+    }
+
+    let mut watched_hashes = HashMap::new();
+    for watched_path in build_watched_files(&path, &required_files) {
+        watched_hashes.insert(watched_path.clone(), hash_file(&watched_path));
+    }
+    loaded_mods[mod_index].watched_hashes = watched_hashes;
+
+    modloader_info!("Finished script-only hot-reload for mod {}", meta.id);
     Ok(())
 }
 
@@ -1126,9 +1275,11 @@ async fn load_mod(
     let tests_path = path.join("tests.luau");
     let has_tests_script = tests_path.exists();
 
-    if !has_patch_file && !has_main_script {
+    let assets_path = path.join("assets");
+    let has_assets_dir = assets_path.exists() && assets_path.is_dir();
+    if !has_patch_file && !has_main_script && !has_assets_dir {
         return Err(anyhow!(
-            "mod {} must provide at least one of main.luau or patch.json",
+            "mod {} must provide at least one of main.luau, patch.json, or assets/",
             meta.id
         ));
     }
@@ -1457,10 +1608,41 @@ fn build_watched_files(
     if let Ok(guard) = required_files.lock() {
         files.extend(guard.iter().cloned());
     }
+    let assets_root = mod_path.join("assets");
+    if assets_root.exists()
+        && let Ok(asset_files) = collect_mod_asset_files(&assets_root)
+    {
+        files.extend(asset_files);
+    }
+    files.push(normalize_path(&mod_path.join("converts.tar.zstd")));
 
     files.sort();
     files.dedup();
     files
+}
+
+fn collect_mod_asset_files(assets_root: &Path) -> Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
+    let mut stack = vec![assets_root.to_path_buf()];
+    while let Some(path) = stack.pop() {
+        for entry in std::fs::read_dir(&path)
+            .with_context(|| format!("failed to read assets directory {}", path.display()))?
+        {
+            let entry = entry.with_context(|| {
+                format!(
+                    "failed to read assets directory entry in {}",
+                    path.display()
+                )
+            })?;
+            let candidate = entry.path();
+            if candidate.is_dir() {
+                stack.push(candidate);
+            } else if candidate.is_file() {
+                files.push(normalize_path(&candidate));
+            }
+        }
+    }
+    Ok(files)
 }
 
 fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)], no_deps: bool) -> Result<Vec<usize>> {
