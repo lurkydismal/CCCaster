@@ -10,7 +10,6 @@ pub mod error;
 
 mod api;
 mod args;
-mod hook;
 mod loader;
 mod patch;
 mod types;

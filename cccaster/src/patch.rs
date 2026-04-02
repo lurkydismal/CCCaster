@@ -1,5 +1,4 @@
 use crate::api::{Handle, make_patch, remove_patch};
-use crate::hook;
 use crate::{modloader_debug, modloader_trace};
 use serde::Deserialize;
 use std::fmt;
@@ -11,42 +10,16 @@ use anyhow::{Result, anyhow};
 pub struct PatchEntry {
     #[serde(deserialize_with = "deserialize_address")]
     pub address: usize,
-    #[serde(default, deserialize_with = "deserialize_hex_bytes")]
+    #[serde(deserialize_with = "deserialize_hex_bytes")]
     pub bytes: Vec<u8>,
     #[serde(default)]
     pub pattern: Option<String>,
-    #[serde(default, alias = "hook_event")]
-    pub event: Option<String>,
 }
 
 #[derive(Clone)]
-pub enum ResolvedPatch {
-    Bytes {
-        address: usize,
-        bytes: Vec<u8>,
-    },
-    TrampolineHook {
-        address: usize,
-        overwrite_len: usize,
-        replaced_bytes: Vec<u8>,
-        event_name: String,
-    },
-}
-
-impl ResolvedPatch {
-    pub fn address(&self) -> usize {
-        match self {
-            ResolvedPatch::Bytes { address, .. }
-            | ResolvedPatch::TrampolineHook { address, .. } => *address,
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        match self {
-            ResolvedPatch::Bytes { bytes, .. } => bytes.len(),
-            ResolvedPatch::TrampolineHook { overwrite_len, .. } => *overwrite_len,
-        }
-    }
+pub struct ResolvedPatch {
+    pub address: usize,
+    pub bytes: Vec<u8>,
 }
 
 #[derive(Clone, Copy)]
@@ -71,20 +44,11 @@ pub fn resolve_patch_entries(entries: &[PatchEntry], mod_id: &str) -> Result<Vec
 
     for (idx, entry) in entries.iter().enumerate() {
         if let Some(pattern) = entry.pattern.as_deref() {
-            if let Some(event_name) = entry.event.as_deref() {
-                let hook = resolve_pattern_hook(entry.address, pattern, event_name)?;
-                resolved.push(hook);
-                continue;
-            }
             let expanded = resolve_pattern_patch(entry.address, pattern, &entry.bytes)
                 .map_err(|err| anyhow!("mod {mod_id} patch[{idx}] pattern error: {err}"))?;
             resolved.extend(expanded);
-        } else if let Some(event_name) = entry.event.as_deref() {
-            let hook = resolve_direct_hook(entry.address, event_name, entry.bytes.len())
-                .map_err(|err| anyhow!("mod {mod_id} patch[{idx}] hook error: {err}"))?;
-            resolved.push(hook);
         } else {
-            resolved.push(ResolvedPatch::Bytes {
+            resolved.push(ResolvedPatch {
                 address: entry.address,
                 bytes: entry.bytes.clone(),
             });
@@ -97,19 +61,18 @@ pub fn resolve_patch_entries(entries: &[PatchEntry], mod_id: &str) -> Result<Vec
 pub fn spans_for_patches(patches: &[ResolvedPatch]) -> Result<Vec<PatchSpan>> {
     let mut spans = Vec::with_capacity(patches.len());
     for patch in patches {
-        let len = patch.len();
-        if len == 0 {
+        if patch.bytes.is_empty() {
             return Err(anyhow!(
                 "patch at 0x{:X} has empty byte payload",
-                patch.address()
+                patch.address
             ));
         }
         let end_exclusive = patch
-            .address()
-            .checked_add(len)
-            .ok_or_else(|| anyhow!("patch range overflow at 0x{:X}", patch.address()))?;
+            .address
+            .checked_add(patch.bytes.len())
+            .ok_or_else(|| anyhow!("patch range overflow at 0x{:X}", patch.address))?;
         spans.push(PatchSpan {
-            start: patch.address(),
+            start: patch.address,
             end_exclusive,
         });
     }
@@ -211,86 +174,13 @@ fn resolve_pattern_patch(
     let mut resolved = Vec::new();
     for (start, len) in wildcard_blocks {
         let end = consumed + len;
-        resolved.push(ResolvedPatch::Bytes {
+        resolved.push(ResolvedPatch {
             address: address + start,
             bytes: patch_bytes[consumed..end].to_vec(),
         });
         consumed = end;
     }
     Ok(resolved)
-}
-
-fn resolve_direct_hook(
-    address: usize,
-    event_name: &str,
-    overwrite_len_hint: usize,
-) -> Result<ResolvedPatch> {
-    let overwrite_len = overwrite_len_hint.max(5);
-    let replaced_bytes: Vec<u8> = (0..overwrite_len)
-        .map(|offset| unsafe { ((address + offset) as *const u8).read() })
-        .collect();
-    Ok(ResolvedPatch::TrampolineHook {
-        address,
-        overwrite_len,
-        replaced_bytes,
-        event_name: event_name.to_owned(),
-    })
-}
-
-fn resolve_pattern_hook(address: usize, pattern: &str, event_name: &str) -> Result<ResolvedPatch> {
-    let tokens: Vec<&str> = pattern.split_whitespace().collect();
-    if tokens.is_empty() {
-        return Err(anyhow!("pattern must not be empty"));
-    }
-
-    let mut first_wildcard_start = None;
-    let mut wildcard_len = 0usize;
-
-    let mut idx = 0usize;
-    while idx < tokens.len() {
-        let token = tokens[idx];
-        if token == "??" {
-            if first_wildcard_start.is_none() {
-                first_wildcard_start = Some(idx);
-            }
-            wildcard_len += 1;
-            idx += 1;
-            continue;
-        }
-        if token.contains('?') {
-            return Err(anyhow!(
-                "invalid wildcard token '{token}'; only full-byte wildcard '??' is allowed"
-            ));
-        }
-        let expected = parse_hex_byte(token)
-            .map_err(|err| anyhow!("invalid pattern byte '{token}': {err}"))?;
-        let found = unsafe { ((address + idx) as *const u8).read() };
-        if found != expected {
-            return Err(anyhow!(
-                "pattern mismatch at 0x{:X}: expected {:02X}, found {:02X}",
-                address + idx,
-                expected,
-                found
-            ));
-        }
-        if first_wildcard_start.is_some() && wildcard_len > 0 {
-            break;
-        }
-        idx += 1;
-    }
-
-    let start = first_wildcard_start.ok_or_else(|| {
-        anyhow!("hook pattern must contain a wildcard block for trampoline insertion")
-    })?;
-    if wildcard_len < 5 {
-        return Err(anyhow!(
-            "hook pattern wildcard block too small: requires at least 5 bytes, got {}",
-            wildcard_len
-        ));
-    }
-
-    let hook_address = address + start;
-    resolve_direct_hook(hook_address, event_name, wildcard_len)
 }
 
 fn parse_hex_byte(raw: &str) -> Result<u8> {
@@ -348,57 +238,26 @@ where
 /// Manages a set of patches; applies patches on creation and removes them on Drop.
 pub struct Patches {
     handles: Vec<Handle>,
-    hook_sites: Vec<usize>,
 }
 
 impl Patches {
     pub fn new(entries: &[ResolvedPatch]) -> Self {
         modloader_debug!("Creating Patches container with {} entries", entries.len());
         let mut handles = Vec::new();
-        let mut hook_sites = Vec::new();
         for (idx, entry) in entries.iter().enumerate() {
-            match entry {
-                ResolvedPatch::Bytes { address, bytes } => {
-                    modloader_trace!(
-                        "Applying patch[{}]: address=0x{:X}, bytes={:02X?}",
-                        idx,
-                        address,
-                        bytes
-                    );
-                    let handle = make_patch(*address, bytes);
-                    modloader_debug!("Patch[{}] applied with handle {}", idx, handle);
-                    handles.push(handle);
-                }
-                ResolvedPatch::TrampolineHook {
-                    address,
-                    overwrite_len,
-                    replaced_bytes,
-                    event_name,
-                } => {
-                    modloader_trace!(
-                        "Applying hook patch[{}]: address=0x{:X}, overwrite_len={}, event={}",
-                        idx,
-                        address,
-                        overwrite_len,
-                        event_name
-                    );
-                    if let Err(err) = hook::register_trampoline_hook(
-                        *address,
-                        event_name.clone(),
-                        replaced_bytes.clone(),
-                    ) {
-                        modloader_debug!("Hook registration failed for patch[{}]: {}", idx, err);
-                    } else {
-                        hook_sites.push(*address);
-                    }
-                }
-            }
+            modloader_trace!(
+                "Applying patch[{}]: address=0x{:X}, bytes={:02X?}",
+                idx,
+                entry.address,
+                entry.bytes
+            );
+            // Apply patch by calling into the provided API
+            let handle = make_patch(entry.address, &entry.bytes);
+            modloader_debug!("Patch[{}] applied with handle {}", idx, handle);
+            handles.push(handle);
         }
         modloader_debug!("All patch entries applied ({} handles)", handles.len());
-        Patches {
-            handles,
-            hook_sites,
-        }
+        Patches { handles }
     }
 }
 
@@ -412,9 +271,6 @@ impl Drop for Patches {
         for &handle in &self.handles {
             modloader_trace!("Removing patch handle {}", handle);
             let _ = remove_patch(handle);
-        }
-        for &site in &self.hook_sites {
-            hook::unregister_trampoline_hook(site);
         }
         modloader_debug!("Finished removing patch handles");
     }
