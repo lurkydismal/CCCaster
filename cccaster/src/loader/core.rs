@@ -722,7 +722,7 @@ fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result
         "integer" | "int" => {
             let parsed = raw_value
                 .trim()
-                .parse::<i32>()
+                .parse::<i64>()
                 .map_err(|err| anyhow!("invalid integer argument '{}': {}", raw_value, err))?;
             Ok(Value::Integer(parsed))
         }
@@ -1027,8 +1027,8 @@ async fn hot_reload_patches_only(
                 "patch[{}] {} => 0x{:X} ({} bytes)",
                 idx,
                 meta.id,
-                patch.address(),
-                patch.len()
+                patch.address,
+                patch.bytes.len()
             );
         }
     }
@@ -1476,8 +1476,8 @@ async fn load_mod(
                     "patch[{}] {} => 0x{:X} ({} bytes)",
                     idx,
                     meta.id,
-                    patch.address(),
-                    patch.len()
+                    patch.address,
+                    patch.bytes.len()
                 );
             }
         }
