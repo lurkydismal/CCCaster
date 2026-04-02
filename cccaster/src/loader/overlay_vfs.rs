@@ -112,6 +112,7 @@ impl OverlayRegistry {
 
         for (source_file, rel_unix) in selected_assets {
             let source_mtime = file_mtime_secs(source_file)?;
+            let source_hash = file_blake3_hex(source_file)?;
             let source_parent = Path::new(rel_unix)
                 .parent()
                 .map(|path| path.to_string_lossy().replace('\\', "/"))
@@ -123,11 +124,11 @@ impl OverlayRegistry {
                 }
 
                 let cache_key = format!("{}::{}", converter.id, rel_unix);
-                if let Some(output_rel) = cache.manifest.entries.get(&cache_key).cloned()
-                    && let Some(cached) = cache.files.get(&output_rel)
-                    && cached.mtime > source_mtime
+                if let Some(cache_entry) = cache.manifest.entries.get(&cache_key)
+                    && cache_entry.source_hash_hex == source_hash
+                    && let Some(cached) = cache.files.get(&cache_entry.output_rel)
                 {
-                    outputs.insert(output_rel, cached.data.clone());
+                    outputs.insert(cache_entry.output_rel.clone(), cached.data.clone());
                     continue;
                 }
 
@@ -153,12 +154,25 @@ impl OverlayRegistry {
                 };
 
                 outputs.insert(output_rel.clone(), output_data.clone());
-                cache.manifest.entries.insert(cache_key, output_rel.clone());
+                cache.manifest.entries.insert(
+                    cache_key,
+                    ConvertManifestEntry {
+                        output_rel: output_rel.clone(),
+                        source_hash_hex: source_hash.clone(),
+                    },
+                );
                 cache.files.insert(
-                    output_rel,
+                    output_rel.clone(),
                     CachedConverted {
-                        mtime: now_secs(),
+                        mtime: source_mtime,
                         data: output_data,
+                    },
+                );
+                cache.files.insert(
+                    format!("{output_rel}.blake3"),
+                    CachedConverted {
+                        mtime: source_mtime,
+                        data: source_hash.as_bytes().to_vec(),
                     },
                 );
                 cache.dirty = true;
@@ -172,7 +186,13 @@ impl OverlayRegistry {
 
 #[derive(Default, Serialize, Deserialize)]
 struct ConvertManifest {
-    entries: HashMap<String, String>,
+    entries: HashMap<String, ConvertManifestEntry>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct ConvertManifestEntry {
+    output_rel: String,
+    source_hash_hex: String,
 }
 
 struct CachedConverted {
@@ -560,6 +580,13 @@ fn file_mtime_secs(path: &Path) -> Result<u64> {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs())
+}
+
+fn file_blake3_hex(path: &Path) -> Result<String> {
+    let data = wasmtime::error::Context::with_context(fs::read(path), || {
+        format!("failed reading file for blake3 hash {}", path.display())
+    })?;
+    Ok(blake3::hash(&data).to_hex().to_string())
 }
 
 fn now_secs() -> u64 {
