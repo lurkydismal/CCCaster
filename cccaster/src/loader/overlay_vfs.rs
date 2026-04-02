@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 use globset::{Glob, GlobMatcher};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,14 @@ struct ConverterEntry {
     id: String,
     matcher: GlobMatcher,
     wasm_path: PathBuf,
+}
+
+#[derive(Clone)]
+struct SelectedAsset {
+    rel_unix: String,
+    source_hash_hex: String,
+    mtime: u64,
+    data: Vec<u8>,
 }
 
 pub struct OverlayRegistry {
@@ -61,17 +69,17 @@ impl OverlayRegistry {
 
     fn copy_assets_from_mod(&self, mod_path: &Path, ignore_patterns: &[String]) -> Result<()> {
         let assets_root = mod_path.join("assets");
-        if !assets_root.exists() {
+        let assets_archive = mod_path.join("assets.tar.zstd");
+        if !assets_root.exists() && !assets_archive.exists() {
             return Ok(());
         }
 
         let ignore_matchers = build_matchers(ignore_patterns)?;
-        let mut selected_assets = Vec::new();
+        let mut selected_assets: Vec<SelectedAsset> = Vec::new();
         for file in collect_files(&assets_root)? {
-            let rel =
-                wasmtime::error::Context::with_context(file.strip_prefix(&assets_root), || {
-                    format!("failed to strip assets prefix for {}", file.display())
-                })?;
+            let rel = Context::with_context(file.strip_prefix(&assets_root), || {
+                format!("failed to strip assets prefix for {}", file.display())
+            })?;
             let rel_unix = rel.to_string_lossy().replace('\\', "/");
             if ignore_matchers
                 .iter()
@@ -79,16 +87,33 @@ impl OverlayRegistry {
             {
                 continue;
             }
-            selected_assets.push((file, rel_unix));
+            let data = Context::with_context(fs::read(&file), || {
+                format!("failed to read mod asset {}", file.display())
+            })?;
+            selected_assets.push(SelectedAsset {
+                rel_unix,
+                source_hash_hex: blake3::hash(&data).to_hex().to_string(),
+                mtime: file_mtime_secs(&file)?,
+                data,
+            });
+        }
+
+        if assets_archive.exists() {
+            for entry in read_zstd_tar_entries(&assets_archive)? {
+                if ignore_matchers
+                    .iter()
+                    .any(|matcher| matcher.is_match(entry.rel_unix.as_str()))
+                {
+                    continue;
+                }
+                selected_assets.push(entry);
+            }
         }
 
         let converted_assets = self.prepare_converted_assets(mod_path, &selected_assets)?;
 
-        for (file, rel_unix) in selected_assets {
-            let data = wasmtime::error::Context::with_context(fs::read(&file), || {
-                format!("failed to read mod asset {}", file.display())
-            })?;
-            self.write_under_root(&rel_unix, &data)?;
+        for asset in selected_assets {
+            self.write_under_root(&asset.rel_unix, &asset.data)?;
         }
 
         for (output_rel, output_data) in converted_assets {
@@ -101,7 +126,7 @@ impl OverlayRegistry {
     fn prepare_converted_assets(
         &self,
         mod_path: &Path,
-        selected_assets: &[(PathBuf, String)],
+        selected_assets: &[SelectedAsset],
     ) -> Result<HashMap<String, Vec<u8>>> {
         if self.converters.is_empty() {
             return Ok(HashMap::new());
@@ -110,39 +135,33 @@ impl OverlayRegistry {
         let mut cache = ConvertCache::load(mod_path.join("converts.tar.zstd"))?;
         let mut outputs = HashMap::new();
 
-        for (source_file, rel_unix) in selected_assets {
-            let source_mtime = file_mtime_secs(source_file)?;
-            let source_hash = file_blake3_hex(source_file)?;
-            let source_parent = Path::new(rel_unix)
+        for asset in selected_assets {
+            let source_parent = Path::new(&asset.rel_unix)
                 .parent()
                 .map(|path| path.to_string_lossy().replace('\\', "/"))
                 .unwrap_or_default();
 
             for converter in &self.converters {
-                if !converter.matcher.is_match(rel_unix.as_str()) {
+                if !converter.matcher.is_match(asset.rel_unix.as_str()) {
                     continue;
                 }
 
-                let cache_key = format!("{}::{}", converter.id, rel_unix);
+                let cache_key = format!("{}::{}", converter.id, asset.rel_unix);
                 if let Some(cache_entry) = cache.manifest.entries.get(&cache_key)
-                    && cache_entry.source_hash_hex == source_hash
+                    && cache_entry.source_hash_hex == asset.source_hash_hex
                     && let Some(cached) = cache.files.get(&cache_entry.output_rel)
                 {
                     outputs.insert(cache_entry.output_rel.clone(), cached.data.clone());
                     continue;
                 }
 
-                let source_data =
-                    wasmtime::error::Context::with_context(fs::read(source_file), || {
-                        format!("failed reading source asset {}", source_file.display())
-                    })?;
                 let (output_name, output_data) = anyhow::Context::with_context(
-                    run_converter(&converter.wasm_path, rel_unix, &source_data),
+                    run_converter(&converter.wasm_path, &asset.rel_unix, &asset.data),
                     || {
                         format!(
                             "converter {} failed for {}",
                             converter.wasm_path.display(),
-                            rel_unix
+                            asset.rel_unix
                         )
                     },
                 )?;
@@ -158,21 +177,21 @@ impl OverlayRegistry {
                     cache_key,
                     ConvertManifestEntry {
                         output_rel: output_rel.clone(),
-                        source_hash_hex: source_hash.clone(),
+                        source_hash_hex: asset.source_hash_hex.clone(),
                     },
                 );
                 cache.files.insert(
                     output_rel.clone(),
                     CachedConverted {
-                        mtime: source_mtime,
+                        mtime: asset.mtime,
                         data: output_data,
                     },
                 );
                 cache.files.insert(
                     format!("{output_rel}.blake3"),
                     CachedConverted {
-                        mtime: source_mtime,
-                        data: source_hash.as_bytes().to_vec(),
+                        mtime: asset.mtime,
+                        data: asset.source_hash_hex.as_bytes().to_vec(),
                     },
                 );
                 cache.dirty = true;
@@ -427,6 +446,52 @@ fn build_matchers(patterns: &[String]) -> Result<Vec<GlobMatcher>> {
         .map_err(Into::into)
 }
 
+fn read_zstd_tar_entries(archive_path: &Path) -> Result<Vec<SelectedAsset>> {
+    let file = Context::with_context(fs::File::open(archive_path), || {
+        format!("failed to open asset archive {}", archive_path.display())
+    })?;
+    let mut decoder = Context::with_context(zstd::stream::read::Decoder::new(file), || {
+        format!("failed to decode asset archive {}", archive_path.display())
+    })?;
+    let mut decoded = Vec::new();
+    Context::with_context(decoder.read_to_end(&mut decoded), || {
+        format!("failed to read asset archive {}", archive_path.display())
+    })?;
+
+    let mut archive = tar::Archive::new(Cursor::new(decoded));
+    let mut entries = Vec::new();
+    for entry in Context::context(
+        archive.entries(),
+        "failed to iterate entries in assets.tar.zstd",
+    )? {
+        let mut entry = Context::context(entry, "failed reading assets archive entry")?;
+        if !entry.header().entry_type().is_file() {
+            continue;
+        }
+
+        let rel_unix = Context::context(entry.path(), "failed reading assets archive path")?
+            .to_string_lossy()
+            .replace('\\', "/");
+        if rel_unix.is_empty() {
+            continue;
+        }
+
+        let mut data = Vec::new();
+        Context::context(
+            entry.read_to_end(&mut data),
+            "failed reading asset archive entry bytes",
+        )?;
+        entries.push(SelectedAsset {
+            rel_unix,
+            source_hash_hex: blake3::hash(&data).to_hex().to_string(),
+            mtime: entry.header().mtime().unwrap_or(0),
+            data,
+        });
+    }
+
+    Ok(entries)
+}
+
 fn load_converters(launcher_root: &Path) -> Result<Vec<ConverterEntry>> {
     let converts_dir = launcher_root.join("converts");
     if !converts_dir.exists() {
@@ -580,13 +645,6 @@ fn file_mtime_secs(path: &Path) -> Result<u64> {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs())
-}
-
-fn file_blake3_hex(path: &Path) -> Result<String> {
-    let data = wasmtime::error::Context::with_context(fs::read(path), || {
-        format!("failed reading file for blake3 hash {}", path.display())
-    })?;
-    Ok(blake3::hash(&data).to_hex().to_string())
 }
 
 fn now_secs() -> u64 {

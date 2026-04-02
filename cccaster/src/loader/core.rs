@@ -130,6 +130,7 @@ pub async fn load_mods_from_addons() -> Result<()> {
         ))
     })?;
 
+    ensure_archived_directory_available(&modloader_root, "converts", &["converts.tar.zstd"])?;
     init_overlay_registry(&modloader_root)?;
     mount_process_local_overlay()?;
 
@@ -230,6 +231,7 @@ async fn load_mods_from_addons_async(
         .ok_or_else(|| AppError::Message("Invalid executable path\n".to_string()))?;
 
     let addons_dir = modloader_root.join("addons");
+    ensure_archived_directory_available(modloader_root, "addons", &["addons.tar.zstd"])?;
     let addons_dir_path = addons_dir.as_path();
     let addon_filter: Option<HashSet<&str>> = args
         .addon
@@ -715,6 +717,7 @@ fn detect_changed_mod(loaded_mods: &mut [LoadedMod], path: &Path) -> Option<usiz
 
 fn is_asset_path(mod_path: &Path, normalized_path: &Path) -> bool {
     normalized_path.starts_with(normalize_path(&mod_path.join("assets")))
+        || normalized_path == normalize_path(&mod_path.join("assets.tar.zstd"))
 }
 
 fn classify_hot_reload_path(mod_path: &Path, changed: &Path) -> (&'static str, bool, bool, bool) {
@@ -1277,9 +1280,10 @@ async fn load_mod(
 
     let assets_path = path.join("assets");
     let has_assets_dir = assets_path.exists() && assets_path.is_dir();
-    if !has_patch_file && !has_main_script && !has_assets_dir {
+    let has_assets_archive = path.join("assets.tar.zstd").is_file();
+    if !has_patch_file && !has_main_script && !has_assets_dir && !has_assets_archive {
         return Err(anyhow!(
-            "mod {} must provide at least one of main.luau, patch.json, or assets/",
+            "mod {} must provide at least one of main.luau, patch.json, assets/, or assets.tar.zstd",
             meta.id
         ));
     }
@@ -1614,6 +1618,7 @@ fn build_watched_files(
     {
         files.extend(asset_files);
     }
+    files.push(normalize_path(&mod_path.join("assets.tar.zstd")));
     files.push(normalize_path(&mod_path.join("converts.tar.zstd")));
 
     files.sort();
@@ -1643,6 +1648,53 @@ fn collect_mod_asset_files(assets_root: &Path) -> Result<Vec<PathBuf>> {
         }
     }
     Ok(files)
+}
+
+fn ensure_archived_directory_available(
+    root: &Path,
+    dir_name: &str,
+    archive_names: &[&str],
+) -> Result<()> {
+    let target_dir = root.join(dir_name);
+    if target_dir.exists() {
+        return Ok(());
+    }
+
+    let Some(archive_path) = archive_names
+        .iter()
+        .map(|name| root.join(name))
+        .find(|candidate| candidate.is_file())
+    else {
+        return Ok(());
+    };
+
+    modloader_info!(
+        "Directory '{}' missing; extracting {}",
+        dir_name,
+        archive_path.display()
+    );
+    extract_tar_zstd_into(&archive_path, &target_dir)
+        .with_context(|| format!("failed extracting {}", archive_path.display()))
+}
+
+fn extract_tar_zstd_into(archive_path: &Path, target_dir: &Path) -> Result<()> {
+    let archive_file = std::fs::File::open(archive_path)
+        .with_context(|| format!("failed opening archive {}", archive_path.display()))?;
+    let mut decoder = zstd::stream::read::Decoder::new(archive_file)
+        .with_context(|| format!("failed decoding archive {}", archive_path.display()))?;
+    let mut decoded = Vec::new();
+    use std::io::Read;
+    decoder
+        .read_to_end(&mut decoded)
+        .with_context(|| format!("failed reading decoded archive {}", archive_path.display()))?;
+
+    std::fs::create_dir_all(target_dir)
+        .with_context(|| format!("failed creating target dir {}", target_dir.display()))?;
+    let mut archive = tar::Archive::new(std::io::Cursor::new(decoded));
+    archive
+        .unpack(target_dir)
+        .with_context(|| format!("failed unpacking archive into {}", target_dir.display()))?;
+    Ok(())
 }
 
 fn resolve_load_order(mod_entries: &[(ModMeta, PathBuf)], no_deps: bool) -> Result<Vec<usize>> {
