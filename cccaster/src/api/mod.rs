@@ -16,6 +16,15 @@ pub type RemovePatchFn = unsafe extern "C" fn(id: Handle) -> bool;
 pub type ReadMemoryFn = unsafe extern "C" fn(addr: usize, out: *mut u8, len: usize) -> bool;
 /// FFI callback for writing memory to the host process.
 pub type WriteMemoryFn = unsafe extern "C" fn(addr: usize, bytes: *const u8, len: usize) -> bool;
+/// FFI callback for creating a detour and retrieving trampoline address.
+pub type CreateDetourFn = unsafe extern "C" fn(
+    target: usize,
+    detour: usize,
+    out_trampoline: *mut usize,
+    suspend_process: bool,
+) -> Handle;
+/// FFI callback for removing a detour handle.
+pub type RemoveDetourFn = unsafe extern "C" fn(id: Handle) -> bool;
 
 /// Immutable API table provided by the host at initialization time.
 #[repr(C)]
@@ -24,6 +33,8 @@ pub struct Api {
     pub remove_patch: RemovePatchFn,
     pub read_memory: ReadMemoryFn,
     pub write_memory: WriteMemoryFn,
+    pub create_detour: CreateDetourFn,
+    pub remove_detour: RemoveDetourFn,
 }
 
 lazy_static::lazy_static! {
@@ -116,6 +127,30 @@ pub fn write_memory(addr: usize, bytes: &[u8]) -> bool {
     ok
 }
 
+pub fn create_detour(
+    target: usize,
+    detour: usize,
+    suspend_process: bool,
+) -> Option<(Handle, usize)> {
+    let mut trampoline = 0usize;
+    let handle = unsafe {
+        create_detour_raw(
+            target,
+            detour,
+            &mut trampoline as *mut usize,
+            suspend_process,
+        )
+    };
+    if handle == 0 || trampoline == 0 {
+        return None;
+    }
+    Some((handle, trampoline))
+}
+
+pub fn remove_detour(id: Handle) -> bool {
+    unsafe { remove_detour_raw(id) }
+}
+
 /// # Safety
 /// Requires that `API` has already been initialized and pointers are valid.
 unsafe fn make_patch_raw(addr: usize, bytes: *const u8, len: usize) -> Handle {
@@ -171,4 +206,23 @@ unsafe fn write_memory_raw(addr: usize, bytes: *const u8, len: usize) -> bool {
         ok
     );
     ok
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn create_detour_raw(
+    target: usize,
+    detour: usize,
+    out_trampoline: *mut usize,
+    suspend_process: bool,
+) -> Handle {
+    let api = API.get().expect("API not initialized");
+    unsafe { (api.create_detour)(target, detour, out_trampoline, suspend_process) }
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn remove_detour_raw(id: Handle) -> bool {
+    let api = API.get().expect("API not initialized");
+    unsafe { (api.remove_detour)(id) }
 }

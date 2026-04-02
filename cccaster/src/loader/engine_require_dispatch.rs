@@ -99,15 +99,16 @@ pub(super) fn install_engine_dispatch_api(
         let event_name = match args.pop_front() {
             Some(Value::String(name)) => match name.to_str() {
                 Ok(value) => value.to_owned(),
-                Err(_) => return Ok(()),
+                Err(_) => return Ok(Value::Nil),
             },
-            _ => return Ok(()),
+            _ => return Ok(Value::Nil),
         };
 
         let engine_table: Table = match lua.globals().get("Engine") {
             Ok(table) => table,
-            Err(_) => return Ok(()),
+            Err(_) => return Ok(Value::Nil),
         };
+        let mut last_result = Value::Nil;
 
         for (mod_id, events) in &dispatch_targets {
             if !events.contains(event_name.as_str()) {
@@ -123,11 +124,15 @@ pub(super) fn install_engine_dispatch_api(
                 Err(_) => continue,
             };
             let _ = lua.set_named_registry_value(ENGINE_LOG_MOD_ID_KEY, mod_id.as_str());
-            let _ = handler.call::<()>(args.clone());
+            if let Ok(value) = handler.call::<Value>(args.clone())
+                && !matches!(value, Value::Nil)
+            {
+                last_result = value;
+            }
             let _ = lua.unset_named_registry_value(ENGINE_LOG_MOD_ID_KEY);
         }
 
-        Ok(())
+        Ok(last_result)
     })?;
 
     engine_table.set("dispatch", dispatch_fn)?;
