@@ -1,5 +1,6 @@
 /// Engine logging/memory APIs and script patch parsing helpers.
 use crate::api::{make_patch, read_memory, remove_patch, write_memory};
+use crate::hook;
 use crate::{
     LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
     modloader_info, modloader_trace, modloader_warning,
@@ -216,6 +217,17 @@ pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Resu
 
     memory_table.set("read", read_fn)?;
     memory_table.set("write", write_fn)?;
+    let hook_table = lua.create_table()?;
+    let hook_execute_fn = lua.create_function(|_, call_site: Value| {
+        let call_site = parse_lua_address(call_site)
+            .map_err(|err| mlua::Error::runtime(format!("invalid hook call site: {err}")))?;
+        match hook::execute_replaced_bytes(call_site) {
+            Ok(result) => Ok(result),
+            Err(err) => Err(mlua::Error::runtime(err.to_string())),
+        }
+    })?;
+    hook_table.set("execute", hook_execute_fn)?;
+    memory_table.set("hook", hook_table)?;
     let patch_table = lua.create_table()?;
     patch_table.set("make", patch_make_fn)?;
     patch_table.set("remove", patch_remove_fn)?;

@@ -25,6 +25,8 @@ const wrapper::apiVtable_t g_apiVtable{
     .removePatch = wrapper::removePatch,
     .readMemory = wrapper::readMemory,
     .writeMemory = wrapper::writeMemory,
+    .createDetour = wrapper::createDetour,
+    .removeDetour = wrapper::removeDetour,
 };
 
 auto resetLibraryHandle() -> void {
