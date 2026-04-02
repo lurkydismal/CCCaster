@@ -40,7 +40,15 @@ type ShutdownSender = std::sync::mpsc::Sender<ControlMessage>;
 
 enum ControlMessage {
     Shutdown,
-    RegisterEngineVariable { name: String, value: JsonValue },
+    RegisterEngineVariable {
+        name: String,
+        value: JsonValue,
+    },
+    DispatchEngineEvent {
+        event_name: String,
+        arg_values: Vec<String>,
+        arg_types: Vec<String>,
+    },
 }
 
 static HOT_RELOAD_THREAD: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
@@ -95,6 +103,38 @@ pub fn register_engine_variable(name: String, value: JsonValue) -> Result<()> {
     modloader_info!("register_engine_variable accepted '{}'", key);
 
     Ok(())
+}
+
+pub fn dispatch_engine_event(
+    event_name: String,
+    arg_values: Vec<String>,
+    arg_types: Vec<String>,
+) -> Result<()> {
+    let trimmed_name = event_name.trim();
+    if trimmed_name.is_empty() {
+        return Err(anyhow!("Engine event name cannot be empty"));
+    }
+    if arg_values.len() != arg_types.len() {
+        return Err(anyhow!(
+            "Engine event argument value/type count mismatch: {} values vs {} types",
+            arg_values.len(),
+            arg_types.len()
+        ));
+    }
+
+    let tx = SHUTDOWN_SIGNAL
+        .lock()
+        .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?
+        .as_ref()
+        .cloned()
+        .ok_or_else(|| anyhow!("modloader runtime is not initialized"))?;
+
+    tx.send(ControlMessage::DispatchEngineEvent {
+        event_name: trimmed_name.to_owned(),
+        arg_values,
+        arg_types,
+    })
+    .map_err(|err| anyhow!("failed to send Engine event dispatch request: {}", err))
 }
 
 struct LoadedMod {
@@ -547,6 +587,18 @@ async fn start_hot_reload_loop(
                     set_engine_variable(&lua, &engine_table, &name, &value)?;
                     modloader_info!("Applied runtime Engine variable override '{}'", name);
                 }
+                ControlMessage::DispatchEngineEvent {
+                    event_name,
+                    arg_values,
+                    arg_types,
+                } => {
+                    dispatch_runtime_engine_event(&lua, &event_name, &arg_values, &arg_types)?;
+                    modloader_info!(
+                        "Dispatched runtime Engine event '{}' with {} args",
+                        event_name,
+                        arg_values.len()
+                    );
+                }
             }
         }
 
@@ -642,6 +694,62 @@ async fn start_hot_reload_loop(
         }
 
         process_pending_unloads(&lua, &mut watcher, &mut loaded_mods);
+    }
+}
+
+fn dispatch_runtime_engine_event(
+    lua: &Lua,
+    event_name: &str,
+    arg_values: &[String],
+    arg_types: &[String],
+) -> Result<()> {
+    let dispatch_fn: Function = lua.globals().get::<Table>("Engine")?.get("dispatch")?;
+    let mut args = mlua::MultiValue::new();
+    args.push_back(Value::String(lua.create_string(event_name)?));
+
+    for (value, kind) in arg_values.iter().zip(arg_types.iter()) {
+        args.push_back(parse_dispatch_argument(lua, value, kind)?);
+    }
+
+    dispatch_fn.call::<()>(args)?;
+    Ok(())
+}
+
+fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result<Value> {
+    let kind = raw_type.trim().to_ascii_lowercase();
+    match kind.as_str() {
+        "string" => Ok(Value::String(lua.create_string(raw_value)?)),
+        "integer" | "int" => {
+            let parsed = raw_value
+                .trim()
+                .parse::<i64>()
+                .map_err(|err| anyhow!("invalid integer argument '{}': {}", raw_value, err))?;
+            Ok(Value::Integer(parsed))
+        }
+        "number" | "float" | "double" => {
+            let parsed = raw_value
+                .trim()
+                .parse::<f64>()
+                .map_err(|err| anyhow!("invalid number argument '{}': {}", raw_value, err))?;
+            Ok(Value::Number(parsed))
+        }
+        "bool" | "boolean" => {
+            let parsed = raw_value
+                .trim()
+                .parse::<bool>()
+                .map_err(|err| anyhow!("invalid boolean argument '{}': {}", raw_value, err))?;
+            Ok(Value::Boolean(parsed))
+        }
+        "nil" | "null" => Ok(Value::Nil),
+        "json" => {
+            let json = serde_json::from_str::<JsonValue>(raw_value)
+                .map_err(|err| anyhow!("invalid JSON argument payload '{}': {}", raw_value, err))?;
+            json_value_to_lua(lua, &json)
+        }
+        _ => Err(anyhow!(
+            "unsupported argument type '{}' (supported: string, integer, number, boolean, nil, json)",
+            raw_type
+        )),
     }
 }
 
