@@ -6,5 +6,6 @@ mod overlay_vfs;
 mod path_utils;
 
 pub use core::{
-    dispatch_engine_event, load_mods_from_addons, register_engine_variable, shutdown_before_unload,
+    dispatch_engine_event, dispatch_hook_event_sync, load_mods_from_addons,
+    register_engine_variable, shutdown_before_unload,
 };

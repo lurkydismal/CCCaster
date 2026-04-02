@@ -1,3 +1,4 @@
+use crate::hook::HookRegisters;
 /// Core modloader lifecycle, discovery, load-order resolution, and hot-reload runtime.
 use crate::patch::{
     OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
@@ -48,6 +49,11 @@ enum ControlMessage {
         event_name: String,
         arg_values: Vec<String>,
         arg_types: Vec<String>,
+    },
+    DispatchHookEvent {
+        event_name: String,
+        payload_json: String,
+        response_tx: std::sync::mpsc::Sender<Option<HookRegisters>>,
     },
 }
 
@@ -135,6 +141,30 @@ pub fn dispatch_engine_event(
         arg_types,
     })
     .map_err(|err| anyhow!("failed to send Engine event dispatch request: {}", err))
+}
+
+pub fn dispatch_hook_event_sync(
+    event_name: String,
+    payload_json: String,
+) -> Result<Option<HookRegisters>> {
+    let tx = SHUTDOWN_SIGNAL
+        .lock()
+        .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?
+        .as_ref()
+        .cloned()
+        .ok_or_else(|| anyhow!("modloader runtime is not initialized"))?;
+    let (response_tx, response_rx) = std::sync::mpsc::channel();
+
+    tx.send(ControlMessage::DispatchHookEvent {
+        event_name,
+        payload_json,
+        response_tx,
+    })
+    .map_err(|err| anyhow!("failed to send hook dispatch request: {}", err))?;
+
+    response_rx
+        .recv_timeout(Duration::from_millis(50))
+        .map_err(|err| anyhow!("failed waiting for hook dispatch response: {}", err))
 }
 
 struct LoadedMod {
@@ -599,6 +629,17 @@ async fn start_hot_reload_loop(
                         arg_values.len()
                     );
                 }
+                ControlMessage::DispatchHookEvent {
+                    event_name,
+                    payload_json,
+                    response_tx,
+                } => {
+                    let result = dispatch_runtime_hook_event(&lua, &event_name, &payload_json)
+                        .map_err(|err| {
+                            anyhow!("hook event dispatch failed for '{}': {}", event_name, err)
+                        });
+                    let _ = response_tx.send(result.ok().flatten());
+                }
             }
         }
 
@@ -715,6 +756,42 @@ fn dispatch_runtime_engine_event(
     Ok(())
 }
 
+fn dispatch_runtime_hook_event(
+    lua: &Lua,
+    event_name: &str,
+    payload_json: &str,
+) -> Result<Option<HookRegisters>> {
+    let dispatch_fn: Function = lua.globals().get::<Table>("Engine")?.get("dispatch")?;
+    let payload_json = serde_json::from_str::<JsonValue>(payload_json)
+        .map_err(|err| anyhow!("invalid hook payload JSON: {}", err))?;
+    let payload_value = json_value_to_lua(lua, &payload_json)?;
+    let result: Value = dispatch_fn.call((event_name, payload_value))?;
+    parse_hook_register_overrides(result)
+}
+
+fn parse_hook_register_overrides(value: Value) -> Result<Option<HookRegisters>> {
+    let Value::Table(table) = value else {
+        return Ok(None);
+    };
+
+    let Some(eax) = table.get::<Option<u32>>("eax")? else {
+        return Ok(None);
+    };
+
+    let regs = HookRegisters {
+        eax,
+        ebx: table.get::<u32>("ebx")?,
+        ecx: table.get::<u32>("ecx")?,
+        edx: table.get::<u32>("edx")?,
+        esi: table.get::<u32>("esi")?,
+        edi: table.get::<u32>("edi")?,
+        ebp: table.get::<u32>("ebp")?,
+        esp_at_pushad: table.get::<u32>("esp")?,
+        eflags: table.get::<u32>("eflags")?,
+    };
+    Ok(Some(regs))
+}
+
 fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result<Value> {
     let kind = raw_type.trim().to_ascii_lowercase();
     match kind.as_str() {
@@ -722,7 +799,7 @@ fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result
         "integer" | "int" => {
             let parsed = raw_value
                 .trim()
-                .parse::<i64>()
+                .parse::<i32>()
                 .map_err(|err| anyhow!("invalid integer argument '{}': {}", raw_value, err))?;
             Ok(Value::Integer(parsed))
         }
@@ -1027,8 +1104,8 @@ async fn hot_reload_patches_only(
                 "patch[{}] {} => 0x{:X} ({} bytes)",
                 idx,
                 meta.id,
-                patch.address,
-                patch.bytes.len()
+                patch.address(),
+                patch.len()
             );
         }
     }
@@ -1476,8 +1553,8 @@ async fn load_mod(
                     "patch[{}] {} => 0x{:X} ({} bytes)",
                     idx,
                     meta.id,
-                    patch.address,
-                    patch.bytes.len()
+                    patch.address(),
+                    patch.len()
                 );
             }
         }

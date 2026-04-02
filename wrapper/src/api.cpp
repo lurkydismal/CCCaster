@@ -12,6 +12,9 @@
 #include <cstring>
 #include <mutex>
 #include <span>
+#include <unordered_map>
+
+#include <MinHook.h>
 
 #include "logg.hpp"
 #include "memoryLock.hpp"
@@ -23,6 +26,25 @@ namespace {
 storage_t g_patches;
 std::once_flag g_noPatchesFlag;
 std::atomic< bool > g_noPatches{ false };
+std::mutex g_detoursMutex;
+struct detourRecord_t {
+    LPVOID target;
+    LPVOID detour;
+    LPVOID trampoline;
+};
+std::unordered_map< storage_t::handle_t, detourRecord_t > g_detours;
+std::atomic< storage_t::handle_t > g_nextDetourHandle{ 1u };
+std::once_flag g_minHookInitFlag;
+bool g_minHookReady = false;
+
+auto ensureMinHookInitialized() -> bool {
+    std::call_once( g_minHookInitFlag, []() {
+        if ( MH_Initialize() == MH_OK ) {
+            g_minHookReady = true;
+        }
+    } );
+    return ( g_minHookReady );
+}
 
 auto resolveAddress( uintptr_t _address ) -> uintptr_t {
     const auto l_moduleBase =
@@ -245,6 +267,77 @@ auto setNoPatches( bool _value ) -> bool {
                  _bytesAmount );
     logg::debug( "wrapper::writeMemory completed addr={} size={} suspend={}", l_address,
                  _bytesAmount, _suspendProcess );
+    return ( true );
+}
+
+[[nodiscard]] auto createDetour( uintptr_t _targetAddress,
+                                 uintptr_t _detourAddress,
+                                 uintptr_t* _outTrampolineAddress,
+                                 bool _suspendProcess ) -> storage_t::handle_t {
+    if ( !_targetAddress || !_detourAddress || !_outTrampolineAddress ) {
+        logg::warning( "wrapper::createDetour invalid arguments" );
+        return ( storage_t::g_invalidHandle );
+    }
+    if ( g_noPatches ) {
+        logg::warning( "wrapper::createDetour no patches is enabled" );
+        return ( storage_t::g_invalidHandle );
+    }
+    if ( !ensureMinHookInitialized() ) {
+        logg::error( "wrapper::createDetour MinHook initialization failed" );
+        return ( storage_t::g_invalidHandle );
+    }
+
+    const uintptr_t l_targetAddress = resolveAddress( _targetAddress );
+    const uintptr_t l_detourAddress = resolveAddress( _detourAddress );
+    if ( !l_targetAddress || !l_detourAddress ) {
+        return ( storage_t::g_invalidHandle );
+    }
+
+    const std::optional< processSuspendGuard_t > l_suspendGuard =
+        _suspendProcess ? std::make_optional< processSuspendGuard_t >()
+                        : std::nullopt;
+
+    std::lock_guard< std::mutex > l_lock( g_detoursMutex );
+    const storage_t::handle_t l_handle = g_nextDetourHandle.fetch_add( 1u );
+    LPVOID l_target = std::bit_cast< LPVOID >( l_targetAddress );
+    const LPVOID l_detour = std::bit_cast< LPVOID >( l_detourAddress );
+    LPVOID l_trampoline = nullptr;
+
+    if ( MH_CreateHook( l_target, l_detour, &l_trampoline ) != MH_OK ) {
+        return ( storage_t::g_invalidHandle );
+    }
+    if ( MH_EnableHook( l_target ) != MH_OK ) {
+        MH_RemoveHook( l_target );
+        return ( storage_t::g_invalidHandle );
+    }
+
+    *_outTrampolineAddress = std::bit_cast< uintptr_t >( l_trampoline );
+    g_detours.emplace( l_handle,
+                       detourRecord_t{ .target = l_target,
+                                       .detour = l_detour,
+                                       .trampoline = l_trampoline } );
+    return ( l_handle );
+}
+
+[[nodiscard]] auto removeDetour( storage_t::handle_t _id ) -> bool {
+    std::lock_guard< std::mutex > l_lock( g_detoursMutex );
+    const auto l_found = g_detours.find( _id );
+    if ( l_found == g_detours.end() ) {
+        return ( false );
+    }
+
+    const LPVOID l_target = l_found->second.target;
+    const LPVOID l_detour = l_found->second.detour;
+    (void)l_detour;
+
+    if ( MH_DisableHook( l_target ) != MH_OK ) {
+        return ( false );
+    }
+    if ( MH_RemoveHook( l_target ) != MH_OK ) {
+        return ( false );
+    }
+
+    g_detours.erase( l_found );
     return ( true );
 }
 
