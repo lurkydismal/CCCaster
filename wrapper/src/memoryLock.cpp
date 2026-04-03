@@ -10,7 +10,8 @@
 
 memoryLock::memoryLock( uintptr_t _address, size_t _length )
     : _address( _address ), _length( _length ) {
-    logg::trace( "memoryLock::memoryLock addr={} len={}", _address, _length );
+    logg::trace( "memoryLock::memoryLock addr=0x{:X} len={}", _address,
+                 _length );
 
     if ( !_address || !_length ) {
         logg::error( "memoryLock::memoryLock invalid arguments" );
@@ -18,13 +19,13 @@ memoryLock::memoryLock( uintptr_t _address, size_t _length )
     }
 
     _ok = VirtualProtect( reinterpret_cast< void* >( _address ), _length,
-                          PAGE_READWRITE, &_oldProtectionRules );
+                          PAGE_EXECUTE_READWRITE, &_oldProtectionRules );
 
     if ( !_ok ) {
-        logg::error( "Patch for {} : {} bytes failed.", _address, _length );
+        logg::error( "Patch for 0x{:X} : {} bytes failed.", _address, _length );
     } else {
-        logg::debug( "memoryLock::memoryLock locked addr={} len={}", _address,
-                     _length );
+        logg::debug( "memoryLock::memoryLock locked addr=0x{:X} len={}",
+                     _address, _length );
     }
 }
 
@@ -32,15 +33,15 @@ memoryLock::~memoryLock() {
     if ( _oldProtectionRules ) {
         unsigned long l_temp = 0;
 
-        logg::trace( "memoryLock::~memoryLock restore addr={} len={}", _address,
-                     _length );
+        logg::trace( "memoryLock::~memoryLock restore addr=0x{:X} len={}",
+                     _address, _length );
 
         if ( !VirtualProtect( reinterpret_cast< void* >( _address ), _length,
                               _oldProtectionRules, &l_temp ) ) {
-            logg::error( "Patch removal for {} : {} bytes failed.", _address,
-                         _length );
+            logg::error( "Patch removal for 0x{:X} : {} bytes failed.",
+                         _address, _length );
         } else {
-            logg::debug( "memoryLock::~memoryLock restored addr={} len={}",
+            logg::debug( "memoryLock::~memoryLock restored addr=0x{:X} len={}",
                          _address, _length );
         }
 
