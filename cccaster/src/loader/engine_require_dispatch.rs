@@ -124,10 +124,19 @@ pub(super) fn install_engine_dispatch_api(
                 Err(_) => continue,
             };
             let _ = lua.set_named_registry_value(ENGINE_LOG_MOD_ID_KEY, mod_id.as_str());
-            if let Ok(value) = handler.call::<Value>(args.clone())
-                && !matches!(value, Value::Nil)
-            {
-                last_result = value;
+            match handler.call::<Value>(args.clone()) {
+                Ok(value) if !matches!(value, Value::Nil) => {
+                    last_result = value;
+                }
+                Ok(_) => {}
+                Err(err) => {
+                    crate::modloader_error!(
+                        "Engine.dispatch handler '{}' for mod '{}' failed: {}",
+                        event_name,
+                        mod_id,
+                        err
+                    );
+                }
             }
             let _ = lua.unset_named_registry_value(ENGINE_LOG_MOD_ID_KEY);
         }
@@ -222,7 +231,8 @@ pub(super) fn register_engine_require(
         Ok(exports)
     })?;
 
-    engine_table.set("require", require_fn)?;
+    engine_table.set("require", require_fn.clone())?;
+    globals.set("require", require_fn)?;
     modloader_trace!("Engine.require installed for mod root {:?}", mod_path);
     Ok(())
 }
