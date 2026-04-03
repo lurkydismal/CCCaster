@@ -1,6 +1,6 @@
 use crate::api::{Handle, make_patch, remove_patch};
 use crate::hook;
-use crate::{modloader_debug, modloader_trace};
+use crate::{modloader_debug, modloader_info, modloader_trace, modloader_warning};
 use serde::Deserialize;
 use std::fmt;
 
@@ -67,34 +67,68 @@ pub struct OwnedPatchSpan<'a> {
 }
 
 pub fn resolve_patch_entries(entries: &[PatchEntry], mod_id: &str) -> Result<Vec<ResolvedPatch>> {
+    modloader_info!(
+        "Resolving {} patch entries for mod '{}'",
+        entries.len(),
+        mod_id
+    );
     let mut resolved = Vec::new();
 
     for (idx, entry) in entries.iter().enumerate() {
+        modloader_trace!(
+            "Resolving patch[{idx}] for mod '{mod_id}': address=0x{:X}, pattern_present={}, hook_event={:?}, bytes_len={}",
+            entry.address,
+            entry.pattern.is_some(),
+            entry.event,
+            entry.bytes.len()
+        );
         if let Some(pattern) = entry.pattern.as_deref() {
             if let Some(event_name) = entry.event.as_deref() {
                 let hook = resolve_pattern_hook(entry.address, pattern, event_name)?;
                 resolved.push(hook);
+                modloader_debug!(
+                    "Resolved patch[{idx}] as pattern trampoline hook for event '{}'",
+                    event_name
+                );
                 continue;
             }
             let expanded = resolve_pattern_patch(entry.address, pattern, &entry.bytes)
                 .map_err(|err| anyhow!("mod {mod_id} patch[{idx}] pattern error: {err}"))?;
+            modloader_debug!(
+                "Resolved patch[{idx}] pattern into {} byte patch segment(s)",
+                expanded.len()
+            );
             resolved.extend(expanded);
         } else if let Some(event_name) = entry.event.as_deref() {
             let hook = resolve_direct_hook(entry.address, event_name, entry.bytes.len())
                 .map_err(|err| anyhow!("mod {mod_id} patch[{idx}] hook error: {err}"))?;
             resolved.push(hook);
+            modloader_debug!(
+                "Resolved patch[{idx}] as direct trampoline hook for event '{}'",
+                event_name
+            );
         } else {
             resolved.push(ResolvedPatch::Bytes {
                 address: entry.address,
                 bytes: entry.bytes.clone(),
             });
+            modloader_trace!(
+                "Resolved patch[{idx}] as direct byte patch at 0x{:X}",
+                entry.address
+            );
         }
     }
 
+    modloader_info!(
+        "Finished resolving patches for mod '{}': {} resolved entries",
+        mod_id,
+        resolved.len()
+    );
     Ok(resolved)
 }
 
 pub fn spans_for_patches(patches: &[ResolvedPatch]) -> Result<Vec<PatchSpan>> {
+    modloader_trace!("Computing spans for {} resolved patches", patches.len());
     let mut spans = Vec::with_capacity(patches.len());
     for patch in patches {
         let len = patch.len();
@@ -112,6 +146,12 @@ pub fn spans_for_patches(patches: &[ResolvedPatch]) -> Result<Vec<PatchSpan>> {
             start: patch.address(),
             end_exclusive,
         });
+        modloader_trace!(
+            "Patch span: 0x{:X}-0x{:X} (len={})",
+            patch.address(),
+            end_exclusive,
+            len
+        );
     }
     Ok(spans)
 }
@@ -124,6 +164,12 @@ pub fn ensure_no_overlap(
     for (idx, left) in spans.iter().enumerate() {
         for right in spans.iter().skip(idx + 1) {
             if spans_overlap(*left, *right) {
+                modloader_warning!(
+                    "Overlap detected within mod {}: {} overlaps {}",
+                    current_mod,
+                    left,
+                    right
+                );
                 return Err(anyhow!(
                     "patch overlap in mod {current_mod}: range {} overlaps {}",
                     left,
@@ -136,6 +182,13 @@ pub fn ensure_no_overlap(
     for span in spans {
         for other in existing {
             if spans_overlap(*span, other.span) {
+                modloader_warning!(
+                    "Overlap detected between mod {} and {}: {} overlaps {}",
+                    current_mod,
+                    other.owner,
+                    span,
+                    other.span
+                );
                 return Err(anyhow!(
                     "patch overlap: mod {current_mod} range {} overlaps mod {} range {}",
                     span,
@@ -158,6 +211,12 @@ fn resolve_pattern_patch(
     pattern: &str,
     patch_bytes: &[u8],
 ) -> Result<Vec<ResolvedPatch>> {
+    modloader_trace!(
+        "resolve_pattern_patch: address=0x{:X}, pattern='{}', bytes_len={}",
+        address,
+        pattern,
+        patch_bytes.len()
+    );
     let tokens: Vec<&str> = pattern.split_whitespace().collect();
     if tokens.is_empty() {
         return Err(anyhow!("pattern must not be empty"));
@@ -225,6 +284,12 @@ fn resolve_direct_hook(
     event_name: &str,
     overwrite_len_hint: usize,
 ) -> Result<ResolvedPatch> {
+    modloader_trace!(
+        "resolve_direct_hook: address=0x{:X}, event='{}', overwrite_hint={}",
+        address,
+        event_name,
+        overwrite_len_hint
+    );
     let overwrite_len = overwrite_len_hint.max(5);
     let replaced_bytes: Vec<u8> = (0..overwrite_len)
         .map(|offset| unsafe { ((address + offset) as *const u8).read() })
@@ -238,6 +303,12 @@ fn resolve_direct_hook(
 }
 
 fn resolve_pattern_hook(address: usize, pattern: &str, event_name: &str) -> Result<ResolvedPatch> {
+    modloader_trace!(
+        "resolve_pattern_hook: address=0x{:X}, event='{}', pattern='{}'",
+        address,
+        event_name,
+        pattern
+    );
     let tokens: Vec<&str> = pattern.split_whitespace().collect();
     if tokens.is_empty() {
         return Err(anyhow!("pattern must not be empty"));
