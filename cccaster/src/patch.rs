@@ -420,11 +420,16 @@ where
 pub struct Patches {
     handles: Vec<Handle>,
     hook_sites: Vec<usize>,
+    suspend_process: bool,
 }
 
 impl Patches {
-    pub fn new(entries: &[ResolvedPatch]) -> Self {
-        modloader_debug!("Creating Patches container with {} entries", entries.len());
+    pub fn new(entries: &[ResolvedPatch], suspend_process: bool) -> Self {
+        modloader_debug!(
+            "Creating Patches container with {} entries (suspend={})",
+            entries.len(),
+            suspend_process
+        );
         let mut handles = Vec::new();
         let mut hook_sites = Vec::new();
         for (idx, entry) in entries.iter().enumerate() {
@@ -436,7 +441,7 @@ impl Patches {
                         address,
                         bytes
                     );
-                    let handle = make_patch_with_suspend(*address, bytes, false);
+                    let handle = make_patch_with_suspend(*address, bytes, suspend_process);
                     modloader_debug!("Patch[{}] applied with handle {}", idx, handle);
                     handles.push(handle);
                 }
@@ -457,7 +462,7 @@ impl Patches {
                         *address,
                         event_name.clone(),
                         replaced_bytes.clone(),
-                        false,
+                        suspend_process,
                     ) {
                         modloader_debug!("Hook registration failed for patch[{}]: {}", idx, err);
                     } else {
@@ -470,6 +475,7 @@ impl Patches {
         Patches {
             handles,
             hook_sites,
+            suspend_process,
         }
     }
 }
@@ -483,7 +489,7 @@ impl Drop for Patches {
         );
         for &handle in &self.handles {
             modloader_trace!("Removing patch handle {}", handle);
-            let _ = remove_patch_with_suspend(handle, false);
+            let _ = remove_patch_with_suspend(handle, self.suspend_process);
         }
         for &site in &self.hook_sites {
             hook::unregister_trampoline_hook(site);
