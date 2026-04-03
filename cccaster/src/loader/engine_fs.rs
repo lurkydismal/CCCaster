@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{Cursor, Read};
 
 use super::overlay_vfs;
+use crate::runtime_args;
 
 #[derive(Clone)]
 enum LocalWriteMode {
@@ -166,6 +167,13 @@ pub(super) fn register_engine_fs_local(
         |_, (path, content, mode): (String, String, Option<String>)| {
             let normalized = normalize_vfs_path(&path)?;
             let selected_mode = LocalWriteMode::from_lua_value(mode)?;
+            if runtime_args().sandbox {
+                crate::modloader_debug!(
+                    "Sandbox enabled: skipping Engine.fs.global.write for '{}'",
+                    normalized
+                );
+                return Ok(false);
+            }
             overlay_vfs::write_global(
                 normalized,
                 content.into_bytes(),
