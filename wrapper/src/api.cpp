@@ -20,6 +20,9 @@
 #include "memoryLock.hpp"
 #include "processSuspend.hpp"
 #include "storage.hpp"
+
+namespace {
+
 constexpr auto mhStatusToString( MH_STATUS _status ) -> std::string_view {
     switch ( _status ) {
         case MH_UNKNOWN: {
@@ -88,6 +91,8 @@ constexpr auto mhStatusToString( MH_STATUS _status ) -> std::string_view {
     }
 }
 
+} // namespace
+
 template <>
 struct std::formatter< MH_STATUS > : std::formatter< std::string_view > {
     template < typename FormatContext >
@@ -142,7 +147,7 @@ auto ensureMinHookInitialized() -> bool {
 auto resolveAddress( uintptr_t _address ) -> uintptr_t {
     const auto l_moduleBase =
         std::bit_cast< uintptr_t >( GetModuleHandle( nullptr ) );
-    logg::trace( "resolveAddress input={} moduleBase={}", _address,
+    logg::trace( "resolveAddress input=0x{:X} moduleBase=0x{:X}", _address,
                  l_moduleBase );
 
     if ( l_moduleBase == _address ) {
@@ -153,7 +158,7 @@ auto resolveAddress( uintptr_t _address ) -> uintptr_t {
 
     const uintptr_t l_resolved =
         ( _address > l_moduleBase ) ? _address : ( l_moduleBase + _address );
-    logg::trace( "resolveAddress resolved={}", l_resolved );
+    logg::trace( "resolveAddress resolved=0x{:X}", l_resolved );
     return ( l_resolved );
 }
 
@@ -384,7 +389,7 @@ auto setNoPatches( bool _value ) -> bool {
                                  uintptr_t* _outTrampolineAddress,
                                  bool _suspendProcess ) -> storage_t::handle_t {
     logg::trace(
-        "wrapper::createDetour begin target=0x{:x} detour=0x{:x} "
+        "wrapper::createDetour begin target=0x{:X} detour=0x{:X} "
         "outTrampoline={} suspend={}",
         _targetAddress, _detourAddress,
         static_cast< const void* >( _outTrampolineAddress ), _suspendProcess );
@@ -407,20 +412,20 @@ auto setNoPatches( bool _value ) -> bool {
     const uintptr_t l_targetAddress = resolveAddress( _targetAddress );
     const uintptr_t l_detourAddress = resolveAddress( _detourAddress );
 
-    logg::debug( "wrapper::createDetour resolved target=0x{:x} detour=0x{:x}",
+    logg::debug( "wrapper::createDetour resolved target=0x{:X} detour=0x{:X}",
                  l_targetAddress, l_detourAddress );
 
     if ( !l_targetAddress || !l_detourAddress ) {
         logg::warning(
-            "wrapper::createDetour address resolution failed target=0x{:x} "
-            "detour=0x{:x}",
+            "wrapper::createDetour address resolution failed target=0x{:X} "
+            "detour=0x{:X}",
             l_targetAddress, l_detourAddress );
         return ( storage_t::g_invalidHandle );
     }
 
     constexpr size_t l_dumpLength = 32u;
 
-    logg::info( "wrapper::createDetour bytes before patch target=0x{:x}",
+    logg::info( "wrapper::createDetour bytes before patch target=0x{:X}",
                 l_targetAddress );
     printBytes( l_targetAddress, l_dumpLength );
 
@@ -442,6 +447,8 @@ auto setNoPatches( bool _value ) -> bool {
     const auto l_target = std::bit_cast< LPVOID >( l_targetAddress );
     const auto l_detour = std::bit_cast< LPVOID >( l_detourAddress );
     LPVOID l_trampoline = nullptr;
+
+    const memoryLock_t l_memoryLock( l_targetAddress, 12 );
 
     const MH_STATUS l_createStatus =
         MH_CreateHook( l_target, l_detour, &l_trampoline );
@@ -473,11 +480,11 @@ auto setNoPatches( bool _value ) -> bool {
 
     *_outTrampolineAddress = std::bit_cast< uintptr_t >( l_trampoline );
 
-    logg::info( "wrapper::createDetour bytes after patch target=0x{:x}",
+    logg::info( "wrapper::createDetour bytes after patch target=0x{:X}",
                 l_targetAddress );
     printBytes( l_targetAddress, l_dumpLength );
 
-    logg::info( "wrapper::createDetour trampoline bytes address=0x{:x}",
+    logg::info( "wrapper::createDetour trampoline bytes address=0x{:X}",
                 *_outTrampolineAddress );
     printBytes( *_outTrampolineAddress, l_dumpLength );
 
@@ -486,8 +493,8 @@ auto setNoPatches( bool _value ) -> bool {
                                                  .trampoline = l_trampoline } );
 
     logg::info(
-        "wrapper::createDetour success handle={} target=0x{:x} detour=0x{:x} "
-        "trampoline=0x{:x}",
+        "wrapper::createDetour success handle={} target=0x{:X} detour=0x{:X} "
+        "trampoline=0x{:X}",
         l_handle, l_targetAddress, l_detourAddress, *_outTrampolineAddress );
 
     return ( l_handle );
