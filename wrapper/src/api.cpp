@@ -36,6 +36,23 @@ std::atomic< storage_t::handle_t > g_nextDetourHandle{ 1u };
 std::once_flag g_minHookInitFlag;
 bool g_minHookReady = false;
 
+void printBytes( std::span< const std::byte > _bytes ) {
+    std::string l_buffer = "[";
+
+    for ( auto l_byte : _bytes ) {
+        l_buffer += std::format( "{:X} ", static_cast< uint8_t >( l_byte ) );
+    }
+
+    l_buffer += "]";
+
+    logg::trace( "[BYTES] {}", l_buffer );
+}
+
+void printBytes( uintptr_t _address, size_t _length ) {
+    printBytes(
+        std::span{ std::bit_cast< const std::byte* >( _address ), _length } );
+}
+
 auto ensureMinHookInitialized() -> bool {
     std::call_once( g_minHookInitFlag, []() {
         if ( MH_Initialize() == MH_OK ) {
@@ -148,8 +165,8 @@ auto setNoPatches( bool _value ) -> bool {
                               const std::byte* _bytes,
                               size_t _bytesAmount,
                               bool _suspendProcess ) -> storage_t::handle_t {
-    logg::trace( "wrapper::makePatch addr={} size={} suspend={}", _address, _bytesAmount,
-                 _suspendProcess );
+    logg::trace( "wrapper::makePatch addr={} size={} suspend={}", _address,
+                 _bytesAmount, _suspendProcess );
 
     if ( g_noPatches ) {
         logg::warning( "wrapper::makePatch no patches is enabled" );
@@ -179,9 +196,10 @@ auto setNoPatches( bool _value ) -> bool {
     return ( l_handle );
 }
 
-[[nodiscard]] auto removePatch( storage_t::handle_t _id,
-                                bool _suspendProcess ) -> bool {
-    logg::trace( "wrapper::removePatch handle={} suspend={}", _id, _suspendProcess );
+[[nodiscard]] auto removePatch( storage_t::handle_t _id, bool _suspendProcess )
+    -> bool {
+    logg::trace( "wrapper::removePatch handle={} suspend={}", _id,
+                 _suspendProcess );
 
     if ( g_noPatches ) {
         logg::warning( "wrapper::removePatch no patches is enabled" );
@@ -288,14 +306,22 @@ auto setNoPatches( bool _value ) -> bool {
                                  uintptr_t _detourAddress,
                                  uintptr_t* _outTrampolineAddress,
                                  bool _suspendProcess ) -> storage_t::handle_t {
+    logg::trace(
+        "wrapper::createDetour begin target=0x{:x} detour=0x{:x} "
+        "outTrampoline={} suspend={}",
+        _targetAddress, _detourAddress,
+        static_cast< const void* >( _outTrampolineAddress ), _suspendProcess );
+
     if ( !_targetAddress || !_detourAddress || !_outTrampolineAddress ) {
         logg::warning( "wrapper::createDetour invalid arguments" );
         return ( storage_t::g_invalidHandle );
     }
+
     if ( g_noPatches ) {
-        logg::warning( "wrapper::createDetour no patches is enabled" );
+        logg::warning( "wrapper::createDetour patches disabled" );
         return ( storage_t::g_invalidHandle );
     }
+
     if ( !ensureMinHookInitialized() ) {
         logg::error( "wrapper::createDetour MinHook initialization failed" );
         return ( storage_t::g_invalidHandle );
@@ -303,32 +329,90 @@ auto setNoPatches( bool _value ) -> bool {
 
     const uintptr_t l_targetAddress = resolveAddress( _targetAddress );
     const uintptr_t l_detourAddress = resolveAddress( _detourAddress );
+
+    logg::debug( "wrapper::createDetour resolved target=0x{:x} detour=0x{:x}",
+                 l_targetAddress, l_detourAddress );
+
     if ( !l_targetAddress || !l_detourAddress ) {
+        logg::warning(
+            "wrapper::createDetour address resolution failed target=0x{:x} "
+            "detour=0x{:x}",
+            l_targetAddress, l_detourAddress );
         return ( storage_t::g_invalidHandle );
     }
+
+    constexpr size_t l_dumpLength = 32u;
+
+    logg::info( "wrapper::createDetour bytes before patch target=0x{:x}",
+                l_targetAddress );
+    printBytes( l_targetAddress, l_dumpLength );
 
     const std::optional< processSuspendGuard_t > l_suspendGuard =
         _suspendProcess ? std::make_optional< processSuspendGuard_t >()
                         : std::nullopt;
 
+    if ( _suspendProcess ) {
+        logg::info( "wrapper::createDetour process suspended" );
+    } else {
+        logg::trace( "wrapper::createDetour process suspension skipped" );
+    }
+
     std::lock_guard< std::mutex > l_lock( g_detoursMutex );
     const storage_t::handle_t l_handle = g_nextDetourHandle.fetch_add( 1u );
-    LPVOID l_target = std::bit_cast< LPVOID >( l_targetAddress );
+
+    logg::trace( "wrapper::createDetour handle={} allocating hook", l_handle );
+
+    const LPVOID l_target = std::bit_cast< LPVOID >( l_targetAddress );
     const LPVOID l_detour = std::bit_cast< LPVOID >( l_detourAddress );
     LPVOID l_trampoline = nullptr;
 
-    if ( MH_CreateHook( l_target, l_detour, &l_trampoline ) != MH_OK ) {
+    const MH_STATUS l_createStatus =
+        MH_CreateHook( l_target, l_detour, &l_trampoline );
+    if ( l_createStatus != MH_OK ) {
+        logg::error(
+            "wrapper::createDetour create hook failed handle={} status={}",
+            l_handle, static_cast< int >( l_createStatus ) );
         return ( storage_t::g_invalidHandle );
     }
-    if ( MH_EnableHook( l_target ) != MH_OK ) {
-        MH_RemoveHook( l_target );
+
+    logg::debug( "wrapper::createDetour hook created handle={} trampoline={}",
+                 l_handle, static_cast< const void* >( l_trampoline ) );
+
+    const MH_STATUS l_enableStatus = MH_EnableHook( l_target );
+    if ( l_enableStatus != MH_OK ) {
+        logg::error(
+            "wrapper::createDetour enable hook failed handle={} status={}",
+            l_handle, static_cast< int >( l_enableStatus ) );
+
+        const MH_STATUS l_removeStatus = MH_RemoveHook( l_target );
+        if ( l_removeStatus != MH_OK ) {
+            logg::warning(
+                "wrapper::createDetour remove hook failed handle={} status={}",
+                l_handle, static_cast< int >( l_removeStatus ) );
+        }
+
         return ( storage_t::g_invalidHandle );
     }
 
     *_outTrampolineAddress = std::bit_cast< uintptr_t >( l_trampoline );
+
+    logg::info( "wrapper::createDetour bytes after patch target=0x{:x}",
+                l_targetAddress );
+    printBytes( l_targetAddress, l_dumpLength );
+
+    logg::info( "wrapper::createDetour trampoline bytes address=0x{:x}",
+                *_outTrampolineAddress );
+    printBytes( *_outTrampolineAddress, l_dumpLength );
+
     g_detours.emplace( l_handle, detourRecord_t{ .target = l_target,
                                                  .detour = l_detour,
                                                  .trampoline = l_trampoline } );
+
+    logg::info(
+        "wrapper::createDetour success handle={} target=0x{:x} detour=0x{:x} "
+        "trampoline=0x{:x}",
+        l_handle, l_targetAddress, l_detourAddress, *_outTrampolineAddress );
+
     return ( l_handle );
 }
 

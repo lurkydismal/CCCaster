@@ -7,7 +7,8 @@
         "post_init",
         "unload",
         "load",
-        "quit"
+        "quit",
+        "test_event"
     ],
     "api_version": 1
 }

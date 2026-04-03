@@ -19,4 +19,8 @@ return {
     quit = function ()
         Engine.log(Engine.log.level.error,"QUIT CALLED")
     end,
+
+    test_event = function()
+        Engine.log(Engine.log.level.error,"TEST EVENT CALLED")
+    end,
 }

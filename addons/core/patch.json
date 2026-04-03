@@ -1,6 +1,6 @@
 [
     {
         "address": "0x04A1D42",
-        "bytes": "EB 0E"
+        "hook_event": "test_event"
     }
 ]
