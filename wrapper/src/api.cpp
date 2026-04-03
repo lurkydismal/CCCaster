@@ -146,8 +146,10 @@ auto setNoPatches( bool _value ) -> bool {
 
 [[nodiscard]] auto makePatch( uintptr_t _address,
                               const std::byte* _bytes,
-                              size_t _bytesAmount ) -> storage_t::handle_t {
-    logg::trace( "wrapper::makePatch addr={} size={}", _address, _bytesAmount );
+                              size_t _bytesAmount,
+                              bool _suspendProcess ) -> storage_t::handle_t {
+    logg::trace( "wrapper::makePatch addr={} size={} suspend={}", _address, _bytesAmount,
+                 _suspendProcess );
 
     if ( g_noPatches ) {
         logg::warning( "wrapper::makePatch no patches is enabled" );
@@ -161,7 +163,9 @@ auto setNoPatches( bool _value ) -> bool {
         return ( storage_t::g_invalidHandle );
     }
 
-    const processSuspendGuard_t l_suspendGuard;
+    const std::optional< processSuspendGuard_t > l_suspendGuard =
+        _suspendProcess ? std::make_optional< processSuspendGuard_t >()
+                        : std::nullopt;
 
     const auto l_handle =
         g_patches.addPatch( _address, std::span{ _bytes, _bytesAmount } );
@@ -175,8 +179,9 @@ auto setNoPatches( bool _value ) -> bool {
     return ( l_handle );
 }
 
-[[nodiscard]] auto removePatch( storage_t::handle_t _id ) -> bool {
-    logg::trace( "wrapper::removePatch handle={}", _id );
+[[nodiscard]] auto removePatch( storage_t::handle_t _id,
+                                bool _suspendProcess ) -> bool {
+    logg::trace( "wrapper::removePatch handle={} suspend={}", _id, _suspendProcess );
 
     if ( g_noPatches ) {
         logg::warning( "wrapper::removePatch no patches is enabled" );
@@ -184,7 +189,9 @@ auto setNoPatches( bool _value ) -> bool {
         return ( false );
     }
 
-    const processSuspendGuard_t l_suspendGuard;
+    const std::optional< processSuspendGuard_t > l_suspendGuard =
+        _suspendProcess ? std::make_optional< processSuspendGuard_t >()
+                        : std::nullopt;
 
     const bool l_result = g_patches.removePatch( _id );
 

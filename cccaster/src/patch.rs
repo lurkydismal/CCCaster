@@ -1,4 +1,4 @@
-use crate::api::{Handle, make_patch, remove_patch};
+use crate::api::{Handle, make_patch_with_suspend, remove_patch_with_suspend};
 use crate::hook;
 use crate::{modloader_debug, modloader_info, modloader_trace, modloader_warning};
 use serde::Deserialize;
@@ -436,7 +436,7 @@ impl Patches {
                         address,
                         bytes
                     );
-                    let handle = make_patch(*address, bytes);
+                    let handle = make_patch_with_suspend(*address, bytes, false);
                     modloader_debug!("Patch[{}] applied with handle {}", idx, handle);
                     handles.push(handle);
                 }
@@ -457,6 +457,7 @@ impl Patches {
                         *address,
                         event_name.clone(),
                         replaced_bytes.clone(),
+                        false,
                     ) {
                         modloader_debug!("Hook registration failed for patch[{}]: {}", idx, err);
                     } else {
@@ -482,7 +483,7 @@ impl Drop for Patches {
         );
         for &handle in &self.handles {
             modloader_trace!("Removing patch handle {}", handle);
-            let _ = remove_patch(handle);
+            let _ = remove_patch_with_suspend(handle, false);
         }
         for &site in &self.hook_sites {
             hook::unregister_trampoline_hook(site);

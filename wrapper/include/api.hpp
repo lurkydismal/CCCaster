@@ -11,8 +11,10 @@ auto setNoPatches( bool _value ) -> bool;
 
 [[nodiscard]] auto makePatch( uintptr_t _address,
                               const std::byte* _bytes,
-                              size_t _bytesAmount ) -> storage_t::handle_t;
-[[nodiscard]] auto removePatch( storage_t::handle_t _id ) -> bool;
+                              size_t _bytesAmount,
+                              bool _suspendProcess ) -> storage_t::handle_t;
+[[nodiscard]] auto removePatch( storage_t::handle_t _id,
+                                bool _suspendProcess ) -> bool;
 [[nodiscard]] auto readMemory( uintptr_t _address,
                                std::byte* _outBytes,
                                size_t _bytesAmount ) -> bool;

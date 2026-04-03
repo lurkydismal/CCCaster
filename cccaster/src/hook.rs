@@ -41,6 +41,7 @@ pub fn register_trampoline_hook(
     call_site: usize,
     event_name: String,
     replaced_bytes: Vec<u8>,
+    suspend_process: bool,
 ) -> Result<()> {
     modloader_info!(
         "Registering trampoline hook: call_site=0x{:X}, event='{}', replaced_len={}",
@@ -49,7 +50,7 @@ pub fn register_trampoline_hook(
         replaced_bytes.len()
     );
     let (detour_handle, trampoline_addr) =
-        create_detour(call_site, hook_entry as *const () as usize, true)
+        create_detour(call_site, hook_entry as *const () as usize, suspend_process)
             .ok_or_else(|| anyhow!("failed to create detour at 0x{:X}", call_site))?;
     modloader_debug!(
         "create_detour succeeded: call_site=0x{:X}, trampoline=0x{:X}, handle={}",
