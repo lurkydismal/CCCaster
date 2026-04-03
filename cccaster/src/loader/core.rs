@@ -116,11 +116,24 @@ pub fn dispatch_engine_event(
     arg_values: Vec<String>,
     arg_types: Vec<String>,
 ) -> Result<()> {
+    modloader_trace!(
+        "dispatch_engine_event called: event='{}', values={}, types={}",
+        event_name,
+        arg_values.len(),
+        arg_types.len()
+    );
     let trimmed_name = event_name.trim();
     if trimmed_name.is_empty() {
+        modloader_error!("dispatch_engine_event rejected empty event name");
         return Err(anyhow!("Engine event name cannot be empty"));
     }
     if arg_values.len() != arg_types.len() {
+        modloader_error!(
+            "dispatch_engine_event rejected mismatched args for '{}': {} values vs {} types",
+            trimmed_name,
+            arg_values.len(),
+            arg_types.len()
+        );
         return Err(anyhow!(
             "Engine event argument value/type count mismatch: {} values vs {} types",
             arg_values.len(),
@@ -133,8 +146,20 @@ pub fn dispatch_engine_event(
         .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?
         .as_ref()
         .cloned()
-        .ok_or_else(|| anyhow!("modloader runtime is not initialized"))?;
+        .ok_or_else(|| {
+            modloader_error!(
+                "dispatch_engine_event called before runtime initialization for '{}'",
+                trimmed_name
+            );
+            anyhow!("modloader runtime is not initialized")
+        })?;
 
+    modloader_debug!(
+        "Sending runtime Engine event '{}' with payload {:?} and types {:?}",
+        trimmed_name,
+        arg_values,
+        arg_types
+    );
     tx.send(ControlMessage::DispatchEngineEvent {
         event_name: trimmed_name.to_owned(),
         arg_values,
@@ -147,12 +172,23 @@ pub fn dispatch_hook_event_sync(
     event_name: String,
     payload_json: String,
 ) -> Result<Option<HookRegisters>> {
+    modloader_trace!(
+        "dispatch_hook_event_sync called: event='{}', payload_len={}",
+        event_name,
+        payload_json.len()
+    );
     let tx = SHUTDOWN_SIGNAL
         .lock()
         .map_err(|_| anyhow!("shutdown signal mutex poisoned"))?
         .as_ref()
         .cloned()
-        .ok_or_else(|| anyhow!("modloader runtime is not initialized"))?;
+        .ok_or_else(|| {
+            modloader_error!(
+                "dispatch_hook_event_sync called before runtime initialization for '{}'",
+                event_name
+            );
+            anyhow!("modloader runtime is not initialized")
+        })?;
     let (response_tx, response_rx) = std::sync::mpsc::channel();
 
     tx.send(ControlMessage::DispatchHookEvent {
@@ -161,6 +197,7 @@ pub fn dispatch_hook_event_sync(
         response_tx,
     })
     .map_err(|err| anyhow!("failed to send hook dispatch request: {}", err))?;
+    modloader_trace!("dispatch_hook_event_sync sent event; waiting for hook response");
 
     response_rx
         .recv_timeout(Duration::from_millis(50))
@@ -744,15 +781,30 @@ fn dispatch_runtime_engine_event(
     arg_values: &[String],
     arg_types: &[String],
 ) -> Result<()> {
+    modloader_trace!(
+        "dispatch_runtime_engine_event entering: event='{}', argc={}",
+        event_name,
+        arg_values.len()
+    );
     let dispatch_fn: Function = lua.globals().get::<Table>("Engine")?.get("dispatch")?;
     let mut args = mlua::MultiValue::new();
     args.push_back(Value::String(lua.create_string(event_name)?));
 
     for (value, kind) in arg_values.iter().zip(arg_types.iter()) {
+        modloader_trace!(
+            "dispatch_runtime_engine_event converting arg type='{}' raw='{}'",
+            kind,
+            value
+        );
         args.push_back(parse_dispatch_argument(lua, value, kind)?);
     }
 
     dispatch_fn.call::<()>(args)?;
+    modloader_info!(
+        "dispatch_runtime_engine_event completed for '{}' with {} args",
+        event_name,
+        arg_values.len()
+    );
     Ok(())
 }
 
@@ -761,20 +813,35 @@ fn dispatch_runtime_hook_event(
     event_name: &str,
     payload_json: &str,
 ) -> Result<Option<HookRegisters>> {
+    modloader_trace!(
+        "dispatch_runtime_hook_event entering: event='{}', payload_len={}",
+        event_name,
+        payload_json.len()
+    );
     let dispatch_fn: Function = lua.globals().get::<Table>("Engine")?.get("dispatch")?;
     let payload_json = serde_json::from_str::<JsonValue>(payload_json)
         .map_err(|err| anyhow!("invalid hook payload JSON: {}", err))?;
     let payload_value = json_value_to_lua(lua, &payload_json)?;
     let result: Value = dispatch_fn.call((event_name, payload_value))?;
-    parse_hook_register_overrides(result)
+    let parsed = parse_hook_register_overrides(result)?;
+    modloader_debug!(
+        "dispatch_runtime_hook_event completed for '{}'; overrides_present={}",
+        event_name,
+        parsed.is_some()
+    );
+    Ok(parsed)
 }
 
 fn parse_hook_register_overrides(value: Value) -> Result<Option<HookRegisters>> {
     let Value::Table(table) = value else {
+        modloader_trace!("parse_hook_register_overrides: callback returned non-table");
         return Ok(None);
     };
 
     let Some(eax) = table.get::<Option<u32>>("eax")? else {
+        modloader_trace!(
+            "parse_hook_register_overrides: table returned without eax override; ignoring"
+        );
         return Ok(None);
     };
 
@@ -789,11 +856,21 @@ fn parse_hook_register_overrides(value: Value) -> Result<Option<HookRegisters>> 
         esp_at_pushad: table.get::<u32>("esp")?,
         eflags: table.get::<u32>("eflags")?,
     };
+    modloader_debug!(
+        "parse_hook_register_overrides accepted register override set (eax=0x{:X})",
+        regs.eax
+    );
     Ok(Some(regs))
 }
 
 fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result<Value> {
     let kind = raw_type.trim().to_ascii_lowercase();
+    modloader_trace!(
+        "parse_dispatch_argument: raw_type='{}' normalized='{}' raw_value='{}'",
+        raw_type,
+        kind,
+        raw_value
+    );
     match kind.as_str() {
         "string" => Ok(Value::String(lua.create_string(raw_value)?)),
         "integer" | "int" => {
