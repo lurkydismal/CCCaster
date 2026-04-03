@@ -7,6 +7,8 @@
 #include "logg.hpp"
 
 processSuspendGuard::processSuspendGuard() {
+    return;
+
     _suspendedThreadHandles.reserve( 64 );
 
     const DWORD l_processId = GetCurrentProcessId();
