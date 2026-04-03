@@ -823,15 +823,18 @@ fn dispatch_runtime_hook_event(
     let result: Value = dispatch_fn.call((event_name, payload_value))?;
     let parsed = parse_hook_register_overrides(&result)?;
     let run_trampoline = parse_hook_run_trampoline(&result)?;
+    let trampoline_bytes = parse_hook_trampoline_bytes(&result)?;
     let decision = HookDecision {
         registers: parsed,
         run_trampoline,
+        trampoline_bytes,
     };
     modloader_debug!(
-        "dispatch_runtime_hook_event completed for '{}'; overrides_present={} run_trampoline={}",
+        "dispatch_runtime_hook_event completed for '{}'; overrides_present={} run_trampoline={} trampoline_override={}",
         event_name,
         decision.registers.is_some(),
-        decision.run_trampoline
+        decision.run_trampoline,
+        decision.trampoline_bytes.is_some()
     );
     Ok(decision)
 }
@@ -887,6 +890,40 @@ fn parse_hook_run_trampoline(value: &Value) -> Result<bool> {
     Ok(table
         .get::<Option<bool>>("run_trampoline")?
         .unwrap_or(false))
+}
+
+fn parse_hook_trampoline_bytes(value: &Value) -> Result<Option<Vec<u8>>> {
+    let Value::Table(table) = value else {
+        return Ok(None);
+    };
+    let Some(raw) = table.get::<Option<String>>("trampoline")? else {
+        return Ok(None);
+    };
+    let parsed = parse_hook_hex_bytes_string(&raw)?;
+    if parsed.is_empty() {
+        return Err(anyhow!("hook trampoline override cannot be empty"));
+    }
+    Ok(Some(parsed))
+}
+
+fn parse_hook_hex_bytes_string(raw: &str) -> Result<Vec<u8>> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(Vec::new());
+    }
+    trimmed
+        .split_whitespace()
+        .map(|token| {
+            if token.len() != 2 {
+                return Err(anyhow!(
+                    "invalid trampoline byte '{}': expected 2 hex digits",
+                    token
+                ));
+            }
+            u8::from_str_radix(token, 16)
+                .map_err(|err| anyhow!("invalid trampoline byte '{}': {}", token, err))
+        })
+        .collect()
 }
 
 fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result<Value> {

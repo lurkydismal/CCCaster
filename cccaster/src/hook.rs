@@ -1,4 +1,4 @@
-use crate::api::{Handle, create_detour, read_memory, remove_detour};
+use crate::api::{Handle, create_detour, read_memory, remove_detour, write_memory};
 use crate::loader;
 use crate::{modloader_debug, modloader_info, modloader_trace, modloader_warning};
 use anyhow::{Result, anyhow};
@@ -41,10 +41,11 @@ struct HookFrame {
     pushed_addr: u32,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct HookDecision {
     pub registers: Option<HookRegisterOverrides>,
     pub run_trampoline: bool,
+    pub trampoline_bytes: Option<Vec<u8>>,
 }
 
 #[derive(Clone)]
@@ -267,6 +268,28 @@ extern "C" fn hook_dispatch(frame_ptr: *mut HookFrame) -> usize {
                     if let Some(value) = updated.esp_at_pushad {
                         (*frame_ptr).regs.esp_at_pushad = value;
                     }
+                }
+            }
+            if let Some(bytes) = decision.trampoline_bytes {
+                if bytes.len() != metadata.trampoline_bytes.len() {
+                    modloader_warning!(
+                        "hook_dispatch rejected trampoline override for 0x{:X}: expected len={}, got len={}",
+                        call_site,
+                        metadata.trampoline_bytes.len(),
+                        bytes.len()
+                    );
+                } else if !write_memory(metadata.trampoline_addr, &bytes) {
+                    modloader_warning!(
+                        "hook_dispatch failed to apply trampoline override for 0x{:X} (len={})",
+                        call_site,
+                        bytes.len()
+                    );
+                } else {
+                    modloader_debug!(
+                        "hook_dispatch applied trampoline override for 0x{:X} (len={})",
+                        call_site,
+                        bytes.len()
+                    );
                 }
             }
             if decision.run_trampoline {
