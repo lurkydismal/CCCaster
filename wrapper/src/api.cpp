@@ -13,12 +13,89 @@
 #include <cstring>
 #include <mutex>
 #include <span>
+#include <string_view>
 #include <unordered_map>
 
 #include "logg.hpp"
 #include "memoryLock.hpp"
 #include "processSuspend.hpp"
 #include "storage.hpp"
+constexpr auto mhStatusToString( MH_STATUS _status ) -> std::string_view {
+    switch ( _status ) {
+        case MH_UNKNOWN: {
+            return "Unknown error";
+        }
+
+        case MH_OK: {
+            return "Successful";
+        }
+
+        case MH_ERROR_ALREADY_INITIALIZED: {
+            return "MinHook is already initialized";
+        }
+
+        case MH_ERROR_NOT_INITIALIZED: {
+            return "MinHook is not initialized yet, or already uninitialized";
+        }
+
+        case MH_ERROR_ALREADY_CREATED: {
+            return "The hook for the specified target function is already "
+                   "created";
+        }
+
+        case MH_ERROR_NOT_CREATED: {
+            return "The hook for the specified target function is not created "
+                   "yet";
+        }
+
+        case MH_ERROR_ENABLED: {
+            return "The hook for the specified target function is already "
+                   "enabled";
+        }
+
+        case MH_ERROR_DISABLED: {
+            return "The hook for the specified target function is not enabled "
+                   "yet, or already disabled";
+        }
+
+        case MH_ERROR_NOT_EXECUTABLE: {
+            return "The specified pointer is invalid";
+        }
+
+        case MH_ERROR_UNSUPPORTED_FUNCTION: {
+            return "The specified target function cannot be hooked";
+        }
+
+        case MH_ERROR_MEMORY_ALLOC: {
+            return "Failed to allocate memory";
+        }
+
+        case MH_ERROR_MEMORY_PROTECT: {
+            return "Failed to change the memory protection";
+        }
+
+        case MH_ERROR_MODULE_NOT_FOUND: {
+            return "The specified module is not loaded";
+        }
+
+        case MH_ERROR_FUNCTION_NOT_FOUND: {
+            return "The specified function is not found";
+        }
+
+        default: {
+            return "Unknown MH_STATUS";
+        }
+    }
+}
+
+template <>
+struct std::formatter< MH_STATUS > : std::formatter< std::string_view > {
+    template < typename FormatContext >
+    auto format( MH_STATUS _status, FormatContext& _ctx ) const {
+        return std::formatter< std::string_view >::format(
+            mhStatusToString( _status ), _ctx );
+    }
+};
 
 namespace {
 
@@ -26,7 +103,7 @@ storage_t g_patches;
 std::once_flag g_noPatchesFlag;
 std::atomic< bool > g_noPatches{ false };
 std::mutex g_detoursMutex;
-struct detourRecord_t {
+using detourRecord_t = struct detourRecord {
     LPVOID target;
     LPVOID detour;
     LPVOID trampoline;
@@ -54,7 +131,7 @@ void printBytes( uintptr_t _address, size_t _length ) {
 }
 
 auto ensureMinHookInitialized() -> bool {
-    std::call_once( g_minHookInitFlag, []() {
+    std::call_once( g_minHookInitFlag, []() -> void {
         if ( MH_Initialize() == MH_OK ) {
             g_minHookReady = true;
         }
@@ -362,8 +439,8 @@ auto setNoPatches( bool _value ) -> bool {
 
     logg::trace( "wrapper::createDetour handle={} allocating hook", l_handle );
 
-    const LPVOID l_target = std::bit_cast< LPVOID >( l_targetAddress );
-    const LPVOID l_detour = std::bit_cast< LPVOID >( l_detourAddress );
+    const auto l_target = std::bit_cast< LPVOID >( l_targetAddress );
+    const auto l_detour = std::bit_cast< LPVOID >( l_detourAddress );
     LPVOID l_trampoline = nullptr;
 
     const MH_STATUS l_createStatus =
@@ -371,7 +448,7 @@ auto setNoPatches( bool _value ) -> bool {
     if ( l_createStatus != MH_OK ) {
         logg::error(
             "wrapper::createDetour create hook failed handle={} status={}",
-            l_handle, static_cast< int >( l_createStatus ) );
+            l_handle, l_createStatus );
         return ( storage_t::g_invalidHandle );
     }
 
@@ -382,13 +459,13 @@ auto setNoPatches( bool _value ) -> bool {
     if ( l_enableStatus != MH_OK ) {
         logg::error(
             "wrapper::createDetour enable hook failed handle={} status={}",
-            l_handle, static_cast< int >( l_enableStatus ) );
+            l_handle, l_enableStatus );
 
         const MH_STATUS l_removeStatus = MH_RemoveHook( l_target );
         if ( l_removeStatus != MH_OK ) {
             logg::warning(
                 "wrapper::createDetour remove hook failed handle={} status={}",
-                l_handle, static_cast< int >( l_removeStatus ) );
+                l_handle, l_removeStatus );
         }
 
         return ( storage_t::g_invalidHandle );
