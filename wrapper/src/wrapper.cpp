@@ -165,23 +165,22 @@ extern "C" auto APIENTRY DllMain( [[maybe_unused]] HMODULE _hModule,
                                   DWORD _ulReasonForCall,
                                   [[maybe_unused]] LPVOID _lpReserved )
     -> BOOL {
-    {
-        const char* l_trace = std::getenv( "WRAPPER_TRACE" );
-
-        if ( wrapperruntime::isTruthy( l_trace ) ) {
-            logg::setLogLevel( logg::level_t::trace );
-
-        } else {
-            const char* l_debug = std::getenv( "WRAPPER_DEBUG" );
-
-            if ( wrapperruntime::isTruthy( l_debug ) ) {
-                logg::setLogLevel( logg::level_t::debug );
-            }
-        }
-    }
-
     switch ( _ulReasonForCall ) {
         case DLL_PROCESS_ATTACH:
+            {
+                const char* l_trace = std::getenv( "WRAPPER_TRACE" );
+
+                if ( wrapperruntime::isTruthy( l_trace ) ) {
+                    logg::setLogLevel( logg::level_t::trace );
+
+                } else {
+                    const char* l_debug = std::getenv( "WRAPPER_DEBUG" );
+
+                    if ( wrapperruntime::isTruthy( l_debug ) ) {
+                        logg::setLogLevel( logg::level_t::debug );
+                    }
+                }
+            }
             logg::debug( "DllMain received DLL_PROCESS_ATTACH" );
             return ( attach() );
 
