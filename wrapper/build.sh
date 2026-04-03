@@ -69,7 +69,6 @@ else
     l_build_flags="-Og -g"
     l_link_flags=""
 fi
-l_build_flags+=" -I $SCRIPT_DIRECTORY/minhook/include"
 
 # Target selection
 l_compiler=""
@@ -84,7 +83,6 @@ shopt -s nullglob
 mapfile -t l_sources < <(
     find \
         "$SCRIPT_DIRECTORY/src" \
-        "$SCRIPT_DIRECTORY/minhook/src" \
         -type f \( -name "*.cpp" -o -name "*.c" \) |
         sort
 )

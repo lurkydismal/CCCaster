@@ -1,6 +1,6 @@
 /// Core modloader lifecycle, discovery, load-order resolution, and hot-reload runtime.
 use crate::api::with_suspend_override;
-use crate::hook::HookRegisters;
+use crate::hook::{HookDecision, HookRegisterOverrides};
 use crate::patch::{
     OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
     resolve_patch_entries, spans_for_patches,
@@ -54,7 +54,7 @@ enum ControlMessage {
     DispatchHookEvent {
         event_name: String,
         payload_json: String,
-        response_tx: std::sync::mpsc::Sender<Option<HookRegisters>>,
+        response_tx: std::sync::mpsc::Sender<HookDecision>,
     },
 }
 
@@ -169,10 +169,7 @@ pub fn dispatch_engine_event(
     .map_err(|err| anyhow!("failed to send Engine event dispatch request: {}", err))
 }
 
-pub fn dispatch_hook_event_sync(
-    event_name: String,
-    payload_json: String,
-) -> Result<Option<HookRegisters>> {
+pub fn dispatch_hook_event_sync(event_name: String, payload_json: String) -> Result<HookDecision> {
     modloader_trace!(
         "dispatch_hook_event_sync called: event='{}', payload_len={}",
         event_name,
@@ -676,7 +673,7 @@ async fn start_hot_reload_loop(
                         .map_err(|err| {
                             anyhow!("hook event dispatch failed for '{}': {}", event_name, err)
                         });
-                    let _ = response_tx.send(result.ok().flatten());
+                    let _ = response_tx.send(result.unwrap_or_default());
                 }
             }
         }
@@ -813,7 +810,7 @@ fn dispatch_runtime_hook_event(
     lua: &Lua,
     event_name: &str,
     payload_json: &str,
-) -> Result<Option<HookRegisters>> {
+) -> Result<HookDecision> {
     modloader_trace!(
         "dispatch_runtime_hook_event entering: event='{}', payload_len={}",
         event_name,
@@ -824,44 +821,72 @@ fn dispatch_runtime_hook_event(
         .map_err(|err| anyhow!("invalid hook payload JSON: {}", err))?;
     let payload_value = json_value_to_lua(lua, &payload_json)?;
     let result: Value = dispatch_fn.call((event_name, payload_value))?;
-    let parsed = parse_hook_register_overrides(result)?;
+    let parsed = parse_hook_register_overrides(&result)?;
+    let run_trampoline = parse_hook_run_trampoline(&result)?;
+    let decision = HookDecision {
+        registers: parsed,
+        run_trampoline,
+    };
     modloader_debug!(
-        "dispatch_runtime_hook_event completed for '{}'; overrides_present={}",
+        "dispatch_runtime_hook_event completed for '{}'; overrides_present={} run_trampoline={}",
         event_name,
-        parsed.is_some()
+        decision.registers.is_some(),
+        decision.run_trampoline
     );
-    Ok(parsed)
+    Ok(decision)
 }
 
-fn parse_hook_register_overrides(value: Value) -> Result<Option<HookRegisters>> {
+fn parse_hook_register_overrides(value: &Value) -> Result<Option<HookRegisterOverrides>> {
     let Value::Table(table) = value else {
         modloader_trace!("parse_hook_register_overrides: callback returned non-table");
         return Ok(None);
     };
 
-    let Some(eax) = table.get::<Option<u32>>("eax")? else {
+    let regs = HookRegisterOverrides {
+        eax: table.get::<Option<u32>>("eax")?,
+        ebx: table.get::<Option<u32>>("ebx")?,
+        ecx: table.get::<Option<u32>>("ecx")?,
+        edx: table.get::<Option<u32>>("edx")?,
+        esi: table.get::<Option<u32>>("esi")?,
+        edi: table.get::<Option<u32>>("edi")?,
+        ebp: table.get::<Option<u32>>("ebp")?,
+        esp_at_pushad: table.get::<Option<u32>>("esp")?,
+    };
+    let overrides = [
+        regs.eax,
+        regs.ebx,
+        regs.ecx,
+        regs.edx,
+        regs.esi,
+        regs.edi,
+        regs.ebp,
+        regs.esp_at_pushad,
+    ]
+    .iter()
+    .filter(|value| value.is_some())
+    .count();
+
+    if overrides == 0 {
         modloader_trace!(
-            "parse_hook_register_overrides: table returned without eax override; ignoring"
+            "parse_hook_register_overrides: table returned without register overrides"
         );
         return Ok(None);
-    };
+    }
 
-    let regs = HookRegisters {
-        eax,
-        ebx: table.get::<u32>("ebx")?,
-        ecx: table.get::<u32>("ecx")?,
-        edx: table.get::<u32>("edx")?,
-        esi: table.get::<u32>("esi")?,
-        edi: table.get::<u32>("edi")?,
-        ebp: table.get::<u32>("ebp")?,
-        esp_at_pushad: table.get::<u32>("esp")?,
-        eflags: table.get::<u32>("eflags")?,
-    };
     modloader_debug!(
-        "parse_hook_register_overrides accepted register override set (eax=0x{:X})",
-        regs.eax
+        "parse_hook_register_overrides accepted {} register overrides",
+        overrides
     );
     Ok(Some(regs))
+}
+
+fn parse_hook_run_trampoline(value: &Value) -> Result<bool> {
+    let Value::Table(table) = value else {
+        return Ok(false);
+    };
+    Ok(table
+        .get::<Option<bool>>("run_trampoline")?
+        .unwrap_or(false))
 }
 
 fn parse_dispatch_argument(lua: &Lua, raw_value: &str, raw_type: &str) -> Result<Value> {

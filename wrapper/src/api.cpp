@@ -4,16 +4,17 @@
 #define NOMINMAX
 #include <windows.h>
 
-#include <MinHook.h>
 #include <tlhelp32.h>
 
 #include <atomic>
 #include <bit>
+#include <climits>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include <span>
-#include <string_view>
+#include <vector>
 #include <unordered_map>
 
 #include "logg.hpp"
@@ -23,100 +24,21 @@
 
 namespace {
 
-constexpr auto mhStatusToString( MH_STATUS _status ) -> std::string_view {
-    switch ( _status ) {
-        case MH_UNKNOWN: {
-            return "Unknown error";
-        }
-
-        case MH_OK: {
-            return "Successful";
-        }
-
-        case MH_ERROR_ALREADY_INITIALIZED: {
-            return "MinHook is already initialized";
-        }
-
-        case MH_ERROR_NOT_INITIALIZED: {
-            return "MinHook is not initialized yet, or already uninitialized";
-        }
-
-        case MH_ERROR_ALREADY_CREATED: {
-            return "The hook for the specified target function is already "
-                   "created";
-        }
-
-        case MH_ERROR_NOT_CREATED: {
-            return "The hook for the specified target function is not created "
-                   "yet";
-        }
-
-        case MH_ERROR_ENABLED: {
-            return "The hook for the specified target function is already "
-                   "enabled";
-        }
-
-        case MH_ERROR_DISABLED: {
-            return "The hook for the specified target function is not enabled "
-                   "yet, or already disabled";
-        }
-
-        case MH_ERROR_NOT_EXECUTABLE: {
-            return "The specified pointer is invalid";
-        }
-
-        case MH_ERROR_UNSUPPORTED_FUNCTION: {
-            return "The specified target function cannot be hooked";
-        }
-
-        case MH_ERROR_MEMORY_ALLOC: {
-            return "Failed to allocate memory";
-        }
-
-        case MH_ERROR_MEMORY_PROTECT: {
-            return "Failed to change the memory protection";
-        }
-
-        case MH_ERROR_MODULE_NOT_FOUND: {
-            return "The specified module is not loaded";
-        }
-
-        case MH_ERROR_FUNCTION_NOT_FOUND: {
-            return "The specified function is not found";
-        }
-
-        default: {
-            return "Unknown MH_STATUS";
-        }
-    }
-}
-
-} // namespace
-
-template <>
-struct std::formatter< MH_STATUS > : std::formatter< std::string_view > {
-    template < typename FormatContext >
-    auto format( MH_STATUS _status, FormatContext& _ctx ) const {
-        return std::formatter< std::string_view >::format(
-            mhStatusToString( _status ), _ctx );
-    }
-};
-
-namespace {
-
 storage_t g_patches;
 std::once_flag g_noPatchesFlag;
 std::atomic< bool > g_noPatches{ false };
 std::mutex g_detoursMutex;
 using detourRecord_t = struct detourRecord {
-    LPVOID target;
-    LPVOID detour;
-    LPVOID trampoline;
+    uintptr_t targetAddress;
+    uintptr_t detourAddress;
+    uintptr_t trampolineAddress;
+    size_t overwriteLength;
+    std::vector< std::byte > originalBytes;
 };
 std::unordered_map< storage_t::handle_t, detourRecord_t > g_detours;
 std::atomic< storage_t::handle_t > g_nextDetourHandle{ 1u };
-std::once_flag g_minHookInitFlag;
-bool g_minHookReady = false;
+constexpr size_t g_detourPatchLength = 10u; // push imm32 + call rel32
+constexpr size_t g_trampolineJumpLength = 5u;
 
 void printBytes( std::span< const std::byte > _bytes ) {
     std::string l_buffer = "[";
@@ -135,13 +57,44 @@ void printBytes( uintptr_t _address, size_t _length ) {
         std::span{ std::bit_cast< const std::byte* >( _address ), _length } );
 }
 
-auto ensureMinHookInitialized() -> bool {
-    std::call_once( g_minHookInitFlag, []() -> void {
-        if ( MH_Initialize() == MH_OK ) {
-            g_minHookReady = true;
-        }
-    } );
-    return ( g_minHookReady );
+auto writeRelativeCall( std::byte* _buffer,
+                        uintptr_t _instructionAddress,
+                        uintptr_t _destination ) -> bool {
+    constexpr uint8_t l_callOpcode = 0xE8u;
+    if ( !_buffer ) {
+        return ( false );
+    }
+
+    const int64_t l_delta = static_cast< int64_t >( _destination ) -
+                            static_cast< int64_t >( _instructionAddress + 5u );
+    if ( ( l_delta < INT32_MIN ) || ( l_delta > INT32_MAX ) ) {
+        return ( false );
+    }
+
+    const int32_t l_rel32 = static_cast< int32_t >( l_delta );
+    _buffer[ 0 ] = static_cast< std::byte >( l_callOpcode );
+    std::memcpy( _buffer + 1, &l_rel32, sizeof( l_rel32 ) );
+    return ( true );
+}
+
+auto writeRelativeJump( std::byte* _buffer,
+                        uintptr_t _instructionAddress,
+                        uintptr_t _destination ) -> bool {
+    constexpr uint8_t l_jmpOpcode = 0xE9u;
+    if ( !_buffer ) {
+        return ( false );
+    }
+
+    const int64_t l_delta = static_cast< int64_t >( _destination ) -
+                            static_cast< int64_t >( _instructionAddress + 5u );
+    if ( ( l_delta < INT32_MIN ) || ( l_delta > INT32_MAX ) ) {
+        return ( false );
+    }
+
+    const int32_t l_rel32 = static_cast< int32_t >( l_delta );
+    _buffer[ 0 ] = static_cast< std::byte >( l_jmpOpcode );
+    std::memcpy( _buffer + 1, &l_rel32, sizeof( l_rel32 ) );
+    return ( true );
 }
 
 auto resolveAddress( uintptr_t _address ) -> uintptr_t {
@@ -404,11 +357,6 @@ auto setNoPatches( bool _value ) -> bool {
         return ( storage_t::g_invalidHandle );
     }
 
-    if ( !ensureMinHookInitialized() ) {
-        logg::error( "wrapper::createDetour MinHook initialization failed" );
-        return ( storage_t::g_invalidHandle );
-    }
-
     const uintptr_t l_targetAddress = resolveAddress( _targetAddress );
     const uintptr_t l_detourAddress = resolveAddress( _detourAddress );
 
@@ -444,38 +392,60 @@ auto setNoPatches( bool _value ) -> bool {
 
     logg::trace( "wrapper::createDetour handle={} allocating hook", l_handle );
 
-    const auto l_target = std::bit_cast< LPVOID >( l_targetAddress );
-    const auto l_detour = std::bit_cast< LPVOID >( l_detourAddress );
-    LPVOID l_trampoline = nullptr;
-
-    const memoryLock_t l_memoryLock( l_targetAddress, 12 );
-
-    const MH_STATUS l_createStatus =
-        MH_CreateHook( l_target, l_detour, &l_trampoline );
-    if ( l_createStatus != MH_OK ) {
-        logg::error(
-            "wrapper::createDetour create hook failed handle={} status={}",
-            l_handle, l_createStatus );
+    std::vector< std::byte > l_originalBytes( g_detourPatchLength );
+    if ( !readMemory( l_targetAddress, l_originalBytes.data(),
+                      l_originalBytes.size() ) ) {
+        logg::error( "wrapper::createDetour failed to snapshot target bytes" );
         return ( storage_t::g_invalidHandle );
     }
 
-    logg::debug( "wrapper::createDetour hook created handle={} trampoline={}",
-                 l_handle, static_cast< const void* >( l_trampoline ) );
-
-    const MH_STATUS l_enableStatus = MH_EnableHook( l_target );
-    if ( l_enableStatus != MH_OK ) {
+    const size_t l_trampolineLength = g_detourPatchLength + g_trampolineJumpLength;
+    auto* l_trampoline = static_cast< std::byte* >(
+        VirtualAlloc( nullptr, l_trampolineLength, MEM_COMMIT | MEM_RESERVE,
+                      PAGE_EXECUTE_READWRITE ) );
+    if ( !l_trampoline ) {
         logg::error(
-            "wrapper::createDetour enable hook failed handle={} status={}",
-            l_handle, l_enableStatus );
-
-        const MH_STATUS l_removeStatus = MH_RemoveHook( l_target );
-        if ( l_removeStatus != MH_OK ) {
-            logg::warning(
-                "wrapper::createDetour remove hook failed handle={} status={}",
-                l_handle, l_removeStatus );
-        }
-
+            "wrapper::createDetour failed to allocate trampoline: gle={}",
+            GetLastError() );
         return ( storage_t::g_invalidHandle );
+    }
+
+    std::memcpy( l_trampoline, l_originalBytes.data(), l_originalBytes.size() );
+    if ( !writeRelativeJump( l_trampoline + g_detourPatchLength,
+                             std::bit_cast< uintptr_t >(
+                                 l_trampoline + g_detourPatchLength ),
+                             l_targetAddress + g_detourPatchLength ) ) {
+        logg::error(
+            "wrapper::createDetour failed to write trampoline jump: handle={}",
+            l_handle );
+        VirtualFree( l_trampoline, 0, MEM_RELEASE );
+        return ( storage_t::g_invalidHandle );
+    }
+
+    std::vector< std::byte > l_patchBytes( g_detourPatchLength );
+    l_patchBytes[ 0 ] = static_cast< std::byte >( 0x68u );
+    const uint32_t l_callSiteImmediate = static_cast< uint32_t >( l_targetAddress );
+    std::memcpy( l_patchBytes.data() + 1, &l_callSiteImmediate, sizeof( uint32_t ) );
+    if ( !writeRelativeCall( l_patchBytes.data() + 5, l_targetAddress + 5,
+                             l_detourAddress ) ) {
+        logg::error(
+            "wrapper::createDetour failed to encode call for handle={}",
+            l_handle );
+        VirtualFree( l_trampoline, 0, MEM_RELEASE );
+        return ( storage_t::g_invalidHandle );
+    }
+
+    {
+        const memoryLock_t l_memoryLock( l_targetAddress, g_detourPatchLength );
+        if ( !l_memoryLock.ok() ) {
+            logg::error(
+                "wrapper::createDetour failed to lock target memory for handle={}",
+                l_handle );
+            VirtualFree( l_trampoline, 0, MEM_RELEASE );
+            return ( storage_t::g_invalidHandle );
+        }
+        std::memcpy( std::bit_cast< std::byte* >( l_targetAddress ),
+                     l_patchBytes.data(), l_patchBytes.size() );
     }
 
     *_outTrampolineAddress = std::bit_cast< uintptr_t >( l_trampoline );
@@ -488,9 +458,14 @@ auto setNoPatches( bool _value ) -> bool {
                 *_outTrampolineAddress );
     printBytes( *_outTrampolineAddress, l_dumpLength );
 
-    g_detours.emplace( l_handle, detourRecord_t{ .target = l_target,
-                                                 .detour = l_detour,
-                                                 .trampoline = l_trampoline } );
+    g_detours.emplace( l_handle, detourRecord_t{ .targetAddress = l_targetAddress,
+                                                 .detourAddress = l_detourAddress,
+                                                 .trampolineAddress =
+                                                     *_outTrampolineAddress,
+                                                 .overwriteLength =
+                                                     g_detourPatchLength,
+                                                 .originalBytes =
+                                                     std::move( l_originalBytes ) } );
 
     logg::info(
         "wrapper::createDetour success handle={} target=0x{:X} detour=0x{:X} "
@@ -507,15 +482,24 @@ auto setNoPatches( bool _value ) -> bool {
         return ( false );
     }
 
-    const LPVOID l_target = l_found->second.target;
-    const LPVOID l_detour = l_found->second.detour;
-    ( void )l_detour;
-
-    if ( MH_DisableHook( l_target ) != MH_OK ) {
-        return ( false );
+    const detourRecord_t l_record = l_found->second;
+    {
+        const memoryLock_t l_memoryLock( l_record.targetAddress,
+                                         l_record.overwriteLength );
+        if ( !l_memoryLock.ok() ) {
+            return ( false );
+        }
+        std::memcpy( std::bit_cast< std::byte* >( l_record.targetAddress ),
+                     l_record.originalBytes.data(),
+                     l_record.originalBytes.size() );
     }
-    if ( MH_RemoveHook( l_target ) != MH_OK ) {
-        return ( false );
+
+    if ( l_record.trampolineAddress ) {
+        if ( !VirtualFree( std::bit_cast< LPVOID >( l_record.trampolineAddress ),
+                           0, MEM_RELEASE ) ) {
+            logg::warning( "wrapper::removeDetour failed to release trampoline 0x{:X} (gle={})",
+                           l_record.trampolineAddress, GetLastError() );
+        }
     }
 
     g_detours.erase( l_found );
