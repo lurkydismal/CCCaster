@@ -1,5 +1,6 @@
-use crate::hook::HookRegisters;
 /// Core modloader lifecycle, discovery, load-order resolution, and hot-reload runtime.
+use crate::api::with_suspend_override;
+use crate::hook::HookRegisters;
 use crate::patch::{
     OwnedPatchSpan, PatchEntry, PatchSpan, Patches, ResolvedPatch, ensure_no_overlap,
     resolve_patch_entries, spans_for_patches,
@@ -1719,7 +1720,7 @@ async fn load_mod(
     } else if let Ok(init_fn) = returned.get::<Function>("init") {
         modloader_debug!("Calling init() for mod {}", meta.id);
         set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
-        let init_result = init_fn.call::<()>(());
+        let init_result = with_suspend_override(false, || init_fn.call::<()>(()));
         set_engine_log_mod_id(lua, None)?;
         if let Err(err) = init_result {
             modloader_error!("init() failed for mod {}: {}", meta.id, err);
@@ -2271,7 +2272,7 @@ fn call_post_init_callbacks(
         if let Ok(post_fn) = mod_table.get::<Function>("post_init") {
             modloader_debug!("Calling post_init() for mod {}", meta.id);
             set_engine_log_mod_id(lua, Some(meta.id.as_str()))?;
-            let post_result = post_fn.call::<()>(());
+            let post_result = with_suspend_override(false, || post_fn.call::<()>(()));
             set_engine_log_mod_id(lua, None)?;
             if let Err(err) = post_result {
                 modloader_error!("post_init() failed for mod {}: {}", meta.id, err);
