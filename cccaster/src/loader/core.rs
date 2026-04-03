@@ -1188,7 +1188,7 @@ async fn hot_reload_patches_only(
         }
     }
     Ok((
-        Some(Patches::new(&resolved_entries)),
+        Some(Patches::new(&resolved_entries, true)),
         spans,
         resolved_entries.len(),
     ))
@@ -1641,7 +1641,7 @@ async fn load_mod(
             resolved_entries.len(),
             meta.id
         );
-        (Some(Patches::new(&resolved_entries)), spans)
+        (Some(Patches::new(&resolved_entries, false)), spans)
     } else {
         modloader_trace!("No patch.json present for mod {}", meta.id);
         (None, Vec::new())
