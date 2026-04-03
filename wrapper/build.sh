@@ -69,6 +69,7 @@ else
     l_build_flags="-Og -g"
     l_link_flags=""
 fi
+l_build_flags+=" -I $SCRIPT_DIRECTORY/minhook/include"
 
 # Target selection
 l_compiler=""
@@ -80,7 +81,13 @@ l_build_dir="out"
 mkdir -p "$l_build_dir"
 
 shopt -s nullglob
-mapfile -t l_sources < <(find "$SCRIPT_DIRECTORY/src" -type f -name "*.cpp" | sort)
+mapfile -t l_sources < <(
+    find \
+        "$SCRIPT_DIRECTORY/src" \
+        "$SCRIPT_DIRECTORY/minhook/src" \
+        -type f \( -name "*.cpp" -o -name "*.c" \) |
+        sort
+)
 shopt -u nullglob
 
 if ((${#l_sources[@]} == 0)); then
