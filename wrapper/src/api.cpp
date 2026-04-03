@@ -4,6 +4,7 @@
 #define NOMINMAX
 #include <windows.h>
 
+#include <MinHook.h>
 #include <tlhelp32.h>
 
 #include <atomic>
@@ -13,8 +14,6 @@
 #include <mutex>
 #include <span>
 #include <unordered_map>
-
-#include <MinHook.h>
 
 #include "logg.hpp"
 #include "memoryLock.hpp"
@@ -49,10 +48,12 @@ auto ensureMinHookInitialized() -> bool {
 auto resolveAddress( uintptr_t _address ) -> uintptr_t {
     const auto l_moduleBase =
         std::bit_cast< uintptr_t >( GetModuleHandle( nullptr ) );
-    logg::trace( "resolveAddress input={} moduleBase={}", _address, l_moduleBase );
+    logg::trace( "resolveAddress input={} moduleBase={}", _address,
+                 l_moduleBase );
 
     if ( l_moduleBase == _address ) {
-        logg::warning( "resolveAddress received module base itself; refusing write/read" );
+        logg::warning(
+            "resolveAddress received module base itself; refusing write/read" );
         return ( 0 );
     }
 
@@ -72,19 +73,22 @@ auto isRangeAccessible( uintptr_t _address, size_t _bytesAmount, bool _write )
 
         if ( VirtualQuery( reinterpret_cast< LPCVOID >( l_current ),
                            &l_memoryInfo, sizeof( l_memoryInfo ) ) == 0 ) {
-            logg::trace( "isRangeAccessible VirtualQuery failed at {}", l_current );
+            logg::trace( "isRangeAccessible VirtualQuery failed at {}",
+                         l_current );
             return ( false );
         }
 
         if ( l_memoryInfo.State != MEM_COMMIT ) {
-            logg::trace( "isRangeAccessible non-committed page at {}", l_current );
+            logg::trace( "isRangeAccessible non-committed page at {}",
+                         l_current );
             return ( false );
         }
 
         const DWORD l_protect = l_memoryInfo.Protect & 0xFFu;
 
         if ( ( l_protect == PAGE_NOACCESS ) || ( l_protect == PAGE_GUARD ) ) {
-            logg::trace( "isRangeAccessible blocked protection={} at {}", l_protect, l_current );
+            logg::trace( "isRangeAccessible blocked protection={} at {}",
+                         l_protect, l_current );
             return ( false );
         }
 
@@ -95,8 +99,9 @@ auto isRangeAccessible( uintptr_t _address, size_t _bytesAmount, bool _write )
                                     ( l_protect == PAGE_EXECUTE_WRITECOPY );
 
             if ( !l_writable ) {
-                logg::trace( "isRangeAccessible region is read-only protection={} at {}", l_protect,
-                             l_current );
+                logg::trace(
+                    "isRangeAccessible region is read-only protection={} at {}",
+                    l_protect, l_current );
                 return ( false );
             }
         }
@@ -106,7 +111,8 @@ auto isRangeAccessible( uintptr_t _address, size_t _bytesAmount, bool _write )
         const uintptr_t l_regionEnd = l_regionBase + l_memoryInfo.RegionSize;
 
         if ( l_regionEnd <= l_current ) {
-            logg::trace( "isRangeAccessible invalid regionEnd={} current={}", l_regionEnd, l_current );
+            logg::trace( "isRangeAccessible invalid regionEnd={} current={}",
+                         l_regionEnd, l_current );
             return ( false );
         }
 
@@ -217,7 +223,8 @@ auto setNoPatches( bool _value ) -> bool {
 
     std::memcpy( _outBytes, reinterpret_cast< const std::byte* >( l_address ),
                  _bytesAmount );
-    logg::debug( "wrapper::readMemory completed addr={} size={}", l_address, _bytesAmount );
+    logg::debug( "wrapper::readMemory completed addr={} size={}", l_address,
+                 _bytesAmount );
     return ( true );
 }
 
@@ -265,8 +272,8 @@ auto setNoPatches( bool _value ) -> bool {
 
     std::memcpy( reinterpret_cast< std::byte* >( l_address ), _bytes,
                  _bytesAmount );
-    logg::debug( "wrapper::writeMemory completed addr={} size={} suspend={}", l_address,
-                 _bytesAmount, _suspendProcess );
+    logg::debug( "wrapper::writeMemory completed addr={} size={} suspend={}",
+                 l_address, _bytesAmount, _suspendProcess );
     return ( true );
 }
 
@@ -312,10 +319,9 @@ auto setNoPatches( bool _value ) -> bool {
     }
 
     *_outTrampolineAddress = std::bit_cast< uintptr_t >( l_trampoline );
-    g_detours.emplace( l_handle,
-                       detourRecord_t{ .target = l_target,
-                                       .detour = l_detour,
-                                       .trampoline = l_trampoline } );
+    g_detours.emplace( l_handle, detourRecord_t{ .target = l_target,
+                                                 .detour = l_detour,
+                                                 .trampoline = l_trampoline } );
     return ( l_handle );
 }
 
@@ -328,7 +334,7 @@ auto setNoPatches( bool _value ) -> bool {
 
     const LPVOID l_target = l_found->second.target;
     const LPVOID l_detour = l_found->second.detour;
-    (void)l_detour;
+    ( void )l_detour;
 
     if ( MH_DisableHook( l_target ) != MH_OK ) {
         return ( false );
