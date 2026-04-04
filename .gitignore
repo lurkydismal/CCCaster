@@ -24,3 +24,4 @@
 **/*.exe
 **/*.so
 /main
+**/*.tar.zstd

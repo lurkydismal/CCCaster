@@ -1749,7 +1749,8 @@ fn install_mock_test_apis(lua: &Lua, engine_table: &Table) -> mlua::Result<()> {
             },
         )?,
     )?;
-    fs_table.set("local", local_table)?;
+    // NOTE: Immanent = local
+    fs_table.set("immanent", local_table)?;
 
     let memory_table = lua.create_table()?;
     memory_table.set(

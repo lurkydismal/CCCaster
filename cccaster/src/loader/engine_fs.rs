@@ -156,7 +156,8 @@ pub(super) fn register_engine_fs_local(
 
     local_table.set("read", read_fn)?;
     local_table.set("write", write_fn)?;
-    fs_table.set("local", local_table)?;
+    // NOTE: Immanent = local
+    fs_table.set("immanent", local_table)?;
 
     let global_table = lua.create_table()?;
     let global_read = lua.create_function(|_, path: String| {
