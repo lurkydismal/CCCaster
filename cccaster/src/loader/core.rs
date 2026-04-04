@@ -7,8 +7,8 @@ use crate::patch::{
 };
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{
-    AppError, LOG_ERROR, modloader_debug, modloader_error, modloader_info, modloader_trace,
-    modloader_warning, runtime_args,
+    AppError, modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
+    runtime_args,
 };
 use anyhow::{Context, Result, anyhow};
 use blake3::Hash;
@@ -776,7 +776,7 @@ async fn start_hot_reload_loop(
 }
 
 fn install_error_override(lua: &Lua) -> mlua::Result<()> {
-    let error_fn = lua.create_function(|lua, args: mlua::MultiValue| -> mlua::Result<()> {
+    let error_fn = lua.create_function(|_, args: mlua::MultiValue| -> mlua::Result<()> {
         let values: Vec<Value> = args.into_iter().collect();
         let message = values
             .first()
@@ -793,14 +793,15 @@ fn install_error_override(lua: &Lua) -> mlua::Result<()> {
             })
             .unwrap_or_else(|| "error() called without message".to_owned());
 
-        if let Ok(engine_table) = lua.globals().get::<Table>("Engine")
-            && let Ok(engine_log) = engine_table.get::<Table>("log")
-            && let Ok(log_write) = engine_log.get::<Function>("write")
-        {
-            let _ = log_write.call::<()>((LOG_ERROR, message.clone()));
-        } else {
-            modloader_error!("{}", message);
-        }
+        // NOTE: Does call Engine.log aka modloader_error before Err
+        // if let Ok(engine_table) = lua.globals().get::<Table>("Engine")
+        //     && let Ok(engine_log) = engine_table.get::<Table>("log")
+        //     && let Ok(log_write) = engine_log.get::<Function>("write")
+        // {
+        //     let _ = log_write.call::<()>((LOG_ERROR, message.clone()));
+        // } else {
+        //     modloader_error!("{}", message);
+        // }
 
         Err(mlua::Error::runtime(message))
     })?;
