@@ -7,8 +7,8 @@ use crate::patch::{
 };
 use crate::types::{Dependency, ModMeta, RawModInfo};
 use crate::{
-    AppError, modloader_debug, modloader_error, modloader_info, modloader_trace, modloader_warning,
-    runtime_args,
+    AppError, LOG_DEBUG, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
+    modloader_info, modloader_trace, modloader_warning, runtime_args,
 };
 use anyhow::{Context, Result, anyhow};
 use blake3::Hash;
@@ -592,6 +592,11 @@ async fn run_with_load_order(
     apply_registered_engine_variables(&lua, &engine_table)?;
     globals.set("Engine", engine_table)?;
     install_error_override(&lua)?;
+    install_warning_global(&lua)?;
+    install_info_global(&lua)?;
+    // NOTE: Maybe will add in future
+    // install_debug_global(&lua)?;
+    // install_trace_global(&lua)?;
 
     let mut loaded_mods: Vec<LoadedMod> = Vec::new();
     for &mod_index in load_order {
@@ -806,6 +811,144 @@ fn install_error_override(lua: &Lua) -> mlua::Result<()> {
         Err(mlua::Error::runtime(message))
     })?;
     lua.globals().set("error", error_fn)?;
+    Ok(())
+}
+
+fn install_warning_global(lua: &Lua) -> mlua::Result<()> {
+    let warning_fn = lua.create_function(|lua, args: mlua::MultiValue| -> mlua::Result<()> {
+        let values: Vec<Value> = args.into_iter().collect();
+        let message = values
+            .first()
+            .map(|value| match value {
+                Value::String(text) => text
+                    .to_str()
+                    .map(|s| s.to_owned())
+                    .unwrap_or_else(|_| "<invalid utf-8 warning message>".to_owned()),
+                Value::Nil => "nil".to_owned(),
+                Value::Integer(v) => v.to_string(),
+                Value::Number(v) => v.to_string(),
+                Value::Boolean(v) => v.to_string(),
+                other => format!("{other:?}"),
+            })
+            .unwrap_or_else(|| "warning() called without message".to_owned());
+
+        // NOTE: Does call Engine.log aka modloader_warning
+        if let Ok(engine_table) = lua.globals().get::<Table>("Engine")
+            && let Ok(engine_log) = engine_table.get::<Table>("log")
+            && let Ok(log_write) = engine_log.get::<Function>("write")
+        {
+            let _ = log_write.call::<()>((LOG_WARNING, message.clone()));
+        } else {
+            modloader_warning!("{}", message);
+        }
+
+        Ok(())
+    })?;
+    lua.globals().set("warning", warning_fn)?;
+    Ok(())
+}
+
+fn install_info_global(lua: &Lua) -> mlua::Result<()> {
+    let info_fn = lua.create_function(|lua, args: mlua::MultiValue| -> mlua::Result<()> {
+        let values: Vec<Value> = args.into_iter().collect();
+        let message = values
+            .first()
+            .map(|value| match value {
+                Value::String(text) => text
+                    .to_str()
+                    .map(|s| s.to_owned())
+                    .unwrap_or_else(|_| "<invalid utf-8 info message>".to_owned()),
+                Value::Nil => "nil".to_owned(),
+                Value::Integer(v) => v.to_string(),
+                Value::Number(v) => v.to_string(),
+                Value::Boolean(v) => v.to_string(),
+                other => format!("{other:?}"),
+            })
+            .unwrap_or_else(|| "info() called without message".to_owned());
+
+        // NOTE: Does call Engine.log aka modloader_info
+        if let Ok(engine_table) = lua.globals().get::<Table>("Engine")
+            && let Ok(engine_log) = engine_table.get::<Table>("log")
+            && let Ok(log_write) = engine_log.get::<Function>("write")
+        {
+            let _ = log_write.call::<()>((LOG_INFO, message.clone()));
+        } else {
+            modloader_info!("{}", message);
+        }
+
+        Ok(())
+    })?;
+    lua.globals().set("info", info_fn)?;
+    Ok(())
+}
+
+#[expect(dead_code)]
+fn install_debug_global(lua: &Lua) -> mlua::Result<()> {
+    let debug_fn = lua.create_function(|lua, args: mlua::MultiValue| -> mlua::Result<()> {
+        let values: Vec<Value> = args.into_iter().collect();
+        let message = values
+            .first()
+            .map(|value| match value {
+                Value::String(text) => text
+                    .to_str()
+                    .map(|s| s.to_owned())
+                    .unwrap_or_else(|_| "<invalid utf-8 debug message>".to_owned()),
+                Value::Nil => "nil".to_owned(),
+                Value::Integer(v) => v.to_string(),
+                Value::Number(v) => v.to_string(),
+                Value::Boolean(v) => v.to_string(),
+                other => format!("{other:?}"),
+            })
+            .unwrap_or_else(|| "debug() called without message".to_owned());
+
+        // NOTE: Does call Engine.log aka modloader_debug
+        if let Ok(engine_table) = lua.globals().get::<Table>("Engine")
+            && let Ok(engine_log) = engine_table.get::<Table>("log")
+            && let Ok(log_write) = engine_log.get::<Function>("write")
+        {
+            let _ = log_write.call::<()>((LOG_DEBUG, message.clone()));
+        } else {
+            modloader_debug!("{}", message);
+        }
+
+        Ok(())
+    })?;
+    lua.globals().set("debug", debug_fn)?;
+    Ok(())
+}
+
+#[expect(dead_code)]
+fn install_trace_global(lua: &Lua) -> mlua::Result<()> {
+    let trace_fn = lua.create_function(|lua, args: mlua::MultiValue| -> mlua::Result<()> {
+        let values: Vec<Value> = args.into_iter().collect();
+        let message = values
+            .first()
+            .map(|value| match value {
+                Value::String(text) => text
+                    .to_str()
+                    .map(|s| s.to_owned())
+                    .unwrap_or_else(|_| "<invalid utf-8 trace message>".to_owned()),
+                Value::Nil => "nil".to_owned(),
+                Value::Integer(v) => v.to_string(),
+                Value::Number(v) => v.to_string(),
+                Value::Boolean(v) => v.to_string(),
+                other => format!("{other:?}"),
+            })
+            .unwrap_or_else(|| "trace() called without message".to_owned());
+
+        // NOTE: Does call Engine.log aka modloader_trace
+        if let Ok(engine_table) = lua.globals().get::<Table>("Engine")
+            && let Ok(engine_log) = engine_table.get::<Table>("log")
+            && let Ok(log_write) = engine_log.get::<Function>("write")
+        {
+            let _ = log_write.call::<()>((LOG_TRACE, message.clone()));
+        } else {
+            modloader_trace!("{}", message);
+        }
+
+        Ok(())
+    })?;
+    lua.globals().set("trace", trace_fn)?;
     Ok(())
 }
 

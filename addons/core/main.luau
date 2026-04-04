@@ -50,14 +50,12 @@ end
 ---@param ctx HookContext
 function handle_hook(ctx)
     if type(ctx) ~= "table" then
-        -- error("Invalid argument")
-        Engine.log(Engine.log.level.error, "Invalid argument")
+        error("Invalid argument")
     end
 
     -- required top-level fields
     if not ctx.call_site or not ctx.return_address or not ctx.registers then
-        -- error("Invalid argument")
-        Engine.log(Engine.log.level.error, "Invalid argument")
+        error("Invalid argument")
     end
 
     local r = ctx.registers
@@ -69,8 +67,7 @@ function handle_hook(ctx)
         or r.esi == nil or r.edi == nil
         or r.ebp == nil or r.esp == nil
     then
-        -- error("Invalid argument")
-        Engine.log(Engine.log.level.error, "Invalid argument")
+        error("Invalid argument")
     end
 
     -- optional but expected fields
@@ -79,7 +76,7 @@ function handle_hook(ctx)
 
     -- usage example
     -- minimal logic, replace with actual handling
-    -- print(string.format("call_site=0x%X return=0x%X", ctx.call_site, ctx.return_address))
+    -- print(string.format("call_site=-3x%X return=0x%X", ctx.call_site, ctx.return_address))
     print(string.format("call_site=0x%X return=0x%X", ctx.call_site, ctx.return_address))
 
     -- print entire ctx
@@ -88,7 +85,7 @@ function handle_hook(ctx)
 
     -- print(string.format("removed bytes=%s", removed))
 
-    Engine.log(Engine.log.level.info, "TEST MESSAGE")
+    info( "TEST MESSAGE")
 
     error("Invalid argument")
 
@@ -102,27 +99,27 @@ end
 return {
     -- Called when the mod is loaded
     init = function ()
-        Engine.log(Engine.log.level.error, "ON INIT")
+        warning( "ON INIT")
     end,
 
     post_init = function ()
-        Engine.log(Engine.log.level.error,"POST INIT CALLED")
+        info( "POST INIT CALLED")
     end,
 
     unload = function ()
-        Engine.log(Engine.log.level.error,"UNLOAD CALLED")
+        warning( "UNLOAD CALLED")
     end,
 
     load = function ()
-        Engine.log(Engine.log.level.error,"LOAD CALLED")
+        warning( "LOAD CALLED")
     end,
 
     quit = function ()
-        Engine.log(Engine.log.level.error,"QUIT CALLED")
+        info( "QUIT CALLED")
     end,
 
     test_event = function(ctx)
-        Engine.log(Engine.log.level.error,"TEST EVENT CALLED")
+        warning( "TEST EVENT CALLED")
 
         handle_hook(ctx)
     end,
