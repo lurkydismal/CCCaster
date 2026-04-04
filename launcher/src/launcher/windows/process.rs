@@ -80,7 +80,7 @@ struct WrapperData<'a> {
     /// Disable all mods except core/ runtime.
     safe_mode: &'a bool,
 
-    /// Restrict file access (NOTE: stub, no VFS yet).
+    /// Restrict global file access.
     sandbox: &'a bool,
 
     /// Load mods but don’t apply binary patches (script-only testing).

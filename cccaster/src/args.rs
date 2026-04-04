@@ -50,6 +50,6 @@ pub struct ModloaderData {
     /// Disable all mods except core/ runtime.
     pub safe_mode: bool,
 
-    /// Restrict file access (NOTE: stub, no VFS yet).
+    /// Restrict global file access.
     pub sandbox: bool,
 }

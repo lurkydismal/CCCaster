@@ -136,7 +136,7 @@ pub struct Args {
     #[arg(long)]
     pub safe_mode: bool,
 
-    /// Restrict file access (NOTE: stub, no VFS yet).
+    /// Restrict global file access.
     #[arg(short, long)]
     pub sandbox: bool,
 
