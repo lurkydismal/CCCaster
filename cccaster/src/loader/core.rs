@@ -39,6 +39,7 @@ use super::path_utils::{hash_file, is_safe_path, normalize_path};
 
 type StartupSignal = Arc<Mutex<Option<oneshot::Sender<Result<()>>>>>;
 type ShutdownSender = std::sync::mpsc::Sender<ControlMessage>;
+const PATCH_FILE_NAME: &str = "patch.json5";
 
 enum ControlMessage {
     Shutdown,
@@ -751,7 +752,8 @@ async fn start_hot_reload_loop(
                     loaded_mods[mod_index]._patches = patches;
                     loaded_mods[mod_index].patch_spans = spans;
                     modloader_info!(
-                        "Hot-reloaded patch.json for mod {} ({} patch entries)",
+                        "Hot-reloaded {} for mod {} ({} patch entries)",
+                        PATCH_FILE_NAME,
                         loaded_mods[mod_index].meta.id,
                         patch_count
                     );
@@ -1244,7 +1246,7 @@ fn is_asset_path(mod_path: &Path, normalized_path: &Path) -> bool {
 }
 
 fn classify_hot_reload_path(mod_path: &Path, changed: &Path) -> (&'static str, bool, bool, bool) {
-    let patch_path = normalize_path(&mod_path.join("patch.json"));
+    let patch_path = normalize_path(&mod_path.join(PATCH_FILE_NAME));
     let main_path = normalize_path(&mod_path.join("main.luau"));
     let script_archive_path = normalize_path(&mod_path.join("script.tar.zstd"));
     let is_patch = changed == patch_path;
@@ -1395,7 +1397,7 @@ async fn hot_reload_patches_only(
     occupied_spans: &[OwnedPatchSpan<'_>],
     dump_patches: bool,
 ) -> Result<(Option<Patches>, Vec<PatchSpan>, usize)> {
-    let patch_path = mod_path.join("patch.json");
+    let patch_path = mod_path.join(PATCH_FILE_NAME);
     if !patch_path.exists() {
         return Ok((None, Vec::new(), 0));
     }
@@ -1406,13 +1408,7 @@ async fn hot_reload_patches_only(
             patch_path, meta.id
         )
     })?;
-    let patch_entries: Vec<PatchEntry> =
-        serde_json::from_slice(&patch_data).with_context(|| {
-            format!(
-                "failed to parse patch file {:?} for mod {}",
-                patch_path, meta.id
-            )
-        })?;
+    let patch_entries: Vec<PatchEntry> = parse_patch_entries(&patch_data, &patch_path, &meta.id)?;
     let resolved_entries: Vec<ResolvedPatch> = resolve_patch_entries(&patch_entries, &meta.id)?;
     let spans = spans_for_patches(&resolved_entries)?;
     ensure_no_overlap(&meta.id, &spans, occupied_spans)?;
@@ -1433,6 +1429,25 @@ async fn hot_reload_patches_only(
         spans,
         resolved_entries.len(),
     ))
+}
+
+fn parse_patch_entries(
+    patch_data: &[u8],
+    patch_path: &Path,
+    mod_id: &str,
+) -> Result<Vec<PatchEntry>> {
+    let patch_text = std::str::from_utf8(patch_data).with_context(|| {
+        format!(
+            "failed to decode patch file {:?} as UTF-8 for mod {}",
+            patch_path, mod_id
+        )
+    })?;
+    json5::from_str::<Vec<PatchEntry>>(patch_text).with_context(|| {
+        format!(
+            "failed to parse patch file {:?} for mod {}",
+            patch_path, mod_id
+        )
+    })
 }
 
 fn set_engine_log_mod_id(lua: &Lua, mod_id: Option<&str>) -> Result<()> {
@@ -1809,7 +1824,7 @@ async fn load_mod(
         is_hot_reload,
         path
     );
-    let patch_path = path.join("patch.json");
+    let patch_path = path.join(PATCH_FILE_NAME);
     let has_patch_file = patch_path.exists();
     let archive_scripts_root = prepare_script_archive_dir(&path)?;
     let main_path = resolve_script_path(&path, archive_scripts_root.as_deref(), "main.luau");
@@ -1827,7 +1842,7 @@ async fn load_mod(
         && !has_scripts_archive
     {
         return Err(anyhow!(
-            "mod {} must provide at least one of main.luau, script.tar.zstd, patch.json, assets/, or assets.tar.zstd",
+            "mod {} must provide at least one of main.luau, script.tar.zstd, patch.json5, assets/, or assets.tar.zstd",
             meta.id
         ));
     }
@@ -1858,12 +1873,7 @@ async fn load_mod(
             )
         })?;
         let patch_entries: Vec<PatchEntry> =
-            serde_json::from_slice(&patch_data).with_context(|| {
-                format!(
-                    "failed to parse patch file {:?} for mod {}",
-                    patch_path, meta.id
-                )
-            })?;
+            parse_patch_entries(&patch_data, &patch_path, &meta.id)?;
         let resolved_entries: Vec<ResolvedPatch> = resolve_patch_entries(&patch_entries, &meta.id)?;
         let spans = spans_for_patches(&resolved_entries)?;
         ensure_no_overlap(&meta.id, &spans, occupied_spans)?;
@@ -1885,7 +1895,7 @@ async fn load_mod(
         );
         (Some(Patches::new(&resolved_entries, false)), spans)
     } else {
-        modloader_trace!("No patch.json present for mod {}", meta.id);
+        modloader_trace!("No patch.json5 present for mod {}", meta.id);
         (None, Vec::new())
     };
 
@@ -2179,7 +2189,7 @@ fn build_watched_files(
 ) -> Vec<PathBuf> {
     // Core mod files are always watched.
     let mut files = vec![
-        normalize_path(&mod_path.join("patch.json")),
+        normalize_path(&mod_path.join(PATCH_FILE_NAME)),
         normalize_path(&mod_path.join("info.json")),
         normalize_path(&mod_path.join("main.luau")),
     ];

@@ -6,7 +6,7 @@ use std::fmt;
 
 use anyhow::{Result, anyhow};
 
-/// Represents a patch entry from patch.json
+/// Represents a patch entry from patch.json5
 #[derive(Deserialize)]
 pub struct PatchEntry {
     #[serde(deserialize_with = "deserialize_address")]
