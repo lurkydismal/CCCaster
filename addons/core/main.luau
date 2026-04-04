@@ -100,6 +100,8 @@ return {
     -- Called when the mod is loaded
     init = function ()
         warning( "ON INIT")
+
+        Engine.fs.immanent.write("foo.txt", "contentTTT", "w")
     end,
 
     post_init = function ()
@@ -116,6 +118,10 @@ return {
 
     quit = function ()
         info( "QUIT CALLED")
+
+        local foo = Engine.fs.immanent.read("foo.txt")
+
+        info(foo)
     end,
 
     test_event = function(ctx)
