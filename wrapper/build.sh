@@ -80,7 +80,12 @@ l_build_dir="out"
 mkdir -p "$l_build_dir"
 
 shopt -s nullglob
-l_sources=("$SCRIPT_DIRECTORY"/src/*.cpp)
+mapfile -t l_sources < <(
+    find \
+        "$SCRIPT_DIRECTORY/src" \
+        -type f \( -name "*.cpp" -o -name "*.c" \) |
+        sort
+)
 shopt -u nullglob
 
 if ((${#l_sources[@]} == 0)); then

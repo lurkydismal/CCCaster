@@ -52,6 +52,7 @@ fn collect_env() -> std::collections::BTreeMap<String, String> {
         if l_key.starts_with("LAUNCHER_")
             || l_key.starts_with("MODLOADER_")
             || l_key.starts_with("WRAPPER_")
+            || l_key.starts_with("MOD_")
         {
             l_map.insert(l_key, l_value);
         }

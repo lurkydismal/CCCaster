@@ -1,0 +1,277 @@
+use std::sync::OnceLock;
+use std::{cell::Cell, thread_local};
+
+use crate::{modloader_debug, modloader_error, modloader_trace, modloader_warning};
+
+pub mod engine_variables;
+pub mod init_bridge;
+
+pub type Handle = u32;
+
+/// FFI callback for creating a patch in the host process.
+pub type MakePatchFn = unsafe extern "C" fn(
+    addr: usize,
+    bytes: *const u8,
+    len: usize,
+    suspend_process: bool,
+) -> Handle;
+
+/// FFI callback for removing a previously created patch.
+pub type RemovePatchFn = unsafe extern "C" fn(id: Handle, suspend_process: bool) -> bool;
+/// FFI callback for reading memory from the host process.
+pub type ReadMemoryFn = unsafe extern "C" fn(addr: usize, out: *mut u8, len: usize) -> bool;
+/// FFI callback for writing memory to the host process.
+pub type WriteMemoryFn =
+    unsafe extern "C" fn(addr: usize, bytes: *const u8, len: usize, suspend_process: bool) -> bool;
+/// FFI callback for creating a detour and retrieving trampoline address.
+pub type CreateDetourFn = unsafe extern "C" fn(
+    target: usize,
+    detour: usize,
+    out_trampoline: *mut usize,
+    suspend_process: bool,
+) -> Handle;
+/// FFI callback for removing a detour handle.
+pub type RemoveDetourFn = unsafe extern "C" fn(id: Handle) -> bool;
+
+/// Immutable API table provided by the host at initialization time.
+#[repr(C)]
+pub struct Api {
+    pub make_patch: MakePatchFn,
+    pub remove_patch: RemovePatchFn,
+    pub read_memory: ReadMemoryFn,
+    pub write_memory: WriteMemoryFn,
+    pub create_detour: CreateDetourFn,
+    pub remove_detour: RemoveDetourFn,
+}
+
+lazy_static::lazy_static! {
+    static ref API: OnceLock<Api> = OnceLock::new();
+}
+
+thread_local! {
+    static SUSPEND_OVERRIDE: Cell<Option<bool>> = const { Cell::new(None) };
+}
+
+pub fn with_suspend_override<T>(suspend_process: bool, f: impl FnOnce() -> T) -> T {
+    SUSPEND_OVERRIDE.with(|cell| {
+        let previous = cell.get();
+        cell.set(Some(suspend_process));
+        let result = f();
+        cell.set(previous);
+        result
+    })
+}
+
+fn current_suspend_setting(default: bool) -> bool {
+    SUSPEND_OVERRIDE.with(|cell| cell.get()).unwrap_or(default)
+}
+
+pub(crate) fn set_api_from_ptr(vtable: *const Api) -> bool {
+    modloader_trace!("set_api_from_ptr called with vtable={:p}", vtable);
+    if vtable.is_null() {
+        modloader_error!("set_api_from_ptr received null vtable");
+        return false;
+    }
+    // SAFETY: `vtable` points to a C ABI table validated by the caller.
+    let api = unsafe { std::ptr::read(vtable) };
+    let set_result = API.set(api);
+    if set_result.is_err() {
+        modloader_warning!("set_api_from_ptr called more than once; keeping original API table");
+    } else {
+        modloader_debug!("set_api_from_ptr stored API table successfully");
+    }
+    true
+}
+
+/// Safe wrapper around the raw FFI patch-creation callback.
+pub fn make_patch(addr: usize, bytes: &[u8]) -> Handle {
+    make_patch_with_suspend(addr, bytes, current_suspend_setting(true))
+}
+
+pub fn make_patch_with_suspend(addr: usize, bytes: &[u8], suspend_process: bool) -> Handle {
+    modloader_trace!(
+        "make_patch requested: addr=0x{:X}, len={}, suspend={}, bytes_preview={:02X?}",
+        addr,
+        bytes.len(),
+        suspend_process,
+        bytes.iter().take(8).copied().collect::<Vec<u8>>()
+    );
+    // SAFETY: the API table is initialized during `init` before patch operations.
+    unsafe { make_patch_raw(addr, bytes.as_ptr(), bytes.len(), suspend_process) }
+}
+
+/// Safe wrapper around the raw FFI patch-removal callback.
+pub fn remove_patch(id: Handle) -> bool {
+    remove_patch_with_suspend(id, current_suspend_setting(true))
+}
+
+pub fn remove_patch_with_suspend(id: Handle, suspend_process: bool) -> bool {
+    modloader_trace!("remove_patch requested: handle={}", id);
+    // SAFETY: the API table is initialized during `init` before patch operations.
+    unsafe { remove_patch_raw(id, suspend_process) }
+}
+
+/// Safe wrapper around the raw FFI memory-read callback.
+pub fn read_memory(addr: usize, len: usize) -> Option<Vec<u8>> {
+    modloader_trace!("read_memory requested: addr=0x{:X}, len={}", addr, len);
+    if len == 0 {
+        modloader_debug!("read_memory requested with len=0; returning empty buffer");
+        return Some(Vec::new());
+    }
+
+    let mut out = vec![0u8; len];
+    // SAFETY: `out` is valid for writes of `len` bytes.
+    let ok = unsafe { read_memory_raw(addr, out.as_mut_ptr(), out.len()) };
+    if ok {
+        modloader_debug!("read_memory succeeded: addr=0x{:X}, len={}", addr, len);
+        Some(out)
+    } else {
+        modloader_warning!("read_memory failed: addr=0x{:X}, len={}", addr, len);
+        None
+    }
+}
+
+/// Safe wrapper around the raw FFI memory-write callback.
+pub fn write_memory(addr: usize, bytes: &[u8]) -> bool {
+    write_memory_with_suspend(addr, bytes, current_suspend_setting(true))
+}
+
+pub fn write_memory_with_suspend(addr: usize, bytes: &[u8], suspend_process: bool) -> bool {
+    modloader_trace!(
+        "write_memory requested: addr=0x{:X}, len={}, suspend={}, bytes_preview={:02X?}",
+        addr,
+        bytes.len(),
+        suspend_process,
+        bytes.iter().take(8).copied().collect::<Vec<u8>>()
+    );
+    if bytes.is_empty() {
+        modloader_warning!("write_memory requested with empty bytes");
+        return false;
+    }
+    // SAFETY: `bytes` is valid for reads of `bytes.len()` bytes.
+    let ok = unsafe { write_memory_raw(addr, bytes.as_ptr(), bytes.len(), suspend_process) };
+    if ok {
+        modloader_debug!(
+            "write_memory succeeded: addr=0x{:X}, len={}",
+            addr,
+            bytes.len()
+        );
+    } else {
+        modloader_warning!(
+            "write_memory failed: addr=0x{:X}, len={}",
+            addr,
+            bytes.len()
+        );
+    }
+    ok
+}
+
+pub fn create_detour(
+    target: usize,
+    detour: usize,
+    suspend_process: bool,
+) -> Option<(Handle, usize)> {
+    let mut trampoline = 0usize;
+    let handle = unsafe {
+        create_detour_raw(
+            target,
+            detour,
+            &mut trampoline as *mut usize,
+            suspend_process,
+        )
+    };
+    if handle == 0 || trampoline == 0 {
+        return None;
+    }
+    Some((handle, trampoline))
+}
+
+pub fn remove_detour(id: Handle) -> bool {
+    unsafe { remove_detour_raw(id) }
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn make_patch_raw(
+    addr: usize,
+    bytes: *const u8,
+    len: usize,
+    suspend_process: bool,
+) -> Handle {
+    let api = API.get().expect("API not initialized");
+
+    // SAFETY: callback pointer and argument contract come from host process.
+    let handle = unsafe { (api.make_patch)(addr, bytes, len, suspend_process) };
+    modloader_debug!(
+        "make_patch_raw applied patch at 0x{:X} with len={} => handle={}",
+        addr,
+        len,
+        handle
+    );
+    handle
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn remove_patch_raw(id: Handle, suspend_process: bool) -> bool {
+    let api = API.get().expect("API not initialized");
+
+    // SAFETY: callback pointer and argument contract come from host process.
+    let removed = unsafe { (api.remove_patch)(id, suspend_process) };
+    modloader_debug!("remove_patch_raw handle={} removed={}", id, removed);
+    removed
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn read_memory_raw(addr: usize, out: *mut u8, len: usize) -> bool {
+    let api = API.get().expect("API not initialized");
+    // SAFETY: callback pointer and argument contract come from host process.
+    let ok = unsafe { (api.read_memory)(addr, out, len) };
+    modloader_trace!(
+        "read_memory_raw callback result: addr=0x{:X}, len={}, ok={}",
+        addr,
+        len,
+        ok
+    );
+    ok
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn write_memory_raw(
+    addr: usize,
+    bytes: *const u8,
+    len: usize,
+    suspend_process: bool,
+) -> bool {
+    let api = API.get().expect("API not initialized");
+    // SAFETY: callback pointer and argument contract come from host process.
+    let ok = unsafe { (api.write_memory)(addr, bytes, len, suspend_process) };
+    modloader_trace!(
+        "write_memory_raw callback result: addr=0x{:X}, len={}, ok={}",
+        addr,
+        len,
+        ok
+    );
+    ok
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn create_detour_raw(
+    target: usize,
+    detour: usize,
+    out_trampoline: *mut usize,
+    suspend_process: bool,
+) -> Handle {
+    let api = API.get().expect("API not initialized");
+    unsafe { (api.create_detour)(target, detour, out_trampoline, suspend_process) }
+}
+
+/// # Safety
+/// Requires that `API` has already been initialized and pointers are valid.
+unsafe fn remove_detour_raw(id: Handle) -> bool {
+    let api = API.get().expect("API not initialized");
+    unsafe { (api.remove_detour)(id) }
+}

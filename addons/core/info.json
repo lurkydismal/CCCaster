@@ -3,7 +3,12 @@
     "version": "0.0.0",
     "dependencies": [],
     "events": [
-        "on_init"
+        "init",
+        "post_init",
+        "unload",
+        "load",
+        "quit",
+        "test_event"
     ],
     "api_version": 1
 }

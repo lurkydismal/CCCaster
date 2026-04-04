@@ -1,0 +1,640 @@
+/// Engine logging/memory APIs and script patch parsing helpers.
+use crate::api::{make_patch, read_memory, remove_patch, write_memory};
+use crate::hook;
+use crate::{
+    LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_TRACE, LOG_WARNING, modloader_debug, modloader_error,
+    modloader_info, modloader_trace, modloader_warning,
+};
+use anyhow::Result;
+use mlua::{Function, Lua, Table, Value};
+
+use super::engine_require_dispatch::is_probably_writable;
+
+pub(super) const ENGINE_LOG_MOD_ID_KEY: &str = "__engine_log_mod_id";
+
+pub(super) fn install_engine_log_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+    let log_fn = lua.create_function(|lua, args: mlua::MultiValue| {
+        let (level, message) = parse_log_args(args)?;
+        let prefixed = current_log_message(lua, &message);
+        match level {
+            LOG_ERROR => modloader_error!("{}", prefixed),
+            LOG_WARNING => modloader_warning!("{}", prefixed),
+            LOG_INFO => modloader_info!("{}", prefixed),
+            LOG_DEBUG => modloader_debug!("{}", prefixed),
+            LOG_TRACE => modloader_trace!("{}", prefixed),
+            other => modloader_warning!(
+                "Engine.log received unsupported level {} with message: {}",
+                other,
+                prefixed
+            ),
+        }
+        Ok(())
+    })?;
+    let log_level_table = lua.create_table()?;
+    log_level_table.set("error", LOG_ERROR)?;
+    log_level_table.set("warning", LOG_WARNING)?;
+    log_level_table.set("info", LOG_INFO)?;
+    log_level_table.set("debug", LOG_DEBUG)?;
+    log_level_table.set("trace", LOG_TRACE)?;
+
+    let log_table = lua.create_table()?;
+    log_table.set("level", log_level_table)?;
+    log_table.set("write", log_fn.clone())?;
+    let log_meta = lua.create_table()?;
+    log_meta.set("__call", log_fn)?;
+    log_table.set_metatable(Some(log_meta))?;
+
+    engine_table.set("log", log_table)?;
+
+    Ok(())
+}
+
+fn current_log_message(lua: &Lua, message: &str) -> String {
+    let mod_id = lua
+        .named_registry_value::<String>(ENGINE_LOG_MOD_ID_KEY)
+        .ok()
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty());
+    match mod_id {
+        Some(id) => format!("[{}] {}", id, message),
+        None => message.to_owned(),
+    }
+}
+
+fn parse_log_args(args: mlua::MultiValue) -> mlua::Result<(u8, String)> {
+    let values: Vec<Value> = args.into_iter().collect();
+    if values.len() < 2 {
+        return Err(mlua::Error::runtime(
+            "Engine.log expects (level, message) arguments",
+        ));
+    }
+
+    let start_idx = match values.first() {
+        Some(Value::Table(_)) => 1,
+        _ => 0,
+    };
+    if values.len() <= start_idx + 1 {
+        return Err(mlua::Error::runtime(
+            "Engine.log expects (level, message) arguments",
+        ));
+    }
+
+    let level = match &values[start_idx] {
+        Value::Integer(v) if *v >= 0 && *v <= i32::from(u8::MAX) => *v as u8,
+        Value::Number(v) if v.is_finite() && *v >= 0.0 && *v <= u8::MAX as f64 => *v as u8,
+        Value::String(v) => v.to_str()?.parse::<u8>().map_err(mlua::Error::runtime)?,
+        _ => {
+            return Err(mlua::Error::runtime(
+                "Engine.log level must be a number or numeric string",
+            ));
+        }
+    };
+
+    let message = match &values[start_idx + 1] {
+        Value::String(v) => v.to_str()?.to_string(),
+        Value::Integer(v) => v.to_string(),
+        Value::Number(v) => v.to_string(),
+        Value::Boolean(v) => v.to_string(),
+        _ => {
+            return Err(mlua::Error::runtime(
+                "Engine.log message must be a string or scalar value",
+            ));
+        }
+    };
+
+    Ok((level, message))
+}
+
+pub(super) fn install_engine_memory_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+    let memory_table = lua.create_table()?;
+
+    let read_fn = lua.create_function(|lua, (address, length): (Value, usize)| {
+        let addr = match parse_lua_address(address) {
+            Ok(value) => value,
+            Err(err) => {
+                modloader_warning!("Engine.memory.read failed: {err}");
+                return Ok(Value::Nil);
+            }
+        };
+
+        let bytes = match read_memory(addr, length) {
+            Some(bytes) => bytes,
+            None => {
+                modloader_warning!(
+                    "Engine.memory.read failed: host denied range read 0x{:X}..+{}",
+                    addr,
+                    length
+                );
+                return Ok(Value::Nil);
+            }
+        };
+
+        let out = lua.create_table()?;
+        for (idx, byte) in bytes.iter().copied().enumerate() {
+            out.set(idx + 1, format!("{:02X}", byte))?;
+        }
+        Ok(Value::Table(out))
+    })?;
+
+    let write_fn = lua.create_function(|_, (address, bytes): (Value, String)| {
+        let addr = match parse_lua_address(address) {
+            Ok(value) => value,
+            Err(err) => {
+                modloader_warning!("Engine.memory.write failed: {err}");
+                return Ok(false);
+            }
+        };
+
+        let parsed = match parse_hex_bytes_string(&bytes) {
+            Ok(value) => value,
+            Err(err) => {
+                modloader_warning!("Engine.memory.write failed: {err}");
+                return Ok(false);
+            }
+        };
+        if parsed.is_empty() {
+            modloader_warning!("Engine.memory.write failed: byte payload cannot be empty");
+            return Ok(false);
+        }
+
+        if !write_memory(addr, &parsed) {
+            modloader_warning!(
+                "Engine.memory.write failed: host denied range write 0x{:X}..+{}",
+                addr,
+                parsed.len()
+            );
+            return Ok(false);
+        }
+        Ok(true)
+    })?;
+
+    let patch_make_fn = lua.create_function(|lua, args: mlua::MultiValue| {
+        let patches = parse_script_patch_args(args)?;
+        if patches.is_empty() {
+            modloader_warning!("Engine.memory.patch.make failed: no patch entries provided");
+            return Ok(Value::Nil);
+        }
+
+        let mut handles: Vec<u32> = Vec::new();
+        for patch in patches {
+            let end = match patch.address.checked_add(patch.bytes.len()) {
+                Some(value) => value,
+                None => {
+                    modloader_warning!(
+                        "Engine.memory.patch.make failed: address overflow at 0x{:X}",
+                        patch.address
+                    );
+                    return Ok(Value::Nil);
+                }
+            };
+
+            if !is_probably_writable(patch.address, patch.bytes.len()) {
+                modloader_warning!(
+                    "Engine.memory.patch.make failed: unwritable range 0x{:X}..0x{:X}",
+                    patch.address,
+                    end
+                );
+                return Ok(Value::Nil);
+            }
+
+            let handle = make_patch(patch.address, &patch.bytes);
+            handles.push(handle);
+        }
+
+        if handles.len() == 1 {
+            // NOTE: handle values are 32-bit for game compatibility.
+            return Ok(Value::Integer(handles[0].try_into().unwrap()));
+        }
+
+        let out = lua.create_table()?;
+        for (idx, handle) in handles.iter().enumerate() {
+            out.set(idx + 1, *handle)?;
+        }
+        Ok(Value::Table(out))
+    })?;
+
+    let patch_remove_fn = lua.create_function(|_, id: u32| Ok(remove_patch(id)))?;
+
+    memory_table.set("read", read_fn)?;
+    memory_table.set("write", write_fn)?;
+    let hook_table = lua.create_table()?;
+    let hook_execute_fn = lua.create_function(|_, call_site: Value| {
+        let call_site = parse_lua_address(call_site)
+            .map_err(|err| mlua::Error::runtime(format!("invalid hook call site: {err}")))?;
+        match hook::execute_replaced_bytes(call_site) {
+            Ok(result) => Ok(result),
+            Err(err) => Err(mlua::Error::runtime(err.to_string())),
+        }
+    })?;
+    hook_table.set("execute", hook_execute_fn)?;
+    memory_table.set("hook", hook_table)?;
+    let patch_table = lua.create_table()?;
+    patch_table.set("make", patch_make_fn)?;
+    patch_table.set("remove", patch_remove_fn)?;
+    memory_table.set("patch", patch_table)?;
+    engine_table.set("memory", memory_table)?;
+    Ok(())
+}
+
+pub(super) fn install_engine_assert_api(lua: &Lua, engine_table: &Table) -> Result<()> {
+    engine_table.set("EQ", "eq")?;
+    engine_table.set("NE", "ne")?;
+    engine_table.set("LT", "lt")?;
+    engine_table.set("LE", "le")?;
+    engine_table.set("GT", "gt")?;
+    engine_table.set("GE", "ge")?;
+
+    let expect_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let parsed = parse_expect_args(args)?;
+        Ok(matches_comparison(
+            &parsed.mode,
+            &parsed.left,
+            &parsed.right,
+        ))
+    })?;
+
+    let assert_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let parsed = parse_expect_args(args)?;
+        if matches_comparison(&parsed.mode, &parsed.left, &parsed.right) {
+            return Ok(true);
+        }
+
+        let detail = parsed.message.unwrap_or_else(|| {
+            format_comparison_failure(&parsed.mode, &parsed.left, &parsed.right)
+        });
+        Err(mlua::Error::runtime(format!(
+            "Engine.assert failed: {detail}"
+        )))
+    })?;
+
+    let expect_death_fn = lua.create_function(|_, args: mlua::MultiValue| {
+        let parsed = parse_expect_death_args(args)?;
+        match parsed.callback.call::<Value>(()) {
+            Ok(_) => Ok(false),
+            Err(err) => {
+                if let Some((mode, expected)) = parsed.comparison {
+                    let actual = err.to_string();
+                    Ok(matches_string_comparison(&mode, &actual, &expected))
+                } else {
+                    Ok(true)
+                }
+            }
+        }
+    })?;
+
+    engine_table.set("expect", expect_fn)?;
+    engine_table.set("assert", assert_fn)?;
+    engine_table.set("expect_death", expect_death_fn)?;
+    Ok(())
+}
+
+struct ExpectArgs {
+    mode: String,
+    left: Value,
+    right: Value,
+    message: Option<String>,
+}
+
+fn parse_expect_args(args: mlua::MultiValue) -> mlua::Result<ExpectArgs> {
+    let values: Vec<Value> = args.into_iter().collect();
+    let start_idx = match values.first() {
+        Some(Value::Table(_)) => 1,
+        _ => 0,
+    };
+    if values.len() < start_idx + 3 {
+        return Err(mlua::Error::runtime(
+            "expected (mode, left, right[, message]) arguments",
+        ));
+    }
+
+    let mode = normalize_compare_mode(&values[start_idx])?;
+    let message = if values.len() > start_idx + 3 {
+        Some(value_as_string(values[start_idx + 3].clone())?)
+    } else {
+        None
+    };
+
+    Ok(ExpectArgs {
+        mode,
+        left: values[start_idx + 1].clone(),
+        right: values[start_idx + 2].clone(),
+        message,
+    })
+}
+
+struct ExpectDeathArgs {
+    callback: Function,
+    comparison: Option<(String, Value)>,
+}
+
+fn parse_expect_death_args(args: mlua::MultiValue) -> mlua::Result<ExpectDeathArgs> {
+    let values: Vec<Value> = args.into_iter().collect();
+    let start_idx = match values.first() {
+        Some(Value::Table(_)) => 1,
+        _ => 0,
+    };
+    if values.len() <= start_idx {
+        return Err(mlua::Error::runtime(
+            "expected (callback) or (mode, callback, expected) arguments",
+        ));
+    }
+
+    if let Value::Function(callback) = &values[start_idx] {
+        return Ok(ExpectDeathArgs {
+            callback: callback.clone(),
+            comparison: None,
+        });
+    }
+
+    if values.len() < start_idx + 3 {
+        return Err(mlua::Error::runtime(
+            "expected (mode, callback, expected) arguments",
+        ));
+    }
+    let mode = normalize_compare_mode(&values[start_idx])?;
+    let callback = match &values[start_idx + 1] {
+        Value::Function(fn_value) => fn_value.clone(),
+        _ => {
+            return Err(mlua::Error::runtime(
+                "expect_death callback must be a function",
+            ));
+        }
+    };
+
+    Ok(ExpectDeathArgs {
+        callback,
+        comparison: Some((mode, values[start_idx + 2].clone())),
+    })
+}
+
+fn normalize_compare_mode(mode: &Value) -> mlua::Result<String> {
+    let raw = value_as_string(mode.clone())?;
+    Ok(raw.trim().to_ascii_lowercase())
+}
+
+fn matches_comparison(mode: &str, left: &Value, right: &Value) -> bool {
+    match mode {
+        "eq" => compare_values(left, right).is_some_and(|ord| ord == std::cmp::Ordering::Equal),
+        "ne" => compare_values(left, right).is_some_and(|ord| ord != std::cmp::Ordering::Equal),
+        "lt" => compare_values(left, right).is_some_and(|ord| ord == std::cmp::Ordering::Less),
+        "le" => compare_values(left, right).is_some_and(|ord| ord != std::cmp::Ordering::Greater),
+        "gt" => compare_values(left, right).is_some_and(|ord| ord == std::cmp::Ordering::Greater),
+        "ge" => compare_values(left, right).is_some_and(|ord| ord != std::cmp::Ordering::Less),
+        _ => false,
+    }
+}
+
+fn compare_values(left: &Value, right: &Value) -> Option<std::cmp::Ordering> {
+    match (left, right) {
+        (Value::Integer(a), Value::Integer(b)) => Some(a.cmp(b)),
+        (Value::Integer(a), Value::Number(b)) => (*a as f64).partial_cmp(b),
+        (Value::Number(a), Value::Integer(b)) => a.partial_cmp(&(*b as f64)),
+        (Value::Number(a), Value::Number(b)) => a.partial_cmp(b),
+        (Value::String(a), Value::String(b)) => Some(a.as_bytes().cmp(&b.as_bytes())),
+        (Value::Boolean(a), Value::Boolean(b)) => Some(a.cmp(b)),
+        _ => None,
+    }
+}
+
+fn format_comparison_failure(mode: &str, left: &Value, right: &Value) -> String {
+    format!(
+        "mode={} left={} right={}",
+        mode,
+        debug_value(left),
+        debug_value(right)
+    )
+}
+
+fn matches_string_comparison(mode: &str, actual: &str, expected: &Value) -> bool {
+    let expected_text = match expected {
+        Value::String(value) => value.to_string_lossy().to_string(),
+        _ => return false,
+    };
+    match mode {
+        "eq" => actual == expected_text,
+        "ne" => actual != expected_text,
+        "lt" => actual < expected_text.as_str(),
+        "le" => actual <= expected_text.as_str(),
+        "gt" => actual > expected_text.as_str(),
+        "ge" => actual >= expected_text.as_str(),
+        _ => false,
+    }
+}
+
+fn debug_value(value: &Value) -> String {
+    match value {
+        Value::Nil => "nil".to_string(),
+        Value::Boolean(v) => v.to_string(),
+        Value::Integer(v) => v.to_string(),
+        Value::Number(v) => v.to_string(),
+        Value::String(v) => v.to_string_lossy(),
+        Value::Table(_) => "<table>".to_string(),
+        Value::Function(_) => "<function>".to_string(),
+        Value::Thread(_) => "<thread>".to_string(),
+        Value::UserData(_) => "<userdata>".to_string(),
+        Value::LightUserData(_) => "<lightuserdata>".to_string(),
+        Value::Vector(_) => "<vector>".to_string(),
+        Value::Buffer(_) => "<buffer>".to_string(),
+        Value::Error(err) => format!("<error:{err}>"),
+        Value::Other(_) => "<other>".to_string(),
+    }
+}
+
+struct ScriptPatch {
+    address: usize,
+    bytes: Vec<u8>,
+}
+
+fn parse_script_patch_args(args: mlua::MultiValue) -> mlua::Result<Vec<ScriptPatch>> {
+    if args.len() == 1
+        && let Some(Value::Table(table)) = args.front()
+    {
+        return parse_script_patch_table(table.clone());
+    }
+
+    let values: Vec<Value> = args.into_iter().collect();
+    let mut out = Vec::new();
+    let mut idx = 0usize;
+    while idx < values.len() {
+        if idx + 1 >= values.len() {
+            return Err(mlua::Error::runtime(
+                "Engine.memory.patch.make expects (address, bytes[, pattern]) groups",
+            ));
+        }
+        let address = parse_lua_address(values[idx].clone()).map_err(mlua::Error::runtime)?;
+        let bytes_text = value_as_string(values[idx + 1].clone())?;
+        let bytes = parse_hex_bytes_string(&bytes_text).map_err(mlua::Error::runtime)?;
+
+        if idx + 2 < values.len()
+            && let Ok(pattern_text) = value_as_string(values[idx + 2].clone())
+        {
+            let expanded = resolve_script_pattern_patch(address, &pattern_text, &bytes)
+                .map_err(mlua::Error::runtime)?;
+            out.extend(expanded);
+            idx += 3;
+            continue;
+        }
+
+        out.push(ScriptPatch { address, bytes });
+        idx += 2;
+    }
+    Ok(out)
+}
+
+fn parse_script_patch_table(table: Table) -> mlua::Result<Vec<ScriptPatch>> {
+    if table.contains_key("address")? {
+        return parse_single_patch_entry(table);
+    }
+
+    let mut out = Vec::new();
+    for value in table.sequence_values::<Value>() {
+        let entry = match value? {
+            Value::Table(entry) => entry,
+            _ => {
+                return Err(mlua::Error::runtime(
+                    "Engine.memory.patch.make table entries must be patch objects",
+                ));
+            }
+        };
+        out.extend(parse_single_patch_entry(entry)?);
+    }
+    Ok(out)
+}
+
+fn parse_single_patch_entry(entry: Table) -> mlua::Result<Vec<ScriptPatch>> {
+    let address_value = entry.get::<Value>("address")?;
+    let address = parse_lua_address(address_value).map_err(mlua::Error::runtime)?;
+    let bytes =
+        parse_hex_bytes_string(&entry.get::<String>("bytes")?).map_err(mlua::Error::runtime)?;
+    if let Ok(pattern) = entry.get::<String>("pattern") {
+        return resolve_script_pattern_patch(address, &pattern, &bytes)
+            .map_err(mlua::Error::runtime);
+    }
+    Ok(vec![ScriptPatch { address, bytes }])
+}
+
+fn parse_lua_address(value: Value) -> std::result::Result<usize, String> {
+    match value {
+        Value::Integer(v) if v >= 0 => Ok(v as usize),
+        Value::Number(v) if v.is_finite() && v >= 0.0 => Ok(v as usize),
+        Value::String(v) => parse_address_string(v.to_str().map_err(|e| e.to_string())?.as_ref()),
+        _ => Err("address must be a positive integer or hex string".to_string()),
+    }
+}
+
+fn parse_address_string(raw: &str) -> std::result::Result<usize, String> {
+    let value = raw.trim();
+    if value.is_empty() {
+        return Err("address string cannot be empty".to_string());
+    }
+    if let Some(hex) = value
+        .strip_prefix("0x")
+        .or_else(|| value.strip_prefix("0X"))
+    {
+        usize::from_str_radix(hex, 16).map_err(|err| format!("invalid hex address '{raw}': {err}"))
+    } else {
+        value
+            .parse::<usize>()
+            .map_err(|err| format!("invalid address '{raw}': {err}"))
+    }
+}
+
+fn parse_hex_bytes_string(raw: &str) -> std::result::Result<Vec<u8>, String> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(Vec::new());
+    }
+    trimmed
+        .split_whitespace()
+        .map(|token| {
+            if token.len() != 2 {
+                return Err(format!("invalid byte '{token}': expected 2 hex digits"));
+            }
+            u8::from_str_radix(token, 16).map_err(|err| format!("invalid byte '{token}': {err}"))
+        })
+        .collect()
+}
+
+fn value_as_string(value: Value) -> mlua::Result<String> {
+    match value {
+        Value::String(v) => Ok(v.to_str()?.to_string()),
+        _ => Err(mlua::Error::runtime("expected string argument")),
+    }
+}
+
+fn resolve_script_pattern_patch(
+    address: usize,
+    pattern: &str,
+    patch_bytes: &[u8],
+) -> std::result::Result<Vec<ScriptPatch>, String> {
+    let tokens: Vec<&str> = pattern.split_whitespace().collect();
+    if tokens.is_empty() {
+        return Err("pattern must not be empty".to_string());
+    }
+
+    let mut wildcard_blocks: Vec<(usize, usize)> = Vec::new();
+    let mut idx = 0usize;
+    while idx < tokens.len() {
+        let token = tokens[idx];
+        if token == "??" {
+            let start = idx;
+            while idx < tokens.len() && tokens[idx] == "??" {
+                idx += 1;
+            }
+            wildcard_blocks.push((start, idx - start));
+            continue;
+        }
+        if token.contains('?') {
+            return Err(format!(
+                "invalid wildcard token '{token}'; only full-byte wildcard '??' is allowed"
+            ));
+        }
+
+        let expected = parse_hex_bytes_string(token)?
+            .first()
+            .copied()
+            .ok_or_else(|| format!("invalid pattern byte '{token}'"))?;
+        let found = read_memory(address + idx, 1)
+            .and_then(|bytes| bytes.first().copied())
+            .ok_or_else(|| {
+                format!(
+                    "pattern check failed at 0x{:X}: address is not readable",
+                    address + idx
+                )
+            })?;
+        if found != expected {
+            return Err(format!(
+                "pattern mismatch at 0x{:X}: expected {:02X}, found {:02X}",
+                address + idx,
+                expected,
+                found
+            ));
+        }
+        idx += 1;
+    }
+
+    if wildcard_blocks.is_empty() {
+        return Err("pattern has no wildcard blocks to patch".to_string());
+    }
+
+    let wildcard_total: usize = wildcard_blocks.iter().map(|(_, len)| *len).sum();
+    if patch_bytes.len() != wildcard_total {
+        return Err(format!(
+            "pattern wildcard bytes mismatch: expected {} replacement bytes, got {}",
+            wildcard_total,
+            patch_bytes.len()
+        ));
+    }
+
+    let mut consumed = 0usize;
+    let mut resolved = Vec::new();
+    for (start, len) in wildcard_blocks {
+        let end = consumed + len;
+        resolved.push(ScriptPatch {
+            address: address + start,
+            bytes: patch_bytes[consumed..end].to_vec(),
+        });
+        consumed = end;
+    }
+    Ok(resolved)
+}
