@@ -39,7 +39,7 @@ use super::path_utils::{hash_file, is_safe_path, normalize_path};
 
 type StartupSignal = Arc<Mutex<Option<oneshot::Sender<Result<()>>>>>;
 type ShutdownSender = std::sync::mpsc::Sender<ControlMessage>;
-const PATCH_FILE_NAME: &str = "patch.json5";
+const PATCH_FILE_NAME: &str = "patch.jsonc";
 
 enum ControlMessage {
     Shutdown,
@@ -1842,7 +1842,8 @@ async fn load_mod(
         && !has_scripts_archive
     {
         return Err(anyhow!(
-            "mod {} must provide at least one of main.luau, script.tar.zstd, patch.json5, assets/, or assets.tar.zstd",
+            "mod {} must provide at least one of main.luau, script.tar.zstd, {}, assets/, or assets.tar.zstd",
+            PATCH_FILE_NAME,
             meta.id
         ));
     }
@@ -1895,7 +1896,7 @@ async fn load_mod(
         );
         (Some(Patches::new(&resolved_entries, false)), spans)
     } else {
-        modloader_trace!("No patch.json5 present for mod {}", meta.id);
+        modloader_trace!("No {} present for mod {}", PATCH_FILE_NAME, meta.id);
         (None, Vec::new())
     };
 

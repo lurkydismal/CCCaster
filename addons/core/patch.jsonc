@@ -1,5 +1,6 @@
 [
     {
+        // TEST
         "address": "0x04A1D42",
         "hook_event": "test_event"
     }
