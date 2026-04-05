@@ -1,7 +1,119 @@
 [
+    // Skip MBAA initial config window
     {
-        // TEST
         "address": "0x04A1D42",
-        "hook_event": "test_event"
+        "bytes": "EB 0E"
+    },
+    // Enable disabled stages
+    {
+        "address": "0x54CEBC",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CEC0",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CEC4",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CFA8",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CFAC",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CFB0",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF68",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF6C",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF70",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF74",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF78",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF7C",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF80",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF84",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF88",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF8C",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF90",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF94",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF98",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CF9C",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CFA0",
+        "bytes": "FF 00 00 00"
+    },
+    {
+        "address": "0x54CFA4",
+        "bytes": "FF 00 00 00"
+    },
+    // Prevent training mode music from reseting
+    {
+        "address": "0x472C6D",
+        "bytes": "EB 05"
+    },
+    {
+        "address": "0x53B3C8",
+        // 12 FF
+        "bytes": "FF FF FF FF FF FF FF FF FF FF FF FF"
+    },
+    {
+        "address": "0x40D25A",
+        "bytes": "EB"
+    },
+    // Fix Ryougi stage music looping
+    {
+        "address": "0x7695F6",
+        "bytes": "35 00 00 00"
+    },
+    {
+        "address": "0x7695EC",
+        "bytes": "AA CC 1E 40"
     }
 ]
