@@ -34,5 +34,5 @@ tar = "0.4.45"
 tokio = { version = "1.50.0", features = ["full", "parking_lot"] }
 tree-sitter = "0.26.8"
 tree-sitter-luau = "1.2.0"
-wasmtime = { version = "43.0.0" }
+wasmtime = { version = "43.0.1" }
 zstd = "0.13.3"
