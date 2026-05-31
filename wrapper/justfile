@@ -1,0 +1,47 @@
+#!/usr/bin/env -S just --justfile
+
+# Name of the Docker image used as the build environment for the project.
+image-name := 'wrapper-build-env'
+
+# Redirects to debug build to avoid accidental optimized builds during development.
+default: build-debug
+
+# - Mounts the current working directory into /build inside the container.
+# - Uses the configured build image.
+# - Runs build.sh with debug + Linux flags (-ld).
+# Builds the project in debug mode inside a Docker container.
+build-debug:
+    docker run --rm -it -v "$PWD":/build '{{ image-name }}' bash ./build.sh -ld
+
+# - Uses the same containerized environment as debug builds.
+# - Enables optimized compilation (-lr).
+# - Produces stripped/optimized output suitable for distribution.
+# Builds the project in release mode inside a Docker container.
+build-release:
+    docker run --rm -it -v "$PWD":/build '{{ image-name }}' bash ./build.sh -lr
+
+# - Required before running build-debug or build-release.
+# - Recreates the environment from the local Dockerfile.
+# Builds the Docker image that contains the full compilation toolchain.
+docker-build-image:
+    docker build -t '{{ image-name }}' .
+
+# - Used as the base layer for the build environment image.
+# - Ensures up-to-date system packages before building custom tooling.
+# Pulls the latest Arch Linux base image.
+docker-pull:
+    docker pull archlinux:latest
+
+# - Useful for quick performance inspection.
+# - Does not continuously stream updates.
+# Prints a single snapshot of Docker container resource usage.
+docker-stats:
+    docker stats --no-stream
+
+# - Frees disk space by deleting intermediate build layers.
+# - Safe operation: only removes images not referenced by tags.
+# Removes dangling (untagged) Docker images.
+docker-remove-unused-images:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    docker images -f "dangling=true" -q | xargs -r docker rmi
