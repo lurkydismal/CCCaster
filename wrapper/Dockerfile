@@ -17,8 +17,7 @@ RUN pacman -U --noconfirm /tmp/wine-10.1-1-x86_64.pkg.tar.zst
 
 RUN pacman -S --noconfirm --needed \
     binutils \
-    clang mold ccache \
-    lib32-glibc
+    clang mold ccache
 
 RUN rm -rf /var/cache/pacman/pkg/* /tmp/*
 
