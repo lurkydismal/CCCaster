@@ -7,6 +7,7 @@
 #include "logg.hpp"
 
 processSuspendGuard::processSuspendGuard() {
+    // ! FIX: This function does not work as intended and crashes the app.
     return;
 
     _suspendedThreadHandles.reserve( 64 );
