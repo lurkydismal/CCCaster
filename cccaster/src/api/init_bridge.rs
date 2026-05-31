@@ -1,5 +1,7 @@
 use std::os::raw::c_char;
 
+use dtor::dtor;
+
 use crate::{
     loader, main, modloader_debug, modloader_error, modloader_info, modloader_trace,
     modloader_warning, parse_args,
@@ -7,7 +9,7 @@ use crate::{
 
 use super::Api;
 
-#[ctor::dtor]
+#[dtor(unsafe)]
 fn cccaster_dtor() {
     modloader_info!("cccaster dtor invoked; shutting down addons");
     loader::shutdown_before_unload();
