@@ -24,4 +24,4 @@ RUN rm -rf /var/cache/pacman/pkg/* /tmp/*
 
 WORKDIR /build
 
-CMD ["./build.sh", "r", "l"]
+CMD ["bash"]
