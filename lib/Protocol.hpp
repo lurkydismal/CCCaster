@@ -102,7 +102,7 @@ void load( Archive& ar, MsgType& value ) {
 ENUM( BaseType, SerializableMessage, SerializableSequence );
 
 // Common declarations
-struct Serializable;
+class Serializable;
 typedef std::shared_ptr< Serializable > MsgPtr;
 std::ostream& operator<<( std::ostream& os, MsgType type );
 std::ostream& operator<<( std::ostream& os, const MsgPtr& msg );

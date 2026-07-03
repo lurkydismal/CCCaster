@@ -12,10 +12,10 @@ class MemDumpPtr;
 class MemDumpBase {
 public:
     // Size of this memory dump
-    const size_t size;
+    size_t size;
 
     // Any child pointers located in this memory dump
-    const std::vector< MemDumpPtr > ptrs;
+    std::vector< MemDumpPtr > ptrs;
 
     // Construct a memory dump with the given size
     MemDumpBase( size_t size ) : size( size ) {}
@@ -51,19 +51,27 @@ protected:
 class MemDumpPtr : public MemDumpBase {
 public:
     // The parent memory dump
-    const MemDumpBase* const parent = 0;
+    const MemDumpBase* parent = nullptr;
 
     // The location of the pointer's value starting from the parent's address
-    const size_t srcOffset;
+    size_t srcOffset;
 
     // The offset to add to the pointer's value
-    const size_t dstOffset;
+    size_t dstOffset;
 
     // Construct a pointer to memory
     MemDumpPtr( size_t srcOffset, size_t dstOffset, size_t size )
         : MemDumpBase( size ), srcOffset( srcOffset ), dstOffset( dstOffset ) {}
 
     // Construct a pointer to memory with child pointers
+    MemDumpPtr( size_t srcOffset,
+                size_t dstOffset,
+                size_t size,
+                const std::vector< MemDumpPtr >& ptrs )
+        : MemDumpBase( size, ptrs ),
+          srcOffset( srcOffset ),
+          dstOffset( dstOffset ) {}
+
     MemDumpPtr( size_t srcOffset,
                 size_t dstOffset,
                 size_t size,
@@ -127,7 +135,7 @@ inline size_t MemDumpBase::getTotalSize() const {
 class MemDump : public MemDumpBase {
 public:
     // The starting address of the memory dump
-    char* const addr;
+    char* addr;
 
     // Construct a memory dump with the pointer type
     template < typename T >
