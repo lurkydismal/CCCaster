@@ -59,7 +59,7 @@ WINDRES = $(PREFIX)windres
 STRIP = $(PREFIX)strip
 CHMOD_X = chmod +x $@
 GRANT =
-FORMAT_TOOL = clang-format-15
+FORMAT_TOOL = clang-format
 TOUCH = $(STRIP)
 OPENGL_HEADERS = /usr/i686-w64-mingw32/include/GL
 
