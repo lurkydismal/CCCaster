@@ -85,7 +85,7 @@ LD_FLAGS = -m32 -static -lws2_32 -lpsapi -lwinpthread -lwinmm -lole32 -ldinput -
 
 # Build type flags
 # DEBUG_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
-RELEASE_FLAGS = -s -Os -Ofast -fno-rtti -DNDEBUG -DRELEASE -DDISABLE_ASSERTS
+RELEASE_FLAGS = -s -O3 -fno-rtti -DNDEBUG -DRELEASE -DDISABLE_ASSERTS
 
 # Build type
 BUILD_PREFIX = $(BUILD_TYPE)_$(BRANCH)
@@ -177,7 +177,7 @@ FRAMEDISPLAY_INCLUDES += -I$(CURDIR)/3rdparty/libpng -I$(CURDIR)/3rdparty/libz -
 FRAMEDISPLAY_INCLUDES += -I"$(CURDIR)/3rdparty/AntTweakBar/include" -I$(OPENGL_HEADERS)
 
 # FRAMEDISPLAY_CC_FLAGS = -ggdb3 -O0 -fno-inline -D_GLIBCXX_DEBUG -DDEBUG
-FRAMEDISPLAY_CC_FLAGS = -s -Os -Ofast -fno-rtti
+FRAMEDISPLAY_CC_FLAGS = -s -O3 -fno-rtti
 FRAMEDISPLAY_CC_FLAGS += -DDISABLE_SERIALIZATION -DPALETTES_FOLDER='"$(PALETTES_FOLDER)\\"'
 
 FRAMEDISPLAY_LD_FLAGS = -L$(CURDIR)/3rdparty/libpng -L$(CURDIR)/3rdparty/libz -L"$(CURDIR)/3rdparty/AntTweakBar/lib"
