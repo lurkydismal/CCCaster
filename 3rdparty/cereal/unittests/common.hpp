@@ -125,7 +125,7 @@ inline std::string random_binary_string( std::mt19937& gen ) {
 }
 
 struct StructBase {
-    StructBase() {}
+    StructBase() = default;
 
     StructBase( int xx, int yy ) : x( xx ), y( yy ) {}
 

@@ -645,7 +645,7 @@ public:
           itsBaseClassSet(),
           itsSharedPointerMap(),
           itsPolymorphicTypeMap(),
-          itsVersionedTypes() {}
+          itsVersionedTypes() {};
 
     //! Serializes all passed in data
     /*! This is the primary interface for serializing data with an archive */

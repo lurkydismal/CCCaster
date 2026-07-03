@@ -57,7 +57,7 @@ namespace cereal {
     {
       int y;
 
-      virtual void foo() {};
+      virtual void foo() = default;;
 
       template <class Archive>
       void serialize( Archive & ar )

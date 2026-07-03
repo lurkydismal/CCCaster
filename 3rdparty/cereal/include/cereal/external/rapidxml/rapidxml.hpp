@@ -812,7 +812,7 @@ public:
     //! Constructs an empty attribute with the specified type.
     //! Consider using memory_pool of appropriate xml_document if allocating
     //! attributes manually.
-    xml_attribute() {}
+    xml_attribute() = default;
 
     ///////////////////////////////////////////////////////////////////////////
     // Related nodes access

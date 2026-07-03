@@ -22,7 +22,7 @@ public:
     std::string sessionId;
 
     // Basic constructor
-    Logger() {}
+    Logger() = default;
 
     // Initialize / deinitialize logging
     void initialize( const std::string& filePath = "",

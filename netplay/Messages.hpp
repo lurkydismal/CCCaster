@@ -1,13 +1,12 @@
 #pragma once
 
-#include <cereal/types/array.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/vector.hpp>
-
 #include <array>
 #include <cstring>
 
+#include "../3rdparty/cereal/include/cereal/types/array.hpp"
+#include "../3rdparty/cereal/include/cereal/types/string.hpp"
+#include "../3rdparty/cereal/include/cereal/types/unordered_map.hpp"
+#include "../3rdparty/cereal/include/cereal/types/vector.hpp"
 #include "CharacterSelect.hpp"
 #include "Compression.hpp"
 #include "Constants.hpp"
@@ -29,13 +28,42 @@ struct ErrorMessage : public SerializableSequence {
 };
 
 struct ClientMode : public SerializableSequence {
-    ENUM_BOILERPLATE( ClientMode,
-                      Host,
-                      Client,
-                      SpectateNetplay,
-                      SpectateBroadcast,
-                      Broadcast,
-                      Offline )
+    enum Enum : uint8_t {
+        Unknown = 0,
+        Host,
+        Client,
+        SpectateNetplay,
+        SpectateBroadcast,
+        Broadcast,
+        Offline
+    } value = Unknown;
+
+    ClientMode( Enum value ) : value( value ) {}
+
+    std ::string str() const override {
+        static const std ::vector< std ::string > list = split(
+            "Unknown, "
+            "Host, Client, SpectateNetplay, SpectateBroadcast, Broadcast, "
+            "Offline",
+            ", " );
+        if ( value >= list.size() )
+            return format( "Unknown (%u)", value );
+        return "ClientMode"
+               "::" +
+               list[ value ];
+    }
+
+    bool operator==( const ClientMode& other ) const {
+        return value == other.value;
+    }
+
+    bool operator!=( const ClientMode& other ) const {
+        return value != other.value;
+    }
+
+    bool operator==( Enum other ) const { return value == other; }
+
+    bool operator!=( Enum other ) const { return value != other; }
 
     enum {
         Training = 0x01,
@@ -133,6 +161,22 @@ struct ClientMode : public SerializableSequence {
 
     PROTOCOL_MESSAGE_BOILERPLATE( ClientMode, value, flags )
 };
+
+namespace cereal {
+
+template < class Archive >
+void save( Archive& ar, const ClientMode::Enum& value ) {
+    ar( static_cast< uint8_t >( value ) );
+}
+
+template < class Archive >
+void load( Archive& ar, ClientMode::Enum& value ) {
+    uint8_t l_value;
+    ar( l_value );
+    value = static_cast< ClientMode::Enum >( l_value );
+}
+
+} // namespace cereal
 
 struct PingStats : public SerializableSequence {
     Statistics latency;
@@ -367,7 +411,7 @@ struct RngState : public SerializableSequence {
 struct SyncHash : public SerializableSequence {
     IndexedFrame indexedFrame = { { 0, 0 } };
 
-    char hash[ 16 ];
+    std::array< char, 16 > hash{};
 
     uint32_t roundTimer = 0, realTimer = 0;
 
@@ -388,7 +432,7 @@ struct SyncHash : public SerializableSequence {
         if ( indexedFrame.value != other.indexedFrame.value )
             return false;
 
-        if ( memcmp( hash, other.hash, sizeof( hash ) ) )
+        if ( memcmp( hash.data(), other.hash.data(), hash.size() ) )
             return false;
 
         if ( roundTimer != other.roundTimer )
@@ -439,7 +483,7 @@ struct SyncHash : public SerializableSequence {
     std::string dump() const {
         std::string str =
             format( "[%s] %s; roundTimer=%u; realTimer=%u; camera={ %d, %d }",
-                    indexedFrame, formatAsHex( hash, sizeof( hash ) ),
+                    indexedFrame, formatAsHex( hash.data(), hash.size() ),
                     roundTimer, realTimer, cameraX, cameraY );
 
         for ( uint8_t i = 0; i < 2; ++i ) {
@@ -459,20 +503,20 @@ struct SyncHash : public SerializableSequence {
 
     void save( cereal::BinaryOutputArchive& ar ) const override {
         ar( indexedFrame.value, hash, roundTimer, realTimer, cameraX, cameraY );
-        char buffer[ sizeof( CharaHash ) ];
-        memcpy( buffer, &chara[ 0 ], sizeof( CharaHash ) );
+        std::array< char, sizeof( CharaHash ) > buffer{};
+        memcpy( buffer.data(), &chara[ 0 ], sizeof( CharaHash ) );
         ar( buffer );
-        memcpy( buffer, &chara[ 1 ], sizeof( CharaHash ) );
+        memcpy( buffer.data(), &chara[ 1 ], sizeof( CharaHash ) );
         ar( buffer );
     }
 
     void load( cereal::BinaryInputArchive& ar ) override {
         ar( indexedFrame.value, hash, roundTimer, realTimer, cameraX, cameraY );
-        char buffer[ sizeof( CharaHash ) ];
+        std::array< char, sizeof( CharaHash ) > buffer{};
         ar( buffer );
-        memcpy( &chara[ 0 ], buffer, sizeof( CharaHash ) );
+        memcpy( &chara[ 0 ], buffer.data(), sizeof( CharaHash ) );
         ar( buffer );
-        memcpy( &chara[ 1 ], buffer, sizeof( CharaHash ) );
+        memcpy( &chara[ 1 ], buffer.data(), sizeof( CharaHash ) );
     }
 };
 
@@ -492,7 +536,38 @@ struct MenuIndex : public SerializableSequence {
 };
 
 struct ChangeConfig : public SerializableSequence {
-    ENUM_BOILERPLATE( ChangeConfig, Delay, Rollback, RollbackDelay )
+    enum Enum : uint8_t {
+        Unknown = 0,
+        Delay,
+        Rollback,
+        RollbackDelay
+    } value = Unknown;
+
+    ChangeConfig( Enum value ) : value( value ) {}
+
+    std ::string str() const override {
+        static const std ::vector< std ::string > list = split(
+            "Unknown, "
+            "Delay, Rollback, RollbackDelay",
+            ", " );
+        if ( value >= list.size() )
+            return format( "Unknown (%u)", value );
+        return "ChangeConfig"
+               "::" +
+               list[ value ];
+    }
+
+    bool operator==( const ChangeConfig& other ) const {
+        return value == other.value;
+    }
+
+    bool operator!=( const ChangeConfig& other ) const {
+        return value != other.value;
+    }
+
+    bool operator==( Enum other ) const { return value == other; }
+
+    bool operator!=( Enum other ) const { return value != other; }
 
     IndexedFrame indexedFrame = { { 0, 0 } };
 
@@ -514,6 +589,22 @@ struct ChangeConfig : public SerializableSequence {
                                   rollbackDelay,
                                   rollback )
 };
+
+namespace cereal {
+
+template < class Archive >
+void save( Archive& ar, const ChangeConfig::Enum& value ) {
+    ar( static_cast< uint8_t >( value ) );
+}
+
+template < class Archive >
+void load( Archive& ar, ChangeConfig::Enum& value ) {
+    uint8_t l_value;
+    ar( l_value );
+    value = static_cast< ChangeConfig::Enum >( l_value );
+}
+
+} // namespace cereal
 
 struct TransitionIndex : public SerializableMessage {
     uint32_t index = 0;

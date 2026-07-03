@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cereal/types/string.hpp>
-
 #include <memory>
 
+#include "../3rdparty/cereal/include/cereal/types/string.hpp"
 #include "Algorithms.hpp"
 #include "Protocol.hpp"
 

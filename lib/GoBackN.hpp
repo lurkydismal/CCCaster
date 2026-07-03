@@ -37,11 +37,18 @@ struct SplitMessage : public SerializableSequence {
           index( index ),
           count( count ) {}
 
-    PROTOCOL_MESSAGE_BOILERPLATE( SplitMessage,
-                                  origMsgType,
-                                  index,
-                                  count,
-                                  bytes )
+    SplitMessage() = default;
+
+    MsgPtr clone() const override;
+    MsgType getMsgType() const override;
+
+    void save( cereal ::BinaryOutputArchive& ar ) const override {
+        ar( origMsgType, index, count, bytes );
+    }
+
+    void load( cereal ::BinaryInputArchive& ar ) override {
+        ar( origMsgType, index, count, bytes );
+    }
 };
 
 class GoBackN : public SerializableSequence, private Timer::Owner {

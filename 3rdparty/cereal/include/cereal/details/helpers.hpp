@@ -357,7 +357,7 @@ private:
     using ST = typename std::decay< T >::type;
 
     struct Base {
-        virtual ~Base() {}
+        virtual ~Base() = default;
 
         virtual std::unique_ptr< Base > clone() const = 0;
     };
@@ -391,7 +391,7 @@ public:
         return get< ST< T > >();
     }
 
-    Any() : itsPtr() {}
+    Any() : itsPtr() = default;
 
     Any( Any& other ) : itsPtr( other.clone() ) {}
 

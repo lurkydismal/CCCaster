@@ -279,7 +279,7 @@ SyncHash::SyncHash( IndexedFrame indexedFrame ) {
     memcpy( &data[ 8 ], CC_RNG_STATE2_ADDR, sizeof( uint32_t ) );
     memcpy( &data[ 12 ], CC_RNG_STATE3_ADDR, CC_RNG_STATE3_SIZE );
 
-    getMD5( data, sizeof( data ), hash );
+    getMD5( data, sizeof( data ), hash.data() );
 
     if ( *CC_GAME_MODE_ADDR != CC_GAME_MODE_IN_GAME ) {
         memset( &chara[ 0 ], 0, sizeof( CharaHash ) );

@@ -1,17 +1,16 @@
 #pragma once
 
-#include <cereal/archives/binary.hpp>
-
 #include <array>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 
+#include "../3rdparty/cereal/include/cereal/archives/binary.hpp"
 #include "Enum.hpp"
 
 #define EMPTY_MESSAGE_BOILERPLATE( NAME ) \
-    NAME() {}                             \
+    NAME() = default;                     \
     MsgPtr clone() const override;        \
     MsgType getMsgType() const override;
 
@@ -83,6 +82,22 @@ enum class MsgType : uint8_t {
     LastType
 };
 
+namespace cereal {
+
+template < class Archive >
+void save( Archive& ar, const MsgType& value ) {
+    ar( static_cast< uint8_t >( value ) );
+}
+
+template < class Archive >
+void load( Archive& ar, MsgType& value ) {
+    uint8_t l_value;
+    ar( l_value );
+    value = static_cast< MsgType >( l_value );
+}
+
+} // namespace cereal
+
 // Base message type
 ENUM( BaseType, SerializableMessage, SerializableSequence );
 
@@ -123,7 +138,7 @@ public:
     // Basic constructor and destructor
     Serializable();
 
-    virtual ~Serializable() {}
+    virtual ~Serializable() = default;
 
     // Return a clone
     virtual MsgPtr clone() const = 0;

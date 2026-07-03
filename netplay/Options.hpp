@@ -80,7 +80,7 @@ private:
         size_t count;
         std::string arg;
 
-        Opt() {}
+        Opt() = default;
 
         Opt( size_t count, const std::string& arg = "" )
             : count( count ), arg( arg ) {}

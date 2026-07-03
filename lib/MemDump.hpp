@@ -1,11 +1,10 @@
 #pragma once
 
-#include <cereal/archives/binary.hpp>
-
 #include <initializer_list>
 #include <string>
 #include <vector>
 
+#include "../3rdparty/cereal/include/cereal/archives/binary.hpp"
 #include "Logger.hpp"
 
 class MemDumpPtr;

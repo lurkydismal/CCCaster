@@ -1,10 +1,9 @@
 #pragma once
 
-#include <cereal/archives/binary.hpp>
-
 #include <string>
 #include <vector>
 
+#include "../3rdparty/cereal/include/cereal/archives/binary.hpp"
 #include "StringUtils.hpp"
 
 // Enum type boilerplate code
@@ -32,19 +31,23 @@
     }
 
 // Enum type with auto-generated string values
-#define ENUM( NAME, ... )                                                     \
-    struct NAME : public EnumBase {                                           \
-        ENUM_BOILERPLATE( NAME, __VA_ARGS__ )                                 \
-        virtual ~NAME() = default;                                            \
-        NAME() = default;                                                     \
-        NAME& operator=( Enum value ) {                                       \
-            this->value = value;                                              \
-            return *this;                                                     \
-        }                                                                     \
-        void save( cereal::BinaryOutputArchive& ar ) const override {         \
-            ar( value );                                                      \
-        }                                                                     \
-        void load( cereal::BinaryInputArchive& ar ) override { ar( value ); } \
+#define ENUM( NAME, ... )                                             \
+    struct NAME : public EnumBase {                                   \
+        ENUM_BOILERPLATE( NAME, __VA_ARGS__ )                         \
+        virtual ~NAME() = default;                                    \
+        NAME() = default;                                             \
+        NAME& operator=( Enum value ) {                               \
+            this->value = value;                                      \
+            return *this;                                             \
+        }                                                             \
+        void save( cereal::BinaryOutputArchive& ar ) const override { \
+            ar( static_cast< uint8_t >( value ) );                    \
+        }                                                             \
+        void load( cereal::BinaryInputArchive& ar ) override {        \
+            uint8_t l_value;                                          \
+            ar( l_value );                                            \
+            value = static_cast< Enum >( l_value );                   \
+        }                                                             \
     } //
 
 // Enum base class

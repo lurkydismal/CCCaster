@@ -45,10 +45,10 @@ struct KeyboardMappings : public SerializableSequence {
     std::string name;
 
     // Bit index -> virtual key code
-    uint32_t codes[ 32 ] = { 0 };
+    std::array< uint32_t, 32 > codes{};
 
     // Bit index -> key name
-    std::string names[ 32 ];
+    std::array< std::string, 32 > names{};
 
     // SOCD Mode: 0=Default, 1:L/R negate, 2:U/D negate, 3: both
     uint32_t socd = 0;
@@ -72,7 +72,7 @@ struct JoystickMappings : public SerializableSequence {
     // Then:
     //   Axis neutral -> 0b0011
     //
-    uint32_t axes[ MAX_NUM_AXES ][ 3 ] = { { 0 } };
+    std::array< std::array< uint32_t, 3 >, MAX_NUM_AXES > axes{};
 
     // Hat index -> hat value -> mapped key
     //
@@ -91,10 +91,10 @@ struct JoystickMappings : public SerializableSequence {
     // Similarly, the 1, 3, 7, 9 values should be mapped to the correct bit
     // masks as well.
     //
-    uint32_t hats[ MAX_NUM_HATS ][ 10 ] = { { 0 } };
+    std::array< std::array< uint32_t, 10 >, MAX_NUM_HATS > hats{};
 
     // Button index -> mapped key
-    uint32_t buttons[ MAX_NUM_BUTTONS ] = { 0 };
+    std::array< uint32_t, MAX_NUM_BUTTONS > buttons{};
 
     // Axis deadzone range (0,32767)
     uint32_t deadzone = DEFAULT_DEADZONE;
@@ -164,7 +164,7 @@ struct JoystickInfo {
     // Bit mask of axes in use, NOTE implementation specific usage
     uint8_t axisMask = 0;
 
-    JoystickInfo() {}
+    JoystickInfo() = default;
 
     JoystickInfo( void* device ) : device( device ) {}
 };
@@ -280,7 +280,7 @@ private:
         // Joystick states
         JoystickState prevState, state;
 
-        JoystickInternalState() {}
+        JoystickInternalState() = delete;
 
         JoystickInternalState( const JoystickInfo& info ) : info( info ) {}
     };

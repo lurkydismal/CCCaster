@@ -12,7 +12,7 @@ typedef struct _GUID GUID;
 struct Guid {
     uint8_t guid[ 16 ];
 
-    Guid() {}
+    Guid() = default;
 
     Guid( std::initializer_list< uint8_t > guid );
 

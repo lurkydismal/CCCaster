@@ -30,9 +30,9 @@
 #ifndef CEREAL_TYPES_VECTOR_HPP_
 #define CEREAL_TYPES_VECTOR_HPP_
 
-#include <cereal/cereal.hpp>
-
 #include <vector>
+
+#include "../cereal.hpp"
 
 namespace cereal {
 //! Serialization for std::vectors of arithmetic (but not bool) using binary

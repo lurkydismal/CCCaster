@@ -209,11 +209,11 @@ protected:
     void consumeBuffer( size_t bytes );
 
     // TCP event callbacks
-    virtual void socketAccepted() {}
+    virtual void socketAccepted() {};
 
-    virtual void socketConnected() {}
+    virtual void socketConnected() {};
 
-    virtual void socketDisconnected() {}
+    virtual void socketDisconnected() {};
 
     // Read event callback, calls the function below if NOT isRaw
     virtual void socketRead();
