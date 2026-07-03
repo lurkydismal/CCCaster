@@ -198,7 +198,7 @@ FRAMEDISPLAY_LD_FLAGS += -mwindows -static -lmingw32 -lpng -lz -lglfw -lopengl32
 	$(MAKE) --directory=3rdparty/AntTweakBar/src
 
 $(PALETTES): $(PALETTES_SRC) $(FRAMEDISPLAY_OBJECTS) res/palettes.res 3rdparty/AntTweakBar/lib/libAntTweakBar.a
-	$(CXX) $(FRAMEDISPLAY_CC_FLAGS) -o $@ $(FRAMEDISPLAY_INCLUDES) -Wall -std=c++11 $^ $(FRAMEDISPLAY_LD_FLAGS)
+	$(CXX) $(FRAMEDISPLAY_CC_FLAGS) -o $@ $(FRAMEDISPLAY_INCLUDES) -Wall -std=c++11 -pthread $^ $(FRAMEDISPLAY_LD_FLAGS)
 	@echo
 	$(STRIP) $@
 	$(CHMOD_X)

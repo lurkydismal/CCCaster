@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "mbaacc_framedisplay.h"
+#include "mbaacc_framedisplay.hpp"
 #include "misc.h"
 
 struct MBAACC_CG_Alignment {

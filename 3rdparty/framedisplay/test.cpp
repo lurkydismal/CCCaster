@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "mbaacc_framedisplay.h"
+#include "mbaacc_framedisplay.hpp"
 #include "render.h"
 
 using namespace std;

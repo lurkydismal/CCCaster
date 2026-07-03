@@ -2,7 +2,7 @@
 //
 // Core manager.
 
-#include "mbaacc_framedisplay.h"
+#include "mbaacc_framedisplay.hpp"
 
 #include <cstdio>
 #include <cstring>

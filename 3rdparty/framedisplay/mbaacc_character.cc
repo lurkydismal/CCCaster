@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include "clone.h"
-#include "mbaacc_framedisplay.h"
+#include "mbaacc_framedisplay.hpp"
 #include "render.h"
 
 static void copy_hitbox_to_rect( rect_t* rect, MBAACC_Hitbox* hitbox ) {

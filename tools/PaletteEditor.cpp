@@ -7,7 +7,7 @@
 #include "Algorithms.hpp"
 #include "CharacterSelect.hpp"
 #include "StringUtils.hpp"
-#include "mbaacc_framedisplay.h"
+#include "mbaacc_framedisplay.hpp"
 
 using namespace std;
 

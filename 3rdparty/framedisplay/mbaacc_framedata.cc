@@ -5,7 +5,7 @@
 #include <cstring>
 #include <list>
 
-#include "mbaacc_framedisplay.h"
+#include "mbaacc_framedisplay.hpp"
 
 struct TempInfo {
     MBAACC_Sequence* seq;

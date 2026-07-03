@@ -7,7 +7,7 @@
 
 #include "PaletteManager.hpp"
 
-struct MBAACC_FrameDisplay;
+class MBAACC_FrameDisplay;
 
 class PaletteEditor {
 public:
