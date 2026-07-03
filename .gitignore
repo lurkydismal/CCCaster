@@ -8,6 +8,7 @@
 *.png
 *.webp
 *.bin
+/build*
 
 # Visual Studio Code related
 .classpath
