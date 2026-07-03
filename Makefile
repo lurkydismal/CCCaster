@@ -121,7 +121,14 @@ $(BINARY): $(addprefix $(BUILD_PREFIX)/,$(MAIN_OBJECTS)) res/icon.res
 	$(CHMOD_X)
 	@echo
 
-$(FOLDER)/$(DLL): $(addprefix $(BUILD_PREFIX)/,$(DLL_OBJECTS)) res/rollback.o targets/CallDraw.s | $(FOLDER)
+CALLDRAW_OBJ := $(BUILD_PREFIX)/CallDraw.o
+
+$(CALLDRAW_OBJ): targets/CallDraw.s | $(BUILD_PREFIX)
+	i686-w64-mingw32-gcc -m32 -O3 -s -c $< -o $@
+
+$(FOLDER)/$(DLL): $(addprefix $(BUILD_PREFIX)/,$(DLL_OBJECTS)) \
+                  res/rollback.o \
+                  $(CALLDRAW_OBJ) | $(FOLDER)
 	$(CXX) -o $@ $(CC_FLAGS) -Wall -std=c++11 $^ -shared $(LD_FLAGS) -ld3dx9
 	@echo
 	$(STRIP) $@
@@ -191,7 +198,7 @@ FRAMEDISPLAY_LD_FLAGS += -mwindows -static -lmingw32 -lpng -lz -lglfw -lopengl32
 	$(MAKE) --directory=3rdparty/AntTweakBar/src
 
 $(PALETTES): $(PALETTES_SRC) $(FRAMEDISPLAY_OBJECTS) res/palettes.res 3rdparty/AntTweakBar/lib/libAntTweakBar.a
-	$(CXX) $(FRAMEDISPLAY_CC_FLAGS) -o $@ $(FRAMEDISPLAY_INCLUDES) -Wall -std=c++11 -c $^ $(FRAMEDISPLAY_LD_FLAGS)
+	$(CXX) $(FRAMEDISPLAY_CC_FLAGS) -o $@ $(FRAMEDISPLAY_INCLUDES) -Wall -std=c++11 $^ $(FRAMEDISPLAY_LD_FLAGS)
 	@echo
 	$(STRIP) $@
 	$(CHMOD_X)
