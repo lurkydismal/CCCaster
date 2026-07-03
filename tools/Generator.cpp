@@ -291,7 +291,7 @@ static const vector< MemDump > miscAddrs = {
 };
 
 static const MemDump firstEffect(
-    CC_EFFECTS_ARRAY_ADDR,
+    ( void* )CC_EFFECTS_ARRAY_ADDR,
     CC_EFFECT_ELEMENT_SIZE,
     { MemDumpPtr( 0x320,
                   0x38,
@@ -308,12 +308,12 @@ int main( int argc, char* argv[] ) {
 
     MemDumpList allAddrs;
 
-    allAddrs.append( miscAddrs );
+    allAddrs.append_( miscAddrs );
 
-    allAddrs.append( playerAddrs );                         // Player 1
-    allAddrs.append( playerAddrs, CC_PLR_STRUCT_SIZE );     // Player 2
-    allAddrs.append( playerAddrs, 2 * CC_PLR_STRUCT_SIZE ); // Puppet 1
-    allAddrs.append( playerAddrs, 3 * CC_PLR_STRUCT_SIZE ); // Puppet 2
+    allAddrs.append_( playerAddrs );                         // Player 1
+    allAddrs.append_( playerAddrs, CC_PLR_STRUCT_SIZE );     // Player 2
+    allAddrs.append_( playerAddrs, 2 * CC_PLR_STRUCT_SIZE ); // Puppet 1
+    allAddrs.append_( playerAddrs, 3 * CC_PLR_STRUCT_SIZE ); // Puppet 2
 
     for ( size_t i = 0; i < CC_EFFECTS_ARRAY_COUNT; ++i )
         allAddrs.append( firstEffect, CC_EFFECT_ELEMENT_SIZE * i );

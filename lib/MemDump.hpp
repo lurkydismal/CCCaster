@@ -2,6 +2,7 @@
 
 #include <cereal/archives/binary.hpp>
 
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -67,7 +68,7 @@ public:
     MemDumpPtr( size_t srcOffset,
                 size_t dstOffset,
                 size_t size,
-                const std::vector< MemDumpPtr >& ptrs )
+                const std::initializer_list< MemDumpPtr >& ptrs )
         : MemDumpBase( size, ptrs ),
           srcOffset( srcOffset ),
           dstOffset( dstOffset ) {}
@@ -142,6 +143,11 @@ public:
     MemDump( void* addr, size_t size, const std::vector< MemDumpPtr >& ptrs )
         : MemDumpBase( size, ptrs ), addr( ( char* )addr ) {}
 
+    MemDump( void* addr,
+             size_t size,
+             const std::initializer_list< MemDumpPtr >& ptrs )
+        : MemDumpBase( size, ptrs ), addr( ( char* )addr ) {}
+
     // Construct a memory dump with a memory range
     MemDump( uint32_t start, uint32_t end )
         : MemDumpBase( end - start ), addr( ( char* )start ) {}
@@ -198,13 +204,12 @@ public:
     }
 
     // Append a list of memory dumps
-    void append( const std::vector< MemDump >& list ) {
-        for ( const MemDump& addr : list )
-            append( addr );
+    void append_( const std::vector< MemDump >& mems ) {
+        addrs.insert( addrs.end(), mems.begin(), mems.end() );
     }
 
     // Append a list of memory dumps with address offset
-    void append( const std::vector< MemDump >& list, size_t addAddrOffset ) {
+    void append_( const std::vector< MemDump >& list, size_t addAddrOffset ) {
         for ( const MemDump& addr : list )
             append( addr, addAddrOffset );
     }

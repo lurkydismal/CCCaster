@@ -8,7 +8,10 @@ drawSprite: spriteWidth->EDX
 drawRect:   dxObj->EAX
 */
 
+#ifdef __cplucplus
 extern "C" {
+#endif
+
 void ( *drawtext )( int, char*, int, int, int, void*, int, int, int ) =
     ( void ( * )( int, char*, int, int, int, void*, int, int, int ) )0x41d340;
 void ( *drawsprite )( int,
@@ -96,4 +99,7 @@ int loadTextureFromMemory( char* imgbuf1,
     return ( *createTexFromFileInMemory )( img1size, imgbuf2, img2size,
                                            param4 );
 }
+
+#ifdef __cplucplus
 }
+#endif

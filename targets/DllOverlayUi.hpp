@@ -3,6 +3,7 @@
 #include <d3dx9.h>
 
 #include <array>
+#include <cstdint>
 #include <string>
 
 #define DEFAULT_MESSAGE_TIMEOUT ( 3000 )
