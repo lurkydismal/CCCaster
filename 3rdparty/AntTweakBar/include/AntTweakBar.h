@@ -183,12 +183,14 @@ typedef struct CTwEnumVal {
     int Value;
     const char* Label;
 } TwEnumVal;
+
 typedef struct CTwStructMember {
     const char* Name;
     TwType Type;
     size_t Offset;
     const char* DefString;
 } TwStructMember;
+
 typedef void( TW_CALL* TwSummaryCallback )( char* summaryString,
                                             size_t summaryMaxLength,
                                             const void* value,
@@ -231,6 +233,7 @@ typedef enum ETwParamValueType {
     TW_PARAM_DOUBLE,
     TW_PARAM_CSTRING // Null-terminated array of char (ie, c-string)
 } TwParamValueType;
+
 TW_API int TW_CALL TwGetParam( TwBar* bar,
                                const char* varName,
                                const char* paramName,
@@ -273,6 +276,7 @@ typedef enum ETwKeyModifier {
     TW_KMOD_ALT = 0x0100,
     TW_KMOD_META = 0x0c00
 } TwKeyModifier;
+
 typedef enum EKeySpecial {
     TW_KEY_BACKSPACE = '\b',
     TW_KEY_TAB = '\t',
@@ -316,6 +320,7 @@ typedef enum ETwMouseAction {
     TW_MOUSE_RELEASED,
     TW_MOUSE_PRESSED
 } TwMouseAction;
+
 typedef enum ETwMouseButtonID {
     TW_MOUSE_LEFT = 1,   // same code as SDL_BUTTON_LEFT
     TW_MOUSE_MIDDLE = 2, // same code as SDL_BUTTON_MIDDLE

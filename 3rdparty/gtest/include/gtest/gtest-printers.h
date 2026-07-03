@@ -393,6 +393,7 @@ void PrintTo( const T& value, ::std::ostream* os ) {
 // Overloads for various char types.
 GTEST_API_ void PrintTo( unsigned char c, ::std::ostream* os );
 GTEST_API_ void PrintTo( signed char c, ::std::ostream* os );
+
 inline void PrintTo( char c, ::std::ostream* os ) {
     // When printing a plain char, we always treat it as unsigned.  This
     // way, the output won't be affected by whether the compiler thinks
@@ -416,6 +417,7 @@ GTEST_API_ void PrintTo( wchar_t wc, ::std::ostream* os );
 
 // Overloads for C strings.
 GTEST_API_ void PrintTo( const char* s, ::std::ostream* os );
+
 inline void PrintTo( char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const char* >( s ), os );
 }
@@ -425,12 +427,15 @@ inline void PrintTo( char* s, ::std::ostream* os ) {
 inline void PrintTo( const signed char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
+
 inline void PrintTo( signed char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
+
 inline void PrintTo( const unsigned char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
+
 inline void PrintTo( unsigned char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
@@ -443,6 +448,7 @@ inline void PrintTo( unsigned char* s, ::std::ostream* os ) {
 #if !defined( _MSC_VER ) || defined( _NATIVE_WCHAR_T_DEFINED )
 // Overloads for wide C strings
 GTEST_API_ void PrintTo( const wchar_t* s, ::std::ostream* os );
+
 inline void PrintTo( wchar_t* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const wchar_t* >( s ), os );
 }
@@ -465,12 +471,14 @@ void PrintRawArrayTo( const T a[], size_t count, ::std::ostream* os ) {
 // Overloads for ::string and ::std::string.
 #if GTEST_HAS_GLOBAL_STRING
 GTEST_API_ void PrintStringTo( const ::string& s, ::std::ostream* os );
+
 inline void PrintTo( const ::string& s, ::std::ostream* os ) {
     PrintStringTo( s, os );
 }
 #endif // GTEST_HAS_GLOBAL_STRING
 
 GTEST_API_ void PrintStringTo( const ::std::string& s, ::std::ostream* os );
+
 inline void PrintTo( const ::std::string& s, ::std::ostream* os ) {
     PrintStringTo( s, os );
 }
@@ -478,6 +486,7 @@ inline void PrintTo( const ::std::string& s, ::std::ostream* os ) {
 // Overloads for ::wstring and ::std::wstring.
 #if GTEST_HAS_GLOBAL_WSTRING
 GTEST_API_ void PrintWideStringTo( const ::wstring& s, ::std::ostream* os );
+
 inline void PrintTo( const ::wstring& s, ::std::ostream* os ) {
     PrintWideStringTo( s, os );
 }
@@ -486,6 +495,7 @@ inline void PrintTo( const ::wstring& s, ::std::ostream* os ) {
 #if GTEST_HAS_STD_WSTRING
 GTEST_API_ void PrintWideStringTo( const ::std::wstring& s,
                                    ::std::ostream* os );
+
 inline void PrintTo( const ::std::wstring& s, ::std::ostream* os ) {
     PrintWideStringTo( s, os );
 }
@@ -672,6 +682,7 @@ void UniversalPrintArray( const T* begin, size_t len, ::std::ostream* os ) {
         *os << " }";
     }
 }
+
 // This overload prints a (const) char array compactly.
 GTEST_API_ void UniversalPrintArray( const char* begin,
                                      size_t len,
@@ -729,6 +740,7 @@ public:
         UniversalPrint( value, os );
     }
 };
+
 template < typename T >
 class UniversalTersePrinter< T& > {
 public:
@@ -736,6 +748,7 @@ public:
         UniversalPrint( value, os );
     }
 };
+
 template < typename T, size_t N >
 class UniversalTersePrinter< T[ N ] > {
 public:
@@ -743,6 +756,7 @@ public:
         UniversalPrinter< T[ N ] >::Print( value, os );
     }
 };
+
 template <>
 class UniversalTersePrinter< const char* > {
 public:
@@ -754,6 +768,7 @@ public:
         }
     }
 };
+
 template <>
 class UniversalTersePrinter< char* > {
 public:
@@ -843,6 +858,7 @@ struct TuplePrefixPrinter< 0 > {
     template < typename Tuple >
     static void TersePrintPrefixToStrings( const Tuple&, Strings* ) {}
 };
+
 // We have to specialize the entire TuplePrefixPrinter<> class
 // template here, even though the definition of
 // TersePrintPrefixToStrings() is the same as the generic version, as

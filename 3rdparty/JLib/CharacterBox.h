@@ -49,11 +49,11 @@ public:
     //		COORD upperLeft:	The origin of the box.
     //		COORD lowerRight:	The opposite corner of the origin.
     //		ConsoleFormat border:	The coloring to use on the bounding area
-    //of the box. 		ConsoleFormat client:	The coloring to use on the inside of the
-    //box. 		char fill:	The character to use for the borders of the box. 	Notes:
-    //		This function calls Normalize which ensures that the components
-    //of upperLeft 		and lowerRight are within range of MAX_SCREEN_X,
-    //MAX_SCREEN_Y, and 0.
+    // of the box. 		ConsoleFormat client:	The coloring to use on
+    // the inside of the box. 		char fill:	The character to use for
+    // the borders of the box. 	Notes: 		This function calls Normalize which
+    //ensures that the components of upperLeft 		and lowerRight are
+    // within range of MAX_SCREEN_X, MAX_SCREEN_Y, and 0.
     CharacterBox( COORD upperLeft,
                   COORD lowerRight,
                   ConsoleFormat border = ConsoleFormat::SYSTEM,
@@ -132,17 +132,17 @@ public:
     //	MAX_SCREEN_X, MAX_SCREEN_Y, and 0.
     //	Notes:
     //		Does not ensure that the upper left is above and left of lower
-    //right.
+    // right.
     void Normalize();
 
     //		Width
     //	Returns: The distance between upper left and lower right with respect to
-    //the horizontal.
+    // the horizontal.
     SHORT Width() const;
 
     //		Height
     //	Returns: The distance between upper left and lower right with respect to
-    //y vertical.
+    // y vertical.
     SHORT Height() const;
 
     //		Draw
@@ -157,7 +157,7 @@ public:
     //		char fill:	The character to use for the border.
     //	Notes:
     //		This method uses whatever formatting the ConsoleCore is
-    //currently using.
+    // currently using.
     static void Draw( COORD upperLeft, COORD lowerRight, char fill = '*' );
 
 private:
@@ -193,10 +193,10 @@ public:
     //		COORD upperLeft:	The origin of the box.
     //		COORD lowerRight:	The opposite corner of the origin.
     //		ConsoleFormat border:	The coloring to use on the bounding area
-    //of the box. 		ConsoleFormat client:	The coloring to use on the inside of the
-    //box. 		char fill:	The character to use for the borders of the box. 	Notes:
-    //		This function invokes the parents creation method which
-    //		also causes Normalize to be called.
+    // of the box. 		ConsoleFormat client:	The coloring to use on
+    // the inside of the box. 		char fill:	The character to use for
+    // the borders of the box. 	Notes: 		This function invokes the parents
+    //creation method which 		also causes Normalize to be called.
     CharacterWindow( COORD upperLeft,
                      COORD lowerRight,
                      const std::string& title,
@@ -219,7 +219,7 @@ public:
     //	Draws the window.
     //	Notes:
     //		Creates two CharacterBoxes, draws them, and then draws the
-    //title.
+    // title.
     virtual void Draw() const;
 
 private:

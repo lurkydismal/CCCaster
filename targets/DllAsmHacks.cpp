@@ -162,6 +162,7 @@ extern "C" void loadingStateColorCb() {
 
     loadingStateColorCb2( ptr );
 }
+
 // extern "C" void (*drawInputHistory) () = (void(*)()) 0x479460;
 
 extern "C" int CallDrawText( int width,
@@ -206,6 +207,7 @@ extern "C" int CallDrawSprite( int spriteWidth,
                                int layer );
 
 extern "C" void renderCallback();
+
 // ARGB
 extern "C" void addExtraDrawCallsCb() {
     renderCallback();
@@ -241,6 +243,7 @@ extern "C" void addExtraTexturesCb() {
     TrialManager::trialInputTextures =
         loadTextureFromMemory( rawimg3, imgsize3, 0, 0, 0 );
 }
+
 int Asm::write() const {
     backup.resize( bytes.size() );
     memcpy( &backup[ 0 ], addr, backup.size() );

@@ -30,10 +30,10 @@
 #ifndef CEREAL_TYPES_SHARED_PTR_HPP_
 #define CEREAL_TYPES_SHARED_PTR_HPP_
 
-#include <cereal/cereal.hpp>
-
 #include <cstring>
 #include <memory>
+
+#include "../cereal.hpp"
 
 namespace cereal {
 namespace memory_detail {
@@ -45,6 +45,7 @@ namespace memory_detail {
 template < class T >
 struct PtrWrapper {
     PtrWrapper( T&& p ) : ptr( std::forward< T >( p ) ) {}
+
     T& ptr;
 };
 

@@ -77,16 +77,19 @@ typedef struct {
     uint8_t sib_scale;
     uint8_t sib_index;
     uint8_t sib_base;
+
     union {
         uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
     } imm;
+
     union {
         uint8_t disp8;
         uint16_t disp16;
         uint32_t disp32;
     } disp;
+
     uint32_t flags;
 } hde32s;
 

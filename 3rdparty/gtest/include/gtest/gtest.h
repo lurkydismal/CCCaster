@@ -258,6 +258,7 @@ public:
     // Copy constructor.
     // Used in EXPECT_TRUE/FALSE(assertion_result).
     AssertionResult( const AssertionResult& other );
+
     // Used in the EXPECT_TRUE/FALSE(bool_expression).
     explicit AssertionResult( bool success ) : success_( success ) {}
 
@@ -274,6 +275,7 @@ public:
     const char* message() const {
         return message_.get() != NULL ? message_->c_str() : "";
     }
+
     // TODO(vladl@google.com): Remove this after making sure no clients use it.
     // Deprecated; please use message() instead.
     const char* failure_message() const { return message(); }
@@ -452,6 +454,7 @@ private:
     // If you see an error about overriding the following function or
     // about it being private, you have mis-spelled SetUp() as Setup().
     struct Setup_should_be_spelled_SetUp {};
+
     virtual Setup_should_be_spelled_SetUp* Setup() { return NULL; }
 
     // We disallow copying Tests.
@@ -952,6 +955,7 @@ private:
     // If you see an error about overriding the following function or
     // about it being private, you have mis-spelled SetUp() as Setup().
     struct Setup_should_be_spelled_SetUp {};
+
     virtual Setup_should_be_spelled_SetUp* Setup() { return NULL; }
 };
 
@@ -1013,20 +1017,32 @@ public:
 class EmptyTestEventListener : public TestEventListener {
 public:
     virtual void OnTestProgramStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationStart( const UnitTest& /*unit_test*/,
                                        int /*iteration*/ ) {}
+
     virtual void OnEnvironmentsSetUpStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnEnvironmentsSetUpEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestCaseStart( const TestCase& /*test_case*/ ) {}
+
     virtual void OnTestStart( const TestInfo& /*test_info*/ ) {}
+
     virtual void OnTestPartResult(
         const TestPartResult& /*test_part_result*/ ) {}
+
     virtual void OnTestEnd( const TestInfo& /*test_info*/ ) {}
+
     virtual void OnTestCaseEnd( const TestCase& /*test_case*/ ) {}
+
     virtual void OnEnvironmentsTearDownStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnEnvironmentsTearDownEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationEnd( const UnitTest& /*unit_test*/,
                                      int /*iteration*/ ) {}
+
     virtual void OnTestProgramEnd( const UnitTest& /*unit_test*/ ) {}
 };
 
@@ -1254,6 +1270,7 @@ private:
 
     // Accessors for the implementation object.
     internal::UnitTestImpl* impl() { return impl_; }
+
     const internal::UnitTestImpl* impl() const { return impl_; }
 
     // These classes and funcions are friends as they need to access private
@@ -1811,6 +1828,7 @@ template < typename T >
 class WithParamInterface {
 public:
     typedef T ParamType;
+
     virtual ~WithParamInterface() {}
 
     // The current parameter value. Is also available in the test fixture's

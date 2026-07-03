@@ -48,7 +48,7 @@ public:
 
     //		~ConsoleCore
     //	Clears the screen, destroys the save screen buffer, and deletes the
-    //singleton.
+    // singleton.
     ~ConsoleCore();
 
     //		ClearScreen
@@ -68,7 +68,7 @@ public:
     //		PCHAR_INFO buffer:	User defined CHAR_INFO buffer.
     //		COORD bufferSize:	Dimensions of the buffer.
     //		COORD saveOrigin:	The upper left corner of the area to
-    //copy from the screen.
+    // copy from the screen.
     void SaveScreen( PCHAR_INFO buffer, COORD bufferSize, COORD saveOrigin );
 
     //		LoadScreen
@@ -81,12 +81,13 @@ public:
     //		PCHAR_INFO buffer:	User defined CHAR_INFO buffer.
     //		COORD bufferSize:	Dimensions of the buffer.
     //		COORD loadOrigin:	The upper left corner of the screen to
-    //begin the copy.
+    // begin the copy.
     void LoadScreen( PCHAR_INFO buffer, COORD bufferSize, COORD loadOrigin );
 
     //		Color
     //	Returns, and optionally sets, the default output color.  If the argument
-    //is 	NULL, the current color in use is returned.  If the argument is not
+    // is 	NULL, the current color in use is returned.  If the argument is
+    // not
     //  NULL, the current color is replaced but also returned.
     //	Arguments:
     //		const ConsoleFormat* newFormat:	The color to change to.
@@ -95,8 +96,8 @@ public:
 
     //		CursorPosition
     //	Returns, and optionally sets, the current cursor position.  If the
-    //argument is 	NULL, the current position is returned.  If the argument is
-    //not
+    // argument is 	NULL, the current position is returned.  If the argument
+    // is not
     //  NULL, the current position is replaced but also returned.
     //	Arguments:
     //		PCOORD lpPosition:	The new position.
@@ -116,10 +117,11 @@ public:
     //	Arguments:
     //		int number:	The value to write.
     //		BOOL endline:	Whether to move the cursor down and all the way
-    //left after writing. 		ConsoleFormat* color:	The color to use. 		SHORT x:
-    //Column to write to. 		SHORT y:	Row to write to. 	Notes: 		If color is
-    //NULL, the default color is used. 		If x or y are -1 the current x and/or y
-    //value is used.
+    // left after writing. 		ConsoleFormat* color:	The color to
+    // use. 		SHORT x: Column to write to. 		SHORT y:
+    // Row to write to. 	Notes: 		If color is NULL, the default
+    // color is used. 		If x or y are -1 the current x and/or y value is
+    // used.
     void Printn( int number,
                  BOOL endLine = FALSE,
                  ConsoleFormat* color = NULL,
@@ -132,12 +134,13 @@ public:
     //		double number:	The value to write.
     //		int characterLength:	The length of the output.
     //		BOOL endline:	Whether to move the cursor down and all the way
-    //left after writing. 		ConsoleFormat* color:	The color to use. 		SHORT x:
-    //Column to write to. 		SHORT y:	Row to write to. 	Notes: 		If color is
-    //NULL, the default color is used. 		If character length is shorter than what
-    //it would take to display the entire double 		then the value will be
-    //displayed in scientific notation. i.e 9e-004 (or 0.0009). 		If x or y are -1
-    //the current x and/or y value is used.
+    // left after writing. 		ConsoleFormat* color:	The color to
+    // use. 		SHORT x: Column to write to. 		SHORT y:
+    // Row to write to. 	Notes: 		If color is NULL, the default
+    // color is used. 		If character length is shorter than what it
+    // would take to display the entire double 		then the value will be
+    // displayed in scientific notation. i.e 9e-004 (or 0.0009).
+    // If x or y are -1 the current x and/or y value is used.
     void Printd( double number,
                  int characterLength,
                  BOOL endLine = FALSE,
@@ -149,15 +152,17 @@ public:
     //	Writes a string to the screen and updates the cursor position.
     //	Arguments:
     //		string text:	The string to write.  Can contain embedded color
-    //codes. 		BOOL endline:	Whether to move the cursor down and all the way
-    //left after writing. 		ConsoleFormat* color:	The color to use. 		SHORT x:
-    //Column to write to. 		SHORT y:	Row to write to. 	Notes: 		If color is
-    //NULL, the default color is used. 		If x or y are -1 the current x and/or y
-    //value is used. 		Text can contain color codes to format portions of the
-    //screen. 		Color codes are always in the format of a dollar sign followed by
-    //exactly 3 digits (i.e. $007) 		All text after a color code will be written
-    //to the screen in that color until another color 		code is encountered. 		Color
-    //codes supersede the current default color but do not modify it.
+    // codes. 		BOOL endline:	Whether to move the cursor down and all
+    // the way left after writing. 		ConsoleFormat* color:	The
+    // color to use. 		SHORT x: Column to write to. 		SHORT y:
+    // Row to write to. 	Notes: 		If color is NULL, the default
+    // color is used. 		If x or y are -1 the current x and/or y value is
+    // used. 		Text can contain color codes to format portions of the
+    // screen. 		Color codes are always in the format of a dollar sign
+    // followed by exactly 3 digits (i.e. $007) 		All text after a
+    // color code will be written to the screen in that color until another
+    // color 		code is encountered. 		Color codes supersede
+    // the current default color but do not modify it.
     void Prints( const std::string& text,
                  BOOL endLine = FALSE,
                  const ConsoleFormat* color = NULL,
@@ -186,10 +191,11 @@ public:
     //		int digitCount:	Maximum number of digits allowed.
     //	Notes:
     //		The minus sign can be used as the first character and does not
-    //count toward the limit 		set by digitCount. 		The range value of a DWORD is
-    //[-2147483648,2147483647]. If you enter a digit above 		or below that value,
-    //say 99999999999 to -9999999999, it will be clamped 		automatically before
-    //given back through lpNumber.
+    // count toward the limit 		set by digitCount. 		The
+    // range value of a DWORD is
+    //[-2147483648,2147483647]. If you enter a digit above 		or below
+    //that value, say 99999999999 to -9999999999, it will be clamped
+    // automatically before given back through lpNumber.
     bool ScanNumber( COORD origin,
                      int& number,
                      int digitCount = 10,
@@ -240,10 +246,11 @@ private:
 
     //		_Prints
     //	This method actually does the output.  All other Print functions
-    //ultimately 	make calls to this method. 	Arguments: 		string text:	What to
-    //write.  Can be color coded. 		BOOL endLine:	Whether to end the line. 		const
-    //ConsoleFormat* color:	The color to use. 		SHORT x:	The column to
-    //write to. 		SHORT y:	The row to write to.
+    // ultimately 	make calls to this method. 	Arguments:
+    // string text:	What to write.  Can be color coded. 		BOOL
+    // endLine:	Whether to end the line. 		const ConsoleFormat*
+    // color:	The color to use. 		SHORT x:	The column to
+    // write to. 		SHORT y:	The row to write to.
     void _Prints( const std::string& text,
                   BOOL endLine,
                   const ConsoleFormat* color,

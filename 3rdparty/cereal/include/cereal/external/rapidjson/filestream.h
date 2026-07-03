@@ -3,6 +3,8 @@
 
 #include <cstdio>
 
+#include "rapidjson.h"
+
 namespace rapidjson {
 
 //! Wrapper of C file stream for input or output.
@@ -17,16 +19,20 @@ public:
     FileStream( FILE* fp ) : fp_( fp ), count_( 0 ) { Read(); }
 
     char Peek() const { return current_; }
+
     char Take() {
         char c = current_;
         Read();
         return c;
     }
+
     size_t Tell() const { return count_; }
+
     void Put( char c ) { fputc( c, fp_ ); }
 
     // Not implemented
     char* PutBegin() { return 0; }
+
     size_t PutEnd( char* ) { return 0; }
 
 private:

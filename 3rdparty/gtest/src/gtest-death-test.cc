@@ -384,16 +384,27 @@ protected:
     virtual bool Passed( bool status_ok );
 
     const char* statement() const { return statement_; }
+
     const RE* regex() const { return regex_; }
+
     bool spawned() const { return spawned_; }
+
     void set_spawned( bool is_spawned ) { spawned_ = is_spawned; }
+
     int status() const { return status_; }
+
     void set_status( int a_status ) { status_ = a_status; }
+
     DeathTestOutcome outcome() const { return outcome_; }
+
     void set_outcome( DeathTestOutcome an_outcome ) { outcome_ = an_outcome; }
+
     int read_fd() const { return read_fd_; }
+
     void set_read_fd( int fd ) { read_fd_ = fd; }
+
     int write_fd() const { return write_fd_; }
+
     void set_write_fd( int fd ) { write_fd_ = fd; }
 
     // Called in the parent process only. Reads the result code of the death
@@ -828,6 +839,7 @@ class NoExecDeathTest : public ForkingDeathTest {
 public:
     NoExecDeathTest( const char* a_statement, const RE* a_regex )
         : ForkingDeathTest( a_statement, a_regex ) {}
+
     virtual TestRole AssumeRole();
 };
 
@@ -888,6 +900,7 @@ public:
         : ForkingDeathTest( a_statement, a_regex ),
           file_( file ),
           line_( line ) {}
+
     virtual TestRole AssumeRole();
 
 private:
@@ -896,6 +909,7 @@ private:
         ::std::vector< testing::internal::string > args = GetInjectableArgvs();
         return args;
     }
+
     // The name of the file in which the death test is located.
     const char* const file_;
     // The line number on which the death test is located.
@@ -913,6 +927,7 @@ public:
             free( *i );
         }
     }
+
     void AddArgument( const char* argument ) {
         args_.insert( args_.end() - 1, posix::StrDup( argument ) );
     }
@@ -925,6 +940,7 @@ public:
             args_.insert( args_.end() - 1, posix::StrDup( i->c_str() ) );
         }
     }
+
     char* const* Argv() { return &args_[ 0 ]; }
 
 private:
@@ -949,6 +965,7 @@ inline char** GetEnviron() {
 // Some POSIX platforms expect you to declare environ. extern "C" makes
 // it reside in the global namespace.
 extern "C" char** environ;
+
 inline char** GetEnviron() {
     return environ;
 }
@@ -997,6 +1014,7 @@ static int ExecDeathTestChildMain( void* child_arg ) {
 // StackLowerThanAddress into StackGrowsDown, which then doesn't give
 // correct answer.
 void StackLowerThanAddress( const void* ptr, bool* result ) GTEST_NO_INLINE_;
+
 void StackLowerThanAddress( const void* ptr, bool* result ) {
     int dummy;
     *result = ( &dummy < ptr );

@@ -75,6 +75,7 @@
 #define GTEST_CONCAT_TOKEN_IMPL_( foo, bar ) foo##bar
 
 class ProtocolMessage;
+
 namespace proto2 {
 class Message;
 }
@@ -389,6 +390,7 @@ template <>
 inline float FloatingPoint< float >::Max() {
     return FLT_MAX;
 }
+
 template <>
 inline double FloatingPoint< double >::Max() {
     return DBL_MAX;
@@ -690,7 +692,9 @@ inline bool AlwaysFalse() {
 // the else branch.
 struct GTEST_API_ ConstCharPtr {
     ConstCharPtr( const char* str ) : value( str ) {}
+
     operator bool() const { return true; }
+
     const char* value;
 };
 
@@ -731,6 +735,7 @@ template < typename T >
 struct RemoveReference {
     typedef T type;
 }; // NOLINT
+
 template < typename T >
 struct RemoveReference< T& > {
     typedef T type;
@@ -748,6 +753,7 @@ template < typename T >
 struct RemoveConst {
     typedef T type;
 }; // NOLINT
+
 template < typename T >
 struct RemoveConst< const T > {
     typedef T type;
@@ -787,6 +793,7 @@ template < typename T >
 struct AddReference {
     typedef T& type;
 }; // NOLINT
+
 template < typename T >
 struct AddReference< T& > {
     typedef T& type;
@@ -859,6 +866,7 @@ public:
         sizeof( Helper( ImplicitlyConvertible::MakeFrom() ) ) == 1;
 #endif // _MSV_VER
 };
+
 template < typename From, typename To >
 const bool ImplicitlyConvertible< From, To >::value;
 
@@ -894,6 +902,7 @@ struct IsAProtocolMessage
 // IsContainerTest(typename C::const_iterator*) and
 // IsContainerTest(...) doesn't work with Visual Age C++ and Sun C++.
 typedef int IsContainer;
+
 template < class C >
 IsContainer IsContainerTest(
     int /* dummy */,
@@ -903,6 +912,7 @@ IsContainer IsContainerTest(
 }
 
 typedef char IsNotContainer;
+
 template < class C >
 IsNotContainer IsContainerTest( long /* dummy */ ) {
     return '\0';
@@ -914,6 +924,7 @@ IsNotContainer IsContainerTest( long /* dummy */ ) {
 // "typename EnableIf<expression>::type* = 0" as the last parameter.
 template < bool >
 struct EnableIf;
+
 template <>
 struct EnableIf< true > {
     typedef void type;
@@ -1040,8 +1051,11 @@ public:
 
     // STL-style container methods.
     size_t size() const { return size_; }
+
     const_iterator begin() const { return array_; }
+
     const_iterator end() const { return array_ + size_; }
+
     bool operator==( const NativeArray& rhs ) const {
         return size() == rhs.size() && ArrayEq( begin(), size(), rhs.begin() );
     }

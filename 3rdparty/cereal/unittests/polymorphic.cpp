@@ -30,7 +30,9 @@
 
 struct PolyBase {
     PolyBase() {}
+
     PolyBase( int xx, float yy ) : x( xx ), y( yy ) {}
+
     int x;
     float y;
 
@@ -48,6 +50,7 @@ struct PolyBase {
 
 struct PolyDerived : PolyBase {
     PolyDerived() {}
+
     PolyDerived( int xx, float yy, bool aa, double bb )
         : PolyBase( xx, yy ), a( aa ), b( bb ) {}
 

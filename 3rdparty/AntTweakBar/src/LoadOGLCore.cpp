@@ -18,8 +18,10 @@
 struct COGLCoreFuncRec {
     const char* m_Name;
     GLCore::PFNOpenGL* m_FuncPtr;
+
     COGLCoreFuncRec() : m_Name( NULL ), m_FuncPtr( NULL ) {}
 };
+
 COGLCoreFuncRec g_OGLCoreFuncRec[ ANT_NB_OGL_CORE_FUNC_MAX ];
 int g_NbOGLCoreFunc = 0;
 #if defined( ANT_WINDOWS )
@@ -474,6 +476,7 @@ int UnloadOpenGLCore() {
 
 static void* gl_dyld = NULL;
 static const char* gl_prefix = "_";
+
 void* NSGLCoreGetProcAddressNew( const GLubyte* name ) {
     void* proc = NULL;
     if ( gl_dyld == NULL ) {

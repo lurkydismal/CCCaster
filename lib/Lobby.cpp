@@ -74,6 +74,7 @@ void Lobby::disconnect() {
     if ( owner )
         owner->connectionFailed( this );
 }
+
 void Lobby::socketConnected( Socket* socket ) {
     ASSERT( _socket.get() == socket );
     const string request = format( "LIST,none" );

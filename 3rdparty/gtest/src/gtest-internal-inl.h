@@ -425,6 +425,7 @@ GTEST_API_ FilePath GetCurrentExecutableName();
 class OsStackTraceGetterInterface {
 public:
     OsStackTraceGetterInterface() {}
+
     virtual ~OsStackTraceGetterInterface() {}
 
     // Returns the current OS stack trace as an std::string.  Parameters:
@@ -749,7 +750,9 @@ public:
     void ListTestsMatchingFilter();
 
     const TestCase* current_test_case() const { return current_test_case_; }
+
     TestInfo* current_test_info() { return current_test_info_; }
+
     const TestInfo* current_test_info() const { return current_test_info_; }
 
     // Returns the vector of environments that need to be set-up/torn-down
@@ -760,6 +763,7 @@ public:
     std::vector< TraceInfo >& gtest_trace_stack() {
         return *( gtest_trace_stack_.pointer() );
     }
+
     const std::vector< TraceInfo >& gtest_trace_stack() const {
         return gtest_trace_stack_.get();
     }
@@ -768,6 +772,7 @@ public:
     void InitDeathTestSubprocessControlInfo() {
         internal_run_death_test_flag_.reset( ParseInternalRunDeathTestFlag() );
     }
+
     // Returns a pointer to the parsed --gtest_internal_run_death_test
     // flag, or NULL if that flag was not specified.
     // This information is useful only in a death test child process.
@@ -988,12 +993,15 @@ GTEST_API_ std::string GetLastErrnoDescription();
 class AutoHandle {
 public:
     AutoHandle() : handle_( INVALID_HANDLE_VALUE ) {}
+
     explicit AutoHandle( HANDLE handle ) : handle_( handle ) {}
 
     ~AutoHandle() { Reset(); }
 
     HANDLE Get() const { return handle_; }
+
     void Reset() { Reset( INVALID_HANDLE_VALUE ); }
+
     void Reset( HANDLE handle ) {
         if ( handle != handle_ ) {
             if ( handle_ != INVALID_HANDLE_VALUE )

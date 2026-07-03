@@ -140,6 +140,7 @@ public:
     // Take over ownership of a raw pointer.  This should happen as soon as
     // possible after the object is created.
     explicit linked_ptr( T* ptr = NULL ) { capture( ptr ); }
+
     ~linked_ptr() { depart(); }
 
     // Copy an existing linked_ptr<>, adding ourselves to the list of
@@ -148,6 +149,7 @@ public:
     linked_ptr( linked_ptr< U > const& ptr ) {
         copy( &ptr );
     }
+
     linked_ptr( linked_ptr const& ptr ) { // NOLINT
         assert( &ptr != this );
         copy( &ptr );
@@ -174,16 +176,22 @@ public:
         depart();
         capture( ptr );
     }
+
     T* get() const { return value_; }
+
     T* operator->() const { return value_; }
+
     T& operator*() const { return *value_; }
 
     bool operator==( T* p ) const { return value_ == p; }
+
     bool operator!=( T* p ) const { return value_ != p; }
+
     template < typename U >
     bool operator==( linked_ptr< U > const& ptr ) const {
         return value_ == ptr.get();
     }
+
     template < typename U >
     bool operator!=( linked_ptr< U > const& ptr ) const {
         return value_ != ptr.get();

@@ -144,9 +144,11 @@ extern void __cdecl exit( int );
 GLUT_API void GLUT_CALL __glutInitWithExit( int* argcp,
                                             char** argv,
                                             void( __cdecl* exitfunc )( int ) );
+
 static void GLUT_CALL glutInit_ATEXIT_HACK( int* argcp, char** argv ) {
     __glutInitWithExit( argcp, argv, exit );
 }
+
 #define glutInit glutInit_ATEXIT_HACK
 #endif
 

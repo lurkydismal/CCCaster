@@ -466,9 +466,10 @@ void CTwVarAtom::ValueToString( string* _Str ) const {
                     *_Str = Val;
                 else
                     *_Str = "";
-            } else if ( IsCustom() ) // m_Type>=TW_TYPE_CUSTOM_BASE &&
-                                     // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
-                                     // )
+            } else if (
+                IsCustom() ) // m_Type>=TW_TYPE_CUSTOM_BASE &&
+                             // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
+                             // )
             {
                 *_Str = "";
             } else {
@@ -1497,10 +1498,11 @@ int CTwVarAtom::SetAttrib( int _AttribID,
             if ( _Value != NULL &&
                  strlen( _Value ) > 0 ) // do not check ReadOnly here.
             {
-                if ( !( m_Type == TW_TYPE_BUTTON ||
-                        IsCustom() ) ) // || (m_Type>=TW_TYPE_CUSTOM_BASE &&
-                                       // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
-                                       // ) )
+                if (
+                    !( m_Type == TW_TYPE_BUTTON ||
+                       IsCustom() ) ) // || (m_Type>=TW_TYPE_CUSTOM_BASE &&
+                                      // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
+                                      // ) )
                 {
                     if ( m_Type == TW_TYPE_CDSTRING ||
                          m_Type == TW_TYPE_CDSTDSTRING ) {
@@ -1713,10 +1715,11 @@ ERetType CTwVarAtom::GetAttrib( int _AttribID,
             g_TwMgr->SetLastError( g_ErrInvalidAttrib );
             return RET_ERROR;
         case VA_VALUE:
-            if ( !( m_Type == TW_TYPE_BUTTON ||
-                    IsCustom() ) ) // || (m_Type>=TW_TYPE_CUSTOM_BASE &&
-                                   // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
-                                   // ) )
+            if (
+                !( m_Type == TW_TYPE_BUTTON ||
+                   IsCustom() ) ) // || (m_Type>=TW_TYPE_CUSTOM_BASE &&
+                                  // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
+                                  // ) )
             {
                 if ( m_Type == TW_TYPE_CDSTRING ||
                      m_Type == TW_TYPE_CDSTDSTRING ||
@@ -2223,16 +2226,17 @@ void CTwVarAtom::SetDefaults() {
     }
 
     // special types
-    if ( m_Type == TW_TYPE_BUTTON ||
-         IsEnumType(
-             m_Type ) // (m_Type>=TW_TYPE_ENUM_BASE &&
-                      // m_Type<TW_TYPE_ENUM_BASE+(int)g_TwMgr->m_Enums.size())
-         || IsCSStringType( m_Type ) // (m_Type>=TW_TYPE_CSSTRING_BASE &&
-                                     // m_Type<=TW_TYPE_CSSTRING_MAX)
-         || m_Type == TW_TYPE_CDSTDSTRING ||
-         IsCustom() ) // (m_Type>=TW_TYPE_CUSTOM_BASE &&
-                      // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
-                      // )
+    if (
+        m_Type == TW_TYPE_BUTTON ||
+        IsEnumType(
+            m_Type ) // (m_Type>=TW_TYPE_ENUM_BASE &&
+                     // m_Type<TW_TYPE_ENUM_BASE+(int)g_TwMgr->m_Enums.size())
+        || IsCSStringType( m_Type ) // (m_Type>=TW_TYPE_CSSTRING_BASE &&
+                                    // m_Type<=TW_TYPE_CSSTRING_MAX)
+        || m_Type == TW_TYPE_CDSTDSTRING ||
+        IsCustom() ) // (m_Type>=TW_TYPE_CUSTOM_BASE &&
+                     // m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
+                     // )
         m_NoSlider = true;
 }
 
@@ -3977,12 +3981,13 @@ void CTwBar::ListValues( vector< string >& _Values,
                        Atom->m_SetCallback == NULL &&
                        g_TwMgr->m_CopyStdStringToClient == NULL ) )
                     IsROText = true;
-                if ( Atom->m_Type == TW_TYPE_HELP_ATOM ||
-                     Atom->m_Type == TW_TYPE_HELP_GRP ||
-                     Atom->m_Type == TW_TYPE_BUTTON ||
-                     Atom->IsCustom() ) // (Atom->m_Type>=TW_TYPE_CUSTOM_BASE &&
-                                        // Atom->m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
-                                        // )
+                if (
+                    Atom->m_Type == TW_TYPE_HELP_ATOM ||
+                    Atom->m_Type == TW_TYPE_HELP_GRP ||
+                    Atom->m_Type == TW_TYPE_BUTTON ||
+                    Atom->IsCustom() ) // (Atom->m_Type>=TW_TYPE_CUSTOM_BASE &&
+                                       // Atom->m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
+                                       // )
                     HasBgColor = false;
                 AcceptEdit = EditInPlaceAcceptVar( Atom ) ||
                              ( Atom->m_Type == TW_TYPE_SHORTCUT );
@@ -4951,20 +4956,22 @@ void CTwBar::Draw( int _DrawPart ) {
 
         if ( _DrawPart & DRAW_CONTENT ) {
             // Draw highlighted line
-            if ( m_HighlightedLine >= 0 &&
-                 m_HighlightedLine < ( int )m_HierTags.size() &&
-                 m_HierTags[ m_HighlightedLine ].m_Var != NULL &&
-                 ( m_HierTags[ m_HighlightedLine ].m_Var->IsGroup() ||
-                   ( !static_cast< CTwVarAtom* >(
-                          m_HierTags[ m_HighlightedLine ].m_Var )
-                          ->m_ReadOnly &&
-                     !m_IsHelpBar &&
-                     !m_HierTags[ m_HighlightedLine ]
-                          .m_Var->IsCustom() ) ) ) // !(static_cast<CTwVarAtom
-                                                   // *>(m_HierTags[m_HighlightedLine].m_Var)->m_Type>=TW_TYPE_CUSTOM_BASE
-                                                   // && static_cast<CTwVarAtom
-                                                   // *>(m_HierTags[m_HighlightedLine].m_Var)->m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())))
-                                                   // )
+            if (
+                m_HighlightedLine >= 0 &&
+                m_HighlightedLine < ( int )m_HierTags.size() &&
+                m_HierTags[ m_HighlightedLine ].m_Var != NULL &&
+                ( m_HierTags[ m_HighlightedLine ].m_Var->IsGroup() ||
+                  ( !static_cast< CTwVarAtom* >(
+                         m_HierTags[ m_HighlightedLine ].m_Var )
+                         ->m_ReadOnly &&
+                    !m_IsHelpBar &&
+                    !m_HierTags[ m_HighlightedLine ]
+                         .m_Var
+                         ->IsCustom() ) ) ) // !(static_cast<CTwVarAtom
+                                            // *>(m_HierTags[m_HighlightedLine].m_Var)->m_Type>=TW_TYPE_CUSTOM_BASE
+                                            // && static_cast<CTwVarAtom
+                                            // *>(m_HierTags[m_HighlightedLine].m_Var)->m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())))
+                                            // )
             {
                 int y0 =
                     m_PosY + m_VarY0 +
@@ -5211,12 +5218,15 @@ void CTwBar::Draw( int _DrawPart ) {
                             yh + m_Font->m_CharHeight / 2, m_PosX + m_VarX2,
                             yh + m_Font->m_CharHeight / 2, m_ColSeparator );
                     }
-                } else if ( m_HierTags[ h ].m_Var->IsCustom() ) // static_cast<CTwVarAtom
-                                                                // *>(m_HierTags[h].m_Var)->m_Type>=TW_TYPE_CUSTOM_BASE
-                                                                // &&
-                                                                // static_cast<CTwVarAtom
-                                                                // *>(m_HierTags[h].m_Var)->m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
-                                                                // )
+                } else if (
+                    m_HierTags[ h ]
+                        .m_Var
+                        ->IsCustom() ) // static_cast<CTwVarAtom
+                                       // *>(m_HierTags[h].m_Var)->m_Type>=TW_TYPE_CUSTOM_BASE
+                                       // &&
+                                       // static_cast<CTwVarAtom
+                                       // *>(m_HierTags[h].m_Var)->m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
+                                       // )
                 { // record custom types
                     CTwMgr::CMemberProxy* mProxy =
                         static_cast< CTwVarAtom* >( m_HierTags[ h ].m_Var )

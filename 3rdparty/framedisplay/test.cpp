@@ -1,6 +1,6 @@
+#include <GL/gl.h>
+#include <GL/glext.h>
 #include <SDL.h>
-#include <gl.h>
-#include <glext.h>
 
 #include <string>
 

@@ -54,6 +54,7 @@ public:
                                           : new PreCalculatedPrimeTable(
                                                 max_precalculated ) ),
           max_precalculated_( max_precalculated ) {}
+
     virtual ~HybridPrimeTable() {
         delete on_the_fly_impl_;
         delete precalc_impl_;
@@ -106,10 +107,12 @@ protected:
         int max_precalculated = ::std::tr1::get< 1 >( GetParam() );
         table_ = new HybridPrimeTable( force_on_the_fly, max_precalculated );
     }
+
     virtual void TearDown() {
         delete table_;
         table_ = NULL;
     }
+
     HybridPrimeTable* table_;
 };
 

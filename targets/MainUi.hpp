@@ -13,11 +13,11 @@
 #include "MatchmakingManager.hpp"
 
 // The function to run the game with the provided options
-typedef void ( *RunFuncPtr )( const IpAddrPort& address,
-                              const Serializable& config );
+using RunFuncPtr = void ( * )( const IpAddrPort& address,
+                               const Serializable& config );
 
 // Function that computes the delay from the latency
-inline int computeDelay( double latency ) {
+inline auto computeDelay( double latency ) -> int {
     return ( int )ceil( latency / ( 1000.0 / 60 ) );
 }
 
@@ -46,26 +46,29 @@ public:
 
     void display( const std::string& message, bool replace = true );
 
-    bool connected( const InitialConfig& initialConfig,
-                    const PingStats& pingStats );
+    auto connected( const InitialConfig& initialConfig,
+                    const PingStats& pingStats ) -> bool;
 
     void spectate( const SpectateConfig& spectateConfig );
 
-    bool confirm( const std::string& question );
+    auto confirm( const std::string& question ) -> bool;
 
     void setMaxRealDelay( uint8_t delay );
 
     void setDefaultRollback( uint8_t rollback );
 
-    const KeyValueStore& getConfig() const { return _config; }
+    auto getConfig() const -> const KeyValueStore& { return _config; }
 
-    const NetplayConfig& getNetplayConfig() const { return _netplayConfig; }
+    auto getNetplayConfig() const -> const NetplayConfig& {
+        return _netplayConfig;
+    }
 
-    static void* getConsoleWindow();
+    static auto getConsoleWindow() -> void*;
 
-    static std::string formatStats( const PingStats& pingStats );
+    static auto formatStats( const PingStats& pingStats ) -> std::string;
 
-    bool isServer() { return serverMode; }
+    auto isServer() -> bool { return serverMode; }
+
     void hostReady();
     void sendConnected();
 
@@ -82,7 +85,7 @@ private:
 
     NetplayConfig _netplayConfig;
 
-    Controller* _currentController = 0;
+    Controller* _currentController = nullptr;
 
     uint32_t _mappedKey = 0;
 
@@ -101,10 +104,10 @@ private:
     void results();
     void wait();
 
-    bool areYouSure();
+    auto areYouSure() -> bool;
 
-    bool gameMode( bool below );
-    bool offlineGameMode();
+    auto gameMode( bool below ) -> bool;
+    auto offlineGameMode() -> bool;
 
     void controllerKeyMapped( Controller* controller, uint32_t key ) override;
 
@@ -119,18 +122,18 @@ private:
 
     void alertUser();
 
-    std::string formatPlayer( const SpectateConfig& spectateConfig,
-                              uint8_t player ) const;
+    auto formatPlayer( const SpectateConfig& spectateConfig,
+                       uint8_t player ) const -> std::string;
 
-    bool configure( const PingStats& pingStats );
+    auto configure( const PingStats& pingStats ) -> bool;
 
-    std::string getUpdate( bool isStartup = false );
+    auto getUpdate( bool isStartup = false ) -> std::string;
 
-    void connectionFailed( Lobby* lobby );
-    void unlock( Lobby* lobby );
+    void connectionFailed( Lobby* lobby ) override;
+    void unlock( Lobby* lobby ) override;
 
-    void connectionFailed( MatchmakingManager* lobby );
-    void setAddr( MatchmakingManager* lobby, std::string addr );
-    void setMode( MatchmakingManager* lobby, std::string mode );
-    void unlock( MatchmakingManager* lobby );
+    void connectionFailed( MatchmakingManager* lobby ) override;
+    void setAddr( MatchmakingManager* lobby, std::string addr ) override;
+    void setMode( MatchmakingManager* lobby, std::string mode ) override;
+    void unlock( MatchmakingManager* lobby ) override;
 };

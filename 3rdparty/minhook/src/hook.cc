@@ -61,6 +61,7 @@ struct HOOK_ENTRY {
 
 // Structs for writing x86/x64 instcutions.
 #pragma pack( push, 1 )
+
 struct JMP_REL_SHORT {
     uint8_t opcode;
     uint8_t operand;
@@ -75,6 +76,7 @@ struct JMP_ABS {
     uint16_t opcode;
     uint32_t operand;
 };
+
 #pragma pack( pop )
 
 MH_STATUS EnableHookLL( HOOK_ENTRY* pHook );
@@ -138,7 +140,9 @@ MH_STATUS Uninitialize() {
 
 struct RollbackIfNotCommitted {
     bool* committed_;
+
     RollbackIfNotCommitted( bool* committed ) : committed_( committed ) {}
+
     ~RollbackIfNotCommitted() {
         if ( !*committed_ ) {
             RollbackBuffer();
@@ -472,6 +476,7 @@ MH_STATUS ApplyQueued() {
 }
 
 } // namespace MinHook
+
 namespace MinHook {
 namespace {
 MH_STATUS EnableHookLL( HOOK_ENTRY* pHook ) {

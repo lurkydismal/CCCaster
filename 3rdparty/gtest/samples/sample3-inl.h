@@ -54,6 +54,7 @@ public:
 
     // Gets the next node in the queue.
     QueueNode* next() { return next_; }
+
     const QueueNode* next() const { return next_; }
 
 private:
@@ -104,10 +105,12 @@ public:
 
     // Gets the first element of the queue, or NULL if the queue is empty.
     QueueNode< E >* Head() { return head_; }
+
     const QueueNode< E >* Head() const { return head_; }
 
     // Gets the last element of the queue, or NULL if the queue is empty.
     QueueNode< E >* Last() { return last_; }
+
     const QueueNode< E >* Last() const { return last_; }
 
     // Adds an element to the end of the queue.  A copy of the element is

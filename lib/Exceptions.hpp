@@ -7,6 +7,7 @@ struct Exception {
     std::string debug, user;
 
     Exception() {}
+
     Exception( const std::string& debug, const std::string& user )
         : debug( debug ), user( user.empty() ? debug : user ) {}
 
@@ -18,6 +19,7 @@ struct WinException : public Exception {
     std::string desc;
 
     WinException() {}
+
     WinException( int code, const std::string& debug, const std::string& user )
         : Exception( debug, user ), code( code ), desc( getAsString( code ) ) {}
 

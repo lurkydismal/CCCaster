@@ -61,27 +61,45 @@ struct ClientMode : public SerializableSequence {
     }
 
     bool isUnknown() const { return ( value == Unknown ); }
+
     bool isHost() const { return ( value == Host ); }
+
     bool isClient() const { return ( value == Client ); }
+
     bool isSpectateNetplay() const { return ( value == SpectateNetplay ); }
+
     bool isSpectateBroadcast() const { return ( value == SpectateBroadcast ); }
+
     bool isSpectate() const {
         return ( value == SpectateNetplay || value == SpectateBroadcast );
     }
+
     bool isBroadcast() const { return ( value == Broadcast ); }
+
     bool isOffline() const { return ( value == Offline ); }
+
     bool isOnline() const { return !isOffline(); }
+
     bool isNetplay() const { return ( value == Host || value == Client ); }
+
     bool isLocal() const { return ( value == Broadcast || value == Offline ); }
 
     bool isVersus() const { return !isTraining(); }
+
     bool isVersusCPU() const { return ( flags & VersusCPU ) && !isTraining(); }
+
     bool isTraining() const { return ( flags & Training ); }
+
     bool isReplay() const { return ( flags & Replay ); }
+
     bool isTrial() const { return ( flags & Trial ); }
+
     bool isGameStarted() const { return ( flags & GameStarted ); }
+
     bool isUdpTunnel() const { return ( flags & UdpTunnel ); }
+
     bool isWine() const { return ( flags & IsWine ); }
+
     bool isSinglePlayer() const { return ( isNetplay() || isVersusCPU() ); }
 
     std::string flagString() const {
@@ -513,6 +531,7 @@ struct BaseInputs {
     IndexedFrame indexedFrame = { { 0, 0 } };
 
     uint32_t getIndex() const { return indexedFrame.parts.index; }
+
     uint32_t getFrame() const { return indexedFrame.parts.frame; }
 
     uint32_t getStartFrame() const {

@@ -13,6 +13,7 @@ private:
         unsigned int size;
         unsigned char filename[ 256 ];
     };
+
     struct FileIndex {
         unsigned int pos;
         unsigned int unknown;

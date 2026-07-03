@@ -2,6 +2,9 @@
 // CHookJump.h
 //
 #pragma once
+
+#include <minwindef.h>
+
 #include <cassert>
 
 struct CHookJump {
@@ -14,6 +17,7 @@ public:
     CHookJump() : m_dwOldProtection( 0 ) { m_Jump[ 0 ] = 0; }
 
     bool IsHookInstalled() const { return ( m_Jump[ 0 ] != 0 ); }
+
     bool InstallHook( LPVOID pFunc, LPVOID pFuncNew );
     void RemoveHook( LPVOID pFunc );
 
@@ -22,6 +26,7 @@ public:
         assert( pFunc );
         memcpy( pFunc, m_OldCode, sizeof( m_OldCode ) );
     }
+
     void SwapReset( LPVOID pFunc ) {
         // put back JMP instruction again
         if ( !IsHookInstalled() ) // hook has since been destroyed!

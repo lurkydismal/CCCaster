@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwFonts.h
@@ -9,9 +11,6 @@
 //  note:       Private header
 //
 //  ---------------------------------------------------------------------------
-
-#if !defined ANT_TW_FONTS_INCLUDED
-#define ANT_TW_FONTS_INCLUDED
 
 // #include <AntTweakBar.h>
 
@@ -61,5 +60,3 @@ extern CTexFont* g_DefaultFixed1Font;
 
 void TwGenerateDefaultFonts( float _Scaling = 1.0f );
 void TwDeleteDefaultFonts();
-
-#endif // !defined ANT_TW_FONTS_INCLUDED

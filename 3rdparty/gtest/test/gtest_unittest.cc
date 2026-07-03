@@ -167,6 +167,7 @@ public:
                                          TestEventListener* listener ) {
         listeners->SetDefaultResultPrinter( listener );
     }
+
     static void SetDefaultXmlGenerator( TestEventListeners* listeners,
                                         TestEventListener* listener ) {
         listeners->SetDefaultXmlGenerator( listener );
@@ -362,6 +363,7 @@ TEST( GetTypeIdTest, ReturnsSameValueForSameType ) {
 }
 
 class SubClassOfTest : public Test {};
+
 class AnotherSubClassOfTest : public Test {};
 
 TEST( GetTypeIdTest, ReturnsDifferentValuesForDifferentTypes ) {
@@ -793,6 +795,7 @@ TEST( ContainerUtilityTest, CountIf ) {
 // Tests ForEach().
 
 static int g_sum = 0;
+
 static void Accumulate( int n ) {
     g_sum += n;
 }
@@ -1122,6 +1125,7 @@ static void AddNonfatalFailure() {
 class ScopedFakeTestPartResultReporterTest : public Test {
 public: // Must be public and not protected due to a bug in g++ 3.4.2.
     enum FailureMode { FATAL_FAILURE, NONFATAL_FAILURE };
+
     static void AddFailure( FailureMode failure ) {
         if ( failure == FATAL_FAILURE ) {
             AddFatalFailure();
@@ -3440,7 +3444,9 @@ TEST_F( SingleEvaluationTest, ExceptionTests ) {
 class NoFatalFailureTest : public Test {
 protected:
     void Succeeds() {}
+
     void FailsNonFatal() { ADD_FAILURE() << "some non-fatal failure"; }
+
     void Fails() { FAIL() << "some fatal failure"; }
 
     void DoAssertNoFatalFailureOnFails() {
@@ -3794,6 +3800,7 @@ public:
     explicit Uncopyable( int a_value ) : value_( a_value ) {}
 
     int value() const { return value_; }
+
     bool operator==( const Uncopyable& rhs ) const {
         return value() == rhs.value();
     }
@@ -3819,6 +3826,7 @@ void TestAssertNonPositive() {
     Uncopyable y( -1 );
     ASSERT_PRED1( IsPositiveUncopyable, y );
 }
+
 // A subroutine used by the following test.
 void TestAssertEqualsUncopyable() {
     Uncopyable x( 5 );
@@ -4899,18 +4907,23 @@ public:
     bool operator==( const UnprintableChar& rhs ) const {
         return char_ == rhs.char_;
     }
+
     bool operator!=( const UnprintableChar& rhs ) const {
         return char_ != rhs.char_;
     }
+
     bool operator<( const UnprintableChar& rhs ) const {
         return char_ < rhs.char_;
     }
+
     bool operator<=( const UnprintableChar& rhs ) const {
         return char_ <= rhs.char_;
     }
+
     bool operator>( const UnprintableChar& rhs ) const {
         return char_ > rhs.char_;
     }
+
     bool operator>=( const UnprintableChar& rhs ) const {
         return char_ >= rhs.char_;
     }
@@ -5103,14 +5116,17 @@ TEST( AssertionResultTest, CanStreamOstreamManipulators ) {
 class Base {
 public:
     explicit Base( int an_x ) : x_( an_x ) {}
+
     int x() const { return x_; }
 
 private:
     int x_;
 };
+
 std::ostream& operator<<( std::ostream& os, const Base& val ) {
     return os << val.x();
 }
+
 std::ostream& operator<<( std::ostream& os, const Base* pointer ) {
     return os << "(" << pointer->x() << ")";
 }
@@ -5130,10 +5146,12 @@ class MyTypeInUnnamedNameSpace : public Base {
 public:
     explicit MyTypeInUnnamedNameSpace( int an_x ) : Base( an_x ) {}
 };
+
 std::ostream& operator<<( std::ostream& os,
                           const MyTypeInUnnamedNameSpace& val ) {
     return os << val.x();
 }
+
 std::ostream& operator<<( std::ostream& os,
                           const MyTypeInUnnamedNameSpace* pointer ) {
     return os << "(" << pointer->x() << ")";
@@ -5155,9 +5173,11 @@ class MyTypeInNameSpace1 : public Base {
 public:
     explicit MyTypeInNameSpace1( int an_x ) : Base( an_x ) {}
 };
+
 std::ostream& operator<<( std::ostream& os, const MyTypeInNameSpace1& val ) {
     return os << val.x();
 }
+
 std::ostream& operator<<( std::ostream& os,
                           const MyTypeInNameSpace1* pointer ) {
     return os << "(" << pointer->x() << ")";
@@ -5180,10 +5200,12 @@ public:
     explicit MyTypeInNameSpace2( int an_x ) : Base( an_x ) {}
 };
 } // namespace namespace2
+
 std::ostream& operator<<( std::ostream& os,
                           const namespace2::MyTypeInNameSpace2& val ) {
     return os << val.x();
 }
+
 std::ostream& operator<<( std::ostream& os,
                           const namespace2::MyTypeInNameSpace2* pointer ) {
     return os << "(" << pointer->x() << ")";
@@ -6118,6 +6140,7 @@ TEST( NestedTestingNamespaceTest, Failure ) {
 class ProtectedFixtureMethodsTest : public Test {
 protected:
     virtual void SetUp() { Test::SetUp(); }
+
     virtual void TearDown() { Test::TearDown(); }
 };
 
@@ -6502,6 +6525,7 @@ TEST( HasFailureTest, WorksOutsideOfTestBody2 ) {
 class TestListener : public EmptyTestEventListener {
 public:
     TestListener() : on_start_counter_( NULL ), is_destroyed_( NULL ) {}
+
     TestListener( int* on_start_counter, bool* is_destroyed )
         : on_start_counter_( on_start_counter ),
           is_destroyed_( is_destroyed ) {}
@@ -6884,6 +6908,7 @@ GTEST_TEST( AlternativeNameTest, Works ) { // GTEST_TEST is the same as TEST.
 // TODO(vladl@google.com): Find a better home for them.
 
 class ConversionHelperBase {};
+
 class ConversionHelperDerived : public ConversionHelperBase {};
 
 // Tests that IsAProtocolMessage<T>::value is a compile-time constant.

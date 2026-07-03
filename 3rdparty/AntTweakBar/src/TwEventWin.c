@@ -33,7 +33,7 @@
 
 // TwEventWin returns zero if msg has not been handled,
 // and a non-zero value if it has been handled by the AntTweakBar library.
-int TW_CALL TwEventWin( void* wnd,
+int TW_CALL TwEventWin( HWND wnd,
                         unsigned int msg,
                         unsigned PARAM_INT _W64 wParam,
                         PARAM_INT _W64 lParam ) {

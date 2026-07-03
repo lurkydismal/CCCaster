@@ -67,7 +67,9 @@ PrimeTable* CreatePreCalculatedPrimeTable() {
 class PrimeTableTest : public TestWithParam< CreatePrimeTableFunc* > {
 public:
     virtual ~PrimeTableTest() { delete table_; }
+
     virtual void SetUp() { table_ = ( *GetParam() )(); }
+
     virtual void TearDown() {
         delete table_;
         table_ = NULL;

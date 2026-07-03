@@ -29,9 +29,9 @@
 #ifndef CEREAL_ARCHIVES_BINARY_HPP_
 #define CEREAL_ARCHIVES_BINARY_HPP_
 
-#include <cereal/cereal.hpp>
-
 #include <sstream>
+
+#include "../cereal.hpp"
 
 namespace cereal {
 // ######################################################################

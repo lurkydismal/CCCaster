@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace MinHook {
 void InitializeBuffer();
 void UninitializeBuffer();

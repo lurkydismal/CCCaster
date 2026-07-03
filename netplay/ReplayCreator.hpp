@@ -23,6 +23,7 @@ public:
         int moon;
         int color;
     };
+
     struct Input {
         // 00000000
         // 000EDCBA
@@ -41,8 +42,8 @@ public:
                    ( ( this->buttonUp ==
                        in2.buttonUp ) // ||
                                       //(this->buttonUp == 7 && in2.buttonUp ==
-                                      //9) || (this->buttonUp == 9 &&
-                                      //in2.buttonUp == 3) ||
+                                      // 9) || (this->buttonUp == 9 &&
+                                      // in2.buttonUp == 3) ||
                                       // (this->buttonUp == 9 && in2.buttonUp ==
                                       // 0)
                      ) &&

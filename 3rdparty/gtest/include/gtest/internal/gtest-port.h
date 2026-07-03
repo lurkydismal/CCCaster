@@ -548,6 +548,7 @@
 #include "gtest/internal/gtest-tuple.h"
 #elif GTEST_ENV_HAS_STD_TUPLE_
 #include <tuple>
+
 // C++11 puts its tuple into the ::std namespace rather than
 // ::std::tr1.  gtest expects tuple to live in ::std::tr1, so put it there.
 // This causes undefined behavior, but supported compilers react in
@@ -897,10 +898,13 @@ public:
     typedef T element_type;
 
     explicit scoped_ptr( T* p = NULL ) : ptr_( p ) {}
+
     ~scoped_ptr() { reset(); }
 
     T& operator*() const { return *ptr_; }
+
     T* operator->() const { return ptr_; }
+
     T* get() const { return ptr_; }
 
     T* release() {
@@ -945,6 +949,7 @@ public:
 #endif // GTEST_HAS_GLOBAL_STRING
 
     RE( const char* regex ) { Init( regex ); } // NOLINT
+
     ~RE();
 
     // Returns the string representation of the regex.
@@ -960,6 +965,7 @@ public:
     static bool FullMatch( const ::std::string& str, const RE& re ) {
         return FullMatch( str.c_str(), re );
     }
+
     static bool PartialMatch( const ::std::string& str, const RE& re ) {
         return PartialMatch( str.c_str(), re );
     }
@@ -969,6 +975,7 @@ public:
     static bool FullMatch( const ::string& str, const RE& re ) {
         return FullMatch( str.c_str(), re );
     }
+
     static bool PartialMatch( const ::string& str, const RE& re ) {
         return PartialMatch( str.c_str(), re );
     }
@@ -1044,6 +1051,7 @@ private:
         .GetStream()
 
 inline void LogToStderr() {}
+
 inline void FlushInfoLog() {
     fflush( NULL );
 }
@@ -1209,6 +1217,7 @@ public:
     Notification() : notified_( false ) {
         GTEST_CHECK_POSIX_SUCCESS_( pthread_mutex_init( &mutex_, NULL ) );
     }
+
     ~Notification() { pthread_mutex_destroy( &mutex_ ); }
 
     // Notifies all threads created with this notification to start. Must
@@ -1247,6 +1256,7 @@ private:
 class ThreadWithParamBase {
 public:
     virtual ~ThreadWithParamBase() {}
+
     virtual void Run() = 0;
 };
 
@@ -1291,6 +1301,7 @@ public:
         GTEST_CHECK_POSIX_SUCCESS_(
             pthread_create( &thread_, 0, &ThreadFuncWithCLinkage, base ) );
     }
+
     ~ThreadWithParam() { Join(); }
 
     void Join() {
@@ -1401,6 +1412,7 @@ public:
         GTEST_CHECK_POSIX_SUCCESS_( pthread_mutex_init( &mutex_, NULL ) );
         has_owner_ = false;
     }
+
     ~Mutex() { GTEST_CHECK_POSIX_SUCCESS_( pthread_mutex_destroy( &mutex_ ) ); }
 
 private:
@@ -1476,6 +1488,7 @@ template < typename T >
 class ThreadLocal {
 public:
     ThreadLocal() : key_( CreateKey() ), default_() {}
+
     explicit ThreadLocal( const T& value )
         : key_( CreateKey() ), default_( value ) {}
 
@@ -1489,8 +1502,11 @@ public:
     }
 
     T* pointer() { return GetOrCreateValue(); }
+
     const T* pointer() const { return GetOrCreateValue(); }
+
     const T& get() const { return *pointer(); }
+
     void set( const T& value ) { *pointer() = value; }
 
 private:
@@ -1549,8 +1565,11 @@ private:
 class Mutex {
 public:
     Mutex() {}
+
     void Lock() {}
+
     void Unlock() {}
+
     void AssertHeld() const {}
 };
 
@@ -1570,10 +1589,15 @@ template < typename T >
 class ThreadLocal {
 public:
     ThreadLocal() : value_() {}
+
     explicit ThreadLocal( const T& value ) : value_( value ) {}
+
     T* pointer() { return &value_; }
+
     const T* pointer() const { return &value_; }
+
     const T& get() const { return value_; }
+
     void set( const T& value ) { value_ = value; }
 
 private:
@@ -1617,6 +1641,7 @@ struct bool_constant {
     typedef bool_constant< bool_value > type;
     static const bool value = bool_value;
 };
+
 template < bool bool_value >
 const bool bool_constant< bool_value >::value;
 
@@ -1665,24 +1690,31 @@ typedef long long BiggestInt; // NOLINT
 inline bool IsAlpha( char ch ) {
     return isalpha( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsAlNum( char ch ) {
     return isalnum( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsDigit( char ch ) {
     return isdigit( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsLower( char ch ) {
     return islower( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsSpace( char ch ) {
     return isspace( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsUpper( char ch ) {
     return isupper( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsXDigit( char ch ) {
     return isxdigit( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsXDigit( wchar_t ch ) {
     const unsigned char low_byte = static_cast< unsigned char >( ch );
     return ch == low_byte && isxdigit( low_byte ) != 0;
@@ -1691,6 +1723,7 @@ inline bool IsXDigit( wchar_t ch ) {
 inline char ToLower( char ch ) {
     return static_cast< char >( tolower( static_cast< unsigned char >( ch ) ) );
 }
+
 inline char ToUpper( char ch ) {
     return static_cast< char >( toupper( static_cast< unsigned char >( ch ) ) );
 }
@@ -1713,9 +1746,11 @@ typedef struct _stat StatStruct;
 inline int IsATTY( int fd ) {
     return isatty( fd );
 }
+
 inline int StrCaseCmp( const char* s1, const char* s2 ) {
     return stricmp( s1, s2 );
 }
+
 inline char* StrDup( const char* src ) {
     return strdup( src );
 }
@@ -1732,6 +1767,7 @@ inline int IsATTY( int fd ) {
 inline int StrCaseCmp( const char* s1, const char* s2 ) {
     return _stricmp( s1, s2 );
 }
+
 inline char* StrDup( const char* src ) {
     return _strdup( src );
 }
@@ -1741,18 +1777,22 @@ inline char* StrDup( const char* src ) {
 inline int FileNo( FILE* file ) {
     return reinterpret_cast< int >( _fileno( file ) );
 }
+
 // Stat(), RmDir(), and IsDir() are not needed on Windows CE at this
 // time and thus not defined there.
 #else
 inline int FileNo( FILE* file ) {
     return _fileno( file );
 }
+
 inline int Stat( const char* path, StatStruct* buf ) {
     return _stat( path, buf );
 }
+
 inline int RmDir( const char* dir ) {
     return _rmdir( dir );
 }
+
 inline bool IsDir( const StatStruct& st ) {
     return ( _S_IFDIR & st.st_mode ) != 0;
 }
@@ -1765,21 +1805,27 @@ typedef struct stat StatStruct;
 inline int FileNo( FILE* file ) {
     return fileno( file );
 }
+
 inline int IsATTY( int fd ) {
     return isatty( fd );
 }
+
 inline int Stat( const char* path, StatStruct* buf ) {
     return stat( path, buf );
 }
+
 inline int StrCaseCmp( const char* s1, const char* s2 ) {
     return strcasecmp( s1, s2 );
 }
+
 inline char* StrDup( const char* src ) {
     return strdup( src );
 }
+
 inline int RmDir( const char* dir ) {
     return rmdir( dir );
 }
+
 inline bool IsDir( const StatStruct& st ) {
     return S_ISDIR( st.st_mode );
 }
@@ -1814,6 +1860,7 @@ inline FILE* FOpen( const char* path, const char* mode ) {
 inline FILE* FReopen( const char* path, const char* mode, FILE* stream ) {
     return freopen( path, mode, stream );
 }
+
 inline FILE* FDOpen( int fd, const char* mode ) {
     return fdopen( fd, mode );
 }
@@ -1825,12 +1872,15 @@ inline int FClose( FILE* fp ) {
 inline int Read( int fd, void* buf, unsigned int count ) {
     return static_cast< int >( read( fd, buf, count ) );
 }
+
 inline int Write( int fd, const void* buf, unsigned int count ) {
     return static_cast< int >( write( fd, buf, count ) );
 }
+
 inline int Close( int fd ) {
     return close( fd );
 }
+
 inline const char* StrError( int errnum ) {
     return strerror( errnum );
 }

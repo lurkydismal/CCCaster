@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwOpenGLCore.h
@@ -10,8 +12,9 @@
 //
 //  ---------------------------------------------------------------------------
 
-#if !defined ANT_TW_OPENGL_CORE_INCLUDED
-#define ANT_TW_OPENGL_CORE_INCLUDED
+#include <GL/gl.h>
+
+#include <vector>
 
 #include "TwGraph.h"
 
@@ -32,6 +35,7 @@ public:
                            color32 _Color0,
                            color32 _Color1,
                            bool _AntiAliased = false );
+
     virtual void DrawLine( int _X0,
                            int _Y0,
                            int _X1,
@@ -40,6 +44,7 @@ public:
                            bool _AntiAliased = false ) {
         DrawLine( _X0, _Y0, _X1, _Y1, _Color, _Color, _AntiAliased );
     }
+
     virtual void DrawRect( int _X0,
                            int _Y0,
                            int _X1,
@@ -48,6 +53,7 @@ public:
                            color32 _Color10,
                            color32 _Color01,
                            color32 _Color11 );
+
     virtual void DrawRect( int _X0,
                            int _Y0,
                            int _X1,
@@ -55,6 +61,7 @@ public:
                            color32 _Color ) {
         DrawRect( _X0, _Y0, _X1, _Y1, _Color, _Color, _Color, _Color );
     }
+
     virtual void DrawTriangles( int _NumTriangles,
                                 int* _Vertices,
                                 color32* _Colors,
@@ -148,10 +155,14 @@ protected:
 
     struct Vec2 {
         GLfloat x, y;
+
         Vec2() {}
+
         Vec2( GLfloat _X, GLfloat _Y ) : x( _X ), y( _Y ) {}
+
         Vec2( int _X, int _Y ) : x( GLfloat( _X ) ), y( GLfloat( _Y ) ) {}
     };
+
     struct CTextObj {
         std::vector< Vec2 > m_TextVerts;
         std::vector< Vec2 > m_TextUVs;
@@ -159,9 +170,8 @@ protected:
         std::vector< color32 > m_Colors;
         std::vector< color32 > m_BgColors;
     };
+
     void ResizeTriBuffers( size_t _NewSize );
 };
 
 //  ---------------------------------------------------------------------------
-
-#endif // !defined ANT_TW_OPENGL_CORE_INCLUDED

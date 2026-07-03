@@ -45,13 +45,13 @@
 #ifndef CEREAL_DETAILS_POLYMORPHIC_IMPL_HPP_
 #define CEREAL_DETAILS_POLYMORPHIC_IMPL_HPP_
 
-#include <cereal/details/static_object.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/types/string.hpp>
-
 #include <functional>
 #include <map>
 #include <typeindex>
+
+#include "../details/static_object.hpp"
+#include "../types/memory.hpp"
+#include "../types/string.hpp"
 
 //! Binds a polymorhic type to all registered archives
 /*! This binds a polymorphic type to all registered archives that
@@ -347,6 +347,7 @@ struct create_bindings {
     }
 
     inline static void load( std::false_type ) {}
+
     inline static void save( std::false_type ) {}
 };
 

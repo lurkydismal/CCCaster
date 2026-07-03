@@ -48,7 +48,9 @@ Message* history = NULL;
 class A {
 public:
     A() : mynum( num++ ) { *history << "A" << mynum << " ctor\n"; }
+
     virtual ~A() { *history << "A" << mynum << " dtor\n"; }
+
     virtual void Use() { *history << "A" << mynum << " use\n"; }
 
 protected:
@@ -59,7 +61,9 @@ protected:
 class B : public A {
 public:
     B() { *history << "B" << mynum << " ctor\n"; }
+
     ~B() { *history << "B" << mynum << " dtor\n"; }
+
     virtual void Use() { *history << "B" << mynum << " use\n"; }
 };
 

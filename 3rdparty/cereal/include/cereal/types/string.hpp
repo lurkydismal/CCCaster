@@ -30,9 +30,9 @@
 #ifndef CEREAL_TYPES_STRING_HPP_
 #define CEREAL_TYPES_STRING_HPP_
 
-#include <cereal/cereal.hpp>
-
 #include <string>
+
+#include "../cereal.hpp"
 
 namespace cereal {
 //! Serialization for basic_string types, if binary data is supported

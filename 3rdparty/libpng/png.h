@@ -434,7 +434,7 @@
 
 #ifndef PNG_VERSION_INFO_ONLY
 /* Include the compression library's header */
-#include "zlib.h"
+#include "../libz/zlib.h"
 #endif
 
 /* Include all user configurable info, including optional assembler routines */
@@ -497,6 +497,7 @@ typedef struct png_color_struct {
     png_byte green;
     png_byte blue;
 } png_color;
+
 typedef png_color FAR* png_colorp;
 typedef png_color FAR * FAR * png_colorpp;
 
@@ -507,6 +508,7 @@ typedef struct png_color_16_struct {
     png_uint_16 blue;
     png_uint_16 gray; /* for use in grayscale files */
 } png_color_16;
+
 typedef png_color_16 FAR* png_color_16p;
 typedef png_color_16 FAR * FAR * png_color_16pp;
 
@@ -517,6 +519,7 @@ typedef struct png_color_8_struct {
     png_byte gray;  /* for use in grayscale files */
     png_byte alpha; /* for alpha channel files */
 } png_color_8;
+
 typedef png_color_8 FAR* png_color_8p;
 typedef png_color_8 FAR * FAR * png_color_8pp;
 
@@ -531,6 +534,7 @@ typedef struct png_sPLT_entry_struct {
     png_uint_16 alpha;
     png_uint_16 frequency;
 } png_sPLT_entry;
+
 typedef png_sPLT_entry FAR* png_sPLT_entryp;
 typedef png_sPLT_entry FAR * FAR * png_sPLT_entrypp;
 
@@ -545,6 +549,7 @@ typedef struct png_sPLT_struct {
     png_sPLT_entryp entries; /* palette entries */
     png_int_32 nentries;     /* number of palette entries */
 } png_sPLT_t;
+
 typedef png_sPLT_t FAR* png_sPLT_tp;
 typedef png_sPLT_t FAR * FAR * png_sPLT_tpp;
 
@@ -575,6 +580,7 @@ typedef struct png_text_struct {
                                chars or a NULL pointer */
 #endif
 } png_text;
+
 typedef png_text FAR* png_textp;
 typedef png_text FAR * FAR * png_textpp;
 #endif
@@ -603,6 +609,7 @@ typedef struct png_time_struct {
     png_byte minute;  /* minute of hour, 0 - 59 */
     png_byte second;  /* second of minute, 0 - 60 (for leap seconds) */
 } png_time;
+
 typedef png_time FAR* png_timep;
 typedef png_time FAR * FAR * png_timepp;
 
@@ -621,6 +628,7 @@ typedef struct png_unknown_chunk_t {
     /* libpng-using applications should NOT directly modify this byte. */
     png_byte location; /* mode of operation at read time */
 } png_unknown_chunk;
+
 typedef png_unknown_chunk FAR* png_unknown_chunkp;
 typedef png_unknown_chunk FAR * FAR * png_unknown_chunkpp;
 #endif

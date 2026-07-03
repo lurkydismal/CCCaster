@@ -43,6 +43,7 @@ public:
 
     // Get the keyboard controller
     Controller* getKeyboard() { return &keyboard; }
+
     const Controller* getKeyboard() const { return &keyboard; }
 
     // Get the list of joysticks sorted by name
@@ -79,6 +80,7 @@ public:
     // Initialize / deinitialize controller manager
     void initialize( Owner* owner );
     void deinitialize();
+
     bool isInitialized() const { return initialized; }
 
     // Start the high frequency polling thread

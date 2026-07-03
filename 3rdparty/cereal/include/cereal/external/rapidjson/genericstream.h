@@ -36,11 +36,14 @@ public:
 
     // Not implemented
     void Put( Ch ) { RAPIDJSON_ASSERT( false ); }
+
     void Flush() { RAPIDJSON_ASSERT( false ); }
+
     Ch* PutBegin() {
         RAPIDJSON_ASSERT( false );
         return 0;
     }
+
     size_t PutEnd( Ch* ) {
         RAPIDJSON_ASSERT( false );
         return 0;
@@ -74,11 +77,14 @@ public:
 
     // Not implemented
     char Peek() const { RAPIDJSON_ASSERT( false ); }
+
     char Take() { RAPIDJSON_ASSERT( false ); }
+
     char* PutBegin() {
         RAPIDJSON_ASSERT( false );
         return 0;
     }
+
     size_t PutEnd( char* ) {
         RAPIDJSON_ASSERT( false );
         return 0;

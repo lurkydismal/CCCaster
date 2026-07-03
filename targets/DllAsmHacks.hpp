@@ -290,83 +290,81 @@ static const AsmList detectRoundStart = {
 extern "C" void saveReplayCb();
 
 // Copies the name of the replay
-static const AsmList
-    saveReplay =
-        {
-            { ( void* )0x4824D4,
-              {
-                  0xA3,
-                  INLINE_DWORD( &replayName ), // mov [&replayName],eax
-                  0xE9,
-                  0x45,
-                  0xFC,
-                  0xFF,
-                  0xFF, // jmp 0x482123
-              } },
-            { ( void* )0x482123,
-              {
-                  0x68,
-                  0x34,
-                  0xBF,
-                  0x77,
-                  0x00,
-                  0x90, // pushl	$0x77bf34
-                  0xE9,
-                  0x10,
-                  0x07,
-                  0x00,
-                  0x00, // jmp 0x48283e
-              } },
-            { ( void* )0x4830A4,
-              {
-                  0xE8,
-                  INLINE_DWORD( ( ( char* )&saveReplayCb ) - 0x4830A4 -
-                                5 ), // call callback
-                  0x90,              // 0x90, 0x90, 0x90, 0x90, 0x90,
-                  0xE9,
-                  0xF2,
-                  0xFE,
-                  0xFF,
-                  0xFF, // jmp 0x482FA1
-              } },
-            { ( void* )0x482FA1,
-              {
-                  // 0x83, 0xC4, 0x04, // add esp, 4
-                  0x90,
-                  0x90,
-                  0x90,
-                  // 0xE9, 0x9E, 0xF8, 0xFF, 0xFF, // jmp 0x48283e
-                  0x8B,
-                  0x83,
-                  0xCC,
-                  0x00,
-                  0x00,
-                  0x00, // mov eax, [ebx+CC]
-                  0xE9,
-                  0x9E,
-                  0xF8,
-                  0xFF,
-                  0xFF, // jmp 0x48284D
-              } },
-            // Write this last due to dependencies
-            { ( void* )0x482839,
-              {
-                  0xE9,
-                  0x96,
-                  0xFC,
-                  0xFF,
-                  0xFF, // jmp 0x4824D4
-              } },
-            // Write this last due to dependencies
-            { ( void* )0x482847,
-              {
-                  0xE9,
-                  0x58,
-                  0x08,
-                  0x00,
-                  0x00, // jmp 0x4830A4
-                  0x90, // nop
-              } },
+static const AsmList saveReplay = {
+    { ( void* )0x4824D4,
+      {
+          0xA3,
+          INLINE_DWORD( &replayName ), // mov [&replayName],eax
+          0xE9,
+          0x45,
+          0xFC,
+          0xFF,
+          0xFF, // jmp 0x482123
+      } },
+    { ( void* )0x482123,
+      {
+          0x68,
+          0x34,
+          0xBF,
+          0x77,
+          0x00,
+          0x90, // pushl	$0x77bf34
+          0xE9,
+          0x10,
+          0x07,
+          0x00,
+          0x00, // jmp 0x48283e
+      } },
+    { ( void* )0x4830A4,
+      {
+          0xE8,
+          INLINE_DWORD( ( ( char* )&saveReplayCb ) - 0x4830A4 -
+                        5 ), // call callback
+          0x90,              // 0x90, 0x90, 0x90, 0x90, 0x90,
+          0xE9,
+          0xF2,
+          0xFE,
+          0xFF,
+          0xFF, // jmp 0x482FA1
+      } },
+    { ( void* )0x482FA1,
+      {
+          // 0x83, 0xC4, 0x04, // add esp, 4
+          0x90,
+          0x90,
+          0x90,
+          // 0xE9, 0x9E, 0xF8, 0xFF, 0xFF, // jmp 0x48283e
+          0x8B,
+          0x83,
+          0xCC,
+          0x00,
+          0x00,
+          0x00, // mov eax, [ebx+CC]
+          0xE9,
+          0x9E,
+          0xF8,
+          0xFF,
+          0xFF, // jmp 0x48284D
+      } },
+    // Write this last due to dependencies
+    { ( void* )0x482839,
+      {
+          0xE9,
+          0x96,
+          0xFC,
+          0xFF,
+          0xFF, // jmp 0x4824D4
+      } },
+    // Write this last due to dependencies
+    { ( void* )0x482847,
+      {
+          0xE9,
+          0x58,
+          0x08,
+          0x00,
+          0x00, // jmp 0x4830A4
+          0x90, // nop
+      } },
 };
 
 // This copies an auto replay save flag to a non-dynamic memory location.
@@ -618,7 +616,7 @@ static const AsmList disableHealthBars = {
     { ( void* )0x424E03,
       { 0xE9, 0x1E, 0x04, 0x00, 0x00, 0x90 } }, // jmp 00425226
     //{ ( void * ) 0x424E03, { 0xE9, 0x4B, 0x04, 0x00, 0x00, 0x90 } }, // jmp
-    //00425253
+    // 00425253
 };
 
 extern "C" void addExtraDrawCallsCb();

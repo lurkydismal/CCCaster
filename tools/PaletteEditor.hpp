@@ -33,9 +33,11 @@ public:
     void highlightCurrentColor( bool highlight );
 
     int getPaletteNumber() const { return _paletteNumber; }
+
     void setPaletteNumber( int paletteNumber );
 
     int getColorNumber() const { return _colorNumber; }
+
     void setColorNumber( int colorNumber );
 
     int getChara();

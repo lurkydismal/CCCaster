@@ -84,7 +84,9 @@ int g_environment_tear_down_count = 0;
 class MyEnvironment : public testing::Environment {
 public:
     MyEnvironment() {}
+
     virtual void SetUp() { g_environment_set_up_count++; }
+
     virtual void TearDown() { g_environment_tear_down_count++; }
 };
 
@@ -133,6 +135,7 @@ TEST_P( MyParamTest, ShouldPass ) {
     GTEST_CHECK_INT_EQ_( g_param_test_count % kNumberOfParamTests, GetParam() );
     g_param_test_count++;
 }
+
 INSTANTIATE_TEST_CASE_P( MyParamSequence,
                          MyParamTest,
                          testing::Range( 0, kNumberOfParamTests ) );

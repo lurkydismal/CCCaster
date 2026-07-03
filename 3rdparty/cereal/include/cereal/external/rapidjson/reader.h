@@ -82,17 +82,29 @@ struct BaseReaderHandler {
     typedef typename Encoding::Ch Ch;
 
     void Default() {}
+
     void Null_() { Default(); }
+
     void Bool_( bool ) { Default(); }
+
     void Int( int ) { Default(); }
+
     void Uint( unsigned ) { Default(); }
+
     void Int64( int64_t ) { Default(); }
+
     void Uint64( uint64_t ) { Default(); }
+
     void Double( double ) { Default(); }
+
     void String( const Ch*, SizeType, bool ) { Default(); }
+
     void StartObject() { Default(); }
+
     void EndObject( SizeType ) { Default(); }
+
     void StartArray() { Default(); }
+
     void EndArray( SizeType ) { Default(); }
 };
 
@@ -287,7 +299,9 @@ public:
     }
 
     bool HasParseError() const { return parseError_ != 0; }
+
     const char* GetParseError() const { return parseError_; }
+
     size_t GetErrorOffset() const { return errorOffset_; }
 
 private:

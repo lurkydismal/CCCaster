@@ -293,6 +293,7 @@ public:
     const unsigned int** get_palette_data() const {
         return ( const unsigned int** )m_palettes;
     }
+
     unsigned int** get_palette_data() { return m_palettes; }
 };
 
@@ -352,6 +353,7 @@ public:
     const unsigned int** get_palette_data() const {
         return m_character_data.get_palette_data();
     }
+
     unsigned int** get_palette_data() {
         return m_character_data.get_palette_data();
     }

@@ -775,6 +775,7 @@ template < typename T >
 struct ByRef {
     typedef const T& type;
 }; // NOLINT
+
 template < typename T >
 struct ByRef< T& > {
     typedef T& type;
@@ -789,6 +790,7 @@ template < typename T >
 struct AddRef {
     typedef T& type;
 }; // NOLINT
+
 template < typename T >
 struct AddRef< T& > {
     typedef T& type;
@@ -863,7 +865,9 @@ template <>
 class tuple<> {
 public:
     tuple() {}
+
     tuple( const tuple& /* t */ ) {}
+
     tuple& operator=( const tuple& /* t */ ) { return *this; }
 };
 
@@ -915,6 +919,7 @@ public:
 
     template < GTEST_2_TYPENAMES_( U ) >
     tuple( const GTEST_2_TUPLE_( U ) & t ) : f0_( t.f0_ ), f1_( t.f1_ ) {}
+
     template < typename U0, typename U1 >
     tuple( const ::std::pair< U0, U1 >& p ) : f0_( p.first ), f1_( p.second ) {}
 
@@ -924,6 +929,7 @@ public:
     tuple& operator=( const GTEST_2_TUPLE_( U ) & t ) {
         return CopyFrom( t );
     }
+
     template < typename U0, typename U1 >
     tuple& operator=( const ::std::pair< U0, U1 >& p ) {
         f0_ = p.first;
@@ -1913,6 +1919,7 @@ inline bool operator!=( const GTEST_10_TUPLE_( T ) & t,
 #endif // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_TUPLE_H_
 #elif GTEST_ENV_HAS_STD_TUPLE_
 #include <tuple>
+
 // C++11 puts its tuple into the ::std namespace rather than
 // ::std::tr1.  gtest expects tuple to live in ::std::tr1, so put it there.
 // This causes undefined behavior, but supported compilers react in
@@ -2262,10 +2269,13 @@ public:
     typedef T element_type;
 
     explicit scoped_ptr( T* p = NULL ) : ptr_( p ) {}
+
     ~scoped_ptr() { reset(); }
 
     T& operator*() const { return *ptr_; }
+
     T* operator->() const { return ptr_; }
+
     T* get() const { return ptr_; }
 
     T* release() {
@@ -2310,6 +2320,7 @@ public:
 #endif // GTEST_HAS_GLOBAL_STRING
 
     RE( const char* regex ) { Init( regex ); } // NOLINT
+
     ~RE();
 
     // Returns the string representation of the regex.
@@ -2325,6 +2336,7 @@ public:
     static bool FullMatch( const ::std::string& str, const RE& re ) {
         return FullMatch( str.c_str(), re );
     }
+
     static bool PartialMatch( const ::std::string& str, const RE& re ) {
         return PartialMatch( str.c_str(), re );
     }
@@ -2334,6 +2346,7 @@ public:
     static bool FullMatch( const ::string& str, const RE& re ) {
         return FullMatch( str.c_str(), re );
     }
+
     static bool PartialMatch( const ::string& str, const RE& re ) {
         return PartialMatch( str.c_str(), re );
     }
@@ -2409,6 +2422,7 @@ private:
         .GetStream()
 
 inline void LogToStderr() {}
+
 inline void FlushInfoLog() {
     fflush( NULL );
 }
@@ -2574,6 +2588,7 @@ public:
     Notification() : notified_( false ) {
         GTEST_CHECK_POSIX_SUCCESS_( pthread_mutex_init( &mutex_, NULL ) );
     }
+
     ~Notification() { pthread_mutex_destroy( &mutex_ ); }
 
     // Notifies all threads created with this notification to start. Must
@@ -2612,6 +2627,7 @@ private:
 class ThreadWithParamBase {
 public:
     virtual ~ThreadWithParamBase() {}
+
     virtual void Run() = 0;
 };
 
@@ -2656,6 +2672,7 @@ public:
         GTEST_CHECK_POSIX_SUCCESS_(
             pthread_create( &thread_, 0, &ThreadFuncWithCLinkage, base ) );
     }
+
     ~ThreadWithParam() { Join(); }
 
     void Join() {
@@ -2766,6 +2783,7 @@ public:
         GTEST_CHECK_POSIX_SUCCESS_( pthread_mutex_init( &mutex_, NULL ) );
         has_owner_ = false;
     }
+
     ~Mutex() { GTEST_CHECK_POSIX_SUCCESS_( pthread_mutex_destroy( &mutex_ ) ); }
 
 private:
@@ -2841,6 +2859,7 @@ template < typename T >
 class ThreadLocal {
 public:
     ThreadLocal() : key_( CreateKey() ), default_() {}
+
     explicit ThreadLocal( const T& value )
         : key_( CreateKey() ), default_( value ) {}
 
@@ -2854,8 +2873,11 @@ public:
     }
 
     T* pointer() { return GetOrCreateValue(); }
+
     const T* pointer() const { return GetOrCreateValue(); }
+
     const T& get() const { return *pointer(); }
+
     void set( const T& value ) { *pointer() = value; }
 
 private:
@@ -2914,8 +2936,11 @@ private:
 class Mutex {
 public:
     Mutex() {}
+
     void Lock() {}
+
     void Unlock() {}
+
     void AssertHeld() const {}
 };
 
@@ -2935,10 +2960,15 @@ template < typename T >
 class ThreadLocal {
 public:
     ThreadLocal() : value_() {}
+
     explicit ThreadLocal( const T& value ) : value_( value ) {}
+
     T* pointer() { return &value_; }
+
     const T* pointer() const { return &value_; }
+
     const T& get() const { return value_; }
+
     void set( const T& value ) { value_ = value; }
 
 private:
@@ -2982,6 +3012,7 @@ struct bool_constant {
     typedef bool_constant< bool_value > type;
     static const bool value = bool_value;
 };
+
 template < bool bool_value >
 const bool bool_constant< bool_value >::value;
 
@@ -3030,24 +3061,31 @@ typedef long long BiggestInt; // NOLINT
 inline bool IsAlpha( char ch ) {
     return isalpha( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsAlNum( char ch ) {
     return isalnum( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsDigit( char ch ) {
     return isdigit( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsLower( char ch ) {
     return islower( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsSpace( char ch ) {
     return isspace( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsUpper( char ch ) {
     return isupper( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsXDigit( char ch ) {
     return isxdigit( static_cast< unsigned char >( ch ) ) != 0;
 }
+
 inline bool IsXDigit( wchar_t ch ) {
     const unsigned char low_byte = static_cast< unsigned char >( ch );
     return ch == low_byte && isxdigit( low_byte ) != 0;
@@ -3056,6 +3094,7 @@ inline bool IsXDigit( wchar_t ch ) {
 inline char ToLower( char ch ) {
     return static_cast< char >( tolower( static_cast< unsigned char >( ch ) ) );
 }
+
 inline char ToUpper( char ch ) {
     return static_cast< char >( toupper( static_cast< unsigned char >( ch ) ) );
 }
@@ -3078,9 +3117,11 @@ typedef struct _stat StatStruct;
 inline int IsATTY( int fd ) {
     return isatty( fd );
 }
+
 inline int StrCaseCmp( const char* s1, const char* s2 ) {
     return stricmp( s1, s2 );
 }
+
 inline char* StrDup( const char* src ) {
     return strdup( src );
 }
@@ -3097,6 +3138,7 @@ inline int IsATTY( int fd ) {
 inline int StrCaseCmp( const char* s1, const char* s2 ) {
     return _stricmp( s1, s2 );
 }
+
 inline char* StrDup( const char* src ) {
     return _strdup( src );
 }
@@ -3106,18 +3148,22 @@ inline char* StrDup( const char* src ) {
 inline int FileNo( FILE* file ) {
     return reinterpret_cast< int >( _fileno( file ) );
 }
+
 // Stat(), RmDir(), and IsDir() are not needed on Windows CE at this
 // time and thus not defined there.
 #else
 inline int FileNo( FILE* file ) {
     return _fileno( file );
 }
+
 inline int Stat( const char* path, StatStruct* buf ) {
     return _stat( path, buf );
 }
+
 inline int RmDir( const char* dir ) {
     return _rmdir( dir );
 }
+
 inline bool IsDir( const StatStruct& st ) {
     return ( _S_IFDIR & st.st_mode ) != 0;
 }
@@ -3130,21 +3176,27 @@ typedef struct stat StatStruct;
 inline int FileNo( FILE* file ) {
     return fileno( file );
 }
+
 inline int IsATTY( int fd ) {
     return isatty( fd );
 }
+
 inline int Stat( const char* path, StatStruct* buf ) {
     return stat( path, buf );
 }
+
 inline int StrCaseCmp( const char* s1, const char* s2 ) {
     return strcasecmp( s1, s2 );
 }
+
 inline char* StrDup( const char* src ) {
     return strdup( src );
 }
+
 inline int RmDir( const char* dir ) {
     return rmdir( dir );
 }
+
 inline bool IsDir( const StatStruct& st ) {
     return S_ISDIR( st.st_mode );
 }
@@ -3179,6 +3231,7 @@ inline FILE* FOpen( const char* path, const char* mode ) {
 inline FILE* FReopen( const char* path, const char* mode, FILE* stream ) {
     return freopen( path, mode, stream );
 }
+
 inline FILE* FDOpen( int fd, const char* mode ) {
     return fdopen( fd, mode );
 }
@@ -3190,12 +3243,15 @@ inline int FClose( FILE* fp ) {
 inline int Read( int fd, void* buf, unsigned int count ) {
     return static_cast< int >( read( fd, buf, count ) );
 }
+
 inline int Write( int fd, const void* buf, unsigned int count ) {
     return static_cast< int >( write( fd, buf, count ) );
 }
+
 inline int Close( int fd ) {
     return close( fd );
 }
+
 inline const char* StrError( int errnum ) {
     return strerror( errnum );
 }
@@ -3586,6 +3642,7 @@ private:
             *ss_ << pointer;
         }
     }
+
     template < typename T >
     inline void StreamHelper( internal::false_type /*is_pointer*/,
                               const T& value ) {
@@ -3849,6 +3906,7 @@ namespace internal {
 class GTEST_API_ FilePath {
 public:
     FilePath() : pathname_( "" ) {}
+
     FilePath( const FilePath& rhs ) : pathname_( rhs.pathname_ ) {}
 
     explicit FilePath( const std::string& pathname ) : pathname_( pathname ) {
@@ -3863,6 +3921,7 @@ public:
     void Set( const FilePath& rhs ) { pathname_ = rhs.pathname_; }
 
     const std::string& string() const { return pathname_; }
+
     const char* c_str() const { return pathname_.c_str(); }
 
     // Returns the current working directory, or "" if unsuccessful.
@@ -4118,6 +4177,7 @@ struct Types1 {
     typedef T1 Head;
     typedef Types0 Tail;
 };
+
 template < typename T1, typename T2 >
 struct Types2 {
     typedef T1 Head;
@@ -6934,6 +6994,7 @@ struct Types< internal::None,
               internal::None > {
     typedef internal::Types0 type;
 };
+
 template < typename T1 >
 struct Types< T1,
               internal::None,
@@ -6987,6 +7048,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types1< T1 > type;
 };
+
 template < typename T1, typename T2 >
 struct Types< T1,
               T2,
@@ -7040,6 +7102,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types2< T1, T2 > type;
 };
+
 template < typename T1, typename T2, typename T3 >
 struct Types< T1,
               T2,
@@ -7093,6 +7156,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types3< T1, T2, T3 > type;
 };
+
 template < typename T1, typename T2, typename T3, typename T4 >
 struct Types< T1,
               T2,
@@ -7146,6 +7210,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types4< T1, T2, T3, T4 > type;
 };
+
 template < typename T1, typename T2, typename T3, typename T4, typename T5 >
 struct Types< T1,
               T2,
@@ -7199,6 +7264,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types5< T1, T2, T3, T4, T5 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7257,6 +7323,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types6< T1, T2, T3, T4, T5, T6 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7316,6 +7383,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types7< T1, T2, T3, T4, T5, T6, T7 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7376,6 +7444,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types8< T1, T2, T3, T4, T5, T6, T7, T8 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7437,6 +7506,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types9< T1, T2, T3, T4, T5, T6, T7, T8, T9 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7499,6 +7569,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types10< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7563,6 +7634,7 @@ struct Types< T1,
     typedef internal::Types11< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7629,6 +7701,7 @@ struct Types< T1,
         Types12< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12 >
             type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7696,6 +7769,7 @@ struct Types< T1,
         Types13< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13 >
             type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7764,6 +7838,7 @@ struct Types< T1,
         Types14< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14 >
             type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7846,6 +7921,7 @@ struct Types< T1,
                                T15 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7930,6 +8006,7 @@ struct Types< T1,
                                T16 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8016,6 +8093,7 @@ struct Types< T1,
                                T17 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8104,6 +8182,7 @@ struct Types< T1,
                                T18 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8194,6 +8273,7 @@ struct Types< T1,
                                T19 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8286,6 +8366,7 @@ struct Types< T1,
                                T20 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8380,6 +8461,7 @@ struct Types< T1,
                                T21 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8476,6 +8558,7 @@ struct Types< T1,
                                T22 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8574,6 +8657,7 @@ struct Types< T1,
                                T23 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8674,6 +8758,7 @@ struct Types< T1,
                                T24 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8776,6 +8861,7 @@ struct Types< T1,
                                T25 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8880,6 +8966,7 @@ struct Types< T1,
                                T26 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -8986,6 +9073,7 @@ struct Types< T1,
                                T27 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9094,6 +9182,7 @@ struct Types< T1,
                                T28 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9204,6 +9293,7 @@ struct Types< T1,
                                T29 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9316,6 +9406,7 @@ struct Types< T1,
                                T30 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9430,6 +9521,7 @@ struct Types< T1,
                                T31 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9546,6 +9638,7 @@ struct Types< T1,
                                T32 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9664,6 +9757,7 @@ struct Types< T1,
                                T33 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9784,6 +9878,7 @@ struct Types< T1,
                                T34 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -9906,6 +10001,7 @@ struct Types< T1,
                                T35 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10030,6 +10126,7 @@ struct Types< T1,
                                T36 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10156,6 +10253,7 @@ struct Types< T1,
                                T37 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10284,6 +10382,7 @@ struct Types< T1,
                                T38 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10414,6 +10513,7 @@ struct Types< T1,
                                T39 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10546,6 +10646,7 @@ struct Types< T1,
                                T40 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10680,6 +10781,7 @@ struct Types< T1,
                                T41 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10816,6 +10918,7 @@ struct Types< T1,
                                T42 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -10954,6 +11057,7 @@ struct Types< T1,
                                T43 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -11094,6 +11198,7 @@ struct Types< T1,
                                T44 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -11236,6 +11341,7 @@ struct Types< T1,
                                T45 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -11380,6 +11486,7 @@ struct Types< T1,
                                T46 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -11526,6 +11633,7 @@ struct Types< T1,
                                T47 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -11674,6 +11782,7 @@ struct Types< T1,
                                T48 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -11873,6 +11982,7 @@ struct Templates1 {
     typedef TemplateSel< T1 > Head;
     typedef Templates0 Tail;
 };
+
 template < GTEST_TEMPLATE_ T1, GTEST_TEMPLATE_ T2 >
 struct Templates2 {
     typedef TemplateSel< T1 > Head;
@@ -14707,6 +14817,7 @@ struct Templates< NoneT,
                   NoneT > {
     typedef Templates0 type;
 };
+
 template < GTEST_TEMPLATE_ T1 >
 struct Templates< T1,
                   NoneT,
@@ -14760,6 +14871,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates1< T1 > type;
 };
+
 template < GTEST_TEMPLATE_ T1, GTEST_TEMPLATE_ T2 >
 struct Templates< T1,
                   T2,
@@ -14813,6 +14925,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates2< T1, T2 > type;
 };
+
 template < GTEST_TEMPLATE_ T1, GTEST_TEMPLATE_ T2, GTEST_TEMPLATE_ T3 >
 struct Templates< T1,
                   T2,
@@ -14866,6 +14979,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates3< T1, T2, T3 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14922,6 +15036,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates4< T1, T2, T3, T4 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14979,6 +15094,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates5< T1, T2, T3, T4, T5 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15037,6 +15153,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates6< T1, T2, T3, T4, T5, T6 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15096,6 +15213,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates7< T1, T2, T3, T4, T5, T6, T7 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15156,6 +15274,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates8< T1, T2, T3, T4, T5, T6, T7, T8 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15217,6 +15336,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates9< T1, T2, T3, T4, T5, T6, T7, T8, T9 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15279,6 +15399,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates10< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15342,6 +15463,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates11< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15407,6 +15529,7 @@ struct Templates< T1,
     typedef Templates12< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15485,6 +15608,7 @@ struct Templates< T1,
                          T13 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15565,6 +15689,7 @@ struct Templates< T1,
                          T14 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15647,6 +15772,7 @@ struct Templates< T1,
                          T15 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15731,6 +15857,7 @@ struct Templates< T1,
                          T16 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15817,6 +15944,7 @@ struct Templates< T1,
                          T17 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15905,6 +16033,7 @@ struct Templates< T1,
                          T18 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15995,6 +16124,7 @@ struct Templates< T1,
                          T19 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16087,6 +16217,7 @@ struct Templates< T1,
                          T20 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16181,6 +16312,7 @@ struct Templates< T1,
                          T21 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16277,6 +16409,7 @@ struct Templates< T1,
                          T22 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16375,6 +16508,7 @@ struct Templates< T1,
                          T23 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16475,6 +16609,7 @@ struct Templates< T1,
                          T24 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16577,6 +16712,7 @@ struct Templates< T1,
                          T25 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16681,6 +16817,7 @@ struct Templates< T1,
                          T26 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16787,6 +16924,7 @@ struct Templates< T1,
                          T27 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -16895,6 +17033,7 @@ struct Templates< T1,
                          T28 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17005,6 +17144,7 @@ struct Templates< T1,
                          T29 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17117,6 +17257,7 @@ struct Templates< T1,
                          T30 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17231,6 +17372,7 @@ struct Templates< T1,
                          T31 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17347,6 +17489,7 @@ struct Templates< T1,
                          T32 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17465,6 +17608,7 @@ struct Templates< T1,
                          T33 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17585,6 +17729,7 @@ struct Templates< T1,
                          T34 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17707,6 +17852,7 @@ struct Templates< T1,
                          T35 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17831,6 +17977,7 @@ struct Templates< T1,
                          T36 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -17957,6 +18104,7 @@ struct Templates< T1,
                          T37 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18085,6 +18233,7 @@ struct Templates< T1,
                          T38 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18215,6 +18364,7 @@ struct Templates< T1,
                          T39 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18347,6 +18497,7 @@ struct Templates< T1,
                          T40 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18481,6 +18632,7 @@ struct Templates< T1,
                          T41 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18617,6 +18769,7 @@ struct Templates< T1,
                          T42 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18755,6 +18908,7 @@ struct Templates< T1,
                          T43 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -18895,6 +19049,7 @@ struct Templates< T1,
                          T44 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -19037,6 +19192,7 @@ struct Templates< T1,
                          T45 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -19181,6 +19337,7 @@ struct Templates< T1,
                          T46 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -19327,6 +19484,7 @@ struct Templates< T1,
                          T47 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -19475,6 +19633,7 @@ struct Templates< T1,
                          T48 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -19806,6 +19965,7 @@ struct TypeList< Types< T1,
 #define GTEST_CONCAT_TOKEN_IMPL_( foo, bar ) foo##bar
 
 class ProtocolMessage;
+
 namespace proto2 {
 class Message;
 }
@@ -20120,6 +20280,7 @@ template <>
 inline float FloatingPoint< float >::Max() {
     return FLT_MAX;
 }
+
 template <>
 inline double FloatingPoint< double >::Max() {
     return DBL_MAX;
@@ -20421,7 +20582,9 @@ inline bool AlwaysFalse() {
 // the else branch.
 struct GTEST_API_ ConstCharPtr {
     ConstCharPtr( const char* str ) : value( str ) {}
+
     operator bool() const { return true; }
+
     const char* value;
 };
 
@@ -20462,6 +20625,7 @@ template < typename T >
 struct RemoveReference {
     typedef T type;
 }; // NOLINT
+
 template < typename T >
 struct RemoveReference< T& > {
     typedef T type;
@@ -20479,6 +20643,7 @@ template < typename T >
 struct RemoveConst {
     typedef T type;
 }; // NOLINT
+
 template < typename T >
 struct RemoveConst< const T > {
     typedef T type;
@@ -20518,6 +20683,7 @@ template < typename T >
 struct AddReference {
     typedef T& type;
 }; // NOLINT
+
 template < typename T >
 struct AddReference< T& > {
     typedef T& type;
@@ -20590,6 +20756,7 @@ public:
         sizeof( Helper( ImplicitlyConvertible::MakeFrom() ) ) == 1;
 #endif // _MSV_VER
 };
+
 template < typename From, typename To >
 const bool ImplicitlyConvertible< From, To >::value;
 
@@ -20625,6 +20792,7 @@ struct IsAProtocolMessage
 // IsContainerTest(typename C::const_iterator*) and
 // IsContainerTest(...) doesn't work with Visual Age C++ and Sun C++.
 typedef int IsContainer;
+
 template < class C >
 IsContainer IsContainerTest(
     int /* dummy */,
@@ -20634,6 +20802,7 @@ IsContainer IsContainerTest(
 }
 
 typedef char IsNotContainer;
+
 template < class C >
 IsNotContainer IsContainerTest( long /* dummy */ ) {
     return '\0';
@@ -20645,6 +20814,7 @@ IsNotContainer IsContainerTest( long /* dummy */ ) {
 // "typename EnableIf<expression>::type* = 0" as the last parameter.
 template < bool >
 struct EnableIf;
+
 template <>
 struct EnableIf< true > {
     typedef void type;
@@ -20771,8 +20941,11 @@ public:
 
     // STL-style container methods.
     size_t size() const { return size_; }
+
     const_iterator begin() const { return array_; }
+
     const_iterator end() const { return array_ + size_; }
+
     bool operator==( const NativeArray& rhs ) const {
         return size() == rhs.size() && ArrayEq( begin(), size(), rhs.begin() );
     }
@@ -21065,12 +21238,14 @@ public:
                         int line,
                         DeathTest** test );
     DeathTest();
+
     virtual ~DeathTest() {}
 
     // A helper class that aborts a death test when it's deleted.
     class ReturnSentinel {
     public:
         explicit ReturnSentinel( DeathTest* test ) : test_( test ) {}
+
         ~ReturnSentinel() { test_->Abort( TEST_ENCOUNTERED_RETURN_STATEMENT ); }
 
     private:
@@ -21127,6 +21302,7 @@ private:
 class DeathTestFactory {
 public:
     virtual ~DeathTestFactory() {}
+
     virtual bool Create( const char* statement,
                          const RE* regex,
                          const char* file,
@@ -21246,8 +21422,11 @@ public:
     }
 
     const std::string& file() const { return file_; }
+
     int line() const { return line_; }
+
     int index() const { return index_; }
+
     int write_fd() const { return write_fd_; }
 
 private:
@@ -21940,6 +22119,7 @@ public:
     // Take over ownership of a raw pointer.  This should happen as soon as
     // possible after the object is created.
     explicit linked_ptr( T* ptr = NULL ) { capture( ptr ); }
+
     ~linked_ptr() { depart(); }
 
     // Copy an existing linked_ptr<>, adding ourselves to the list of
@@ -21948,6 +22128,7 @@ public:
     linked_ptr( linked_ptr< U > const& ptr ) {
         copy( &ptr );
     }
+
     linked_ptr( linked_ptr const& ptr ) { // NOLINT
         assert( &ptr != this );
         copy( &ptr );
@@ -21974,16 +22155,22 @@ public:
         depart();
         capture( ptr );
     }
+
     T* get() const { return value_; }
+
     T* operator->() const { return value_; }
+
     T& operator*() const { return *value_; }
 
     bool operator==( T* p ) const { return value_ == p; }
+
     bool operator!=( T* p ) const { return value_ != p; }
+
     template < typename U >
     bool operator==( linked_ptr< U > const& ptr ) const {
         return value_ == ptr.get();
     }
+
     template < typename U >
     bool operator!=( linked_ptr< U > const& ptr ) const {
         return value_ != ptr.get();
@@ -22430,6 +22617,7 @@ void PrintTo( const T& value, ::std::ostream* os ) {
 // Overloads for various char types.
 GTEST_API_ void PrintTo( unsigned char c, ::std::ostream* os );
 GTEST_API_ void PrintTo( signed char c, ::std::ostream* os );
+
 inline void PrintTo( char c, ::std::ostream* os ) {
     // When printing a plain char, we always treat it as unsigned.  This
     // way, the output won't be affected by whether the compiler thinks
@@ -22453,6 +22641,7 @@ GTEST_API_ void PrintTo( wchar_t wc, ::std::ostream* os );
 
 // Overloads for C strings.
 GTEST_API_ void PrintTo( const char* s, ::std::ostream* os );
+
 inline void PrintTo( char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const char* >( s ), os );
 }
@@ -22462,12 +22651,15 @@ inline void PrintTo( char* s, ::std::ostream* os ) {
 inline void PrintTo( const signed char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
+
 inline void PrintTo( signed char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
+
 inline void PrintTo( const unsigned char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
+
 inline void PrintTo( unsigned char* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const void* >( s ), os );
 }
@@ -22480,6 +22672,7 @@ inline void PrintTo( unsigned char* s, ::std::ostream* os ) {
 #if !defined( _MSC_VER ) || defined( _NATIVE_WCHAR_T_DEFINED )
 // Overloads for wide C strings
 GTEST_API_ void PrintTo( const wchar_t* s, ::std::ostream* os );
+
 inline void PrintTo( wchar_t* s, ::std::ostream* os ) {
     PrintTo( ImplicitCast_< const wchar_t* >( s ), os );
 }
@@ -22502,12 +22695,14 @@ void PrintRawArrayTo( const T a[], size_t count, ::std::ostream* os ) {
 // Overloads for ::string and ::std::string.
 #if GTEST_HAS_GLOBAL_STRING
 GTEST_API_ void PrintStringTo( const ::string& s, ::std::ostream* os );
+
 inline void PrintTo( const ::string& s, ::std::ostream* os ) {
     PrintStringTo( s, os );
 }
 #endif // GTEST_HAS_GLOBAL_STRING
 
 GTEST_API_ void PrintStringTo( const ::std::string& s, ::std::ostream* os );
+
 inline void PrintTo( const ::std::string& s, ::std::ostream* os ) {
     PrintStringTo( s, os );
 }
@@ -22515,6 +22710,7 @@ inline void PrintTo( const ::std::string& s, ::std::ostream* os ) {
 // Overloads for ::wstring and ::std::wstring.
 #if GTEST_HAS_GLOBAL_WSTRING
 GTEST_API_ void PrintWideStringTo( const ::wstring& s, ::std::ostream* os );
+
 inline void PrintTo( const ::wstring& s, ::std::ostream* os ) {
     PrintWideStringTo( s, os );
 }
@@ -22523,6 +22719,7 @@ inline void PrintTo( const ::wstring& s, ::std::ostream* os ) {
 #if GTEST_HAS_STD_WSTRING
 GTEST_API_ void PrintWideStringTo( const ::std::wstring& s,
                                    ::std::ostream* os );
+
 inline void PrintTo( const ::std::wstring& s, ::std::ostream* os ) {
     PrintWideStringTo( s, os );
 }
@@ -22709,6 +22906,7 @@ void UniversalPrintArray( const T* begin, size_t len, ::std::ostream* os ) {
         *os << " }";
     }
 }
+
 // This overload prints a (const) char array compactly.
 GTEST_API_ void UniversalPrintArray( const char* begin,
                                      size_t len,
@@ -22766,6 +22964,7 @@ public:
         UniversalPrint( value, os );
     }
 };
+
 template < typename T >
 class UniversalTersePrinter< T& > {
 public:
@@ -22773,6 +22972,7 @@ public:
         UniversalPrint( value, os );
     }
 };
+
 template < typename T, size_t N >
 class UniversalTersePrinter< T[ N ] > {
 public:
@@ -22780,6 +22980,7 @@ public:
         UniversalPrinter< T[ N ] >::Print( value, os );
     }
 };
+
 template <>
 class UniversalTersePrinter< const char* > {
 public:
@@ -22791,6 +22992,7 @@ public:
         }
     }
 };
+
 template <>
 class UniversalTersePrinter< char* > {
 public:
@@ -22880,6 +23082,7 @@ struct TuplePrefixPrinter< 0 > {
     template < typename Tuple >
     static void TersePrintPrefixToStrings( const Tuple&, Strings* ) {}
 };
+
 // We have to specialize the entire TuplePrefixPrinter<> class
 // template here, even though the definition of
 // TersePrintPrefixToStrings() is the same as the generic version, as
@@ -22962,6 +23165,7 @@ template < typename T >
 class ParamIteratorInterface {
 public:
     virtual ~ParamIteratorInterface() {}
+
     // A pointer to the base generator instance.
     // Used only for the purposes of iterator comparison
     // to make sure that two iterators belong to the same generator.
@@ -22998,6 +23202,7 @@ public:
     // ParamIterator assumes ownership of the impl_ pointer.
     ParamIterator( const ParamIterator& other )
         : impl_( other.impl_->Clone() ) {}
+
     ParamIterator& operator=( const ParamIterator& other ) {
         if ( this != &other )
             impl_.reset( other.impl_->Clone() );
@@ -23005,30 +23210,37 @@ public:
     }
 
     const T& operator*() const { return *impl_->Current(); }
+
     const T* operator->() const { return impl_->Current(); }
+
     // Prefix version of operator++.
     ParamIterator& operator++() {
         impl_->Advance();
         return *this;
     }
+
     // Postfix version of operator++.
     ParamIterator operator++( int /*unused*/ ) {
         ParamIteratorInterface< T >* clone = impl_->Clone();
         impl_->Advance();
         return ParamIterator( clone );
     }
+
     bool operator==( const ParamIterator& other ) const {
         return impl_.get() == other.impl_.get() ||
                impl_->Equals( *other.impl_ );
     }
+
     bool operator!=( const ParamIterator& other ) const {
         return !( *this == other );
     }
 
 private:
     friend class ParamGenerator< T >;
+
     explicit ParamIterator( ParamIteratorInterface< T >* impl )
         : impl_( impl ) {}
+
     scoped_ptr< ParamIteratorInterface< T > > impl_;
 };
 
@@ -23058,6 +23270,7 @@ public:
 
     explicit ParamGenerator( ParamGeneratorInterface< T >* impl )
         : impl_( impl ) {}
+
     ParamGenerator( const ParamGenerator& other ) : impl_( other.impl_ ) {}
 
     ParamGenerator& operator=( const ParamGenerator& other ) {
@@ -23066,6 +23279,7 @@ public:
     }
 
     iterator begin() const { return iterator( impl_->Begin() ); }
+
     iterator end() const { return iterator( impl_->End() ); }
 
 private:
@@ -23084,11 +23298,13 @@ public:
           end_( end ),
           step_( step ),
           end_index_( CalculateEndIndex( begin, end, step ) ) {}
+
     virtual ~RangeGenerator() {}
 
     virtual ParamIteratorInterface< T >* Begin() const {
         return new Iterator( this, begin_, 0, step_ );
     }
+
     virtual ParamIteratorInterface< T >* End() const {
         return new Iterator( this, end_, end_index_, step_ );
     }
@@ -23101,19 +23317,24 @@ private:
                   int index,
                   IncrementT step )
             : base_( base ), value_( value ), index_( index ), step_( step ) {}
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< T >* BaseGenerator() const {
             return base_;
         }
+
         virtual void Advance() {
             value_ = value_ + step_;
             index_++;
         }
+
         virtual ParamIteratorInterface< T >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const T* Current() const { return &value_; }
+
         virtual bool Equals( const ParamIteratorInterface< T >& other ) const {
             // Having the same base generator guarantees that the other
             // iterator is of the same type and we can downcast.
@@ -23172,11 +23393,13 @@ public:
     template < typename ForwardIterator >
     ValuesInIteratorRangeGenerator( ForwardIterator begin, ForwardIterator end )
         : container_( begin, end ) {}
+
     virtual ~ValuesInIteratorRangeGenerator() {}
 
     virtual ParamIteratorInterface< T >* Begin() const {
         return new Iterator( this, container_.begin() );
     }
+
     virtual ParamIteratorInterface< T >* End() const {
         return new Iterator( this, container_.end() );
     }
@@ -23189,18 +23412,22 @@ private:
         Iterator( const ParamGeneratorInterface< T >* base,
                   typename ContainerType::const_iterator iterator )
             : base_( base ), iterator_( iterator ) {}
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< T >* BaseGenerator() const {
             return base_;
         }
+
         virtual void Advance() {
             ++iterator_;
             value_.reset();
         }
+
         virtual ParamIteratorInterface< T >* Clone() const {
             return new Iterator( *this );
         }
+
         // We need to use cached value referenced by iterator_ because
         // *iterator_ can return a temporary object (and of type other then T),
         // so just having "return &*iterator_;" doesn't work. value_ is updated
@@ -23213,6 +23440,7 @@ private:
                 value_.reset( new T( *iterator_ ) );
             return value_.get();
         }
+
         virtual bool Equals( const ParamIteratorInterface< T >& other ) const {
             // Having the same base generator guarantees that the other
             // iterator is of the same type and we can downcast.
@@ -23256,8 +23484,10 @@ template < class TestClass >
 class ParameterizedTestFactory : public TestFactoryBase {
 public:
     typedef typename TestClass::ParamType ParamType;
+
     explicit ParameterizedTestFactory( ParamType parameter )
         : parameter_( parameter ) {}
+
     virtual Test* CreateTest() {
         TestClass::SetParam( &parameter_ );
         return new TestClass();
@@ -23358,8 +23588,10 @@ public:
 
     // Test case base name for display purposes.
     virtual const string& GetTestCaseName() const { return test_case_name_; }
+
     // Test case id to verify identity.
     virtual TypeId GetTestCaseTypeId() const { return GetTypeId< TestCase >(); }
+
     // TEST_P macro uses AddTestPattern() to record information
     // about a single test in a LocalTestInfo structure.
     // test_case_name is the base name of the test case (without invocation
@@ -23372,6 +23604,7 @@ public:
         tests_.push_back( linked_ptr< TestInfo >(
             new TestInfo( test_case_name, test_base_name, meta_factory ) ) );
     }
+
     // INSTANTIATE_TEST_CASE_P macro uses AddGenerator() to record information
     // about a generator.
     int AddTestCaseInstantiation( const string& instantiation_name,
@@ -23383,6 +23616,7 @@ public:
         return 0; // Return value used only to run this method in namespace
                   // scope.
     }
+
     // UnitTest class invokes this method to register tests in this test case
     // test cases right before running tests in RUN_ALL_TESTS macro.
     // This method should not be called more then once on any single
@@ -23437,6 +23671,7 @@ private:
         const string test_base_name;
         const scoped_ptr< TestMetaFactoryBase< ParamType > > test_meta_factory;
     };
+
     typedef ::std::vector< linked_ptr< TestInfo > > TestInfoContainer;
     // Keeps pairs of <Instantiation name, Sequence generator creation function>
     // received from INSTANTIATE_TEST_CASE_P macros.
@@ -23459,6 +23694,7 @@ private:
 class ParameterizedTestCaseRegistry {
 public:
     ParameterizedTestCaseRegistry() {}
+
     ~ParameterizedTestCaseRegistry() {
         for ( TestCaseInfoContainer::iterator it = test_case_infos_.begin();
               it != test_case_infos_.end(); ++it ) {
@@ -23500,6 +23736,7 @@ public:
         }
         return typed_test_info;
     }
+
     void RegisterTests() {
         for ( TestCaseInfoContainer::iterator it = test_case_infos_.begin();
               it != test_case_infos_.end(); ++it ) {
@@ -30015,11 +30252,13 @@ public:
     CartesianProductGenerator2( const ParamGenerator< T1 >& g1,
                                 const ParamGenerator< T2 >& g2 )
         : g1_( g1 ), g2_( g2 ) {}
+
     virtual ~CartesianProductGenerator2() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end() );
     }
@@ -30041,12 +30280,14 @@ private:
               current2_( current2 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -30058,10 +30299,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -30095,6 +30339,7 @@ private:
             if ( !AtEnd() )
                 current_value_ = ParamType( *current1_, *current2_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -30133,12 +30378,14 @@ public:
                                 const ParamGenerator< T2 >& g2,
                                 const ParamGenerator< T3 >& g3 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ) {}
+
     virtual ~CartesianProductGenerator3() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin(), g3_,
                              g3_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end() );
@@ -30166,12 +30413,14 @@ private:
               current3_( current3 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -30187,10 +30436,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -30229,6 +30481,7 @@ private:
                 current_value_ =
                     ParamType( *current1_, *current2_, *current3_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -30273,12 +30526,14 @@ public:
                                 const ParamGenerator< T3 >& g3,
                                 const ParamGenerator< T4 >& g4 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ) {}
+
     virtual ~CartesianProductGenerator4() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin(), g3_,
                              g3_.begin(), g4_, g4_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end() );
@@ -30311,12 +30566,14 @@ private:
               current4_( current4 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -30336,10 +30593,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -30382,6 +30642,7 @@ private:
                 current_value_ =
                     ParamType( *current1_, *current2_, *current3_, *current4_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -30432,12 +30693,14 @@ public:
                                 const ParamGenerator< T4 >& g4,
                                 const ParamGenerator< T5 >& g5 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ) {}
+
     virtual ~CartesianProductGenerator5() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin(), g3_,
                              g3_.begin(), g4_, g4_.begin(), g5_, g5_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end() );
@@ -30475,12 +30738,14 @@ private:
               current5_( current5 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -30504,10 +30769,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -30554,6 +30822,7 @@ private:
                 current_value_ = ParamType( *current1_, *current2_, *current3_,
                                             *current4_, *current5_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -30615,6 +30884,7 @@ public:
                                 const ParamGenerator< T5 >& g5,
                                 const ParamGenerator< T6 >& g6 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ), g6_( g6 ) {}
+
     virtual ~CartesianProductGenerator6() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -30622,6 +30892,7 @@ public:
                              g3_.begin(), g4_, g4_.begin(), g5_, g5_.begin(),
                              g6_, g6_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -30665,12 +30936,14 @@ private:
               current6_( current6 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -30698,10 +30971,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -30753,6 +31029,7 @@ private:
                     ParamType( *current1_, *current2_, *current3_, *current4_,
                                *current5_, *current6_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -30826,6 +31103,7 @@ public:
           g5_( g5 ),
           g6_( g6 ),
           g7_( g7 ) {}
+
     virtual ~CartesianProductGenerator7() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -30833,6 +31111,7 @@ public:
                              g3_.begin(), g4_, g4_.begin(), g5_, g5_.begin(),
                              g6_, g6_.begin(), g7_, g7_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -30881,12 +31160,14 @@ private:
               current7_( current7 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -30918,10 +31199,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -30977,6 +31261,7 @@ private:
                     ParamType( *current1_, *current2_, *current3_, *current4_,
                                *current5_, *current6_, *current7_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -31058,6 +31343,7 @@ public:
           g6_( g6 ),
           g7_( g7 ),
           g8_( g8 ) {}
+
     virtual ~CartesianProductGenerator8() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -31066,6 +31352,7 @@ public:
                              g6_, g6_.begin(), g7_, g7_.begin(), g8_,
                              g8_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -31119,12 +31406,14 @@ private:
               current8_( current8 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -31160,10 +31449,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -31223,6 +31515,7 @@ private:
                     ParamType( *current1_, *current2_, *current3_, *current4_,
                                *current5_, *current6_, *current7_, *current8_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -31311,6 +31604,7 @@ public:
           g7_( g7 ),
           g8_( g8 ),
           g9_( g9 ) {}
+
     virtual ~CartesianProductGenerator9() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -31319,6 +31613,7 @@ public:
                              g6_, g6_.begin(), g7_, g7_.begin(), g8_,
                              g8_.begin(), g9_, g9_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -31378,12 +31673,14 @@ private:
               current9_( current9 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -31423,10 +31720,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -31490,6 +31790,7 @@ private:
                     *current1_, *current2_, *current3_, *current4_, *current5_,
                     *current6_, *current7_, *current8_, *current9_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -31587,6 +31888,7 @@ public:
           g8_( g8 ),
           g9_( g9 ),
           g10_( g10 ) {}
+
     virtual ~CartesianProductGenerator10() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -31595,6 +31897,7 @@ public:
             g4_.begin(), g5_, g5_.begin(), g6_, g6_.begin(), g7_, g7_.begin(),
             g8_, g8_.begin(), g9_, g9_.begin(), g10_, g10_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -31659,12 +31962,14 @@ private:
               current10_( current10 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -31708,10 +32013,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -31780,6 +32088,7 @@ private:
                                *current5_, *current6_, *current7_, *current8_,
                                *current9_, *current10_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -31855,6 +32164,7 @@ class CartesianProductHolder2 {
 public:
     CartesianProductHolder2( const Generator1& g1, const Generator2& g2 )
         : g1_( g1 ), g2_( g2 ) {}
+
     template < typename T1, typename T2 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2 > >(
@@ -31878,6 +32188,7 @@ public:
                              const Generator2& g2,
                              const Generator3& g3 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ) {}
+
     template < typename T1, typename T2, typename T3 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2, T3 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2, T3 > >(
@@ -31907,6 +32218,7 @@ public:
                              const Generator3& g3,
                              const Generator4& g4 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ) {}
+
     template < typename T1, typename T2, typename T3, typename T4 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4 > >(
@@ -31940,6 +32252,7 @@ public:
                              const Generator4& g4,
                              const Generator5& g5 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ) {}
+
     template < typename T1, typename T2, typename T3, typename T4, typename T5 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4, T5 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4, T5 > >(
@@ -31977,6 +32290,7 @@ public:
                              const Generator5& g5,
                              const Generator6& g6 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ), g6_( g6 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -32030,6 +32344,7 @@ public:
           g5_( g5 ),
           g6_( g6 ),
           g7_( g7 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -32090,6 +32405,7 @@ public:
           g6_( g6 ),
           g7_( g7 ),
           g8_( g8 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -32156,6 +32472,7 @@ public:
           g7_( g7 ),
           g8_( g8 ),
           g9_( g9 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -32229,6 +32546,7 @@ public:
           g8_( g8 ),
           g9_( g9 ),
           g10_( g10 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -37019,6 +37337,7 @@ public:
     HasNewFatalFailureHelper();
     virtual ~HasNewFatalFailureHelper();
     virtual void ReportTestPartResult( const TestPartResult& result );
+
     bool has_new_fatal_failure() const { return has_new_fatal_failure_; }
 
 private:
@@ -37486,6 +37805,7 @@ public:
     // Copy constructor.
     // Used in EXPECT_TRUE/FALSE(assertion_result).
     AssertionResult( const AssertionResult& other );
+
     // Used in the EXPECT_TRUE/FALSE(bool_expression).
     explicit AssertionResult( bool success ) : success_( success ) {}
 
@@ -37502,6 +37822,7 @@ public:
     const char* message() const {
         return message_.get() != NULL ? message_->c_str() : "";
     }
+
     // TODO(vladl@google.com): Remove this after making sure no clients use it.
     // Deprecated; please use message() instead.
     const char* failure_message() const { return message(); }
@@ -37680,6 +38001,7 @@ private:
     // If you see an error about overriding the following function or
     // about it being private, you have mis-spelled SetUp() as Setup().
     struct Setup_should_be_spelled_SetUp {};
+
     virtual Setup_should_be_spelled_SetUp* Setup() { return NULL; }
 
     // We disallow copying Tests.
@@ -38180,6 +38502,7 @@ private:
     // If you see an error about overriding the following function or
     // about it being private, you have mis-spelled SetUp() as Setup().
     struct Setup_should_be_spelled_SetUp {};
+
     virtual Setup_should_be_spelled_SetUp* Setup() { return NULL; }
 };
 
@@ -38241,20 +38564,32 @@ public:
 class EmptyTestEventListener : public TestEventListener {
 public:
     virtual void OnTestProgramStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationStart( const UnitTest& /*unit_test*/,
                                        int /*iteration*/ ) {}
+
     virtual void OnEnvironmentsSetUpStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnEnvironmentsSetUpEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestCaseStart( const TestCase& /*test_case*/ ) {}
+
     virtual void OnTestStart( const TestInfo& /*test_info*/ ) {}
+
     virtual void OnTestPartResult(
         const TestPartResult& /*test_part_result*/ ) {}
+
     virtual void OnTestEnd( const TestInfo& /*test_info*/ ) {}
+
     virtual void OnTestCaseEnd( const TestCase& /*test_case*/ ) {}
+
     virtual void OnEnvironmentsTearDownStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnEnvironmentsTearDownEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationEnd( const UnitTest& /*unit_test*/,
                                      int /*iteration*/ ) {}
+
     virtual void OnTestProgramEnd( const UnitTest& /*unit_test*/ ) {}
 };
 
@@ -38482,6 +38817,7 @@ private:
 
     // Accessors for the implementation object.
     internal::UnitTestImpl* impl() { return impl_; }
+
     const internal::UnitTestImpl* impl() const { return impl_; }
 
     // These classes and funcions are friends as they need to access private
@@ -39039,6 +39375,7 @@ template < typename T >
 class WithParamInterface {
 public:
     typedef T ParamType;
+
     virtual ~WithParamInterface() {}
 
     // The current parameter value. Is also available in the test fixture's

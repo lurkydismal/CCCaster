@@ -72,6 +72,7 @@ int remove( const char* path ) {
     delete[] wpath;
     return ret;
 }
+
 // Windows CE doesn't have the _rmdir C function.
 int _rmdir( const char* path ) {
     FilePath filepath( path );

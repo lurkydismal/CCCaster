@@ -243,6 +243,7 @@ void PrintCharAndCodeTo( Char c, ostream* os ) {
 void PrintTo( unsigned char c, ::std::ostream* os ) {
     PrintCharAndCodeTo< unsigned char >( c, os );
 }
+
 void PrintTo( signed char c, ::std::ostream* os ) {
     PrintCharAndCodeTo< unsigned char >( c, os );
 }

@@ -52,6 +52,7 @@ struct Test1 {
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar ) {
         ar( CEREAL_NVP( a ) );
@@ -62,7 +63,9 @@ private:
 class Test2 {
 public:
     Test2() {}
+
     Test2( int x ) : a( x ) {}
+
     int a;
 
 private:
@@ -161,6 +164,7 @@ struct SubFixture {
     void serialize( Archive& ar ) {
         ar( CEREAL_NVP( a ), b, c, CEREAL_NVP( d ), CEREAL_NVP( s ) );
     }
+
     void change() {
         a = 4;
         b = 4;
@@ -202,6 +206,7 @@ struct Fixture {
 
 struct AAA {
     AAA() : one( 1 ), two( 2 ), three( { { 1, 2, 3 }, { 4, 5, 6 }, {} } ) {}
+
     int one, two;
 
     std::vector< std::vector< int > > three;
@@ -239,6 +244,7 @@ private:
 
 struct OOJson {
     OOJson() = default;
+
     OOJson( int aa, int bb, bool cc, double dd )
         : a( aa ), b( bb ), c{ cc, dd } {
         d[ 0 ] = 0;

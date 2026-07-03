@@ -207,6 +207,7 @@ private:
             *ss_ << pointer;
         }
     }
+
     template < typename T >
     inline void StreamHelper( internal::false_type /*is_pointer*/,
                               const T& value ) {

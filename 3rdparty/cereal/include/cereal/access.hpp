@@ -109,6 +109,7 @@ namespace memory_detail {
 template < class Ar, class T >
 struct LoadAndConstructLoadWrapper;
 }
+
 //! @endcond
 
 //! Used to construct types with no default constructor
@@ -172,6 +173,7 @@ public:
         @throw Exception If called more than once */
     template < class... Args >
     void operator()( Args&&... args );
+
     // implementation deferred due to reliance on cereal::access
 
     //! Get a reference to the initialized underlying object
@@ -202,6 +204,7 @@ private:
     friend struct ::cereal::memory_detail::LoadAndConstructLoadWrapper;
 
     construct( T* p ) : itsPtr( p ), itsValid( false ) {}
+
     construct( construct const& ) = delete;
     construct& operator=( construct const& ) = delete;
 

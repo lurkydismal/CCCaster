@@ -29,8 +29,8 @@
 #ifndef CEREAL_ARCHIVES_JSON_HPP_
 #define CEREAL_ARCHIVES_JSON_HPP_
 
-#include <cereal/cereal.hpp>
-#include <cereal/details/util.hpp>
+#include "../cereal.hpp"
+#include "../details/util.hpp"
 
 namespace cereal {
 //! An exception thrown when rapidjson fails an internal assertion
@@ -49,17 +49,17 @@ struct RapidJSONException : Exception {
     }
 #endif // RAPIDJSON_ASSERT
 
-#include <cereal/external/base64.hpp>
-#include <cereal/external/rapidjson/document.h>
-#include <cereal/external/rapidjson/genericstream.h>
-#include <cereal/external/rapidjson/prettywriter.h>
-#include <cereal/external/rapidjson/reader.h>
-
 #include <limits>
 #include <sstream>
 #include <stack>
 #include <string>
 #include <vector>
+
+#include "../external/base64.hpp"
+#include "../external/rapidjson/document.h"
+#include "../external/rapidjson/genericstream.h"
+#include "../external/rapidjson/prettywriter.h"
+#include "../external/rapidjson/reader.h"
 
 namespace cereal {
 // ######################################################################
@@ -219,21 +219,28 @@ public:
 
     //! Saves a bool to the current node
     void saveValue( bool b ) { itsWriter.Bool_( b ); }
+
     //! Saves an int to the current node
     void saveValue( int i ) { itsWriter.Int( i ); }
+
     //! Saves a uint to the current node
     void saveValue( unsigned u ) { itsWriter.Uint( u ); }
+
     //! Saves an int64 to the current node
     void saveValue( int64_t i64 ) { itsWriter.Int64( i64 ); }
+
     //! Saves a uint64 to the current node
     void saveValue( uint64_t u64 ) { itsWriter.Uint64( u64 ); }
+
     //! Saves a double to the current node
     void saveValue( double d ) { itsWriter.Double( d ); }
+
     //! Saves a string to the current node
     void saveValue( std::string const& s ) {
         itsWriter.String( s.c_str(),
                           static_cast< rapidjson::SizeType >( s.size() ) );
     }
+
     //! Saves a const char * to the current node
     void saveValue( char const* s ) { itsWriter.String( s ); }
 
@@ -542,6 +549,7 @@ private:
         ValueIterator itsValueItBegin,
             itsValueItEnd; //!< The value iterator (array)
         size_t itsIndex;   //!< The current index of this iterator
+
         enum Type {
             Value,
             Member,
@@ -642,18 +650,21 @@ public:
         val = itsIteratorStack.back().value().GetBool_();
         ++itsIteratorStack.back();
     }
+
     //! Loads a value from the current node - int64 overload
     void loadValue( int64_t& val ) {
         search();
         val = itsIteratorStack.back().value().GetInt64();
         ++itsIteratorStack.back();
     }
+
     //! Loads a value from the current node - uint64 overload
     void loadValue( uint64_t& val ) {
         search();
         val = itsIteratorStack.back().value().GetUint64();
         ++itsIteratorStack.back();
     }
+
     //! Loads a value from the current node - float overload
     void loadValue( float& val ) {
         search();
@@ -661,12 +672,14 @@ public:
             static_cast< float >( itsIteratorStack.back().value().GetDouble() );
         ++itsIteratorStack.back();
     }
+
     //! Loads a value from the current node - double overload
     void loadValue( double& val ) {
         search();
         val = itsIteratorStack.back().value().GetDouble();
         ++itsIteratorStack.back();
     }
+
     //! Loads a value from the current node - string overload
     void loadValue( std::string& val ) {
         search();
@@ -679,10 +692,12 @@ private:
     void stringToNumber( std::string const& str, long long& val ) {
         val = std::stoll( str );
     }
+
     //! Convert a string to an unsigned long long
     void stringToNumber( std::string const& str, unsigned long long& val ) {
         val = std::stoull( str );
     }
+
     //! Convert a string to a long double
     void stringToNumber( std::string const& str, long double& val ) {
         val = std::stold( str );

@@ -48,11 +48,14 @@ private:
 
     // Socket callbacks
     void socketAccepted( Socket* socket ) override {}
+
     void socketConnected( Socket* socket ) override;
     void socketDisconnected( Socket* socket ) override;
+
     void socketRead( Socket* socket,
                      const MsgPtr& msg,
                      const IpAddrPort& address ) override {}
+
     void socketRead( Socket* socket,
                      const char* bytes,
                      size_t len,

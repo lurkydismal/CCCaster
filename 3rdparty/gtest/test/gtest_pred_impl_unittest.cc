@@ -86,6 +86,7 @@ bool PredFunction1( T1 v1 ) {
 bool PredFunction1Int( int v1 ) {
     return v1 > 0;
 }
+
 bool PredFunction1Bool( Bool v1 ) {
     return v1 > 0;
 }
@@ -456,6 +457,7 @@ TEST_F( ASSERT_PRED_FORMAT1Test, FunctorOnUserTypeFailure ) {
         },
         "" );
 }
+
 // Sample functions/functors for testing binary predicate assertions.
 
 // A binary predicate function.
@@ -470,6 +472,7 @@ bool PredFunction2( T1 v1, T2 v2 ) {
 bool PredFunction2Int( int v1, int v2 ) {
     return v1 + v2 > 0;
 }
+
 bool PredFunction2Bool( Bool v1, Bool v2 ) {
     return v1 + v2 > 0;
 }
@@ -856,6 +859,7 @@ TEST_F( ASSERT_PRED_FORMAT2Test, FunctorOnUserTypeFailure ) {
         },
         "" );
 }
+
 // Sample functions/functors for testing ternary predicate assertions.
 
 // A ternary predicate function.
@@ -870,6 +874,7 @@ bool PredFunction3( T1 v1, T2 v2, T3 v3 ) {
 bool PredFunction3Int( int v1, int v2, int v3 ) {
     return v1 + v2 + v3 > 0;
 }
+
 bool PredFunction3Bool( Bool v1, Bool v2, Bool v3 ) {
     return v1 + v2 + v3 > 0;
 }
@@ -1275,6 +1280,7 @@ TEST_F( ASSERT_PRED_FORMAT3Test, FunctorOnUserTypeFailure ) {
         },
         "" );
 }
+
 // Sample functions/functors for testing 4-ary predicate assertions.
 
 // A 4-ary predicate function.
@@ -1289,6 +1295,7 @@ bool PredFunction4( T1 v1, T2 v2, T3 v3, T4 v4 ) {
 bool PredFunction4Int( int v1, int v2, int v3, int v4 ) {
     return v1 + v2 + v3 + v4 > 0;
 }
+
 bool PredFunction4Bool( Bool v1, Bool v2, Bool v3, Bool v4 ) {
     return v1 + v2 + v3 + v4 > 0;
 }
@@ -1709,6 +1716,7 @@ TEST_F( ASSERT_PRED_FORMAT4Test, FunctorOnUserTypeFailure ) {
         },
         "" );
 }
+
 // Sample functions/functors for testing 5-ary predicate assertions.
 
 // A 5-ary predicate function.
@@ -1723,6 +1731,7 @@ bool PredFunction5( T1 v1, T2 v2, T3 v3, T4 v4, T5 v5 ) {
 bool PredFunction5Int( int v1, int v2, int v3, int v4, int v5 ) {
     return v1 + v2 + v3 + v4 + v5 > 0;
 }
+
 bool PredFunction5Bool( Bool v1, Bool v2, Bool v3, Bool v4, Bool v5 ) {
     return v1 + v2 + v3 + v4 + v5 > 0;
 }

@@ -6493,11 +6493,13 @@ public:
     CartesianProductGenerator2( const ParamGenerator< T1 >& g1,
                                 const ParamGenerator< T2 >& g2 )
         : g1_( g1 ), g2_( g2 ) {}
+
     virtual ~CartesianProductGenerator2() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end() );
     }
@@ -6519,12 +6521,14 @@ private:
               current2_( current2 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -6536,10 +6540,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -6573,6 +6580,7 @@ private:
             if ( !AtEnd() )
                 current_value_ = ParamType( *current1_, *current2_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -6611,12 +6619,14 @@ public:
                                 const ParamGenerator< T2 >& g2,
                                 const ParamGenerator< T3 >& g3 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ) {}
+
     virtual ~CartesianProductGenerator3() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin(), g3_,
                              g3_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end() );
@@ -6644,12 +6654,14 @@ private:
               current3_( current3 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -6665,10 +6677,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -6707,6 +6722,7 @@ private:
                 current_value_ =
                     ParamType( *current1_, *current2_, *current3_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -6751,12 +6767,14 @@ public:
                                 const ParamGenerator< T3 >& g3,
                                 const ParamGenerator< T4 >& g4 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ) {}
+
     virtual ~CartesianProductGenerator4() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin(), g3_,
                              g3_.begin(), g4_, g4_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end() );
@@ -6789,12 +6807,14 @@ private:
               current4_( current4 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -6814,10 +6834,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -6860,6 +6883,7 @@ private:
                 current_value_ =
                     ParamType( *current1_, *current2_, *current3_, *current4_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -6910,12 +6934,14 @@ public:
                                 const ParamGenerator< T4 >& g4,
                                 const ParamGenerator< T5 >& g5 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ) {}
+
     virtual ~CartesianProductGenerator5() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
         return new Iterator( this, g1_, g1_.begin(), g2_, g2_.begin(), g3_,
                              g3_.begin(), g4_, g4_.begin(), g5_, g5_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end() );
@@ -6953,12 +6979,14 @@ private:
               current5_( current5 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -6982,10 +7010,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -7032,6 +7063,7 @@ private:
                 current_value_ = ParamType( *current1_, *current2_, *current3_,
                                             *current4_, *current5_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -7093,6 +7125,7 @@ public:
                                 const ParamGenerator< T5 >& g5,
                                 const ParamGenerator< T6 >& g6 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ), g6_( g6 ) {}
+
     virtual ~CartesianProductGenerator6() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -7100,6 +7133,7 @@ public:
                              g3_.begin(), g4_, g4_.begin(), g5_, g5_.begin(),
                              g6_, g6_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -7143,12 +7177,14 @@ private:
               current6_( current6 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -7176,10 +7212,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -7231,6 +7270,7 @@ private:
                     ParamType( *current1_, *current2_, *current3_, *current4_,
                                *current5_, *current6_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -7304,6 +7344,7 @@ public:
           g5_( g5 ),
           g6_( g6 ),
           g7_( g7 ) {}
+
     virtual ~CartesianProductGenerator7() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -7311,6 +7352,7 @@ public:
                              g3_.begin(), g4_, g4_.begin(), g5_, g5_.begin(),
                              g6_, g6_.begin(), g7_, g7_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -7359,12 +7401,14 @@ private:
               current7_( current7 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -7396,10 +7440,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -7455,6 +7502,7 @@ private:
                     ParamType( *current1_, *current2_, *current3_, *current4_,
                                *current5_, *current6_, *current7_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -7536,6 +7584,7 @@ public:
           g6_( g6 ),
           g7_( g7 ),
           g8_( g8 ) {}
+
     virtual ~CartesianProductGenerator8() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -7544,6 +7593,7 @@ public:
                              g6_, g6_.begin(), g7_, g7_.begin(), g8_,
                              g8_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -7597,12 +7647,14 @@ private:
               current8_( current8 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -7638,10 +7690,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -7701,6 +7756,7 @@ private:
                     ParamType( *current1_, *current2_, *current3_, *current4_,
                                *current5_, *current6_, *current7_, *current8_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -7789,6 +7845,7 @@ public:
           g7_( g7 ),
           g8_( g8 ),
           g9_( g9 ) {}
+
     virtual ~CartesianProductGenerator9() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -7797,6 +7854,7 @@ public:
                              g6_, g6_.begin(), g7_, g7_.begin(), g8_,
                              g8_.begin(), g9_, g9_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -7856,12 +7914,14 @@ private:
               current9_( current9 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -7901,10 +7961,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -7968,6 +8031,7 @@ private:
                     *current1_, *current2_, *current3_, *current4_, *current5_,
                     *current6_, *current7_, *current8_, *current9_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -8065,6 +8129,7 @@ public:
           g8_( g8 ),
           g9_( g9 ),
           g10_( g10 ) {}
+
     virtual ~CartesianProductGenerator10() {}
 
     virtual ParamIteratorInterface< ParamType >* Begin() const {
@@ -8073,6 +8138,7 @@ public:
             g4_.begin(), g5_, g5_.begin(), g6_, g6_.begin(), g7_, g7_.begin(),
             g8_, g8_.begin(), g9_, g9_.begin(), g10_, g10_.begin() );
     }
+
     virtual ParamIteratorInterface< ParamType >* End() const {
         return new Iterator( this, g1_, g1_.end(), g2_, g2_.end(), g3_,
                              g3_.end(), g4_, g4_.end(), g5_, g5_.end(), g6_,
@@ -8137,12 +8203,14 @@ private:
               current10_( current10 ) {
             ComputeCurrentValue();
         }
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< ParamType >* BaseGenerator()
             const {
             return base_;
         }
+
         // Advance should not be called on beyond-of-range iterators
         // so no component iterators must be beyond end of range, either.
         virtual void Advance() {
@@ -8186,10 +8254,13 @@ private:
             }
             ComputeCurrentValue();
         }
+
         virtual ParamIteratorInterface< ParamType >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const ParamType* Current() const { return &current_value_; }
+
         virtual bool Equals(
             const ParamIteratorInterface< ParamType >& other ) const {
             // Having the same base generator guarantees that the other
@@ -8258,6 +8329,7 @@ private:
                                *current5_, *current6_, *current7_, *current8_,
                                *current9_, *current10_ );
         }
+
         bool AtEnd() const {
             // We must report iterator past the end of the range when either of
             // the component iterators has reached the end of its range.
@@ -8333,6 +8405,7 @@ class CartesianProductHolder2 {
 public:
     CartesianProductHolder2( const Generator1& g1, const Generator2& g2 )
         : g1_( g1 ), g2_( g2 ) {}
+
     template < typename T1, typename T2 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2 > >(
@@ -8356,6 +8429,7 @@ public:
                              const Generator2& g2,
                              const Generator3& g3 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ) {}
+
     template < typename T1, typename T2, typename T3 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2, T3 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2, T3 > >(
@@ -8385,6 +8459,7 @@ public:
                              const Generator3& g3,
                              const Generator4& g4 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ) {}
+
     template < typename T1, typename T2, typename T3, typename T4 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4 > >(
@@ -8418,6 +8493,7 @@ public:
                              const Generator4& g4,
                              const Generator5& g5 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ) {}
+
     template < typename T1, typename T2, typename T3, typename T4, typename T5 >
     operator ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4, T5 > >() const {
         return ParamGenerator< ::std::tr1::tuple< T1, T2, T3, T4, T5 > >(
@@ -8455,6 +8531,7 @@ public:
                              const Generator5& g5,
                              const Generator6& g6 )
         : g1_( g1 ), g2_( g2 ), g3_( g3 ), g4_( g4 ), g5_( g5 ), g6_( g6 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -8508,6 +8585,7 @@ public:
           g5_( g5 ),
           g6_( g6 ),
           g7_( g7 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -8568,6 +8646,7 @@ public:
           g6_( g6 ),
           g7_( g7 ),
           g8_( g8 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -8634,6 +8713,7 @@ public:
           g7_( g7 ),
           g8_( g8 ),
           g9_( g9 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,
@@ -8707,6 +8787,7 @@ public:
           g8_( g8 ),
           g9_( g9 ),
           g10_( g10 ) {}
+
     template < typename T1,
                typename T2,
                typename T3,

@@ -313,6 +313,7 @@ UInt32 Random::Generate( UInt32 range ) {
 // InitGoogleTest() has been called.  We don't protect this variable
 // under a mutex as it is only accessed in the main thread.
 GTEST_API_ int g_init_gtest_count = 0;
+
 static bool GTestIsInitialized() {
     return g_init_gtest_count != 0;
 }
@@ -929,6 +930,7 @@ Message::Message() : ss_( new ::std::stringstream ) {
 Message& Message::operator<<( const wchar_t* wide_c_str ) {
     return *this << internal::String::ShowWideCString( wide_c_str );
 }
+
 Message& Message::operator<<( wchar_t* wide_c_str ) {
     return *this << internal::String::ShowWideCString( wide_c_str );
 }
@@ -2738,24 +2740,31 @@ void PrintFullTestCommentIfPresent( const TestInfo& test_info ) {
 class PrettyUnitTestResultPrinter : public TestEventListener {
 public:
     PrettyUnitTestResultPrinter() {}
+
     static void PrintTestName( const char* test_case, const char* test ) {
         printf( "%s.%s", test_case, test );
     }
 
     // The following methods override what's in the TestEventListener class.
     virtual void OnTestProgramStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationStart( const UnitTest& unit_test,
                                        int iteration );
     virtual void OnEnvironmentsSetUpStart( const UnitTest& unit_test );
+
     virtual void OnEnvironmentsSetUpEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestCaseStart( const TestCase& test_case );
     virtual void OnTestStart( const TestInfo& test_info );
     virtual void OnTestPartResult( const TestPartResult& result );
     virtual void OnTestEnd( const TestInfo& test_info );
     virtual void OnTestCaseEnd( const TestCase& test_case );
     virtual void OnEnvironmentsTearDownStart( const UnitTest& unit_test );
+
     virtual void OnEnvironmentsTearDownEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationEnd( const UnitTest& unit_test, int iteration );
+
     virtual void OnTestProgramEnd( const UnitTest& /*unit_test*/ ) {}
 
 private:
@@ -2953,6 +2962,7 @@ void PrettyUnitTestResultPrinter::OnTestIterationEnd( const UnitTest& unit_test,
 class TestEventRepeater : public TestEventListener {
 public:
     TestEventRepeater() : forwarding_enabled_( true ) {}
+
     virtual ~TestEventRepeater();
     void Append( TestEventListener* listener );
     TestEventListener* Release( TestEventListener* listener );
@@ -2960,6 +2970,7 @@ public:
     // Controls whether events will be forwarded to listeners_. Set to false
     // in death test child processes.
     bool forwarding_enabled() const { return forwarding_enabled_; }
+
     void set_forwarding_enabled( bool enable ) { forwarding_enabled_ = enable; }
 
     virtual void OnTestProgramStart( const UnitTest& unit_test );
@@ -4297,6 +4308,7 @@ TestCase* UnitTestImpl::GetTestCase( const char* test_case_name,
 static void SetUpEnvironment( Environment* env ) {
     env->SetUp();
 }
+
 static void TearDownEnvironment( Environment* env ) {
     env->TearDown();
 }
@@ -5090,6 +5102,7 @@ void ParseGoogleTestFlagsOnlyImpl( int* argc, CharType** argv ) {
 void ParseGoogleTestFlagsOnly( int* argc, char** argv ) {
     ParseGoogleTestFlagsOnlyImpl( argc, argv );
 }
+
 void ParseGoogleTestFlagsOnly( int* argc, wchar_t** argv ) {
     ParseGoogleTestFlagsOnlyImpl( argc, argv );
 }

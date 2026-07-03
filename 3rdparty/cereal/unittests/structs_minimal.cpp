@@ -31,6 +31,7 @@
 class MemberMinimal {
 public:
     MemberMinimal() = default;
+
     MemberMinimal( std::string const& str ) : x( str ) {}
 
 protected:
@@ -53,6 +54,7 @@ public:
 class MemberMinimalVersioned {
 public:
     MemberMinimalVersioned() = default;
+
     MemberMinimalVersioned( double d ) : x( d ) {}
 
 protected:
@@ -74,7 +76,9 @@ public:
 
 struct NonMemberMinimal {
     NonMemberMinimal() = default;
+
     NonMemberMinimal( std::uint32_t xx ) : x( xx ) {}
+
     std::uint32_t x;
 };
 
@@ -92,7 +96,9 @@ void load_minimal( Archive const&,
 
 struct NonMemberMinimalVersioned {
     NonMemberMinimalVersioned() = default;
+
     NonMemberMinimalVersioned( bool xx ) : x( xx ) {}
+
     bool x;
 };
 
@@ -113,6 +119,7 @@ void load_minimal( Archive const&,
 
 struct TestStruct {
     TestStruct() = default;
+
     TestStruct( std::string const& s, double d, std::uint32_t u, bool b )
         : mm( s ), mmv( d ), nmm( u ), nmmv( b ) {}
 

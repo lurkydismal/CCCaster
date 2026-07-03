@@ -132,6 +132,7 @@ template < typename T >
 struct ByRef {
     typedef const T& type;
 }; // NOLINT
+
 template < typename T >
 struct ByRef< T& > {
     typedef T& type;
@@ -146,6 +147,7 @@ template < typename T >
 struct AddRef {
     typedef T& type;
 }; // NOLINT
+
 template < typename T >
 struct AddRef< T& > {
     typedef T& type;
@@ -220,7 +222,9 @@ template <>
 class tuple<> {
 public:
     tuple() {}
+
     tuple( const tuple& /* t */ ) {}
+
     tuple& operator=( const tuple& /* t */ ) { return *this; }
 };
 
@@ -272,6 +276,7 @@ public:
 
     template < GTEST_2_TYPENAMES_( U ) >
     tuple( const GTEST_2_TUPLE_( U ) & t ) : f0_( t.f0_ ), f1_( t.f1_ ) {}
+
     template < typename U0, typename U1 >
     tuple( const ::std::pair< U0, U1 >& p ) : f0_( p.first ), f1_( p.second ) {}
 
@@ -281,6 +286,7 @@ public:
     tuple& operator=( const GTEST_2_TUPLE_( U ) & t ) {
         return CopyFrom( t );
     }
+
     template < typename U0, typename U1 >
     tuple& operator=( const ::std::pair< U0, U1 >& p ) {
         f0_ = p.first;

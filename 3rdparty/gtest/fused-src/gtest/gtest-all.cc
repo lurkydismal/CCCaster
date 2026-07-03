@@ -836,6 +836,7 @@ GTEST_API_ FilePath GetCurrentExecutableName();
 class OsStackTraceGetterInterface {
 public:
     OsStackTraceGetterInterface() {}
+
     virtual ~OsStackTraceGetterInterface() {}
 
     // Returns the current OS stack trace as an std::string.  Parameters:
@@ -1160,7 +1161,9 @@ public:
     void ListTestsMatchingFilter();
 
     const TestCase* current_test_case() const { return current_test_case_; }
+
     TestInfo* current_test_info() { return current_test_info_; }
+
     const TestInfo* current_test_info() const { return current_test_info_; }
 
     // Returns the vector of environments that need to be set-up/torn-down
@@ -1171,6 +1174,7 @@ public:
     std::vector< TraceInfo >& gtest_trace_stack() {
         return *( gtest_trace_stack_.pointer() );
     }
+
     const std::vector< TraceInfo >& gtest_trace_stack() const {
         return gtest_trace_stack_.get();
     }
@@ -1179,6 +1183,7 @@ public:
     void InitDeathTestSubprocessControlInfo() {
         internal_run_death_test_flag_.reset( ParseInternalRunDeathTestFlag() );
     }
+
     // Returns a pointer to the parsed --gtest_internal_run_death_test
     // flag, or NULL if that flag was not specified.
     // This information is useful only in a death test child process.
@@ -1399,12 +1404,15 @@ GTEST_API_ std::string GetLastErrnoDescription();
 class AutoHandle {
 public:
     AutoHandle() : handle_( INVALID_HANDLE_VALUE ) {}
+
     explicit AutoHandle( HANDLE handle ) : handle_( handle ) {}
 
     ~AutoHandle() { Reset(); }
 
     HANDLE Get() const { return handle_; }
+
     void Reset() { Reset( INVALID_HANDLE_VALUE ); }
+
     void Reset( HANDLE handle ) {
         if ( handle != handle_ ) {
             if ( handle_ != INVALID_HANDLE_VALUE )
@@ -1827,6 +1835,7 @@ UInt32 Random::Generate( UInt32 range ) {
 // InitGoogleTest() has been called.  We don't protect this variable
 // under a mutex as it is only accessed in the main thread.
 GTEST_API_ int g_init_gtest_count = 0;
+
 static bool GTestIsInitialized() {
     return g_init_gtest_count != 0;
 }
@@ -2443,6 +2452,7 @@ Message::Message() : ss_( new ::std::stringstream ) {
 Message& Message::operator<<( const wchar_t* wide_c_str ) {
     return *this << internal::String::ShowWideCString( wide_c_str );
 }
+
 Message& Message::operator<<( wchar_t* wide_c_str ) {
     return *this << internal::String::ShowWideCString( wide_c_str );
 }
@@ -4252,24 +4262,31 @@ void PrintFullTestCommentIfPresent( const TestInfo& test_info ) {
 class PrettyUnitTestResultPrinter : public TestEventListener {
 public:
     PrettyUnitTestResultPrinter() {}
+
     static void PrintTestName( const char* test_case, const char* test ) {
         printf( "%s.%s", test_case, test );
     }
 
     // The following methods override what's in the TestEventListener class.
     virtual void OnTestProgramStart( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationStart( const UnitTest& unit_test,
                                        int iteration );
     virtual void OnEnvironmentsSetUpStart( const UnitTest& unit_test );
+
     virtual void OnEnvironmentsSetUpEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestCaseStart( const TestCase& test_case );
     virtual void OnTestStart( const TestInfo& test_info );
     virtual void OnTestPartResult( const TestPartResult& result );
     virtual void OnTestEnd( const TestInfo& test_info );
     virtual void OnTestCaseEnd( const TestCase& test_case );
     virtual void OnEnvironmentsTearDownStart( const UnitTest& unit_test );
+
     virtual void OnEnvironmentsTearDownEnd( const UnitTest& /*unit_test*/ ) {}
+
     virtual void OnTestIterationEnd( const UnitTest& unit_test, int iteration );
+
     virtual void OnTestProgramEnd( const UnitTest& /*unit_test*/ ) {}
 
 private:
@@ -4467,6 +4484,7 @@ void PrettyUnitTestResultPrinter::OnTestIterationEnd( const UnitTest& unit_test,
 class TestEventRepeater : public TestEventListener {
 public:
     TestEventRepeater() : forwarding_enabled_( true ) {}
+
     virtual ~TestEventRepeater();
     void Append( TestEventListener* listener );
     TestEventListener* Release( TestEventListener* listener );
@@ -4474,6 +4492,7 @@ public:
     // Controls whether events will be forwarded to listeners_. Set to false
     // in death test child processes.
     bool forwarding_enabled() const { return forwarding_enabled_; }
+
     void set_forwarding_enabled( bool enable ) { forwarding_enabled_ = enable; }
 
     virtual void OnTestProgramStart( const UnitTest& unit_test );
@@ -5811,6 +5830,7 @@ TestCase* UnitTestImpl::GetTestCase( const char* test_case_name,
 static void SetUpEnvironment( Environment* env ) {
     env->SetUp();
 }
+
 static void TearDownEnvironment( Environment* env ) {
     env->TearDown();
 }
@@ -6604,6 +6624,7 @@ void ParseGoogleTestFlagsOnlyImpl( int* argc, CharType** argv ) {
 void ParseGoogleTestFlagsOnly( int* argc, char** argv ) {
     ParseGoogleTestFlagsOnlyImpl( argc, argv );
 }
+
 void ParseGoogleTestFlagsOnly( int* argc, wchar_t** argv ) {
     ParseGoogleTestFlagsOnlyImpl( argc, argv );
 }
@@ -6660,6 +6681,7 @@ void InitGoogleTest( int* argc, wchar_t** argv ) {
 }
 
 } // namespace testing
+
 // Copyright 2005, Google Inc.
 // All rights reserved.
 //
@@ -7038,16 +7060,27 @@ protected:
     virtual bool Passed( bool status_ok );
 
     const char* statement() const { return statement_; }
+
     const RE* regex() const { return regex_; }
+
     bool spawned() const { return spawned_; }
+
     void set_spawned( bool is_spawned ) { spawned_ = is_spawned; }
+
     int status() const { return status_; }
+
     void set_status( int a_status ) { status_ = a_status; }
+
     DeathTestOutcome outcome() const { return outcome_; }
+
     void set_outcome( DeathTestOutcome an_outcome ) { outcome_ = an_outcome; }
+
     int read_fd() const { return read_fd_; }
+
     void set_read_fd( int fd ) { read_fd_ = fd; }
+
     int write_fd() const { return write_fd_; }
+
     void set_write_fd( int fd ) { write_fd_ = fd; }
 
     // Called in the parent process only. Reads the result code of the death
@@ -7482,6 +7515,7 @@ class NoExecDeathTest : public ForkingDeathTest {
 public:
     NoExecDeathTest( const char* a_statement, const RE* a_regex )
         : ForkingDeathTest( a_statement, a_regex ) {}
+
     virtual TestRole AssumeRole();
 };
 
@@ -7542,6 +7576,7 @@ public:
         : ForkingDeathTest( a_statement, a_regex ),
           file_( file ),
           line_( line ) {}
+
     virtual TestRole AssumeRole();
 
 private:
@@ -7550,6 +7585,7 @@ private:
         ::std::vector< testing::internal::string > args = GetInjectableArgvs();
         return args;
     }
+
     // The name of the file in which the death test is located.
     const char* const file_;
     // The line number on which the death test is located.
@@ -7567,6 +7603,7 @@ public:
             free( *i );
         }
     }
+
     void AddArgument( const char* argument ) {
         args_.insert( args_.end() - 1, posix::StrDup( argument ) );
     }
@@ -7579,6 +7616,7 @@ public:
             args_.insert( args_.end() - 1, posix::StrDup( i->c_str() ) );
         }
     }
+
     char* const* Argv() { return &args_[ 0 ]; }
 
 private:
@@ -7603,6 +7641,7 @@ inline char** GetEnviron() {
 // Some POSIX platforms expect you to declare environ. extern "C" makes
 // it reside in the global namespace.
 extern "C" char** environ;
+
 inline char** GetEnviron() {
     return environ;
 }
@@ -7651,6 +7690,7 @@ static int ExecDeathTestChildMain( void* child_arg ) {
 // StackLowerThanAddress into StackGrowsDown, which then doesn't give
 // correct answer.
 void StackLowerThanAddress( const void* ptr, bool* result ) GTEST_NO_INLINE_;
+
 void StackLowerThanAddress( const void* ptr, bool* result ) {
     int dummy;
     *result = ( &dummy < ptr );
@@ -8018,6 +8058,7 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
 #endif // GTEST_HAS_DEATH_TEST
 
 } // namespace testing
+
 // Copyright 2008, Google Inc.
 // All rights reserved.
 //
@@ -8398,6 +8439,7 @@ void FilePath::Normalize() {
 
 } // namespace internal
 } // namespace testing
+
 // Copyright 2008, Google Inc.
 // All rights reserved.
 //
@@ -8605,15 +8647,19 @@ bool IsInSet( char ch, const char* str ) {
 bool IsAsciiDigit( char ch ) {
     return '0' <= ch && ch <= '9';
 }
+
 bool IsAsciiPunct( char ch ) {
     return IsInSet( ch, "^-!\"#$%&'()*+,./:;<=>?@[\\]_`{|}~" );
 }
+
 bool IsRepeat( char ch ) {
     return IsInSet( ch, "?*+" );
 }
+
 bool IsAsciiWhiteSpace( char ch ) {
     return IsInSet( ch, " \f\n\r\t\v" );
 }
+
 bool IsAsciiWordChar( char ch ) {
     return ( 'a' <= ch && ch <= 'z' ) || ( 'A' <= ch && ch <= 'Z' ) ||
            ( '0' <= ch && ch <= '9' ) || ch == '_';
@@ -8918,6 +8964,7 @@ GTestLog::~GTestLog() {
         posix::Abort();
     }
 }
+
 // Disable Microsoft deprecation warnings for POSIX functions called from
 // this class (creat, dup, dup2, and close)
 #ifdef _MSC_VER
@@ -9221,6 +9268,7 @@ const char* StringFromGTestEnv( const char* flag, const char* default_value ) {
 
 } // namespace internal
 } // namespace testing
+
 // Copyright 2007, Google Inc.
 // All rights reserved.
 //
@@ -9462,6 +9510,7 @@ void PrintCharAndCodeTo( Char c, ostream* os ) {
 void PrintTo( unsigned char c, ::std::ostream* os ) {
     PrintCharAndCodeTo< unsigned char >( c, os );
 }
+
 void PrintTo( signed char c, ::std::ostream* os ) {
     PrintCharAndCodeTo< unsigned char >( c, os );
 }
@@ -9588,6 +9637,7 @@ void PrintWideStringTo( const ::std::wstring& s, ostream* os ) {
 } // namespace internal
 
 } // namespace testing
+
 // Copyright 2008, Google Inc.
 // All rights reserved.
 //
@@ -9697,6 +9747,7 @@ void HasNewFatalFailureHelper::ReportTestPartResult(
 } // namespace internal
 
 } // namespace testing
+
 // Copyright 2008 Google Inc.
 // All Rights Reserved.
 //

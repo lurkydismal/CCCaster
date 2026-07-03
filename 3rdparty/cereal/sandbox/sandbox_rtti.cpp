@@ -72,7 +72,9 @@ CEREAL_REGISTER_TYPE( MyType )
 
 struct YourType : public Base {
     YourType( int xx ) : x( xx ) {}
+
     YourType() : x( -1 ) {}
+
     int x;
 
     void foo() {}
@@ -100,7 +102,9 @@ struct OurBase {
 
 struct OurType : public OurBase {
     OurType() : OurBase(), x() {}
+
     OurType( int x_ ) : x( x_ ) {}
+
     void foo() {}
 
     int x;
@@ -113,15 +117,18 @@ struct OurType : public OurBase {
 
 struct BaseVirtual {
     int x;
+
     template < class Archive >
     void serialize( Archive& ar ) {
         ar( x );
     }
+
     virtual void foo() = 0;
 };
 
 struct DerivedVirtual : public virtual BaseVirtual {
     int y;
+
     virtual void foo() {}
 
     template < class Archive >
@@ -139,6 +146,7 @@ struct DerivedVirtual : public virtual BaseVirtual {
 
 struct TestType {
     int x;
+
     template < class Archive >
     void serialize( Archive& ar ) {
         ar( x );
@@ -150,6 +158,7 @@ template < class Archive >
 struct specialize< Archive,
                    DerivedVirtual,
                    cereal::specialization::member_load_save > {};
+
 template < class Archive >
 struct specialize< Archive,
                    TestType,
@@ -162,6 +171,7 @@ struct AAA {
 
 struct BBB : AAA {
     void foo() {}
+
     template < class Archive >
     void serialize( Archive& ) {}
 };

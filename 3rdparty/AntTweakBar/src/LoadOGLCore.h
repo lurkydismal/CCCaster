@@ -13,6 +13,8 @@
 #if !defined ANT_LOAD_OGL_CORE_INCLUDED
 #define ANT_LOAD_OGL_CORE_INCLUDED
 
+#include "TwPrecomp.h"
+
 #define ANT_GL_CORE_DECL_NO_FORWARD( _Ret, _Fct, _Params ) \
     extern "C" {                                           \
     typedef _Ret( APIENTRY* PFN##_Fct ) _Params;           \
@@ -59,6 +61,7 @@ typedef PFNOpenGL( APIENTRY* PFNGLGetProcAddress )( const char* );
 }
 extern PFNGLGetProcAddress _glGetProcAddress;
 } // namespace GLCore
+
 using GLCore::_glGetProcAddress;
 
 // GL 1.0

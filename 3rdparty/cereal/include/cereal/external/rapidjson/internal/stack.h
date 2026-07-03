@@ -1,6 +1,10 @@
 #ifndef RAPIDJSON_INTERNAL_STACK_H_
 #define RAPIDJSON_INTERNAL_STACK_H_
 
+#include <cstddef>
+
+#include "../rapidjson.h"
+
 namespace rapidjson {
 namespace internal {
 
@@ -73,7 +77,9 @@ public:
     }
 
     Allocator& GetAllocator() { return *allocator_; }
+
     size_t GetSize() const { return stack_top_ - stack_; }
+
     size_t GetCapacity() const { return stack_capacity_; }
 
 private:

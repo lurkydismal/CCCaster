@@ -32,16 +32,19 @@
     }
 
 // Enum type with auto-generated string values
-#define ENUM( NAME, ... )                                                   \
-    struct NAME : public EnumBase {                                         \
-        ENUM_BOILERPLATE( NAME, __VA_ARGS__ )                               \
-        NAME() {}                                                           \
-        NAME& operator=( Enum value ) {                                     \
-            this->value = value;                                            \
-            return *this;                                                   \
-        }                                                                   \
-        void save( cereal::BinaryOutputArchive& ar ) const { ar( value ); } \
-        void load( cereal::BinaryInputArchive& ar ) { ar( value ); }        \
+#define ENUM( NAME, ... )                                                     \
+    struct NAME : public EnumBase {                                           \
+        ENUM_BOILERPLATE( NAME, __VA_ARGS__ )                                 \
+        virtual ~NAME() = default;                                            \
+        NAME() = default;                                                     \
+        NAME& operator=( Enum value ) {                                       \
+            this->value = value;                                              \
+            return *this;                                                     \
+        }                                                                     \
+        void save( cereal::BinaryOutputArchive& ar ) const override {         \
+            ar( value );                                                      \
+        }                                                                     \
+        void load( cereal::BinaryInputArchive& ar ) override { ar( value ); } \
     } //
 
 // Enum base class

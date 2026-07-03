@@ -181,6 +181,7 @@ typedef struct SDL_KeyboardEvent {
 } SDL_KeyboardEvent;
 
 #define SDL_TEXTEDITINGEVENT_TEXT_SIZE ( 32 )
+
 typedef struct SDL_TextEditingEvent {
     Uint8 type;
     char text[ SDL_TEXTEDITINGEVENT_TEXT_SIZE ];
@@ -189,6 +190,7 @@ typedef struct SDL_TextEditingEvent {
 } SDL_TextEditingEvent;
 
 #define SDL_TEXTINPUTEVENT_TEXT_SIZE ( 32 )
+
 typedef struct SDL_TextInputEvent {
     Uint8 type;
     SDL_WindowID windowID;
@@ -291,6 +293,7 @@ typedef struct SDL_UserEvent {
 
 struct SDL_SysWMmsg;
 typedef struct SDL_SysWMmsg SDL_SysWMmsg;
+
 typedef struct SDL_SysWMEvent {
     Uint8 type;
     SDL_SysWMmsg* msg;

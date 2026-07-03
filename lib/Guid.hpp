@@ -42,9 +42,11 @@ struct hash< Guid > {
 inline bool operator<( const Guid& a, const Guid& b ) {
     return ( std::memcmp( &a, &b, sizeof( a ) ) < 0 );
 }
+
 inline bool operator==( const Guid& a, const Guid& b ) {
     return ( !std::memcmp( &a, &b, sizeof( a ) ) );
 }
+
 inline bool operator!=( const Guid& a, const Guid& b ) {
     return !( a == b );
 }

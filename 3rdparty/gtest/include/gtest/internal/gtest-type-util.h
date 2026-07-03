@@ -124,6 +124,7 @@ struct Types1 {
     typedef T1 Head;
     typedef Types0 Tail;
 };
+
 template < typename T1, typename T2 >
 struct Types2 {
     typedef T1 Head;
@@ -2940,6 +2941,7 @@ struct Types< internal::None,
               internal::None > {
     typedef internal::Types0 type;
 };
+
 template < typename T1 >
 struct Types< T1,
               internal::None,
@@ -2993,6 +2995,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types1< T1 > type;
 };
+
 template < typename T1, typename T2 >
 struct Types< T1,
               T2,
@@ -3046,6 +3049,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types2< T1, T2 > type;
 };
+
 template < typename T1, typename T2, typename T3 >
 struct Types< T1,
               T2,
@@ -3099,6 +3103,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types3< T1, T2, T3 > type;
 };
+
 template < typename T1, typename T2, typename T3, typename T4 >
 struct Types< T1,
               T2,
@@ -3152,6 +3157,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types4< T1, T2, T3, T4 > type;
 };
+
 template < typename T1, typename T2, typename T3, typename T4, typename T5 >
 struct Types< T1,
               T2,
@@ -3205,6 +3211,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types5< T1, T2, T3, T4, T5 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3263,6 +3270,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types6< T1, T2, T3, T4, T5, T6 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3322,6 +3330,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types7< T1, T2, T3, T4, T5, T6, T7 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3382,6 +3391,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types8< T1, T2, T3, T4, T5, T6, T7, T8 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3443,6 +3453,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types9< T1, T2, T3, T4, T5, T6, T7, T8, T9 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3505,6 +3516,7 @@ struct Types< T1,
               internal::None > {
     typedef internal::Types10< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3569,6 +3581,7 @@ struct Types< T1,
     typedef internal::Types11< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3635,6 +3648,7 @@ struct Types< T1,
         Types12< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12 >
             type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3702,6 +3716,7 @@ struct Types< T1,
         Types13< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13 >
             type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3770,6 +3785,7 @@ struct Types< T1,
         Types14< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14 >
             type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3852,6 +3868,7 @@ struct Types< T1,
                                T15 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -3936,6 +3953,7 @@ struct Types< T1,
                                T16 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4022,6 +4040,7 @@ struct Types< T1,
                                T17 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4110,6 +4129,7 @@ struct Types< T1,
                                T18 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4200,6 +4220,7 @@ struct Types< T1,
                                T19 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4292,6 +4313,7 @@ struct Types< T1,
                                T20 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4386,6 +4408,7 @@ struct Types< T1,
                                T21 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4482,6 +4505,7 @@ struct Types< T1,
                                T22 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4580,6 +4604,7 @@ struct Types< T1,
                                T23 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4680,6 +4705,7 @@ struct Types< T1,
                                T24 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4782,6 +4808,7 @@ struct Types< T1,
                                T25 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4886,6 +4913,7 @@ struct Types< T1,
                                T26 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -4992,6 +5020,7 @@ struct Types< T1,
                                T27 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5100,6 +5129,7 @@ struct Types< T1,
                                T28 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5210,6 +5240,7 @@ struct Types< T1,
                                T29 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5322,6 +5353,7 @@ struct Types< T1,
                                T30 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5436,6 +5468,7 @@ struct Types< T1,
                                T31 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5552,6 +5585,7 @@ struct Types< T1,
                                T32 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5670,6 +5704,7 @@ struct Types< T1,
                                T33 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5790,6 +5825,7 @@ struct Types< T1,
                                T34 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -5912,6 +5948,7 @@ struct Types< T1,
                                T35 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6036,6 +6073,7 @@ struct Types< T1,
                                T36 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6162,6 +6200,7 @@ struct Types< T1,
                                T37 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6290,6 +6329,7 @@ struct Types< T1,
                                T38 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6420,6 +6460,7 @@ struct Types< T1,
                                T39 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6552,6 +6593,7 @@ struct Types< T1,
                                T40 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6686,6 +6728,7 @@ struct Types< T1,
                                T41 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6822,6 +6865,7 @@ struct Types< T1,
                                T42 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -6960,6 +7004,7 @@ struct Types< T1,
                                T43 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7100,6 +7145,7 @@ struct Types< T1,
                                T44 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7242,6 +7288,7 @@ struct Types< T1,
                                T45 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7386,6 +7433,7 @@ struct Types< T1,
                                T46 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7532,6 +7580,7 @@ struct Types< T1,
                                T47 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7680,6 +7729,7 @@ struct Types< T1,
                                T48 >
         type;
 };
+
 template < typename T1,
            typename T2,
            typename T3,
@@ -7879,6 +7929,7 @@ struct Templates1 {
     typedef TemplateSel< T1 > Head;
     typedef Templates0 Tail;
 };
+
 template < GTEST_TEMPLATE_ T1, GTEST_TEMPLATE_ T2 >
 struct Templates2 {
     typedef TemplateSel< T1 > Head;
@@ -10713,6 +10764,7 @@ struct Templates< NoneT,
                   NoneT > {
     typedef Templates0 type;
 };
+
 template < GTEST_TEMPLATE_ T1 >
 struct Templates< T1,
                   NoneT,
@@ -10766,6 +10818,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates1< T1 > type;
 };
+
 template < GTEST_TEMPLATE_ T1, GTEST_TEMPLATE_ T2 >
 struct Templates< T1,
                   T2,
@@ -10819,6 +10872,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates2< T1, T2 > type;
 };
+
 template < GTEST_TEMPLATE_ T1, GTEST_TEMPLATE_ T2, GTEST_TEMPLATE_ T3 >
 struct Templates< T1,
                   T2,
@@ -10872,6 +10926,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates3< T1, T2, T3 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -10928,6 +10983,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates4< T1, T2, T3, T4 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -10985,6 +11041,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates5< T1, T2, T3, T4, T5 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11043,6 +11100,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates6< T1, T2, T3, T4, T5, T6 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11102,6 +11160,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates7< T1, T2, T3, T4, T5, T6, T7 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11162,6 +11221,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates8< T1, T2, T3, T4, T5, T6, T7, T8 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11223,6 +11283,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates9< T1, T2, T3, T4, T5, T6, T7, T8, T9 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11285,6 +11346,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates10< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11348,6 +11410,7 @@ struct Templates< T1,
                   NoneT > {
     typedef Templates11< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 > type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11413,6 +11476,7 @@ struct Templates< T1,
     typedef Templates12< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11491,6 +11555,7 @@ struct Templates< T1,
                          T13 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11571,6 +11636,7 @@ struct Templates< T1,
                          T14 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11653,6 +11719,7 @@ struct Templates< T1,
                          T15 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11737,6 +11804,7 @@ struct Templates< T1,
                          T16 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11823,6 +11891,7 @@ struct Templates< T1,
                          T17 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -11911,6 +11980,7 @@ struct Templates< T1,
                          T18 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12001,6 +12071,7 @@ struct Templates< T1,
                          T19 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12093,6 +12164,7 @@ struct Templates< T1,
                          T20 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12187,6 +12259,7 @@ struct Templates< T1,
                          T21 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12283,6 +12356,7 @@ struct Templates< T1,
                          T22 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12381,6 +12455,7 @@ struct Templates< T1,
                          T23 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12481,6 +12556,7 @@ struct Templates< T1,
                          T24 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12583,6 +12659,7 @@ struct Templates< T1,
                          T25 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12687,6 +12764,7 @@ struct Templates< T1,
                          T26 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12793,6 +12871,7 @@ struct Templates< T1,
                          T27 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -12901,6 +12980,7 @@ struct Templates< T1,
                          T28 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13011,6 +13091,7 @@ struct Templates< T1,
                          T29 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13123,6 +13204,7 @@ struct Templates< T1,
                          T30 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13237,6 +13319,7 @@ struct Templates< T1,
                          T31 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13353,6 +13436,7 @@ struct Templates< T1,
                          T32 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13471,6 +13555,7 @@ struct Templates< T1,
                          T33 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13591,6 +13676,7 @@ struct Templates< T1,
                          T34 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13713,6 +13799,7 @@ struct Templates< T1,
                          T35 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13837,6 +13924,7 @@ struct Templates< T1,
                          T36 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -13963,6 +14051,7 @@ struct Templates< T1,
                          T37 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14091,6 +14180,7 @@ struct Templates< T1,
                          T38 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14221,6 +14311,7 @@ struct Templates< T1,
                          T39 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14353,6 +14444,7 @@ struct Templates< T1,
                          T40 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14487,6 +14579,7 @@ struct Templates< T1,
                          T41 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14623,6 +14716,7 @@ struct Templates< T1,
                          T42 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14761,6 +14855,7 @@ struct Templates< T1,
                          T43 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -14901,6 +14996,7 @@ struct Templates< T1,
                          T44 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15043,6 +15139,7 @@ struct Templates< T1,
                          T45 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15187,6 +15284,7 @@ struct Templates< T1,
                          T46 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15333,6 +15431,7 @@ struct Templates< T1,
                          T47 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,
@@ -15481,6 +15580,7 @@ struct Templates< T1,
                          T48 >
         type;
 };
+
 template < GTEST_TEMPLATE_ T1,
            GTEST_TEMPLATE_ T2,
            GTEST_TEMPLATE_ T3,

@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwColors.h
@@ -9,9 +11,6 @@
 //  note:       Private header
 //
 //  ---------------------------------------------------------------------------
-
-#if !defined ANT_TW_COLORS_INCLUDED
-#define ANT_TW_COLORS_INCLUDED
 
 //  ---------------------------------------------------------------------------
 
@@ -109,5 +108,3 @@ void ColorHLSToRGBi( int _Hue,
 color32 ColorBlend( color32 _Color1, color32 _Color2, float _S );
 
 //  ---------------------------------------------------------------------------
-
-#endif // !defined ANT_TW_COLORS_INCLUDED

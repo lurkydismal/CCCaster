@@ -18,6 +18,7 @@ public:
     // Initialize / deinitialize socket manager
     void initialize();
     void deinitialize();
+
     bool isInitialized() const { return _initialized; }
 
     // Check if a socket is still allocated

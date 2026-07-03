@@ -35,6 +35,7 @@ inline std::string lowerCase( std::string str ) {
         c = std::tolower( c );
     return str;
 }
+
 inline std::string upperCase( std::string str ) {
     for ( char& c : str )
         c = std::toupper( c );

@@ -164,6 +164,7 @@ public:
     HasNewFatalFailureHelper();
     virtual ~HasNewFatalFailureHelper();
     virtual void ReportTestPartResult( const TestPartResult& result );
+
     bool has_new_fatal_failure() const { return has_new_fatal_failure_; }
 
 private:

@@ -51,6 +51,7 @@
 class Base {
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar ) {
         std::cout << "Base serialize" << std::endl;
@@ -66,7 +67,9 @@ public:
 class Derived : public Base {
 public:
     using Base::x;
+
     Derived() : Base(), y() {}
+
     Derived( int d, int b ) {
         y = d;
         x = b;
@@ -106,6 +109,7 @@ struct Test1 {
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar ) {
         ar( CEREAL_NVP( a ) );
@@ -116,7 +120,9 @@ private:
 class Test2 {
 public:
     Test2() {}
+
     Test2( int x ) : a( x ) {}
+
     int a;
 
 private:
@@ -216,6 +222,7 @@ struct NoDefaultCtor {
 private:
     NoDefaultCtor() {};
     int z;
+
     NoDefaultCtor( int x, bool ) : y( x ) {}
 
 public:
@@ -351,9 +358,11 @@ void test_unordered_loads() {
 class BoostTransitionMS {
 public:
     BoostTransitionMS() {}
+
     BoostTransitionMS( int xx ) : x( xx ) {}
 
     int getX() { return x; }
+
     void setX( int xx ) { x = xx; }
 
 private:
@@ -369,9 +378,11 @@ private:
 class BoostTransitionSplit {
 public:
     BoostTransitionSplit() {}
+
     BoostTransitionSplit( int xx ) : x( xx ) {}
 
     int getX() { return x; }
+
     void setX( int xx ) { x = xx; }
 
 private:
@@ -392,6 +403,7 @@ private:
 class BoostTransitionNMS {
 public:
     BoostTransitionNMS() {}
+
     BoostTransitionNMS( int xx ) : x( xx ) {}
 
     int x;
@@ -408,6 +420,7 @@ void serialize( Archive& ar,
 struct BoostTransitionNMSplit {
 public:
     BoostTransitionNMSplit() {}
+
     BoostTransitionNMSplit( int xx ) : x( xx ) {}
 
     int x;

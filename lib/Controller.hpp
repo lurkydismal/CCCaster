@@ -165,6 +165,7 @@ struct JoystickInfo {
     uint8_t axisMask = 0;
 
     JoystickInfo() {}
+
     JoystickInfo( void* device ) : device( device ) {}
 };
 
@@ -211,10 +212,12 @@ public:
     // Start / cancel mapping for the given key
     void startMapping( Owner* owner, uint32_t key, uint8_t options = 0 );
     void cancelMapping();
+
     bool isMapping() const { return ( _toMap.key != 0 ); }
 
     // Clear this controller's mapping(s)
     void clearMapping( uint32_t keys );
+
     void clearAllMappings() { clearMapping( 0xFFFFFFFF ); }
 
     // Reset default mappings (joystick only)
@@ -222,6 +225,7 @@ public:
 
     // Get / set joystick deadzone
     float getDeadzone() { return _joystickMappings.deadzone / 32767.0f; }
+
     void setDeadzone( float deadzone ) {
         _joystickMappings.deadzone = ( uint32_t )clamped< float >(
             deadzone * 32767, MIN_DEADZONE, MAX_DEADZONE );
@@ -235,10 +239,12 @@ public:
 
     // Get the controller state
     uint32_t getPrevState() const { return _prevState; }
+
     uint32_t getState() const { return _state; }
 
     // Indicates if this is a keyboard / joystick controller
     bool isKeyboard() const { return ( _joystick.info.device == 0 ); }
+
     bool isJoystick() const { return ( _joystick.info.device != 0 ); }
 
     // Save / load mappings for this controller
@@ -275,6 +281,7 @@ private:
         JoystickState prevState, state;
 
         JoystickInternalState() {}
+
         JoystickInternalState( const JoystickInfo& info ) : info( info ) {}
     };
 

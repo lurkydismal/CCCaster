@@ -1,9 +1,10 @@
 #include "texture.h"
 
-#include <gl.h>
-#include <png.h>
+#include <GL/gl.h>
 
 #include <cstdio>
+
+#include "../libpng/png.h"
 
 bool Texture::init_gl() {
     if ( m_8bpp ) {

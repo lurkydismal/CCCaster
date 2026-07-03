@@ -67,6 +67,7 @@ const char* g_ErrCreateSampler11 = "Direct3D11 sampler state creation failed";
 //  ---------------------------------------------------------------------------
 
 const RECT FullRect = { 0, 0, 16000, 16000 };
+
 static bool RectIsFull( const RECT& r ) {
     return r.left == FullRect.left && r.right == FullRect.right &&
            r.top == FullRect.top && r.bottom == FullRect.bottom;

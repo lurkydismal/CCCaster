@@ -46,11 +46,13 @@ namespace MinHook {
 namespace {
 #if defined _M_X64
 typedef hde64s hde_t;
+
 inline unsigned int hde_disasm( const void* code, hde_t* hs ) {
     return hde64_disasm( code, hs );
 }
 #elif defined _M_IX86
 typedef hde32s hde_t;
+
 inline unsigned int hde_disasm( const void* code, hde_t* hs ) {
     return hde32_disasm( code, hs );
 }
@@ -58,6 +60,7 @@ inline unsigned int hde_disasm( const void* code, hde_t* hs ) {
 
 // Structs for writing x86/x64 instcutions.
 #pragma pack( push, 1 )
+
 struct JMP_REL_SHORT {
     uint8_t opcode;
     uint8_t operand;
@@ -67,12 +70,14 @@ struct JMP_REL {
     uint8_t opcode;
     uint32_t operand;
 };
+
 typedef JMP_REL CALL_REL;
 
 struct JMP_ABS {
     uint16_t opcode;
     uint32_t operand;
 };
+
 typedef JMP_ABS CALL_ABS, JCC_REL;
 
 // 32/64bit indirect absolute conditional jump that x86/x64 lacks.
@@ -84,6 +89,7 @@ struct JCC_ABS {
     uint16_t dummy3; // FF25 xxxxxxxx	JMP [RIP+xxxxxxxx]
     uint32_t operand;
 };
+
 #pragma pack( pop )
 
 uintptr_t GetRelativeBranchDestination( uint8_t* pInst,

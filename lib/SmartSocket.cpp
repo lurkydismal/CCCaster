@@ -102,6 +102,7 @@ struct TunInfo {
     IpAddrPort address;
 
     TunInfo() {}
+
     TunInfo( uint32_t matchId, const string& address )
         : matchId( matchId ), address( address ) {}
 

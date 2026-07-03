@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwMgr.h
@@ -10,16 +12,19 @@
 //
 //  ---------------------------------------------------------------------------
 
-#if !defined ANT_TW_MGR_INCLUDED
-#define ANT_TW_MGR_INCLUDED
-
 #include <AntTweakBar.h>
+
+#include <list>
+#include <map>
+#include <vector>
+
 #define ANT_CALL TW_CALL
 
 #include "AntPerfTimer.h"
 #include "TwColors.h"
 #include "TwFonts.h"
 #include "TwGraph.h"
+#include "TwPrecomp.h"
 
 // #define BENCH // uncomment to activate benchmarks
 
@@ -193,6 +198,7 @@ struct CTwMgr {
         size_t m_Size;
         std::string m_Help;
     };
+
     struct CStruct {
         std::string m_Name;
         std::vector< CStructMember > m_Members;
@@ -206,18 +212,21 @@ struct CTwMgr {
         TwCopyVarFromExtCallback m_CopyVarFromExtCallback;
         TwCopyVarToExtCallback m_CopyVarToExtCallback;
         void* m_ExtClientData;
+
         CStruct()
             : m_IsExt( false ),
               m_StructExtInitCallback( NULL ),
               m_CopyVarFromExtCallback( NULL ),
               m_CopyVarToExtCallback( NULL ),
               m_ExtClientData( NULL ) {}
+
         static void ANT_CALL DefaultSummary( char* _SummaryString,
                                              size_t _SummaryMaxLength,
                                              const void* _Value,
                                              void* _ClientData );
         static void* s_PassProxyAsClientData;
     };
+
     std::vector< CStruct > m_Structs;
 
     // followings are used for TwAddVarCB( ... StructType ... )
@@ -239,6 +248,7 @@ struct CTwMgr {
         CStructProxy();
         ~CStructProxy();
     };
+
     struct CMemberProxy {
         CStructProxy* m_StructProxy;
         int m_MemberIndex;
@@ -250,8 +260,10 @@ struct CTwMgr {
         static void ANT_CALL SetCB( const void* _Value, void* _ClientData );
         static void ANT_CALL GetCB( void* _Value, void* _ClientData );
     };
+
     std::list< CStructProxy > m_StructProxies; // elements should not move
     std::list< CMemberProxy > m_MemberProxies; // elements should not move
+
     // void              InitVarData(TwType _Type, void *_Data, size_t _Size);
     // void              UninitVarData(TwType _Type, void *_Data, size_t _Size);
 
@@ -260,6 +272,7 @@ struct CTwMgr {
         typedef std::map< unsigned int, std::string > CEntries;
         CEntries m_Entries;
     };
+
     std::vector< CEnum > m_Enums;
 
     TwType m_TypeColor32;
@@ -271,19 +284,22 @@ struct CTwMgr {
     TwType m_TypeDir3D;
 
     std::vector< char > m_CSStringBuffer;
+
     struct CCDStdString {
         std::string* m_ClientStdStringPtr;
         char m_LocalString[ sizeof( std::string ) +
                             2 * sizeof( void* ) ]; //+2*sizeof(void*) because of
-                                                   //VC++ std::string extra info
-                                                   //in Debug
+                                                   // VC++ std::string extra
+                                                   // info in Debug
         TwSetVarCallback m_ClientSetCallback;
         TwGetVarCallback m_ClientGetCallback;
         void* m_ClientData;
         static void ANT_CALL SetCB( const void* _Value, void* _ClientData );
         static void ANT_CALL GetCB( void* _Value, void* _ClientData );
     };
+
     std::list< CCDStdString > m_CDStdStrings;
+
     struct CClientStdString // Convertion between VC++ Debug/Release std::string
     {
         CClientStdString();
@@ -294,6 +310,7 @@ struct CTwMgr {
         char m_Data[ sizeof( std::string ) + 2 * sizeof( void* ) ];
         std::string m_LibStr;
     };
+
     struct CLibStdString // Convertion between VC++ Debug/Release std::string
     {
         CLibStdString();
@@ -303,11 +320,13 @@ struct CTwMgr {
     private:
         char m_Data[ sizeof( std::string ) + 2 * sizeof( void* ) ];
     };
+
     struct CCDStdStringRecord {
         void* m_DataPtr;
         char m_PrevValue[ sizeof( std::string ) + 2 * sizeof( void* ) ];
         CClientStdString m_ClientStdString;
     };
+
     std::vector< CCDStdStringRecord > m_CDStdStringRecords;
     void UnrollCDStdString( std::vector< CCDStdStringRecord >& _Records,
                             TwType _Type,
@@ -320,6 +339,7 @@ struct CTwMgr {
     {
         virtual ~CCustom() = 0;
     };
+
     std::vector< CCustom* > m_Customs;
 
     PerfTimer m_Timer;
@@ -413,16 +433,21 @@ extern "C" int ANT_CALL TwSetLastError( const char* _StaticErrorMessage );
 // Clipping helper
 struct CRect {
     int X, Y, W, H;
+
     CRect() : X( 0 ), Y( 0 ), W( 0 ), H( 0 ) {}
+
     CRect( int _X, int _Y, int _W, int _H )
         : X( _X ), Y( _Y ), W( _W ), H( _H ) {}
+
     bool operator==( const CRect& _Rect ) {
         return ( Empty() && _Rect.Empty() ) ||
                ( X == _Rect.X && Y == _Rect.Y && W == _Rect.W && H == _Rect.H );
     }
+
     bool Empty( int _Margin = 0 ) const {
         return ( W <= _Margin || H <= _Margin );
     }
+
     bool Subtract( const CRect& _Rect, std::vector< CRect >& _OutRects ) const;
     bool Subtract( const std::vector< CRect >& _Rects,
                    std::vector< CRect >& _OutRects ) const;
@@ -551,7 +576,9 @@ struct CQuaternionExt {
     static std::vector< int > s_ArrowTriProj[ 4 ];
     static std::vector< float > s_ArrowNorm[ 4 ];
     static std::vector< color32 > s_ArrowColLight[ 4 ];
+
     enum EArrowParts { ARROW_CONE, ARROW_CONE_CAP, ARROW_CYL, ARROW_CYL_CAP };
+
     static void CreateSphere();
     static void CreateArrow();
     static void ApplyQuat( float* outX,
@@ -618,6 +645,7 @@ struct CTwFPU {
         state0 = 0;
 #endif
     }
+
     ~CTwFPU() {
 #ifdef ANT_WINDOWS
         if ( ( state0 & MCW_PC ) == _PC_24 )
@@ -632,5 +660,3 @@ private:
 };
 
 //  ---------------------------------------------------------------------------
-
-#endif // !defined ANT_TW_MGR_INCLUDED

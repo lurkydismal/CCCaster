@@ -29,10 +29,10 @@
 #ifndef CEREAL_ARCHIVES_PORTABLE_BINARY_HPP_
 #define CEREAL_ARCHIVES_PORTABLE_BINARY_HPP_
 
-#include <cereal/cereal.hpp>
-
 #include <limits>
 #include <sstream>
+
+#include "../cereal.hpp"
 
 namespace cereal {
 namespace portable_binary_detail {

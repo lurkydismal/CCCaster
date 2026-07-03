@@ -72,6 +72,7 @@ template < typename T >
 class ParamIteratorInterface {
 public:
     virtual ~ParamIteratorInterface() {}
+
     // A pointer to the base generator instance.
     // Used only for the purposes of iterator comparison
     // to make sure that two iterators belong to the same generator.
@@ -108,6 +109,7 @@ public:
     // ParamIterator assumes ownership of the impl_ pointer.
     ParamIterator( const ParamIterator& other )
         : impl_( other.impl_->Clone() ) {}
+
     ParamIterator& operator=( const ParamIterator& other ) {
         if ( this != &other )
             impl_.reset( other.impl_->Clone() );
@@ -115,30 +117,37 @@ public:
     }
 
     const T& operator*() const { return *impl_->Current(); }
+
     const T* operator->() const { return impl_->Current(); }
+
     // Prefix version of operator++.
     ParamIterator& operator++() {
         impl_->Advance();
         return *this;
     }
+
     // Postfix version of operator++.
     ParamIterator operator++( int /*unused*/ ) {
         ParamIteratorInterface< T >* clone = impl_->Clone();
         impl_->Advance();
         return ParamIterator( clone );
     }
+
     bool operator==( const ParamIterator& other ) const {
         return impl_.get() == other.impl_.get() ||
                impl_->Equals( *other.impl_ );
     }
+
     bool operator!=( const ParamIterator& other ) const {
         return !( *this == other );
     }
 
 private:
     friend class ParamGenerator< T >;
+
     explicit ParamIterator( ParamIteratorInterface< T >* impl )
         : impl_( impl ) {}
+
     scoped_ptr< ParamIteratorInterface< T > > impl_;
 };
 
@@ -168,6 +177,7 @@ public:
 
     explicit ParamGenerator( ParamGeneratorInterface< T >* impl )
         : impl_( impl ) {}
+
     ParamGenerator( const ParamGenerator& other ) : impl_( other.impl_ ) {}
 
     ParamGenerator& operator=( const ParamGenerator& other ) {
@@ -176,6 +186,7 @@ public:
     }
 
     iterator begin() const { return iterator( impl_->Begin() ); }
+
     iterator end() const { return iterator( impl_->End() ); }
 
 private:
@@ -194,11 +205,13 @@ public:
           end_( end ),
           step_( step ),
           end_index_( CalculateEndIndex( begin, end, step ) ) {}
+
     virtual ~RangeGenerator() {}
 
     virtual ParamIteratorInterface< T >* Begin() const {
         return new Iterator( this, begin_, 0, step_ );
     }
+
     virtual ParamIteratorInterface< T >* End() const {
         return new Iterator( this, end_, end_index_, step_ );
     }
@@ -211,19 +224,24 @@ private:
                   int index,
                   IncrementT step )
             : base_( base ), value_( value ), index_( index ), step_( step ) {}
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< T >* BaseGenerator() const {
             return base_;
         }
+
         virtual void Advance() {
             value_ = value_ + step_;
             index_++;
         }
+
         virtual ParamIteratorInterface< T >* Clone() const {
             return new Iterator( *this );
         }
+
         virtual const T* Current() const { return &value_; }
+
         virtual bool Equals( const ParamIteratorInterface< T >& other ) const {
             // Having the same base generator guarantees that the other
             // iterator is of the same type and we can downcast.
@@ -282,11 +300,13 @@ public:
     template < typename ForwardIterator >
     ValuesInIteratorRangeGenerator( ForwardIterator begin, ForwardIterator end )
         : container_( begin, end ) {}
+
     virtual ~ValuesInIteratorRangeGenerator() {}
 
     virtual ParamIteratorInterface< T >* Begin() const {
         return new Iterator( this, container_.begin() );
     }
+
     virtual ParamIteratorInterface< T >* End() const {
         return new Iterator( this, container_.end() );
     }
@@ -299,18 +319,22 @@ private:
         Iterator( const ParamGeneratorInterface< T >* base,
                   typename ContainerType::const_iterator iterator )
             : base_( base ), iterator_( iterator ) {}
+
         virtual ~Iterator() {}
 
         virtual const ParamGeneratorInterface< T >* BaseGenerator() const {
             return base_;
         }
+
         virtual void Advance() {
             ++iterator_;
             value_.reset();
         }
+
         virtual ParamIteratorInterface< T >* Clone() const {
             return new Iterator( *this );
         }
+
         // We need to use cached value referenced by iterator_ because
         // *iterator_ can return a temporary object (and of type other then T),
         // so just having "return &*iterator_;" doesn't work. value_ is updated
@@ -323,6 +347,7 @@ private:
                 value_.reset( new T( *iterator_ ) );
             return value_.get();
         }
+
         virtual bool Equals( const ParamIteratorInterface< T >& other ) const {
             // Having the same base generator guarantees that the other
             // iterator is of the same type and we can downcast.
@@ -366,8 +391,10 @@ template < class TestClass >
 class ParameterizedTestFactory : public TestFactoryBase {
 public:
     typedef typename TestClass::ParamType ParamType;
+
     explicit ParameterizedTestFactory( ParamType parameter )
         : parameter_( parameter ) {}
+
     virtual Test* CreateTest() {
         TestClass::SetParam( &parameter_ );
         return new TestClass();
@@ -468,8 +495,10 @@ public:
 
     // Test case base name for display purposes.
     virtual const string& GetTestCaseName() const { return test_case_name_; }
+
     // Test case id to verify identity.
     virtual TypeId GetTestCaseTypeId() const { return GetTypeId< TestCase >(); }
+
     // TEST_P macro uses AddTestPattern() to record information
     // about a single test in a LocalTestInfo structure.
     // test_case_name is the base name of the test case (without invocation
@@ -482,6 +511,7 @@ public:
         tests_.push_back( linked_ptr< TestInfo >(
             new TestInfo( test_case_name, test_base_name, meta_factory ) ) );
     }
+
     // INSTANTIATE_TEST_CASE_P macro uses AddGenerator() to record information
     // about a generator.
     int AddTestCaseInstantiation( const string& instantiation_name,
@@ -493,6 +523,7 @@ public:
         return 0; // Return value used only to run this method in namespace
                   // scope.
     }
+
     // UnitTest class invokes this method to register tests in this test case
     // test cases right before running tests in RUN_ALL_TESTS macro.
     // This method should not be called more then once on any single
@@ -547,6 +578,7 @@ private:
         const string test_base_name;
         const scoped_ptr< TestMetaFactoryBase< ParamType > > test_meta_factory;
     };
+
     typedef ::std::vector< linked_ptr< TestInfo > > TestInfoContainer;
     // Keeps pairs of <Instantiation name, Sequence generator creation function>
     // received from INSTANTIATE_TEST_CASE_P macros.
@@ -569,6 +601,7 @@ private:
 class ParameterizedTestCaseRegistry {
 public:
     ParameterizedTestCaseRegistry() {}
+
     ~ParameterizedTestCaseRegistry() {
         for ( TestCaseInfoContainer::iterator it = test_case_infos_.begin();
               it != test_case_infos_.end(); ++it ) {
@@ -610,6 +643,7 @@ public:
         }
         return typed_test_info;
     }
+
     void RegisterTests() {
         for ( TestCaseInfoContainer::iterator it = test_case_infos_.begin();
               it != test_case_infos_.end(); ++it ) {

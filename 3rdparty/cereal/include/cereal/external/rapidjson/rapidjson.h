@@ -139,11 +139,14 @@ some allocator may not book-keep this, explicitly pass to it can save memory.)
 class CrtAllocator {
 public:
     static const bool kNeedFree = true;
+
     void* Malloc( size_t size ) { return malloc( size ); }
+
     void* Realloc( void* originalPtr, size_t originalSize, size_t newSize ) {
         ( void )originalSize;
         return realloc( originalPtr, newSize );
     }
+
     static void Free( void* ptr ) { free( ptr ); }
 };
 
@@ -511,14 +514,18 @@ struct GenericStringStream {
     GenericStringStream( const Ch* src ) : src_( src ), head_( src ) {}
 
     Ch Peek() const { return *src_; }
+
     Ch Take() { return *src_++; }
+
     size_t Tell() const { return src_ - head_; }
 
     Ch* PutBegin() {
         RAPIDJSON_ASSERT( false );
         return 0;
     }
+
     void Put( Ch ) { RAPIDJSON_ASSERT( false ); }
+
     size_t PutEnd( Ch* ) {
         RAPIDJSON_ASSERT( false );
         return 0;
@@ -546,15 +553,19 @@ struct GenericInsituStringStream {
 
     // Read
     Ch Peek() { return *src_; }
+
     Ch Take() { return *src_++; }
+
     size_t Tell() { return src_ - head_; }
 
     // Write
     Ch* PutBegin() { return dst_ = src_; }
+
     void Put( Ch c ) {
         RAPIDJSON_ASSERT( dst_ != 0 );
         *dst_++ = c;
     }
+
     size_t PutEnd( Ch* begin ) { return dst_ - begin; }
 
     Ch* src_;

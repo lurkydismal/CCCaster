@@ -5,8 +5,8 @@
 
 #ifndef _PRAGMA_ONCE_CONSOLEDEFS_H_
 #define _PRAGMA_ONCE_CONSOLEDEFS_H_
-extern int MAXSCREENX;
-extern int MAXSCREENY;
+extern short MAXSCREENX;
+extern short MAXSCREENY;
 #define BADMENU ( 60000 )
 #define USERESC ( 60001 )
 #define USERDELETE ( 60002 )

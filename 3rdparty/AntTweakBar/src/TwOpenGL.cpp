@@ -656,7 +656,7 @@ void CTwGraphOpenGL::DrawRect( int _X0,
     // GLubyte b = GLubyte(_Color);
     // GLubyte a = GLubyte(_Color>>24);
     //_glColor4ub(GLubyte(_Color>>16), GLubyte(_Color>>8), GLubyte(_Color),
-    //GLubyte(_Color>>24)); _glColor4ub(r, g, b, a);
+    // GLubyte(_Color>>24)); _glColor4ub(r, g, b, a);
     _glBegin( GL_QUADS );
     _glColor4ub( GLubyte( _Color00 >> 16 ), GLubyte( _Color00 >> 8 ),
                  GLubyte( _Color00 ), GLubyte( _Color00 >> 24 ) );

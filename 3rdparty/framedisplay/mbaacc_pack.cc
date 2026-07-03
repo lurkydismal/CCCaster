@@ -13,6 +13,7 @@ void decrapt( unsigned char* data,
               unsigned int xormod ) {
     union {
         unsigned int key;
+
         struct {
             unsigned char a;
             unsigned char b;
@@ -20,6 +21,7 @@ void decrapt( unsigned char* data,
             unsigned char d;
         } b;
     } key_a;
+
     unsigned int key_b;
 
     key_a.key = xorkey;

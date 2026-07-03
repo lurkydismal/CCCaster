@@ -24,9 +24,28 @@
 
 #include <time.h>
 
+#include <limits>
+#include <type_traits>
+
 #include "ConsoleCore.h"
 
-using namespace std;
+template < typename To, typename From >
+constexpr bool fits_in( From value ) {
+    static_assert( std::is_integral_v< To > );
+    static_assert( std::is_integral_v< From > );
+
+    using Limits = std::numeric_limits< To >;
+
+    if constexpr ( std::is_signed_v< From > == std::is_signed_v< To > ) {
+        return ( value >= Limits::min() ) && ( value <= Limits::max() );
+    } else if constexpr ( std::is_signed_v< From > ) {
+        return ( value >= 0 ) && ( static_cast< std::make_unsigned_t< From > >(
+                                       value ) <= Limits::max() );
+    } else {
+        return ( value <=
+                 static_cast< std::make_unsigned_t< To > >( Limits::max() ) );
+    }
+}
 
 ConsoleMenu::ConsoleMenu( COORD origin,
                           ConsoleFormat format,
@@ -52,22 +71,27 @@ ConsoleMenu::ConsoleMenu( const ConsoleMenu& rhs )
 COORD ConsoleMenu::Origin() const {
     return m_origin;
 }
+
 COORD ConsoleMenu::Origin( COORD origin ) {
     COORD old = m_origin;
     m_origin = origin;
     return old;
 }
+
 const ConsoleFormat& ConsoleMenu::DisplayFormat() const {
     return m_format;
 }
+
 ConsoleFormat ConsoleMenu::DisplayFormat( ConsoleFormat format ) {
     ConsoleFormat old = m_format;
     m_format = format;
     return old;
 }
+
 const ConsoleFormat& ConsoleMenu::SelectionFormat() const {
     return m_selectionFormat;
 }
+
 ConsoleFormat ConsoleMenu::SelectionFormat( ConsoleFormat format ) {
     ConsoleFormat old = m_selectionFormat;
     m_selectionFormat = format;
@@ -77,22 +101,25 @@ ConsoleFormat ConsoleMenu::SelectionFormat( ConsoleFormat format ) {
 unsigned ConsoleMenu::Count() const {
     return m_items.size();
 }
+
 void ConsoleMenu::Append( ConsoleMenuItem item ) {
     if ( item.Text().length() > m_longestItem )
         m_longestItem = item.Text().length();
     m_items.push_back( item );
 }
 
-void ConsoleMenu::Append( const string& text, DWORD value ) {
+void ConsoleMenu::Append( const std::string& text, DWORD value ) {
     if ( text.length() > m_longestItem )
         m_longestItem = text.length();
     m_items.push_back( ConsoleMenuItem( text, value ) );
 }
+
 void ConsoleMenu::InsertAfter( ConsoleMenuItem what, Iterator where ) {
     if ( what.Text().length() > m_longestItem )
         m_longestItem = what.Text().length();
     m_items.insert( where, what );
 }
+
 void ConsoleMenu::Clear() {
     m_items.clear();
     m_selected = m_items.end();
@@ -131,7 +158,13 @@ DWORD ConsoleMenu::Show() {
     ConsoleFormat oldFormat = pCore->Color();
     COORD bufferOrigin = m_origin;
 
-    COORD bufferSize = { m_longestItem, m_items.size() };
+    if ( ( !fits_in< short >( m_longestItem ) ) ||
+         ( !fits_in< short >( m_items.size() ) ) ) {
+        return BADMENU;
+    }
+
+    COORD bufferSize = { static_cast< short >( m_longestItem ),
+                         static_cast< short >( m_items.size() ) };
     PCHAR_INFO menuBuffer = new CHAR_INFO[ bufferSize.X * bufferSize.Y ];
     memset( menuBuffer, 0, sizeof( CHAR_INFO ) * bufferSize.X * bufferSize.Y );
 
@@ -217,7 +250,7 @@ DWORD ConsoleMenu::Show() {
     } while ( TRUE );
 }
 
-string ConsoleMenu::SelectedText() const {
+std::string ConsoleMenu::SelectedText() const {
     if ( m_selected == m_items.end() )
         return "";
     return m_selected->Text();
@@ -259,9 +292,11 @@ COORD ConsoleMenu::CursorPosition() const {
 void ConsoleMenu::Selection( ConsoleMenu::Iterator it ) {
     m_selected = it;
 }
+
 ConsoleMenu::Iterator ConsoleMenu::Selection() {
     return m_selected;
 }
+
 ////////////////////////////////
 
 ScrollingMenu::ScrollingMenu( COORD origin,
@@ -295,8 +330,15 @@ DWORD ScrollingMenu::Show() {
         return BADMENU;
     ConsoleCore* pCore = ConsoleCore::GetInstance();
     unsigned menuOffset = 0;
+
+    if ( ( !fits_in< short >( LongestItem() ) ) ||
+         ( !fits_in< short >( m_maxToShow ) ) ) {
+        return BADMENU;
+    }
+
     COORD bufferOrigin = { Origin().X, Origin().Y }, cursorOffset,
-          bufferSize = { LongestItem(), m_maxToShow };
+          bufferSize = { static_cast< short >( LongestItem() ),
+                         static_cast< short >( m_maxToShow ) };
     PCHAR_INFO menuBuffer = new CHAR_INFO[ bufferSize.X * bufferSize.Y ];
     memset( menuBuffer, 0, sizeof( CHAR_INFO ) * bufferSize.X * bufferSize.Y );
     ConsoleFormat oldFormat = pCore->Color();
@@ -327,7 +369,7 @@ DWORD ScrollingMenu::Show() {
         unsigned shown = 0;
         for ( toDraw = m_menuAnchor; shown < ( menuOffset + m_maxToShow );
               ++shown, ++toDraw ) {
-            pCore->Prints( string( LongestItem(), ' ' ), FALSE,
+            pCore->Prints( std::string( LongestItem(), ' ' ), FALSE,
                            &DisplayFormat(), cursorOffset.X, cursorOffset.Y );
             if ( toDraw == Selection() ) {
                 m_cursorPosition = cursorOffset;
@@ -472,7 +514,7 @@ BOOL ScrollingMenu::SelectedItem( int position ) {
 
 WindowedMenu::WindowedMenu( COORD origin,
                             unsigned maxToShow,
-                            const string& title,
+                            const std::string& title,
                             ConsoleFormat format,
                             ConsoleFormat selectionFormat,
                             ConsoleFormat windowColor,
@@ -484,6 +526,7 @@ WindowedMenu::WindowedMenu( COORD origin,
       m_windowColor( windowColor ),
       m_clientColor( clientColor ),
       m_fill( fill ) {}
+
 WindowedMenu::WindowedMenu( const WindowedMenu& rhs )
     : ScrollingMenu( rhs ),
       m_title( rhs.m_title ),
@@ -491,26 +534,33 @@ WindowedMenu::WindowedMenu( const WindowedMenu& rhs )
       m_windowColor( rhs.m_windowColor ),
       m_clientColor( rhs.m_clientColor ),
       m_fill( rhs.m_fill ) {}
-const string& WindowedMenu ::Title() const {
+
+const std::string& WindowedMenu ::Title() const {
     return m_title;
 }
-void WindowedMenu::Title( const string& title ) {
+
+void WindowedMenu::Title( const std::string& title ) {
     m_title = title;
 }
+
 BOOL WindowedMenu::Scrollable() const {
     return m_scrollable;
 }
+
 void WindowedMenu::Scrollable( BOOL allow ) {
     m_scrollable = allow;
 }
+
 ConsoleFormat WindowedMenu::WindowColor() const {
     return m_windowColor;
 }
+
 ConsoleFormat WindowedMenu::WindowColor( ConsoleFormat color ) {
     ConsoleFormat old = m_windowColor;
     m_windowColor = color;
     return old;
 }
+
 ConsoleFormat WindowedMenu::ClientColor() const {
     return m_clientColor;
 }
@@ -524,9 +574,11 @@ ConsoleFormat WindowedMenu::ClientColor( ConsoleFormat color ) {
 char WindowedMenu::Fill() const {
     return m_fill;
 }
+
 void WindowedMenu::Fill( char fill ) {
     m_fill = fill;
 }
+
 DWORD WindowedMenu::Show() {
     DWORD result = BADMENU;
 
@@ -536,17 +588,24 @@ DWORD WindowedMenu::Show() {
     if ( !m_scrollable )
         return ShowNoScroll();
 
-    COORD ulWindow = Origin(),
-          brWindow = { Origin().X + LongestItem() + 2,
-                       Origin().Y + MaxToShow() + ( m_title.empty() ? 2 : 4 ) };
+    const auto value1 = Origin().X + LongestItem() + 2;
+    const auto value2 = Origin().Y + MaxToShow() + ( m_title.empty() ? 2 : 4 );
+
+    if ( ( !fits_in< short >( value1 ) ) || ( !fits_in< short >( value2 ) ) ) {
+        return BADMENU;
+    }
+
+    COORD ulWindow = Origin(), brWindow = { static_cast< short >( value1 ),
+                                            static_cast< short >( value2 ) };
 
     CharacterWindow wnd( ulWindow, brWindow, m_title, WindowColor(),
                          ClientColor(), Fill() );
     wnd.Draw();
 
     COORD oldOrigin = Origin(),
-          menuItemOrigin = { Origin().X + 1,
-                             Origin().Y + ( m_title.empty() ? 1 : 3 ) };
+          menuItemOrigin = { static_cast< short >( Origin().X + 1 ),
+                             static_cast< short >(
+                                 Origin().Y + ( m_title.empty() ? 1 : 3 ) ) };
 
     oldOrigin = Origin( menuItemOrigin );
     result = ScrollingMenu::Show();
@@ -554,28 +613,37 @@ DWORD WindowedMenu::Show() {
 
     return result;
 }
+
 unsigned WindowedMenu::LongestItem() const {
     return ConsoleMenu::LongestItem() > Title().length()
                ? ConsoleMenu::LongestItem()
                : Title().length();
 }
+
 DWORD WindowedMenu::ShowNoScroll() {
     DWORD result = BADMENU;
 
     if ( Count() == 0 )
         return result;
 
-    COORD ulWindow = Origin(),
-          brWindow = { Origin().X + LongestItem() + 2,
-                       Origin().Y + Count() + ( m_title.empty() ? 2 : 4 ) };
+    const auto value1 = Origin().X + LongestItem() + 2;
+    const auto value2 = Origin().Y + Count() + ( m_title.empty() ? 2 : 4 );
+
+    if ( ( !fits_in< short >( value1 ) ) || ( !fits_in< short >( value2 ) ) ) {
+        return BADMENU;
+    }
+
+    COORD ulWindow = Origin(), brWindow = { static_cast< short >( value1 ),
+                                            static_cast< short >( value2 ) };
 
     CharacterWindow wnd( ulWindow, brWindow, m_title, WindowColor(),
                          ClientColor(), Fill() );
     wnd.Draw();
 
     COORD oldOrigin = Origin(),
-          menuItemOrigin = { Origin().X + 1,
-                             Origin().Y + ( m_title.empty() ? 1 : 3 ) };
+          menuItemOrigin = { static_cast< short >( Origin().X + 1 ),
+                             static_cast< short >(
+                                 Origin().Y + ( m_title.empty() ? 1 : 3 ) ) };
 
     oldOrigin = Origin( menuItemOrigin );
     result = ConsoleMenu::Show();

@@ -1,6 +1,8 @@
 #ifndef RAPIDJSON_INTERNAL_STRFUNC_H_
 #define RAPIDJSON_INTERNAL_STRFUNC_H_
 
+#include "../rapidjson.h"
+
 namespace rapidjson {
 namespace internal {
 

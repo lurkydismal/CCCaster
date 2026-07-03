@@ -59,6 +59,7 @@ namespace internal {
 class GTEST_API_ FilePath {
 public:
     FilePath() : pathname_( "" ) {}
+
     FilePath( const FilePath& rhs ) : pathname_( rhs.pathname_ ) {}
 
     explicit FilePath( const std::string& pathname ) : pathname_( pathname ) {
@@ -73,6 +74,7 @@ public:
     void Set( const FilePath& rhs ) { pathname_ = rhs.pathname_; }
 
     const std::string& string() const { return pathname_; }
+
     const char* c_str() const { return pathname_.c_str(); }
 
     // Returns the current working directory, or "" if unsuccessful.

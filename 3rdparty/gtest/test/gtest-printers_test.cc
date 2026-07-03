@@ -129,6 +129,7 @@ private:
 // A user-defined printable type in a user-chosen namespace.
 struct PrintableViaPrintTo {
     PrintableViaPrintTo() : value() {}
+
     int value;
 };
 
@@ -561,7 +562,9 @@ AssertionResult HasPrefix( const StringType& str, const StringType& prefix ) {
 struct Foo {
 public:
     virtual ~Foo() {}
+
     int MyMethod( char x ) { return x + 1; }
+
     virtual char MyVirtualMethod( int /* n */ ) { return 'a'; }
 
     int value;
@@ -1072,6 +1075,7 @@ TEST( PrintUnprintableTypeTest, InUserNamespace ) {
 
 struct Big {
     Big() { memset( array, 0, sizeof( array ) ); }
+
     char array[ 257 ];
 };
 

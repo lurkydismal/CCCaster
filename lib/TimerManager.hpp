@@ -21,6 +21,7 @@ public:
     // Initialize / deinitialize timer manager
     void initialize();
     void deinitialize();
+
     bool isInitialized() const { return _initialized; }
 
     // Indicates if using the hi-res timer
@@ -28,6 +29,7 @@ public:
 
     // Get the current time in milliseconds
     uint64_t getNow() const { return _now; }
+
     uint64_t getNow( bool update ) {
         if ( update )
             updateNow();

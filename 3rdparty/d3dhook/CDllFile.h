@@ -5,6 +5,12 @@
 //
 #ifndef _INC_CDll_H
 #define _INC_CDll_H
+
+#include <errhandlingapi.h>
+#include <libloaderapi.h>
+#include <minwindef.h>
+#include <winerror.h>
+
 #if _MSC_VER >= 1000
 #pragma once
 #endif // _MSC_VER >= 1000
@@ -23,12 +29,17 @@ struct CDllFile {
 public:
     CDllFile( HMODULE hModule = NULL, bool bUnload = true )
         : m_hModule( hModule ), m_bUnload( bUnload ) {}
+
     ~CDllFile() { FreeDllLast(); }
 
     bool IsValidDll() const { return ( m_hModule != NULL ); }
+
     operator HMODULE() const { return m_hModule; }
+
     HMODULE get_DllHandle() const { return m_hModule; }
+
     UINT_PTR get_DllInt() const { return ( UINT_PTR )m_hModule; }
+
     HMODULE DetachModule() {
         HMODULE hModule = m_hModule;
         m_hModule = NULL;
@@ -43,6 +54,7 @@ public:
         }
         m_hModule = NULL;
     }
+
     bool FindDll( const TCHAR* pszModuleName ) {
         // is the Dll already loaded?
         if ( m_hModule && m_bUnload ) {
@@ -54,6 +66,7 @@ public:
         m_bUnload = false;
         return true;
     }
+
     HRESULT LoadDllEx( const TCHAR* pszModuleName, UINT uFlags = 0 ) {
         // CGFile::GetLastError() for HRESULT code.
         // uFlags = DONT_RESOLVE_DLL_REFERENCES = prevent calling of
@@ -67,6 +80,7 @@ public:
         m_bUnload = true;
         return S_OK;
     }
+
     HRESULT LoadDll( const TCHAR* pszModuleName ) {
         // CGFile::GetLastError() for HRESULT code.
         FreeDllLast();
@@ -77,6 +91,7 @@ public:
         m_bUnload = true;
         return S_OK;
     }
+
     FARPROC GetProcAddress( const char* pszFuncName ) const {
         // Get a Generic function call. assume nothing about args.
         // NOTE: No such thing as a UNICODE proc name! object formats existed

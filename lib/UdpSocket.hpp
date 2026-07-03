@@ -21,25 +21,24 @@ public:
     ENUM( Type, ConnectionLess, Client, Server, Child );
 
     // Listen for connections on the given port
-    static SocketPtr listen( Socket::Owner* owner, uint16_t port );
+    static auto listen( Socket::Owner* owner, uint16_t port ) -> SocketPtr;
 
     // Connect to the given address and port
-    static SocketPtr connect(
-        Socket::Owner* owner,
-        const IpAddrPort& address,
-        uint64_t connectTimeout = DEFAULT_CONNECT_TIMEOUT );
+    static auto connect( Socket::Owner* owner,
+                         const IpAddrPort& address,
+                         uint64_t connectTimeout = DEFAULT_CONNECT_TIMEOUT )
+        -> SocketPtr;
 
     // Create connection-less sockets
-    static SocketPtr bind( Socket::Owner* owner,
-                           uint16_t port,
-                           bool isRaw = false );
-    static SocketPtr bind( Socket::Owner* owner,
-                           const IpAddrPort& address,
-                           bool isRaw = false );
+    static auto bind( Socket::Owner* owner, uint16_t port, bool isRaw = false )
+        -> SocketPtr;
+    static auto bind( Socket::Owner* owner,
+                      const IpAddrPort& address,
+                      bool isRaw = false ) -> SocketPtr;
 
     // Create a socket from SocketShareData
-    static SocketPtr shared( Socket::Owner* owner,
-                             const SocketShareData& data );
+    static auto shared( Socket::Owner* owner, const SocketShareData& data )
+        -> SocketPtr;
 
     // Destructor
     ~UdpSocket() override;
@@ -48,29 +47,31 @@ public:
     void disconnect() override;
 
     // Accept a new socket, returns 0 if no socket to accept
-    SocketPtr accept( Socket::Owner* owner ) override;
+    auto accept( Socket::Owner* owner ) -> SocketPtr override;
 
     // If this UDP socket is backed by a real socket handle, and not proxy of
     // another socket
-    bool isReal() const {
+    auto isReal() const -> bool {
         return ( _type == Type::ConnectionLess || _type == Type::Client ||
                  _type == Type::Server );
     }
 
     // Child UDP sockets aren't real sockets, they are just proxies that recv
     // from the parent socket
-    bool isChild() const { return ( _type == Type::Child ); }
+    auto isChild() const -> bool { return ( _type == Type::Child ); }
 
     // If this is a vanilla connection-less UDP socket
-    bool isConnectionLess() const { return ( _type == Type::ConnectionLess ); }
+    auto isConnectionLess() const -> bool {
+        return ( _type == Type::ConnectionLess );
+    }
 
     // If this is a connection-based UDP socket
-    bool isConnectionBased() const {
+    auto isConnectionBased() const -> bool {
         return ( _type == Type::Client || _type == Type::Child );
     }
 
     // Get the map of address to child socket
-    std::unordered_map< IpAddrPort, SocketPtr >& getChildSockets() {
+    auto getChildSockets() -> std::unordered_map< IpAddrPort, SocketPtr >& {
         return _childSockets;
     }
 
@@ -78,7 +79,7 @@ public:
     // Child UDP sockets CANNOT be shared, the parent SocketShareData contains
     // all the child sockets. The child sockets can be restored via
     // getChildSockets after the parent socket is constructed.
-    MsgPtr share( int processId );
+    auto share( int processId ) -> MsgPtr override;
 
     // Send a protocol message, a return value of false indicates socket is
     // disconnected
@@ -91,10 +92,12 @@ public:
 
     // Get / set the interval to send packets, should be non-zero
     uint64_t getSendInterval() const { return _gbn.getSendInterval(); }
+
     void setSendInterval( uint64_t interval );
 
     // Get / set the timeout for keep alive packets, 0 to disable
     uint64_t getKeepAlive() const { return _keepAlive; }
+
     void setKeepAlive( uint64_t timeout );
 
     // Listen for connections.
@@ -146,7 +149,7 @@ private:
     void socketReadAddressed( const MsgPtr& msg, const IpAddrPort& address );
 
     // Send a protocol message directly, not over GoBackN
-    bool sendRaw( const MsgPtr& msg, const IpAddrPort& address );
+    auto sendRaw( const MsgPtr& msg, const IpAddrPort& address ) -> bool;
 
     // Construct a server socket
     UdpSocket( Socket::Owner* owner,

@@ -101,6 +101,7 @@ const double DOUBLE_PI = 3.14159265358979323846;
 inline double DegToRad( double degree ) {
     return degree * ( DOUBLE_PI / 180.0 );
 }
+
 inline double RadToDeg( double radian ) {
     return radian * ( 180.0 / DOUBLE_PI );
 }
@@ -4297,16 +4298,16 @@ static int AddVar( TwBar* _Bar,
             GetCB = NULL;
         return AddVar( _Bar, _Name, TW_TYPE_CDSTDSTRING, NULL, _ReadOnly, SetCB,
                        GetCB, NULL, &CDStdString, _Def );
-    } else if ( ( _Type > TW_TYPE_UNDEF && _Type < TW_TYPE_STRUCT_BASE ) ||
-                ( _Type >= TW_TYPE_ENUM_BASE &&
-                  _Type <
-                      TW_TYPE_ENUM_BASE + ( int )g_TwMgr->m_Enums.size() ) ||
-                ( _Type > TW_TYPE_CSSTRING_BASE &&
-                  _Type <= TW_TYPE_CSSTRING_MAX ) ||
-                _Type == TW_TYPE_CDSTDSTRING ||
-                IsCustomType( _Type ) ) // (_Type>=TW_TYPE_CUSTOM_BASE &&
-                                        // _Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
-                                        // )
+    } else if (
+        ( _Type > TW_TYPE_UNDEF && _Type < TW_TYPE_STRUCT_BASE ) ||
+        ( _Type >= TW_TYPE_ENUM_BASE &&
+          _Type < TW_TYPE_ENUM_BASE + ( int )g_TwMgr->m_Enums.size() ) ||
+        ( _Type > TW_TYPE_CSSTRING_BASE && _Type <= TW_TYPE_CSSTRING_MAX ) ||
+        _Type == TW_TYPE_CDSTDSTRING ||
+        IsCustomType(
+            _Type ) ) // (_Type>=TW_TYPE_CUSTOM_BASE &&
+                      // _Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size())
+                      // )
     {
         CTwVarAtom* Var = new CTwVarAtom;
         Var->m_Name = _Name;
@@ -4343,9 +4344,11 @@ static int AddVar( TwBar* _Bar,
         }
         Var->SetDefaults();
 
-        if ( IsCustomType( _Type ) ) // _Type>=TW_TYPE_CUSTOM_BASE &&
-                                     // _Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
-                                     // )
+        if (
+            IsCustomType(
+                _Type ) ) // _Type>=TW_TYPE_CUSTOM_BASE &&
+                          // _Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
+                          // )
         {
             if ( Var->m_GetCallback == CTwMgr::CMemberProxy::GetCB &&
                  Var->m_SetCallback == CTwMgr::CMemberProxy::SetCB )
@@ -4477,10 +4480,12 @@ static int AddVar( TwBar* _Bar,
                 mProxy.m_Bar = _Bar;
             }
 
-            if ( sProxy != NULL &&
-                 IsCustomType( m.m_Type ) ) // m.m_Type>=TW_TYPE_CUSTOM_BASE &&
-                                            // m.m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
-                                            // )
+            if (
+                sProxy != NULL &&
+                IsCustomType(
+                    m.m_Type ) ) // m.m_Type>=TW_TYPE_CUSTOM_BASE &&
+                                 // m.m_Type<TW_TYPE_CUSTOM_BASE+(int)g_TwMgr->m_Customs.size()
+                                 // )
             {
                 if ( sProxy->m_CustomIndexFirst < 0 )
                     sProxy->m_CustomIndexFirst = sProxy->m_CustomIndexLast = i;
@@ -4905,7 +4910,9 @@ int ANT_CALL TwDefine( const char* _Def ) {
 
     int Line = 1;
     int Column = 1;
+
     enum EState { PARSE_NAME, PARSE_ATTRIB };
+
     EState State = PARSE_NAME;
     string Token;
     string Value;

@@ -213,15 +213,19 @@ bool IsInSet( char ch, const char* str ) {
 bool IsAsciiDigit( char ch ) {
     return '0' <= ch && ch <= '9';
 }
+
 bool IsAsciiPunct( char ch ) {
     return IsInSet( ch, "^-!\"#$%&'()*+,./:;<=>?@[\\]_`{|}~" );
 }
+
 bool IsRepeat( char ch ) {
     return IsInSet( ch, "?*+" );
 }
+
 bool IsAsciiWhiteSpace( char ch ) {
     return IsInSet( ch, " \f\n\r\t\v" );
 }
+
 bool IsAsciiWordChar( char ch ) {
     return ( 'a' <= ch && ch <= 'z' ) || ( 'A' <= ch && ch <= 'Z' ) ||
            ( '0' <= ch && ch <= '9' ) || ch == '_';
@@ -526,6 +530,7 @@ GTestLog::~GTestLog() {
         posix::Abort();
     }
 }
+
 // Disable Microsoft deprecation warnings for POSIX functions called from
 // this class (creat, dup, dup2, and close)
 #ifdef _MSC_VER

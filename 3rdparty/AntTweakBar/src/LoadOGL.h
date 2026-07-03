@@ -13,6 +13,9 @@
 #if !defined ANT_LOAD_OGL_INCLUDED
 #define ANT_LOAD_OGL_INCLUDED
 
+#include "../../glfw/glfw.h"
+#include "TwPrecomp.h"
+
 #define ANT_GL_DECL( _Ret, _Fct, _Params )       \
     extern "C" {                                 \
     typedef _Ret( APIENTRY* PFN##_Fct ) _Params; \
@@ -52,6 +55,7 @@ typedef PFNOpenGL( APIENTRY* PFNGLGetProcAddress )( const char* );
 }
 extern PFNGLGetProcAddress _glGetProcAddress;
 } // namespace GL
+
 using GL::_glGetProcAddress;
 
 ANT_GL_DECL( void, glAccum, ( GLenum op, GLfloat value ) )

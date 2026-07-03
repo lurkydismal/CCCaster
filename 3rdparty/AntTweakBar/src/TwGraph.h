@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwGraph.h
@@ -10,8 +12,7 @@
 //
 //  ---------------------------------------------------------------------------
 
-#if !defined ANT_TW_GRAPH_INCLUDED
-#define ANT_TW_GRAPH_INCLUDED
+#include <string>
 
 #include "TwColors.h"
 #include "TwFonts.h"
@@ -57,7 +58,9 @@ public:
                            int _X1,
                            int _Y1,
                            color32 _Color ) = 0;
+
     enum Cull { CULL_NONE, CULL_CW, CULL_CCW };
+
     virtual void DrawTriangles( int _NumTriangles,
                                 int* _Vertices,
                                 color32* _Colors,
@@ -92,5 +95,3 @@ public:
 };
 
 //  ---------------------------------------------------------------------------
-
-#endif // ANT_TW_GRAPH_INCLUDED

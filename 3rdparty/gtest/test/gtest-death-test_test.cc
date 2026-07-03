@@ -855,13 +855,19 @@ public:
 
     // Accessors.
     int AssumeRoleCalls() const { return assume_role_calls_; }
+
     int WaitCalls() const { return wait_calls_; }
+
     int PassedCalls() const { return passed_args_.size(); }
+
     bool PassedArgument( int n ) const { return passed_args_[ n ]; }
+
     int AbortCalls() const { return abort_args_.size(); }
+
     DeathTest::AbortReason AbortArgument( int n ) const {
         return abort_args_[ n ];
     }
+
     bool TestDeleted() const { return test_deleted_; }
 
 private:
@@ -905,19 +911,24 @@ public:
           role_( role ),
           status_( status ),
           passed_( passed ) {}
+
     virtual ~MockDeathTest() { parent_->test_deleted_ = true; }
+
     virtual TestRole AssumeRole() {
         ++parent_->assume_role_calls_;
         return role_;
     }
+
     virtual int Wait() {
         ++parent_->wait_calls_;
         return status_;
     }
+
     virtual bool Passed( bool exit_status_ok ) {
         parent_->passed_args_.push_back( exit_status_ok );
         return passed_;
     }
+
     virtual void Abort( AbortReason reason ) {
         parent_->abort_args_.push_back( reason );
     }

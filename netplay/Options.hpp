@@ -81,6 +81,7 @@ private:
         std::string arg;
 
         Opt() {}
+
         Opt( size_t count, const std::string& arg = "" )
             : count( count ), arg( arg ) {}
 

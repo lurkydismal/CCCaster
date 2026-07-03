@@ -57,22 +57,27 @@ public:
         AssertIREF( m_pObj );
         return m_pObj != NULL;
     }
+
     _TYPE** get_PPtr() {
         // QueryInterface or similiar wants a pointer to a pointer to fill in my
         // interface.
         assert( m_pObj == NULL );
         return ( &m_pObj );
     }
+
     void** get_PPtrV() {
         // QueryInterface and others dont like the typing.
         assert( m_pObj == NULL );
         return ( ( void** )&m_pObj );
     }
+
     _TYPE* get_RefObj() const { return ( m_pObj ); }
+
     void put_RefObj( _TYPE* pObj ) {
         ReleaseRefObj();
         SetFirstRefObj( pObj );
     }
+
     int ReleaseRefObj() {
         if ( m_pObj ) {
             _TYPE* pObj = m_pObj;
@@ -94,6 +99,7 @@ public:
         }
         return *this;
     }
+
     IRefPtr< _TYPE >& operator=( IRefPtr< _TYPE >& ref ) {
         return operator=( ( _TYPE* )ref );
     }
@@ -113,9 +119,11 @@ public:
 
     // Comparison ops
     bool operator!() const { return ( m_pObj == NULL ); }
+
     bool operator!=( /*const*/ _TYPE* pRef ) const {
         return ( pRef != m_pObj );
     }
+
     bool operator==( /*const*/ _TYPE* pRef ) const {
         return ( pRef == m_pObj );
     }
@@ -137,6 +145,7 @@ public:
 #endif
     {
     }
+
     IRefPtr( _TYPE* pObj )
 #ifdef USE_IREF_LOG
         : m_pszFile( NULL ) // last place this was used from.

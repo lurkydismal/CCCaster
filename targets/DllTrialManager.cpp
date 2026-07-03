@@ -652,6 +652,7 @@ wstring tmp( string s ) {
     std::wstring wide = converter.from_bytes( s );
     return wide;
 }
+
 void DllTrialManager::loadTrialFile() {
     string fileNameBase = "cccaster/trials/";
     string moon;
@@ -917,6 +918,7 @@ int DllTrialManager::drawComboBacking( MovePosition position,
 
     return nextX;
 }
+
 void DllTrialManager::drawInputs() {
     int width = 640;
     int left = width / 2 - 12 - 25;
@@ -1323,6 +1325,7 @@ void DllTrialManager::drawSolidRect( int x,
     CallDrawRect( x, y, width, height, colorValue, colorValue, colorValue,
                   colorValue, layer );
 }
+
 void DllTrialManager::drawiidx() {
     if ( tmp2 > boxHeight + 10 ) {
         tmp2 = -20;
@@ -1520,6 +1523,7 @@ void DllTrialManager::drawAttackDisplay() {
         }
     }
 }
+
 void DllTrialManager::drawAttackDisplayRow( string label,
                                             string value,
                                             int y ) {
@@ -1530,6 +1534,7 @@ void DllTrialManager::drawAttackDisplayRow( string label,
     drawText( value, rightX - 0xa * value.length(), y, 0xa, 0xe );
     drawTextWithBorder( value, rightX - 0xa * value.length(), y, 0xa, 0xe );
 }
+
 void DllTrialManager::render() {
     if ( TrialManager::hideText )
         return;

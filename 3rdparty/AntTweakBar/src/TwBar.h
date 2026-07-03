@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwBar.h
@@ -10,12 +12,12 @@
 //
 //  ---------------------------------------------------------------------------
 
-#if !defined ANT_TW_BAR_INCLUDED
-#define ANT_TW_BAR_INCLUDED
-
 #include <AntTweakBar.h>
 
+#include <vector>
+
 #include "TwColors.h"
+#include "TwMgr.h"
 
 #define ANT_TWEAK_BAR_DLL "AntTweakBar"
 
@@ -36,7 +38,9 @@ struct CTwVar {
     const color32* m_BgColorPtr;
 
     virtual bool IsGroup() const = 0;
+
     virtual bool IsCustom() const { return false; }
+
     virtual const CTwVar* Find( const char* _Name,
                                 struct CTwVarGroup** _Parent,
                                 int* _Index ) const = 0;
@@ -55,6 +59,7 @@ struct CTwVar {
     virtual void SetReadOnly( bool _ReadOnly ) = 0;
     virtual bool IsReadOnly() const = 0;
     CTwVar();
+
     virtual ~CTwVar() {}
 
     static size_t GetDataSize( TwType _Type );
@@ -79,6 +84,7 @@ struct CTwVarAtom : CTwVar {
         signed char m_Precision;
         bool m_Hexa;
     };
+
     union UVal {
         TVal< unsigned char > m_Char;
         TVal< signed char > m_Int8;
@@ -89,36 +95,45 @@ struct CTwVarAtom : CTwVar {
         TVal< unsigned int > m_UInt32;
         TVal< float > m_Float32;
         TVal< double > m_Float64;
+
         struct CBoolVal {
             char* m_TrueString;
             char* m_FalseString;
             bool m_FreeTrueString;
             bool m_FreeFalseString;
         } m_Bool;
+
         struct CEnumVal // empty -> enum entries are deduced from m_Type
         {
             // typedef std::map<unsigned int, std::string> CEntries;
             // CEntries *    m_Entries;
         } m_Enum;
+
         struct CShortcutVal {
             int m_Incr[ 2 ];
             int m_Decr[ 2 ];
         } m_Shortcut;
+
         struct CHelpStruct {
             int m_StructType;
         } m_HelpStruct;
+
         struct CButtonVal {
             TwButtonCallback m_Callback;
             int m_Separator;
         } m_Button;
+
         struct CCustomVal {
             CTwMgr::CMemberProxy* m_MemberProxy;
         } m_Custom;
     };
+
     UVal m_Val;
 
     virtual bool IsGroup() const { return false; }
+
     virtual bool IsCustom() const { return IsCustomType( m_Type ); }
+
     virtual void ValueToString( std::string* _Str ) const;
     virtual double ValueToDouble() const;
     virtual void ValueFromDouble( double _Val );
@@ -142,12 +157,14 @@ struct CTwVarAtom : CTwVar {
                                 std::ostringstream& outString ) const;
     virtual void Increment( int _Step );
     virtual void SetDefaults();
+
     virtual void SetReadOnly( bool _ReadOnly ) {
         m_ReadOnly = _ReadOnly;
         if ( m_Type != TW_TYPE_BUTTON && m_SetCallback == NULL &&
              m_Ptr == NULL )
             m_ReadOnly = true;
     }
+
     virtual bool IsReadOnly() const {
         if ( m_Type != TW_TYPE_BUTTON && m_SetCallback == NULL &&
              m_Ptr == NULL )
@@ -155,6 +172,7 @@ struct CTwVarAtom : CTwVar {
         else
             return m_ReadOnly;
     }
+
     // virtual int           DefineEnum(const TwEnumVal *_EnumValues, unsigned
     // int _NbValues);
     CTwVarAtom();
@@ -170,6 +188,7 @@ struct CTwVarGroup : CTwVar {
     TwType m_StructType;
 
     virtual bool IsGroup() const { return true; }
+
     virtual const CTwVar* Find( const char* _Name,
                                 CTwVarGroup** _Parent,
                                 int* _Index ) const;
@@ -186,17 +205,20 @@ struct CTwVarGroup : CTwVar {
                                 std::vector< double >& outDouble,
                                 std::ostringstream& outString ) const;
     virtual CTwVarAtom* FindShortcut( int _Key, int _Modifiers, bool* _DoIncr );
+
     virtual void SetReadOnly( bool _ReadOnly ) {
         for ( size_t i = 0; i < m_Vars.size(); ++i )
             if ( m_Vars[ i ] )
                 m_Vars[ i ]->SetReadOnly( _ReadOnly );
     }
+
     virtual bool IsReadOnly() const {
         for ( size_t i = 0; i < m_Vars.size(); ++i )
             if ( m_Vars[ i ] && !m_Vars[ i ]->IsReadOnly() )
                 return false;
         return true;
     }
+
     CTwVarGroup() {
         m_Open = false;
         m_StructType = TW_TYPE_UNDEF;
@@ -204,6 +226,7 @@ struct CTwVarGroup : CTwVar {
         m_SummaryClientData = NULL;
         m_StructValuePtr = NULL;
     }
+
     virtual ~CTwVarGroup();
 };
 
@@ -243,6 +266,7 @@ struct CTwBar {
         DRAW_CONTENT = ( 1 << 1 ),
         DRAW_ALL = DRAW_BG | DRAW_CONTENT
     };
+
     void Draw( int _DrawPart = DRAW_ALL );
     void NotUpToDate();
     const CTwVar* Find( const char* _Name,
@@ -261,25 +285,32 @@ struct CTwBar {
     bool MouseWheel( int _Pos, int _PrevPos, int _MouseX, int _MouseY );
     bool KeyPressed( int _Key, int _Modifiers );
     bool KeyTest( int _Key, int _Modifiers );
+
     bool IsMinimized() const { return m_IsMinimized; }
+
     bool IsDragging() const { return m_MouseDrag; }
+
     bool Show( CTwVar* _Var ); // display the line associated to _Var
     bool OpenHier( CTwVarGroup* _Root,
                    CTwVar* _Var ); // open a hierarchy if it contains _Var
     int LineInHier(
         CTwVarGroup* _Root,
         CTwVar* _Var ); // returns the number of the line associated to _Var
+
     void UnHighlightLine() {
         m_HighlightedLine = -1;
         NotUpToDate();
     } // used by PopupCallback
+
     void HaveFocus( bool _Focus ) {
         m_DrawHandles = _Focus;
     } // used by PopupCallback
+
     void StopEditInPlace() {
         if ( m_EditInPlace.m_Active )
             EditInPlaceEnd( false );
     }
+
     CTwBar( const char* _Name );
     ~CTwBar();
 
@@ -395,6 +426,7 @@ protected:
         int m_Level;
         bool m_Closing;
     };
+
     std::vector< CHierTag > m_HierTags;
     void BrowseHierarchy( int* _LineNum,
                           int _CurrLevel,
@@ -428,15 +460,20 @@ protected:
     // RotoSlider
     struct CPoint {
         int x, y;
+
         CPoint() {}
+
         CPoint( int _X, int _Y ) : x( _X ), y( _Y ) {}
+
         const CPoint operator+( const CPoint& p ) const {
             return CPoint( x + p.x, y + p.y );
         }
+
         const CPoint operator-( const CPoint& p ) const {
             return CPoint( x - p.x, y - p.y );
         }
     };
+
     struct CRotoSlider {
         CRotoSlider();
         CTwVarAtom* m_Var;
@@ -454,6 +491,7 @@ protected:
         double m_AngleDT;
         int m_Subdiv;
     };
+
     CRotoSlider m_Roto;
     int m_RotoMinRadius;
     int m_RotoNbSubdiv; // number of steps for one turn
@@ -486,6 +524,7 @@ protected:
         int m_FirstChar;
         std::string m_Clipboard;
     };
+
     CEditInPlace m_EditInPlace;
     void EditInPlaceDraw();
     bool EditInPlaceAcceptVar( const CTwVarAtom* _Var );
@@ -506,6 +545,7 @@ protected:
         int m_Y0, m_Y1;     // Y widget range
         CTwVarGroup* m_Var;
     };
+
     typedef std::map< CTwMgr::CStructProxy*, CCustomRecord > CustomMap;
     CustomMap m_CustomRecords;
     CTwMgr::CStructProxy* m_CustomActiveStructProxy;
@@ -521,5 +561,3 @@ void DrawArc( int _X,
               color32 _Color );
 
 //  ---------------------------------------------------------------------------
-
-#endif // !defined ANT_TW_BAR_INCLUDED

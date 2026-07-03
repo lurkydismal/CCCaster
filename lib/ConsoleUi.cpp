@@ -24,8 +24,8 @@ using namespace std;
         ConsoleFormat::SYSTEM, ConsoleFormat::SYSTEM
 
 // Initial console window dimensions (definitions needed for JLib)
-int MAXSCREENX = 80;
-int MAXSCREENY = 25;
+short MAXSCREENX = 80;
+short MAXSCREENY = 25;
 
 // Definitions of text sizes
 const string ConsoleUi::Ellipsis = "...";
@@ -193,6 +193,7 @@ void ConsoleUi::Menu::initialize() {
 void ConsoleUi::Menu::setTimeout( int timeout ) {
     menu.setTimeout( timeout );
 }
+
 void ConsoleUi::Menu::show() {
     LOG( "title='%s'; pos=%s; size=%s", title, _pos, _size );
 

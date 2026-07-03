@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <iostream>
 
-#include "Controller.hpp"
+#include "../lib/Controller.hpp"
 
 // Number of frames of inputs to send per message
 #define NUM_INPUTS ( 30 )
@@ -313,6 +313,7 @@ union IndexedFrame {
     struct {
         uint32_t frame, index;
     } parts;
+
     uint64_t value;
 };
 

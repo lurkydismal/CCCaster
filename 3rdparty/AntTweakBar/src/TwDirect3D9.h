@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwDirect3D9.h
@@ -10,8 +12,9 @@
 //
 //  ---------------------------------------------------------------------------
 
-#if !defined ANT_TW_DIRECT3D9_INCLUDED
-#define ANT_TW_DIRECT3D9_INCLUDED
+#include <minwindef.h>
+
+#include <vector>
 
 #include "TwGraph.h"
 
@@ -32,6 +35,7 @@ public:
                            color32 _Color0,
                            color32 _Color1,
                            bool _AntiAliased = false );
+
     virtual void DrawLine( int _X0,
                            int _Y0,
                            int _X1,
@@ -40,6 +44,7 @@ public:
                            bool _AntiAliased = false ) {
         DrawLine( _X0, _Y0, _X1, _Y1, _Color, _Color, _AntiAliased );
     }
+
     virtual void DrawRect( int _X0,
                            int _Y0,
                            int _X1,
@@ -48,6 +53,7 @@ public:
                            color32 _Color10,
                            color32 _Color01,
                            color32 _Color11 );
+
     virtual void DrawRect( int _X0,
                            int _Y0,
                            int _X1,
@@ -55,6 +61,7 @@ public:
                            color32 _Color ) {
         DrawRect( _X0, _Y0, _X1, _Y1, _Color, _Color, _Color, _Color );
     }
+
     virtual void DrawTriangles( int _NumTriangles,
                                 int* _Vertices,
                                 color32* _Colors,
@@ -102,6 +109,7 @@ protected:
         color32 m_Color;
         float m_UV[ 2 ];
     };
+
     struct CBgVtx {
         float m_Pos[ 4 ];
         color32 m_Color;
@@ -118,11 +126,10 @@ protected:
         float m_Pos[ 4 ];
         DWORD m_Color;
     };
+
     std::vector< CTriVtx > m_TriVertices;
 
     struct CState* m_State;
 };
 
 //  ---------------------------------------------------------------------------
-
-#endif // !defined ANT_TW_DIRECT3D9_INCLUDED

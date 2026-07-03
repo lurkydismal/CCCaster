@@ -34,6 +34,7 @@ class Test {
 public:
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar, const unsigned int version ) {}
 };

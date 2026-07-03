@@ -1,6 +1,8 @@
 #ifndef RAPIDJSON_POW10_
 #define RAPIDJSON_POW10_
 
+#include "../rapidjson.h"
+
 namespace rapidjson {
 namespace internal {
 

@@ -233,11 +233,15 @@
 #define OPTIONPARSER_H_
 
 /** @brief The namespace of The Lean Mean C++ Option Parser. */
+#include <cstdio>
+#include <cstdlib>
+
 namespace option {
 
 #ifdef _MSC_VER
 #include <intrin.h>
 #pragma intrinsic( _BitScanReverse )
+
 struct MSC_Builtin_CLZ {
     static int builtin_clz( unsigned x ) {
         unsigned long index;
@@ -246,6 +250,7 @@ struct MSC_Builtin_CLZ {
                index; // int is always 32bit on Windows, even for target x64
     }
 };
+
 #define __builtin_clz( x ) MSC_Builtin_CLZ::builtin_clz( x )
 #endif
 
@@ -3024,6 +3029,7 @@ void printUsage( Function* prn,
 }
 
 } // namespace option
+
 // namespace option
 
 #endif /* OPTIONPARSER_H_ */

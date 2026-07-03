@@ -31,11 +31,13 @@ public:
 
     IpAddrPort( const char* addr, uint16_t port )
         : IpAddrPort( std::string( addr ), port ) {}
+
     IpAddrPort( const std::string& addr, uint16_t port )
         : addr( addr ), port( port ) {}
 
     IpAddrPort( const char* addrPort )
         : IpAddrPort( std::string( addrPort ) ) {}
+
     IpAddrPort( const std::string& addrPort );
 
     IpAddrPort( const sockaddr* sa );

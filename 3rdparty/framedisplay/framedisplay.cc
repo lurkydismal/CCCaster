@@ -21,6 +21,7 @@ int FrameDisplay::get_sequence() {
 bool FrameDisplay::has_sequence( int n ) {
     return 0;
 }
+
 const char* FrameDisplay::get_sequence_name( int n ) {
     return 0;
 }

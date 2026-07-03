@@ -105,6 +105,7 @@ BOOST_AUTO_TEST_CASE( portable_binary_pair ) {
 BOOST_AUTO_TEST_CASE( xml_pair ) {
     test_pair< cereal::XMLInputArchive, cereal::XMLOutputArchive >();
 }
+
 BOOST_AUTO_TEST_CASE( json_pair ) {
     test_pair< cereal::JSONInputArchive, cereal::JSONOutputArchive >();
 }

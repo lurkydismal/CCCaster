@@ -55,45 +55,55 @@ CharacterBox::CharacterBox( COORD upperLeft,
 COORD CharacterBox::UpperLeft() const {
     return m_upperLeft;
 }
+
 COORD CharacterBox::UpperLeft( COORD ul ) {
     COORD old = m_upperLeft;
     m_upperLeft = ul;
     Normalize();
     return old;
 }
+
 COORD CharacterBox::LowerRight() const {
     return m_lowerRight;
 }
+
 COORD CharacterBox::LowerRight( COORD lr ) {
     COORD old = m_lowerRight;
     m_lowerRight = lr;
     Normalize();
     return old;
 }
+
 char CharacterBox::Fill() const {
     return m_fill;
 }
+
 char CharacterBox::Fill( char fill ) {
     char old = m_fill;
     m_fill = fill;
     return old;
 }
+
 const ConsoleFormat& CharacterBox::BorderColor() const {
     return m_border;
 }
+
 ConsoleFormat CharacterBox::BorderColor( ConsoleFormat border ) {
     ConsoleFormat old = m_border;
     m_border = border;
     return old;
 }
+
 const ConsoleFormat& CharacterBox::ClientColor() const {
     return m_client;
 }
+
 ConsoleFormat CharacterBox::ClientColor( ConsoleFormat client ) {
     ConsoleFormat old = m_client;
     m_client = client;
     return old;
 }
+
 CharacterBox& CharacterBox::operator=( const CharacterBox& rhs ) {
     if ( this != &rhs ) {
         m_upperLeft = rhs.m_upperLeft;
@@ -144,7 +154,8 @@ SHORT CharacterBox::Height() const {
 
 #define FAST_BOX( UL, LR, FILL )                                     \
     ConsoleCore* pCore = ConsoleCore::GetInstance();                 \
-    COORD size = { LR.X - UL.X, LR.Y - UL.Y };                       \
+    COORD size = { static_cast< short >( ( LR ).X - ( UL ).X ),      \
+                   static_cast< short >( ( LR ).Y - ( UL ).Y ) };    \
     PCHAR_INFO buffer = new CHAR_INFO[ size.X * size.Y ];            \
     pCore->SaveScreen( buffer, size, UL );                           \
     for ( int x = 0; x < size.X; x++ ) {                             \
@@ -233,8 +244,10 @@ void CharacterBox::Draw( COORD upperLeft, COORD lowerRight, char fill ) {
 
 ///////////////////
 CharacterWindow::CharacterWindow() : CharacterBox() {}
+
 CharacterWindow::CharacterWindow( const CharacterWindow& rhs )
     : CharacterBox( rhs ), m_title( rhs.m_title ) {}
+
 CharacterWindow::CharacterWindow( COORD upperLeft,
                                   COORD lowerRight,
                                   const string& title,
@@ -247,15 +260,20 @@ CharacterWindow::CharacterWindow( COORD upperLeft,
 const string& CharacterWindow::Title() const {
     return m_title;
 }
+
 void CharacterWindow::Title( const string& title ) {
     m_title = title;
 }
+
 void CharacterWindow::Draw() const {
     COORD ulTitleBox = UpperLeft(),
-          brTitleBox = { LowerRight().X, UpperLeft().Y + 3 },
-          ulClientBox = { UpperLeft().X, UpperLeft().Y + 2 },
+          brTitleBox = { LowerRight().X,
+                         static_cast< short >( UpperLeft().Y + 3 ) },
+          ulClientBox = { UpperLeft().X,
+                          static_cast< short >( UpperLeft().Y + 2 ) },
           brClientBox = LowerRight();
-    COORD titlePosition = { UpperLeft().X + 1, UpperLeft().Y + 1 };
+    COORD titlePosition = { static_cast< short >( UpperLeft().X + 1 ),
+                            static_cast< short >( UpperLeft().Y + 1 ) };
     CharacterBox titleBox( ulTitleBox, brTitleBox, BorderColor(), ClientColor(),
                            Fill() ),
         clientBox( ulClientBox, brClientBox, BorderColor(), ClientColor(),

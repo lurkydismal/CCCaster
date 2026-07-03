@@ -50,6 +50,7 @@ public:
 
 private:
     void set_x( int an_x ) { x_ = an_x; }
+
     int x_;
 };
 

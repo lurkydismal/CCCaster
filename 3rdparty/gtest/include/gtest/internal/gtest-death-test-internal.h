@@ -82,12 +82,14 @@ public:
                         int line,
                         DeathTest** test );
     DeathTest();
+
     virtual ~DeathTest() {}
 
     // A helper class that aborts a death test when it's deleted.
     class ReturnSentinel {
     public:
         explicit ReturnSentinel( DeathTest* test ) : test_( test ) {}
+
         ~ReturnSentinel() { test_->Abort( TEST_ENCOUNTERED_RETURN_STATEMENT ); }
 
     private:
@@ -144,6 +146,7 @@ private:
 class DeathTestFactory {
 public:
     virtual ~DeathTestFactory() {}
+
     virtual bool Create( const char* statement,
                          const RE* regex,
                          const char* file,
@@ -263,8 +266,11 @@ public:
     }
 
     const std::string& file() const { return file_; }
+
     int line() const { return line_; }
+
     int index() const { return index_; }
+
     int write_fd() const { return write_fd_; }
 
 private:

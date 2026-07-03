@@ -126,14 +126,19 @@ inline std::string random_binary_string( std::mt19937& gen ) {
 
 struct StructBase {
     StructBase() {}
+
     StructBase( int xx, int yy ) : x( xx ), y( yy ) {}
+
     int x, y;
+
     bool operator==( StructBase const& other ) const {
         return x == other.x && y == other.y;
     }
+
     bool operator!=( StructBase const& other ) const {
         return x != other.x || y != other.y;
     }
+
     bool operator<( StructBase const& other ) const {
         if ( x < other.x )
             return true;
@@ -151,7 +156,9 @@ inline std::ostream& operator<<( std::ostream& os, StructBase const& s ) {
 
 struct StructInternalSerialize : StructBase {
     StructInternalSerialize() : StructBase{ 0, 0 } {}
+
     StructInternalSerialize( int x_, int y_ ) : StructBase{ x_, y_ } {}
+
     template < class Archive >
     void serialize( Archive& ar ) {
         ar( x, y );
@@ -160,7 +167,9 @@ struct StructInternalSerialize : StructBase {
 
 struct StructInternalSplit : StructBase {
     StructInternalSplit() : StructBase{ 0, 0 } {}
+
     StructInternalSplit( int x_, int y_ ) : StructBase{ x_, y_ } {}
+
     template < class Archive >
     void save( Archive& ar ) const {
         ar( x, y );
@@ -174,6 +183,7 @@ struct StructInternalSplit : StructBase {
 
 struct StructExternalSerialize : StructBase {
     StructExternalSerialize() : StructBase{ 0, 0 } {}
+
     StructExternalSerialize( int x_, int y_ ) : StructBase{ x_, y_ } {}
 };
 
@@ -184,6 +194,7 @@ void serialize( Archive& ar, StructExternalSerialize& s ) {
 
 struct StructExternalSplit : StructBase {
     StructExternalSplit() : StructBase{ 0, 0 } {}
+
     StructExternalSplit( int x_, int y_ ) : StructBase{ x_, y_ } {}
 };
 

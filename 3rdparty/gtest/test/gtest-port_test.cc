@@ -103,8 +103,11 @@ public:
     // Copy constructor and assignment operator do exactly what we need, so we
     // use them.
     Base() : member_( 0 ) {}
+
     explicit Base( int n ) : member_( n ) {}
+
     virtual ~Base() {}
+
     int member() { return member_; }
 
 private:
@@ -131,6 +134,7 @@ TEST( ImplicitCastTest, CanUseInheritance ) {
 class Castable {
 public:
     explicit Castable( bool* converted ) : converted_( converted ) {}
+
     operator Base() {
         *converted_ = true;
         return Base();
@@ -150,6 +154,7 @@ TEST( ImplicitCastTest, CanUseNonConstCastOperator ) {
 class ConstCastable {
 public:
     explicit ConstCastable( bool* converted ) : converted_( converted ) {}
+
     operator Base() const {
         *converted_ = true;
         return Base();
@@ -170,10 +175,12 @@ class ConstAndNonConstCastable {
 public:
     ConstAndNonConstCastable( bool* converted, bool* const_converted )
         : converted_( converted ), const_converted_( const_converted ) {}
+
     operator Base() {
         *converted_ = true;
         return Base();
     }
+
     operator Base() const {
         *const_converted_ = true;
         return Base();
@@ -1014,6 +1021,7 @@ TEST( ThreadLocalTest, SingleParamConstructorInitializesToParam ) {
 class NoDefaultContructor {
 public:
     explicit NoDefaultContructor( const char* ) {}
+
     NoDefaultContructor( const NoDefaultContructor& ) {}
 };
 
@@ -1107,6 +1115,7 @@ public:
         }
         value_ = temp + 1;
     }
+
     int value() const { return value_; }
 
 private:
@@ -1179,8 +1188,10 @@ static std::vector< bool > g_destroyed;
 class DestructorTracker {
 public:
     DestructorTracker() : index_( GetNewIndex() ) {}
+
     DestructorTracker( const DestructorTracker& /* rhs */ )
         : index_( GetNewIndex() ) {}
+
     ~DestructorTracker() {
         // We never access g_destroyed concurrently, so we don't need to
         // protect the write operation under a mutex.
@@ -1192,6 +1203,7 @@ private:
         g_destroyed.push_back( false );
         return g_destroyed.size() - 1;
     }
+
     const int index_;
 };
 

@@ -35,6 +35,7 @@ public:
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar, std::uint32_t const version ) {
         ar( x );
@@ -45,6 +46,7 @@ private:
 struct VersionStructMSP {
     uint8_t x;
     std::uint32_t v;
+
     template < class Archive >
     void save( Archive& ar, std::uint32_t const /*version*/ ) const {
         ar( x );

@@ -136,15 +136,17 @@ void ConsoleCore::SaveScreen( PCHAR_INFO buffer,
     pthread_mutex_lock( &mutex );
 #endif
     COORD bufferOrigin = { 0, 0 };
-    SMALL_RECT rectToRead = { saveOrigin.X, saveOrigin.Y,
-                              saveOrigin.X + bufferSize.X,
-                              saveOrigin.Y + bufferSize.Y };
+    SMALL_RECT rectToRead = {
+        saveOrigin.X, saveOrigin.Y,
+        static_cast< short >( saveOrigin.X + bufferSize.X ),
+        static_cast< short >( saveOrigin.Y + bufferSize.Y ) };
     ReadConsoleOutput( m_consoleHandle, buffer, bufferSize, bufferOrigin,
                        &rectToRead );
 #ifdef JLIB_MUTEXED
     pthread_mutex_unlock( &mutex );
 #endif
 }
+
 void ConsoleCore::LoadScreen() {
 #ifdef JLIB_MUTEXED
     pthread_mutex_lock( &mutex );
@@ -166,9 +168,10 @@ void ConsoleCore::LoadScreen( PCHAR_INFO buffer,
     pthread_mutex_lock( &mutex );
 #endif
     COORD bufferOrigin = { 0, 0 };
-    SMALL_RECT rectToWrite = { loadOrigin.X, loadOrigin.Y,
-                               loadOrigin.X + bufferSize.X,
-                               loadOrigin.Y + bufferSize.Y };
+    SMALL_RECT rectToWrite = {
+        loadOrigin.X, loadOrigin.Y,
+        static_cast< short >( loadOrigin.X + bufferSize.X ),
+        static_cast< short >( loadOrigin.Y + bufferSize.Y ) };
     WriteConsoleOutput( m_consoleHandle, buffer, bufferSize, bufferOrigin,
                         &rectToWrite );
 #ifdef JLIB_MUTEXED
@@ -248,6 +251,7 @@ void ConsoleCore::Printn( int number,
     snprintf( numberAsText, sizeof( numberAsText ), "%d", number );
     Prints( numberAsText, endLine, color, x, y );
 }
+
 void ConsoleCore::Printd( double number,
                           int characterLength,
                           BOOL endLine,

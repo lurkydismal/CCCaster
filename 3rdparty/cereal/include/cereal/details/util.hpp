@@ -58,6 +58,7 @@ inline std::string demangledName() {
 #include <cxxabi.h>
 
 #include <cstdlib>
+
 namespace cereal {
 namespace util {
 //! Demangles the type encoded in a string

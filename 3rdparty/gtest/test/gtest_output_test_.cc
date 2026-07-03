@@ -488,6 +488,7 @@ protected:
             &ThreadRoutine, &notifications_, NULL ) );
         notifications_.spawn_thread_started.WaitForNotification();
     }
+
     // Tells the thread to finish, and reaps it.
     // Depending on the version of the thread library in use,
     // a manager thread might still be left running that will interfere
@@ -519,6 +520,7 @@ namespace foo {
 class MixedUpTestCaseTest : public testing::Test {};
 
 TEST_F( MixedUpTestCaseTest, FirstTestFromNamespaceFoo ) {}
+
 TEST_F( MixedUpTestCaseTest, SecondTestFromNamespaceFoo ) {}
 
 class MixedUpTestCaseWithSameTestNameTest : public testing::Test {};
@@ -535,6 +537,7 @@ class MixedUpTestCaseTest : public testing::Test {};
 // The following two tests are expected to fail.  We rely on the
 // golden file to check that Google Test generates the right error message.
 TEST_F( MixedUpTestCaseTest, ThisShouldFail ) {}
+
 TEST_F( MixedUpTestCaseTest, ThisShouldFailToo ) {}
 
 class MixedUpTestCaseWithSameTestNameTest : public testing::Test {};
@@ -811,6 +814,7 @@ INSTANTIATE_TYPED_TEST_CASE_P( My, ATypeParamDeathTest, NumericTypes );
 class ExpectFailureTest : public testing::Test {
 public: // Must be public and not protected due to a bug in g++ 3.4.2.
     enum FailureMode { FATAL_FAILURE, NONFATAL_FAILURE };
+
     static void AddFailure( FailureMode failure ) {
         if ( failure == FATAL_FAILURE ) {
             FAIL() << "Expected fatal failure.";

@@ -82,21 +82,31 @@ public:
 
     // Socket state query functions
     bool isTCP() const { return ( protocol == Protocol::TCP ); }
+
     bool isUDP() const { return ( protocol == Protocol::UDP ); }
+
     bool isSmart() const { return ( protocol == Protocol::Smart ); }
+
     bool gotGoodRead() const { return _gotGoodRead; }
+
     virtual State getState() const { return _state; }
+
     virtual bool isConnecting() const {
         return isClient() && ( _state == State::Connecting );
     }
+
     virtual bool isConnected() const {
         return isClient() && ( _state == State::Connected );
     }
+
     virtual bool isDisconnected() const {
         return ( _state == State::Disconnected );
     }
+
     virtual bool isClient() const { return !address.addr.empty(); }
+
     virtual bool isServer() const { return address.addr.empty(); }
+
     virtual const IpAddrPort& getRemoteAddress() const {
         if ( isServer() )
             return NullAddress;
@@ -125,6 +135,7 @@ public:
                        const IpAddrPort& address = NullAddress ) = 0;
     virtual bool send( const MsgPtr& message,
                        const IpAddrPort& address = NullAddress ) = 0;
+
     bool send( const Serializable& message,
                const IpAddrPort& address = NullAddress ) {
         return send(
@@ -199,7 +210,9 @@ protected:
 
     // TCP event callbacks
     virtual void socketAccepted() {}
+
     virtual void socketConnected() {}
+
     virtual void socketDisconnected() {}
 
     // Read event callback, calls the function below if NOT isRaw
@@ -242,6 +255,7 @@ struct SocketShareData : public SerializableSequence {
                      const std::shared_ptr< WSAPROTOCOL_INFO >& info );
 
     bool isTCP() const { return ( protocol == Socket::Protocol::TCP ); }
+
     bool isUDP() const { return ( protocol == Socket::Protocol::UDP ); }
 
     DECLARE_MESSAGE_BOILERPLATE( SocketShareData )

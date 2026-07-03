@@ -162,6 +162,7 @@ bool MBAACC_FrameDisplay::has_sequence( int n ) {
 
     return m_character_data.has_sequence( n );
 }
+
 const char* MBAACC_FrameDisplay::get_sequence_name( int n ) {
     if ( !m_initialized ) {
         return 0;

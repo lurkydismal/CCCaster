@@ -31,7 +31,9 @@ struct PerfTimer {
                         _T("Problem"), MB_ICONEXCLAMATION );
         Reset();
     }
+
     inline void Reset() { QueryPerformanceCounter( &Start ); }
+
     inline double GetTime() {
         if ( QueryPerformanceCounter( &End ) )
             return ( ( double )End.QuadPart - ( double )Start.QuadPart ) /
@@ -51,7 +53,9 @@ protected:
 
 struct PerfTimer {
     inline PerfTimer() { Reset(); }
+
     inline void Reset() { gettimeofday( &Start, &TZ ); }
+
     inline double GetTime() {
         gettimeofday( &End, &TZ );
         double t1 =

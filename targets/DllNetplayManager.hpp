@@ -33,8 +33,11 @@ public:
 
     // Get index / frame information
     uint32_t getFrame() const { return _indexedFrame.parts.frame; }
+
     uint32_t getIndex() const { return _indexedFrame.parts.index; }
+
     IndexedFrame getIndexedFrame() const { return _indexedFrame; }
+
     uint32_t getRemoteIndex() const;
     uint32_t getRemoteFrame() const;
     IndexedFrame getRemoteIndexedFrame() const;
@@ -70,17 +73,22 @@ public:
 
     // Get / set the current NetplayState
     NetplayState getState() const { return _state; }
+
     void setState( NetplayState state );
+
     bool isInGame() const { return _state == NetplayState::InGame; }
+
     bool isInRollback() const {
         return isInGame() && config.rollback && config.mode.isNetplay();
     }
 
     // Get / set the input for the current frame given the player
     uint16_t getInput( uint8_t player );
+
     uint16_t getRawInput( uint8_t player ) const {
         return getRawInput( player, getFrame() );
     }
+
     uint16_t getRawInput( uint8_t player, uint32_t frame ) const;
     void setInput( uint8_t player, uint16_t input );
     void assignInput( uint8_t player, uint16_t input, uint32_t frame );
@@ -106,6 +114,7 @@ public:
 
     // Get / set the RngState
     MsgPtr getRngState() const { return getRngState( getIndex() ); }
+
     MsgPtr getRngState( uint32_t index ) const;
     void setRngState( const RngState& rngState );
 
@@ -123,17 +132,21 @@ public:
     uint8_t getDelay() const {
         return ( isInRollback() ? config.rollbackDelay : config.delay );
     }
+
     uint8_t getRollbackDelay() const { return config.rollbackDelay; }
+
     void setDelay( uint8_t delay ) {
         if ( isInRollback() )
             config.rollbackDelay = delay;
         else
             config.delay = delay;
     }
+
     void setRollbackDelay( uint8_t delay ) { config.rollbackDelay = delay; }
 
     // Get / set input rollback frames
     uint8_t getRollback() const { return config.rollback; }
+
     void setRollback( uint8_t rollback ) { config.rollback = rollback; }
 
     // Set remote transition index

@@ -29,6 +29,7 @@ namespace rapidjson {
    array and string.
 */
 #pragma pack( push, 4 )
+
 template < typename Encoding, typename Allocator = MemoryPoolAllocator<> >
 class GenericValue {
 public:
@@ -204,24 +205,38 @@ public:
         new ( this ) GenericValue( value );
         return *this;
     }
+
     //@}
 
     //!@name Type
     //@{
 
     Type GetType() const { return static_cast< Type >( flags_ & kTypeMask ); }
+
     bool IsNull_() const { return flags_ == kNull_Flag; }
+
     bool IsFalse() const { return flags_ == kFalseFlag; }
+
     bool IsTrue() const { return flags_ == kTrueFlag; }
+
     bool IsBool_() const { return ( flags_ & kBool_Flag ) != 0; }
+
     bool IsObject() const { return flags_ == kObjectFlag; }
+
     bool IsArray() const { return flags_ == kArrayFlag; }
+
     bool IsNumber() const { return ( flags_ & kNumberFlag ) != 0; }
+
     bool IsInt() const { return ( flags_ & kIntFlag ) != 0; }
+
     bool IsUint() const { return ( flags_ & kUintFlag ) != 0; }
+
     bool IsInt64() const { return ( flags_ & kInt64Flag ) != 0; }
+
     bool IsUint64() const { return ( flags_ & kUint64Flag ) != 0; }
+
     bool IsDouble() const { return ( flags_ & kDoubleFlag ) != 0; }
+
     bool IsString() const { return ( flags_ & kStringFlag ) != 0; }
 
     //@}
@@ -244,6 +259,7 @@ public:
         RAPIDJSON_ASSERT( IsBool_() );
         return flags_ == kTrueFlag;
     }
+
     GenericValue& SetBool_( bool b ) {
         this->~GenericValue();
         new ( this ) GenericValue( b );
@@ -271,6 +287,7 @@ public:
             return Null_Value;
         }
     }
+
     const GenericValue& operator[]( const Ch* name ) const {
         return const_cast< GenericValue& >( *this )[ name ];
     }
@@ -280,14 +297,17 @@ public:
         RAPIDJSON_ASSERT( IsObject() );
         return data_.o.members;
     }
+
     ConstMemberIterator MemberEnd() const {
         RAPIDJSON_ASSERT( IsObject() );
         return data_.o.members + data_.o.size;
     }
+
     MemberIterator MemberBegin() {
         RAPIDJSON_ASSERT( IsObject() );
         return data_.o.members;
     }
+
     MemberIterator MemberEnd() {
         RAPIDJSON_ASSERT( IsObject() );
         return data_.o.members + data_.o.size;
@@ -437,6 +457,7 @@ a[0u].GetInt();				// This works too.
         RAPIDJSON_ASSERT( index < data_.a.size );
         return data_.a.elements[ index ];
     }
+
     const GenericValue& operator[]( SizeType index ) const {
         return const_cast< GenericValue& >( *this )[ index ];
     }
@@ -446,13 +467,16 @@ a[0u].GetInt();				// This works too.
         RAPIDJSON_ASSERT( IsArray() );
         return data_.a.elements;
     }
+
     ValueIterator End() {
         RAPIDJSON_ASSERT( IsArray() );
         return data_.a.elements + data_.a.size;
     }
+
     ConstValueIterator Begin() const {
         return const_cast< GenericValue& >( *this ).Begin();
     }
+
     ConstValueIterator End() const {
         return const_cast< GenericValue& >( *this ).End();
     }
@@ -508,6 +532,7 @@ a[0u].GetInt();				// This works too.
         data_.a.elements[ --data_.a.size ].~GenericValue();
         return *this;
     }
+
     //@}
 
     //!@name Number
@@ -517,14 +542,17 @@ a[0u].GetInt();				// This works too.
         RAPIDJSON_ASSERT( flags_ & kIntFlag );
         return data_.n.i.i;
     }
+
     unsigned GetUint() const {
         RAPIDJSON_ASSERT( flags_ & kUintFlag );
         return data_.n.u.u;
     }
+
     int64_t GetInt64() const {
         RAPIDJSON_ASSERT( flags_ & kInt64Flag );
         return data_.n.i64;
     }
+
     uint64_t GetUint64() const {
         RAPIDJSON_ASSERT( flags_ & kUint64Flag );
         return data_.n.u64;
@@ -550,21 +578,25 @@ a[0u].GetInt();				// This works too.
         new ( this ) GenericValue( i );
         return *this;
     }
+
     GenericValue& SetUint( unsigned u ) {
         this->~GenericValue();
         new ( this ) GenericValue( u );
         return *this;
     }
+
     GenericValue& SetInt64( int64_t i64 ) {
         this->~GenericValue();
         new ( this ) GenericValue( i64 );
         return *this;
     }
+
     GenericValue& SetUint64( uint64_t u64 ) {
         this->~GenericValue();
         new ( this ) GenericValue( u64 );
         return *this;
     }
+
     GenericValue& SetDouble( double d ) {
         this->~GenericValue();
         new ( this ) GenericValue( d );
@@ -754,6 +786,7 @@ private:
             int i;
             char padding[ 4 ];
         } i;
+
         struct U {
             unsigned u;
             char padding2[ 4 ];
@@ -763,6 +796,7 @@ private:
             char padding[ 4 ];
             int i;
         } i;
+
         struct U {
             char padding2[ 4 ];
             unsigned u;
@@ -809,6 +843,7 @@ private:
 
         return 0;
     }
+
     const Member* FindMember( const Ch* name ) const {
         return const_cast< GenericValue& >( *this ).FindMember( name );
     }
@@ -863,6 +898,7 @@ private:
     Data data_;
     unsigned flags_;
 };
+
 #pragma pack( pop )
 
 //! Value with UTF8 encoding.
@@ -971,21 +1007,27 @@ private:
 
     // Implementation of Handler
     void Null_() { new ( stack_.template Push< ValueType >() ) ValueType(); }
+
     void Bool_( bool b ) {
         new ( stack_.template Push< ValueType >() ) ValueType( b );
     }
+
     void Int( int i ) {
         new ( stack_.template Push< ValueType >() ) ValueType( i );
     }
+
     void Uint( unsigned i ) {
         new ( stack_.template Push< ValueType >() ) ValueType( i );
     }
+
     void Int64( int64_t i ) {
         new ( stack_.template Push< ValueType >() ) ValueType( i );
     }
+
     void Uint64( uint64_t i ) {
         new ( stack_.template Push< ValueType >() ) ValueType( i );
     }
+
     void Double( double d ) {
         new ( stack_.template Push< ValueType >() ) ValueType( d );
     }

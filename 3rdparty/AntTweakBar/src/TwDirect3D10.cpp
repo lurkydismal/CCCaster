@@ -16,6 +16,10 @@
 #define D3D10_IGNORE_SDK_LAYERS // d3d10sdklayers.h may not exist
 #include <d3d10.h>
 
+#include <algorithm>
+
+#undef DrawText
+
 using namespace std;
 
 const char* g_ErrCantLoadD3D10 = "Cannot load Direct3D10 library dynamically";
@@ -58,6 +62,7 @@ D3D10StateBlockMaskEnableAllProc _D3D10StateBlockMaskEnableAll = NULL;
 D3D10CreateStateBlockProc _D3D10CreateStateBlock = NULL;
 
 const RECT FullRect = { 0, 0, 16000, 16000 };
+
 static bool RectIsFull( const RECT& r ) {
     return r.left == FullRect.left && r.right == FullRect.right &&
            r.top == FullRect.top && r.bottom == FullRect.bottom;
@@ -334,8 +339,9 @@ int CTwGraphDirect3D10::Init() {
         if ( errors != NULL ) {
             s_ErrorMsg[ errOffset++ ] = ':';
             s_ErrorMsg[ errOffset++ ] = '\n';
-            errLen =
-                min( errors->GetBufferSize(), ERR_MSG_MAX_LEN - errOffset - 2 );
+            errLen = std::min(
+                static_cast< size_t >( errors->GetBufferSize() ),
+                static_cast< size_t >( ERR_MSG_MAX_LEN - errOffset - 2 ) );
             strncpy( s_ErrorMsg + errOffset,
                      static_cast< char* >( errors->GetBufferPointer() ),
                      errLen );

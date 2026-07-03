@@ -186,6 +186,7 @@ TEST( NoFatalFailureTest, ExpectNoFatalFailureIgnoresFailuresInOtherThreads ) {
 void AssertNoFatalFailureIgnoresFailuresInOtherThreads() {
     ASSERT_NO_FATAL_FAILURE( GenerateFatalFailureInAnotherThread( true ) );
 }
+
 TEST( NoFatalFailureTest, AssertNoFatalFailureIgnoresFailuresInOtherThreads ) {
     // Using a subroutine, to make sure, that the test continues.
     AssertNoFatalFailureIgnoresFailuresInOtherThreads();

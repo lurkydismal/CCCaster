@@ -71,46 +71,55 @@ public:
         WriteNull_();
         return *this;
     }
+
     Writer& Bool_( bool b ) {
         Prefix( b ? kTrueType : kFalseType );
         WriteBool_( b );
         return *this;
     }
+
     Writer& Int( int i ) {
         Prefix( kNumberType );
         WriteInt( i );
         return *this;
     }
+
     Writer& Uint( unsigned u ) {
         Prefix( kNumberType );
         WriteUint( u );
         return *this;
     }
+
     Writer& Int64( int64_t i64 ) {
         Prefix( kNumberType );
         WriteInt64( i64 );
         return *this;
     }
+
     Writer& Uint64( uint64_t u64 ) {
         Prefix( kNumberType );
         WriteUint64( u64 );
         return *this;
     }
+
     Writer& Double( double d ) {
         Prefix( kNumberType );
         WriteDouble( d );
         return *this;
     }
+
     Writer& LongDouble( long double d ) {
         Prefix( kNumberType );
         WriteLongDouble( d );
         return *this;
     }
+
     Writer& LongLong( long long d ) {
         Prefix( kNumberType );
         WriteLongLong( d );
         return *this;
     }
+
     Writer& ULongLong( unsigned long long d ) {
         Prefix( kNumberType );
         WriteULongLong( d );
@@ -155,6 +164,7 @@ public:
         WriteEndArray();
         return *this;
     }
+
     //@}
 
     //! Simpler but slower overload.
@@ -166,6 +176,7 @@ protected:
     //! Information for each nested level
     struct Level {
         Level( bool inArray_ ) : inArray( inArray_ ), valueCount( 0 ) {}
+
         bool inArray;      //!< true if in array, otherwise in object
         size_t valueCount; //!< number of values in this level
     };
@@ -363,8 +374,11 @@ protected:
     }
 
     void WriteStartObject() { stream_.Put( '{' ); }
+
     void WriteEndObject() { stream_.Put( '}' ); }
+
     void WriteStartArray() { stream_.Put( '[' ); }
+
     void WriteEndArray() { stream_.Put( ']' ); }
 
     void Prefix( Type type ) {

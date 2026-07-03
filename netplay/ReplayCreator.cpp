@@ -120,6 +120,7 @@ void ReplayCreator::load( ReplayCreator::ReplayFile* rf, char* fname ) {
         rf->rounds.push_back( roundObj );
     }
 }
+
 void ReplayCreator::fixReplay( ReplayCreator::ReplayFile* rf,
                                char* fname,
                                MoveData* prior ) {

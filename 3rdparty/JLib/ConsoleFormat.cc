@@ -36,6 +36,7 @@ ConsoleFormat::ConsoleFormat( const string& bits ) : m_color( 0 ) {
     if ( bits.length() )
         m_color = atoi( bits.c_str() );
 }
+
 void ConsoleFormat::Set( Bit bit, bool value ) {
     if ( BitValid( bit ) )
         m_color |= ( unsigned( value ) << bit );

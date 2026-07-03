@@ -2,6 +2,7 @@
 
 #include <cereal/archives/binary.hpp>
 
+#include <array>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -121,6 +122,7 @@ class Serializable {
 public:
     // Basic constructor and destructor
     Serializable();
+
     virtual ~Serializable() {}
 
     // Return a clone
@@ -132,6 +134,7 @@ public:
 
     // Serialize to and deserialize from a binary archive
     virtual void save( cereal::BinaryOutputArchive& ar ) const {}
+
     virtual void load( cereal::BinaryInputArchive& ar ) {}
 
     // Cast this to another another type
@@ -139,6 +142,7 @@ public:
     T& getAs() {
         return *static_cast< T* >( this );
     }
+
     template < typename T >
     const T& getAs() const {
         return *static_cast< const T* >( this );
@@ -167,6 +171,7 @@ private:
 
     // Serialize and deserialize the base type
     virtual void saveBase( cereal::BinaryOutputArchive& ar ) const {}
+
     virtual void loadBase( cereal::BinaryInputArchive& ar ) {}
 
     friend struct Protocol;
@@ -204,6 +209,7 @@ public:
 
     // Get and set the message sequence
     uint32_t getSequence() const { return _sequence; }
+
     void setSequence( uint32_t sequence ) const;
 
 private:
@@ -213,6 +219,7 @@ private:
     void saveBase( cereal::BinaryOutputArchive& ar ) const override {
         ar( _sequence );
     };
+
     void loadBase( cereal::BinaryInputArchive& ar ) override {
         ar( _sequence );
     };

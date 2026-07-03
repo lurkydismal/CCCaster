@@ -1,6 +1,6 @@
 #include "render.h"
 
-#include <gl.h>
+#include <GL/gl.h>
 
 #include <cstdarg>
 #include <cstdio>

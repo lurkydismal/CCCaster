@@ -24,6 +24,7 @@
 using namespace std;
 
 ConsoleMenuItem::ConsoleMenuItem() : m_data( MenuItemPair( "", 0 ) ) {}
+
 ConsoleMenuItem::ConsoleMenuItem( const ConsoleMenuItem& rhs )
     : m_data( rhs.m_data ) {}
 
@@ -36,14 +37,17 @@ ConsoleMenuItem::ConsoleMenuItem( const string& text, DWORD value )
 string ConsoleMenuItem::Text() const {
     return m_data.first;
 }
+
 string ConsoleMenuItem::Text( const std::string& text ) {
     string old = m_data.first;
     m_data.first = text;
     return old;
 }
+
 DWORD ConsoleMenuItem::Value() const {
     return m_data.second;
 }
+
 DWORD ConsoleMenuItem::Value( DWORD value ) {
     DWORD old = m_data.second;
     m_data.second = value;

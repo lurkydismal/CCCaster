@@ -23,6 +23,8 @@
 //	Abstract:
 //		A demonstration of the ConsoleCore and JLib.
 //
+#include <winscard.h>
+
 #include <iostream>
 
 #include "ConsoleCore.h"
@@ -89,8 +91,8 @@ DWORD menuItemValues[ numberOfMainMenuItems ] = {
     ( DWORD )numberOfMainMenuItems };
 
 // Initial window dimensions
-int MAXSCREENX = 80;
-int MAXSCREENY = 25;
+short MAXSCREENX = 80;
+short MAXSCREENY = 25;
 
 int main( int argc, char* argv[] ) {
     UINT x = 0;
@@ -270,7 +272,9 @@ void ReadNumber() {
 void DrawBox() {
     ConsoleFormat boxColor = ConsoleFormat::SYSTEM, old;
     ConsoleCore* pCore = ConsoleCore::GetInstance();
-    COORD upperLeft = COORD(), lowerRight = { MAXSCREENX - 1, MAXSCREENY - 1 };
+    COORD upperLeft = COORD(),
+          lowerRight = { static_cast< short >( MAXSCREENX - 1 ),
+                         static_cast< short >( MAXSCREENY - 1 ) };
     char fill = '*';
     old = pCore->Color( &boxColor );
     CharacterBox::Draw( upperLeft, lowerRight, fill );

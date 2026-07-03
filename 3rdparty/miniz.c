@@ -276,10 +276,12 @@ static void* def_alloc_func( void* opaque, size_t items, size_t size ) {
     ( void )opaque, ( void )items, ( void )size;
     return MZ_MALLOC( items * size );
 }
+
 static void def_free_func( void* opaque, void* address ) {
     ( void )opaque, ( void )address;
     MZ_FREE( address );
 }
+
 static void* def_realloc_func( void* opaque,
                                void* address,
                                size_t items,
@@ -705,6 +707,7 @@ const char* mz_error( int err ) {
                           { MZ_BUF_ERROR, "buf error" },
                           { MZ_VERSION_ERROR, "version error" },
                           { MZ_PARAM_ERROR, "parameter error" } };
+
     mz_uint i;
     for ( i = 0; i < sizeof( s_error_descs ) / sizeof( s_error_descs[ 0 ] );
           ++i )
@@ -1548,6 +1551,7 @@ static const mz_uint8 s_tdefl_large_dist_extra[ 128 ] = {
 typedef struct {
     mz_uint16 m_key, m_sym_index;
 } tdefl_sym_freq;
+
 static tdefl_sym_freq* tdefl_radix_sort_syms( mz_uint num_syms,
                                               tdefl_sym_freq* pSyms0,
                                               tdefl_sym_freq* pSyms1 ) {
@@ -1634,6 +1638,7 @@ static void tdefl_calculate_minimum_redundancy( tdefl_sym_freq* A, int n ) {
 
 // Limits canonical Huffman code table's max code size.
 enum { TDEFL_MAX_SUPPORTED_HUFF_CODESIZE = 32 };
+
 static void tdefl_huffman_enforce_max_code_size( int* pNum_codes,
                                                  int code_list_len,
                                                  int max_code_size ) {
@@ -2194,6 +2199,7 @@ static int tdefl_flush_block( tdefl_compressor* d, int flush ) {
 
 #if MINIZ_USE_UNALIGNED_LOADS_AND_STORES
 #define TDEFL_READ_UNALIGNED_WORD( p ) *( const mz_uint16* )( p )
+
 static MZ_FORCEINLINE void tdefl_find_match( tdefl_compressor* d,
                                              mz_uint lookahead_pos,
                                              mz_uint max_dist,
@@ -3046,47 +3052,48 @@ void* tdefl_write_image_to_png_file_in_memory( const void* pImage,
     // write real header
     *pLen_out = out_buf.m_size - 41;
     {
-        mz_uint8 pnghdr[ 41 ] = { 0x89,
-                                  0x50,
-                                  0x4e,
-                                  0x47,
-                                  0x0d,
-                                  0x0a,
-                                  0x1a,
-                                  0x0a,
-                                  0x00,
-                                  0x00,
-                                  0x00,
-                                  0x0d,
-                                  0x49,
-                                  0x48,
-                                  0x44,
-                                  0x52,
-                                  0,
-                                  0,
-                                  ( mz_uint8 )( w >> 8 ),
-                                  ( mz_uint8 )w,
-                                  0,
-                                  0,
-                                  ( mz_uint8 )( h >> 8 ),
-                                  ( mz_uint8 )h,
-                                  8,
-                                  "\0\0\04\02\06"[ num_chans ],
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  ( mz_uint8 )( *pLen_out >> 24 ),
-                                  ( mz_uint8 )( *pLen_out >> 16 ),
-                                  ( mz_uint8 )( *pLen_out >> 8 ),
-                                  ( mz_uint8 )*pLen_out,
-                                  0x49,
-                                  0x44,
-                                  0x41,
-                                  0x54 };
+        mz_uint8 pnghdr[ 41 ] = {
+            0x89,
+            0x50,
+            0x4e,
+            0x47,
+            0x0d,
+            0x0a,
+            0x1a,
+            0x0a,
+            0x00,
+            0x00,
+            0x00,
+            0x0d,
+            0x49,
+            0x48,
+            0x44,
+            0x52,
+            0,
+            0,
+            ( mz_uint8 )( w >> 8 ),
+            ( mz_uint8 )w,
+            0,
+            0,
+            ( mz_uint8 )( h >> 8 ),
+            ( mz_uint8 )h,
+            8,
+            static_cast< mz_uint8 >( "\0\0\04\02\06"[ num_chans ] ),
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            ( mz_uint8 )( *pLen_out >> 24 ),
+            ( mz_uint8 )( *pLen_out >> 16 ),
+            ( mz_uint8 )( *pLen_out >> 8 ),
+            ( mz_uint8 )*pLen_out,
+            0x49,
+            0x44,
+            0x41,
+            0x54 };
         c = ( mz_uint32 )mz_crc32( MZ_CRC32_INIT, pnghdr + 12, 17 );
         for ( i = 0; i < 4; ++i, c <<= 8 )
             ( ( mz_uint8* )( pnghdr + 29 ) )[ i ] = ( mz_uint8 )( c >> 24 );
@@ -3131,6 +3138,7 @@ static FILE* mz_fopen( const char* pFilename, const char* pMode ) {
     fopen_s( &pFile, pFilename, pMode );
     return pFile;
 }
+
 static FILE* mz_freopen( const char* pPath, const char* pMode, FILE* pStream ) {
     FILE* pFile = NULL;
     if ( freopen_s( &pFile, pPath, pMode, pStream ) )
@@ -3141,6 +3149,7 @@ static FILE* mz_freopen( const char* pPath, const char* pMode, FILE* pStream ) {
 static FILE* mz_fopen( const char* pFilename, const char* pMode ) {
     return fopen( pFilename, pMode );
 }
+
 static FILE* mz_freopen( const char* pPath, const char* pMode, FILE* pStream ) {
     return freopen( pPath, pMode, pStream );
 }
@@ -4515,12 +4524,14 @@ static void mz_write_le16( mz_uint8* p, mz_uint16 v ) {
     p[ 0 ] = ( mz_uint8 )v;
     p[ 1 ] = ( mz_uint8 )( v >> 8 );
 }
+
 static void mz_write_le32( mz_uint8* p, mz_uint32 v ) {
     p[ 0 ] = ( mz_uint8 )v;
     p[ 1 ] = ( mz_uint8 )( v >> 8 );
     p[ 2 ] = ( mz_uint8 )( v >> 16 );
     p[ 3 ] = ( mz_uint8 )( v >> 24 );
 }
+
 #define MZ_WRITE_LE16( p, v ) \
     mz_write_le16( ( mz_uint8* )( p ), ( mz_uint16 )( v ) )
 #define MZ_WRITE_LE32( p, v ) \

@@ -18,6 +18,8 @@
 //  #pragma comment(lib, "dxerr9")
 #endif // _DEBUG
 
+#undef DrawText
+
 using namespace std;
 
 const char* g_ErrCantLoadD3D9 = "Cannot load Direct3D9 library dynamically";
@@ -276,6 +278,7 @@ void CTwGraphDirect3D9::DrawLine( int _X0,
         float m_Pos[ 4 ];
         DWORD m_Color;
     };
+
     CVtx p[ 2 ];
 
     p[ 0 ].m_Pos[ 0 ] = ( float )( _X0 + m_OffsetX );
@@ -327,6 +330,7 @@ void CTwGraphDirect3D9::DrawRect( int _X0,
         float m_Pos[ 4 ];
         DWORD m_Color;
     };
+
     CVtx p[ 4 ];
 
     p[ 0 ].m_Pos[ 0 ] = ( float )( _X1 + m_OffsetX );

@@ -251,16 +251,19 @@ struct has_member_save_impl {
 #ifdef CEREAL_OLDER_GCC
     template < class TT, class AA, class SFINAE = void >
     struct test : no {};
+
     template < class TT, class AA >
     struct test< TT,
                  AA,
                  typename detail::Void< decltype( cereal::access::member_save(
                      std::declval< AA& >(),
                      std::declval< TT const& >() ) ) >::type > : yes {};
+
     static const bool value = test< T, A >();
 
     template < class TT, class AA, class SFINAE = void >
     struct test2 : no {};
+
     template < class TT, class AA >
     struct test2<
         TT,
@@ -269,6 +272,7 @@ struct has_member_save_impl {
             std::declval< AA& >(),
             std::declval< typename std::remove_const< TT >::type& >() ) ) >::
             type > : yes {};
+
     static const bool not_const_type = test2< T, A >();
 #else  // NOT CEREAL_OLDER_GCC =========================================
     template < class TT, class AA >
@@ -314,6 +318,7 @@ struct has_member_versioned_save_impl {
 #ifdef CEREAL_OLDER_GCC
     template < class TT, class AA, class SFINAE = void >
     struct test : no {};
+
     template < class TT, class AA >
     struct test< TT,
                  AA,
@@ -321,10 +326,12 @@ struct has_member_versioned_save_impl {
                      std::declval< AA& >(),
                      std::declval< TT const& >(),
                      0 ) ) >::type > : yes {};
+
     static const bool value = test< T, A >();
 
     template < class TT, class AA, class SFINAE = void >
     struct test2 : no {};
+
     template < class TT, class AA >
     struct test2<
         TT,
@@ -333,6 +340,7 @@ struct has_member_versioned_save_impl {
             std::declval< AA& >(),
             std::declval< typename std::remove_const< TT >::type& >(),
             0 ) ) >::type > : yes {};
+
     static const bool not_const_type = test2< T, A >();
 #else  // NOT CEREAL_OLDER_GCC =========================================
     template < class TT, class AA >
@@ -481,6 +489,7 @@ struct has_member_save_minimal_impl {
 #ifdef CEREAL_OLDER_GCC
     template < class TT, class AA, class SFINAE = void >
     struct test : no {};
+
     template < class TT, class AA >
     struct test<
         TT,
@@ -488,10 +497,12 @@ struct has_member_save_minimal_impl {
         typename detail::Void< decltype( cereal::access::member_save_minimal(
             std::declval< AA const& >(),
             std::declval< TT const& >() ) ) >::type > : yes {};
+
     static const bool value = test< T, A >();
 
     template < class TT, class AA, class SFINAE = void >
     struct test2 : no {};
+
     template < class TT, class AA >
     struct test2< TT,
                   AA,
@@ -500,6 +511,7 @@ struct has_member_save_minimal_impl {
                           std::declval< AA const& >(),
                           std::declval< typename std::remove_const<
                               TT >::type& >() ) ) >::type > : yes {};
+
     static const bool not_const_type = test2< T, A >();
 #else  // NOT CEREAL_OLDER_GCC =========================================
     template < class TT, class AA >
@@ -567,6 +579,7 @@ struct has_member_versioned_save_minimal_impl {
 #ifdef CEREAL_OLDER_GCC
     template < class TT, class AA, class SFINAE = void >
     struct test : no {};
+
     template < class TT, class AA >
     struct test<
         TT,
@@ -575,10 +588,12 @@ struct has_member_versioned_save_minimal_impl {
             std::declval< AA const& >(),
             std::declval< TT const& >(),
             0 ) ) >::type > : yes {};
+
     static const bool value = test< T, A >();
 
     template < class TT, class AA, class SFINAE = void >
     struct test2 : no {};
+
     template < class TT, class AA >
     struct test2<
         TT,
@@ -588,6 +603,7 @@ struct has_member_versioned_save_minimal_impl {
                 std::declval< AA const& >(),
                 std::declval< typename std::remove_const< TT >::type& >(),
                 0 ) ) >::type > : yes {};
+
     static const bool not_const_type = test2< T, A >();
 #else  // NOT CEREAL_OLDER_GCC =========================================
     template < class TT, class AA >
@@ -861,6 +877,7 @@ struct AnyConvert {
 #ifdef CEREAL_OLDER_GCC
 template < class T, class A, class SFINAE = void >
 struct has_member_load_minimal_impl : no {};
+
 template < class T, class A >
 struct has_member_load_minimal_impl<
     T,
@@ -872,6 +889,7 @@ struct has_member_load_minimal_impl<
 
 template < class T, class A, class U, class SFINAE = void >
 struct has_member_load_minimal_type_impl : no {};
+
 template < class T, class A, class U >
 struct has_member_load_minimal_type_impl<
     T,
@@ -952,6 +970,7 @@ namespace detail {
 #ifdef CEREAL_OLDER_GCC
 template < class T, class A, class SFINAE = void >
 struct has_member_versioned_load_minimal_impl : no {};
+
 template < class T, class A >
 struct has_member_versioned_load_minimal_impl<
     T,
@@ -964,6 +983,7 @@ struct has_member_versioned_load_minimal_impl<
 
 template < class T, class A, class U, class SFINAE = void >
 struct has_member_versioned_load_minimal_type_impl : no {};
+
 template < class T, class A, class U >
 struct has_member_versioned_load_minimal_type_impl<
     T,
@@ -1632,6 +1652,7 @@ struct base_class_id {
     void const* ptr;
     size_t hash;
 };
+
 struct base_class_id_hash {
     size_t operator()( base_class_id const& id ) const { return id.hash; }
 };
@@ -1736,6 +1757,7 @@ struct Construct {
     static_assert( cereal::traits::detail::delay_static_assert< T >::value,
                    "Cereal detected both member and non member "
                    "load_and_construct functions!" );
+
     static T* load_andor_construct( A& /*ar*/, construct< T >& /*construct*/ ) {
         return nullptr;
     }
@@ -1757,6 +1779,7 @@ struct Construct< T, A, false, false > {
         "  ar( a ) \n "
         "  construct( a ); \n "
         "} \n\n" );
+
     static T* load_andor_construct() { return new T(); }
 };
 

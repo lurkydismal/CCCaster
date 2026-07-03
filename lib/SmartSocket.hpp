@@ -18,17 +18,17 @@ public:
     // Listen for connections on the given port.
     // Opens a regular server socket of the given protocol, but also listens for
     // UDP tunnel connections.
-    static SocketPtr listenTCP( Owner* owner, uint16_t port );
-    static SocketPtr listenUDP( Owner* owner, uint16_t port );
+    static auto listenTCP( Owner* owner, uint16_t port ) -> SocketPtr;
+    static auto listenUDP( Owner* owner, uint16_t port ) -> SocketPtr;
 
     // Connect to the given address and port.
     // Tries to connect using the given protocol, with fallback to UDP tunnel.
-    static SocketPtr connectTCP( Owner* owner,
-                                 const IpAddrPort& address,
-                                 bool forceTunnel = false );
-    static SocketPtr connectUDP( Owner* owner,
-                                 const IpAddrPort& address,
-                                 bool forceTunnel = false );
+    static auto connectTCP( Owner* owner,
+                            const IpAddrPort& address,
+                            bool forceTunnel = false ) -> SocketPtr;
+    static auto connectUDP( Owner* owner,
+                            const IpAddrPort& address,
+                            bool forceTunnel = false ) -> SocketPtr;
 
     // Destructor
     ~SmartSocket() override;
@@ -37,24 +37,25 @@ public:
     void disconnect() override;
 
     // Accept a new socket
-    SocketPtr accept( Socket::Owner* owner ) override;
+    auto accept( Socket::Owner* owner ) -> SocketPtr override;
 
     // If this client UDP socket is connected over the UDP tunnel
-    bool isTunnel() const;
+    auto isTunnel() const -> bool;
 
     // Send raw bytes directly, a return value of false indicates socket is
     // disconnected
-    bool send( const char* buffer, size_t len );
-    bool send( const char* buffer, size_t len, const IpAddrPort& address );
+    auto send( const char* buffer, size_t len ) -> bool override;
+    auto send( const char* buffer, size_t len, const IpAddrPort& address )
+        -> bool override;
 
     // Send a protocol message, a return value of false indicates socket is
     // disconnected
-    bool send( SerializableMessage* message,
-               const IpAddrPort& address = NullAddress ) override;
-    bool send( SerializableSequence* message,
-               const IpAddrPort& address = NullAddress ) override;
-    bool send( const MsgPtr& message,
-               const IpAddrPort& address = NullAddress ) override;
+    auto send( SerializableMessage* message,
+               const IpAddrPort& address = NullAddress ) -> bool override;
+    auto send( SerializableSequence* message,
+               const IpAddrPort& address = NullAddress ) -> bool override;
+    auto send( const MsgPtr& message, const IpAddrPort& address = NullAddress )
+        -> bool override;
 
 private:
     // Child UDP socket enum type for choosing the right constructor

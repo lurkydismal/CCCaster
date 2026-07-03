@@ -122,6 +122,7 @@ struct C {
 class MemberMinimal {
 public:
     MemberMinimal() = default;
+
     template < class Archive >
     int save_minimal( Archive const& ) const {
         return x;

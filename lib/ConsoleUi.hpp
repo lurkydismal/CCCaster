@@ -12,6 +12,7 @@
 inline COORD operator+( const COORD& a, const COORD& b ) {
     return { short( a.X + b.X ), short( a.Y + b.Y ) };
 }
+
 inline COORD operator-( const COORD& a, const COORD& b ) {
     return { short( a.X - b.X ), short( a.Y - b.Y ) };
 }
@@ -21,6 +22,7 @@ inline COORD& operator+=( COORD& a, const COORD& b ) {
     a.Y += b.Y;
     return a;
 }
+
 inline COORD& operator-=( COORD& a, const COORD& b ) {
     a.X -= b.X;
     a.Y -= b.Y;
@@ -139,6 +141,7 @@ public:
         size_t maxDigits = 9;
 
         enum PromptTypeInteger { Integer };
+
         enum PromptTypeString { String };
 
         Prompt( PromptTypeString, const std::string& title = "" );

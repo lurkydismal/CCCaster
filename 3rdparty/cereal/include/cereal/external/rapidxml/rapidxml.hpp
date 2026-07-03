@@ -346,6 +346,7 @@ inline bool compare( const Ch* p1,
     return true;
 }
 } // namespace internal
+
 //! \endcond
 
 ///////////////////////////////////////////////////////////////////////
@@ -395,6 +396,7 @@ public:
                                                 // used to allocate memory
     typedef void( free_func )(
         void* ); // Type of user-defined function used to free memory
+
     //! \endcond
 
     //! Constructs empty pool with default allocator functions.
@@ -2588,6 +2590,7 @@ const unsigned char lookup_tables< Dummy >::lookup_upcase[ 256 ] = {
     248, 249, 250, 251, 252, 253, 254, 255 // F
 };
 } // namespace internal
+
 //! \endcond
 
 } // namespace rapidxml

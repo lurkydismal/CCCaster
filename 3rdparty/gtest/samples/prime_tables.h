@@ -87,6 +87,7 @@ public:
         : is_prime_size_( max + 1 ), is_prime_( new bool[ max + 1 ] ) {
         CalculatePrimesUpTo( max );
     }
+
     virtual ~PreCalculatedPrimeTable() { delete[] is_prime_; }
 
     virtual bool IsPrime( int n ) const {

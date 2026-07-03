@@ -45,6 +45,7 @@ namespace cereal {
 /*! @ingroup Utility */
 struct Exception : public std::runtime_error {
     Exception( const std::string& what_ ) : std::runtime_error( what_ ) {}
+
     Exception( const char* what_ ) : std::runtime_error( what_ ) {}
 };
 
@@ -221,6 +222,7 @@ struct BinaryData {
 namespace detail {
 // base classes for type checking
 struct OutputArchiveBase {};
+
 struct InputArchiveBase {};
 
 // forward decls for polymorphic support
@@ -356,6 +358,7 @@ private:
 
     struct Base {
         virtual ~Base() {}
+
         virtual std::unique_ptr< Base > clone() const = 0;
     };
 
@@ -389,8 +392,11 @@ public:
     }
 
     Any() : itsPtr() {}
+
     Any( Any& other ) : itsPtr( other.clone() ) {}
+
     Any( Any const& other ) : itsPtr( other.clone() ) {}
+
     Any( Any&& other ) : itsPtr( std::move( other.itsPtr ) ) {}
 
     Any& operator=( Any const& other ) {

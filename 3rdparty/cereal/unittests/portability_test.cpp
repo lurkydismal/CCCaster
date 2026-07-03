@@ -72,6 +72,7 @@ struct Data2 {
     int64_t y;
 
     Data2() = default;
+
     Data2( int32_t xx, int64_t yy ) : x( xx ), y( yy ) {}
 
     template < class Archive >

@@ -70,7 +70,7 @@ struct CodeFinder {
 
 //		RemoveCodes
 //	Breaks a string into a pair of strings, one for the color code and one
-//for the text 	to be colored.
+// for the text 	to be colored.
 CodeFinder<>::CodePhraseVector RemoveCodes(
     CodeFinder<>::PhraseLocationVector::iterator e );
 

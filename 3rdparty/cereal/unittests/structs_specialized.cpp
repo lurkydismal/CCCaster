@@ -69,12 +69,14 @@ struct BogusBaseVersioned {
 class SpecializedMSerialize : public BogusBase {
 public:
     SpecializedMSerialize() = default;
+
     SpecializedMSerialize( int xx ) : x( xx ) {}
 
     int x;
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar ) {
         ar( x );
@@ -84,12 +86,14 @@ private:
 class SpecializedMSerializeVersioned : public BogusBaseVersioned {
 public:
     SpecializedMSerializeVersioned() = default;
+
     SpecializedMSerializeVersioned( int xx ) : x( xx ) {}
 
     int x;
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void serialize( Archive& ar, const std::uint32_t ) {
         ar( x );
@@ -99,12 +103,14 @@ private:
 class SpecializedMSplit : public BogusBase {
 public:
     SpecializedMSplit() = default;
+
     SpecializedMSplit( int xx ) : x( xx ) {}
 
     int x;
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void save( Archive& ar ) const {
         ar( x );
@@ -119,12 +125,14 @@ private:
 class SpecializedMSplitVersioned : public BogusBaseVersioned {
 public:
     SpecializedMSplitVersioned() = default;
+
     SpecializedMSplitVersioned( int xx ) : x( xx ) {}
 
     int x;
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     void save( Archive& ar, const std::uint32_t ) const {
         ar( x );
@@ -139,12 +147,14 @@ private:
 class SpecializedMSplitMinimal : public BogusBase {
 public:
     SpecializedMSplitMinimal() = default;
+
     SpecializedMSplitMinimal( int xx ) : x( xx ) {}
 
     int x;
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     int save_minimal( Archive const& ) const {
         return x;
@@ -159,12 +169,14 @@ private:
 class SpecializedMSplitVersionedMinimal : public BogusBaseVersioned {
 public:
     SpecializedMSplitVersionedMinimal() = default;
+
     SpecializedMSplitVersionedMinimal( int xx ) : x( xx ) {}
 
     int x;
 
 private:
     friend class cereal::access;
+
     template < class Archive >
     int save_minimal( Archive const&, const std::uint32_t ) const {
         return x;
@@ -179,6 +191,7 @@ private:
 class SpecializedNMSerialize : public BogusBase {
 public:
     SpecializedNMSerialize() = default;
+
     SpecializedNMSerialize( int xx ) : x( xx ) {}
 
     int x;
@@ -192,6 +205,7 @@ void serialize( Archive& ar, SpecializedNMSerialize& s ) {
 class SpecializedNMSerializeVersioned : public BogusBaseVersioned {
 public:
     SpecializedNMSerializeVersioned() = default;
+
     SpecializedNMSerializeVersioned( int xx ) : x( xx ) {}
 
     int x;
@@ -205,6 +219,7 @@ void serialize( Archive& ar, SpecializedNMSerializeVersioned& s ) {
 class SpecializedNMSplit : public BogusBase {
 public:
     SpecializedNMSplit() = default;
+
     SpecializedNMSplit( int xx ) : x( xx ) {}
 
     int x;
@@ -223,6 +238,7 @@ void save( Archive& ar, SpecializedNMSplit const& s ) {
 class SpecializedNMSplitVersioned : public BogusBaseVersioned {
 public:
     SpecializedNMSplitVersioned() = default;
+
     SpecializedNMSplitVersioned( int xx ) : x( xx ) {}
 
     int x;
@@ -243,6 +259,7 @@ void save( Archive& ar,
 class SpecializedNMSplitMinimal : public BogusBase {
 public:
     SpecializedNMSplitMinimal() = default;
+
     SpecializedNMSplitMinimal( int xx ) : x( xx ) {}
 
     int x;
@@ -263,6 +280,7 @@ int save_minimal( Archive const&, SpecializedNMSplitMinimal const& s ) {
 class SpecializedNMSplitVersionedMinimal : public BogusBaseVersioned {
 public:
     SpecializedNMSplitVersionedMinimal() = default;
+
     SpecializedNMSplitVersionedMinimal( int xx ) : x( xx ) {}
 
     int x;
@@ -288,6 +306,7 @@ template < class Archive >
 struct specialize< Archive,
                    SpecializedMSerialize,
                    cereal::specialization::member_serialize > {};
+
 template < class Archive >
 struct specialize< Archive,
                    SpecializedMSerializeVersioned,
@@ -297,6 +316,7 @@ template < class Archive >
 struct specialize< Archive,
                    SpecializedMSplit,
                    cereal::specialization::member_load_save > {};
+
 template < class Archive >
 struct specialize< Archive,
                    SpecializedMSplitVersioned,
@@ -306,6 +326,7 @@ template < class Archive >
 struct specialize< Archive,
                    SpecializedMSplitMinimal,
                    cereal::specialization::member_load_save_minimal > {};
+
 template < class Archive >
 struct specialize< Archive,
                    SpecializedMSplitVersionedMinimal,
@@ -315,6 +336,7 @@ template < class Archive >
 struct specialize< Archive,
                    SpecializedNMSerialize,
                    cereal::specialization::non_member_serialize > {};
+
 template < class Archive >
 struct specialize< Archive,
                    SpecializedNMSerializeVersioned,
@@ -324,6 +346,7 @@ template < class Archive >
 struct specialize< Archive,
                    SpecializedNMSplit,
                    cereal::specialization::non_member_load_save > {};
+
 template < class Archive >
 struct specialize< Archive,
                    SpecializedNMSplitVersioned,
@@ -333,6 +356,7 @@ template < class Archive >
 struct specialize< Archive,
                    SpecializedNMSplitMinimal,
                    cereal::specialization::non_member_load_save_minimal > {};
+
 template < class Archive >
 struct specialize< Archive,
                    SpecializedNMSplitVersionedMinimal,

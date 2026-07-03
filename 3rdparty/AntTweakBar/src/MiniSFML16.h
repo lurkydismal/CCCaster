@@ -135,6 +135,7 @@ enum Button { Left, Right, Middle, XButton1, XButton2, Count };
 
 namespace Joy {
 enum Axis { AxisX, AxisY, AxisZ, AxisR, AxisU, AxisV, AxisPOV, AxisCount };
+
 enum { Count = 4, ButtonCount = 32 };
 } // namespace Joy
 
@@ -147,30 +148,38 @@ public:
         Key::Code Code;
         bool Alt, Control, Shift;
     };
+
     struct TextEvent {
         Uint32 Unicode;
     };
+
     struct MouseMoveEvent {
         int X, Y;
     };
+
     struct MouseButtonEvent {
         Mouse::Button Button;
         int X, Y;
     };
+
     struct MouseWheelEvent {
         int Delta;
     };
+
     struct JoyMoveEvent {
         unsigned int JoystickId;
         Joy::Axis Axis;
         float Position;
     };
+
     struct JoyButtonEvent {
         unsigned int JoystickId, Button;
     };
+
     struct SizeEvent {
         unsigned int Width, Height;
     };
+
     enum EventType {
         Closed,
         Resized,
@@ -189,7 +198,9 @@ public:
         JoyButtonReleased,
         JoyMoved
     };
+
     EventType Type;
+
     union {
         KeyEvent Key;
         TextEvent Text;
@@ -216,6 +227,7 @@ namespace sf {
 class Input;
 class Drawable;
 typedef void* WindowHandle;
+
 namespace priv {
 class WindowImpl;
 }
@@ -308,6 +320,7 @@ class Vector2 {
 public:
     T x, y;
 };
+
 typedef Vector2< float > Vector2f;
 
 template < typename T >
@@ -315,6 +328,7 @@ class Rect {
 public:
     T Left, Top, Right, Bottom;
 };
+
 typedef Rect< float > FloatRect;
 
 class Matrix3 {

@@ -1,3 +1,5 @@
+#pragma once
+
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwDirect3D11.h
@@ -10,8 +12,7 @@
 //
 //  ---------------------------------------------------------------------------
 
-#if !defined ANT_TW_DIRECT3D11_INCLUDED
-#define ANT_TW_DIRECT3D11_INCLUDED
+#include <windef.h>
 
 #include "TwGraph.h"
 
@@ -32,6 +33,7 @@ public:
                            color32 _Color0,
                            color32 _Color1,
                            bool _AntiAliased = false );
+
     virtual void DrawLine( int _X0,
                            int _Y0,
                            int _X1,
@@ -40,6 +42,7 @@ public:
                            bool _AntiAliased = false ) {
         DrawLine( _X0, _Y0, _X1, _Y1, _Color, _Color, _AntiAliased );
     }
+
     virtual void DrawRect( int _X0,
                            int _Y0,
                            int _X1,
@@ -48,6 +51,7 @@ public:
                            color32 _Color10,
                            color32 _Color01,
                            color32 _Color11 );
+
     virtual void DrawRect( int _X0,
                            int _Y0,
                            int _X1,
@@ -55,6 +59,7 @@ public:
                            color32 _Color ) {
         DrawRect( _X0, _Y0, _X1, _Y1, _Color, _Color, _Color, _Color );
     }
+
     virtual void DrawTriangles( int _NumTriangles,
                                 int* _Vertices,
                                 color32* _Colors,
@@ -104,11 +109,13 @@ protected:
         float m_Pos[ 3 ];
         color32 m_Color;
     };
+
     struct CTextVtx {
         float m_Pos[ 3 ];
         color32 m_Color;
         float m_UV[ 2 ];
     };
+
     struct CConstants {
         float m_Offset[ 4 ];
         float m_CstColor[ 4 ];
@@ -151,5 +158,3 @@ protected:
 };
 
 //  ---------------------------------------------------------------------------
-
-#endif // !defined ANT_TW_DIRECT3D11_INCLUDED

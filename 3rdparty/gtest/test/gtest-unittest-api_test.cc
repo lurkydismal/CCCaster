@@ -99,7 +99,9 @@ public:
 #if GTEST_HAS_TYPED_TEST
 template < typename T >
 class TestCaseWithCommentTest : public Test {};
+
 TYPED_TEST_CASE( TestCaseWithCommentTest, Types< int > );
+
 TYPED_TEST( TestCaseWithCommentTest, Dummy ) {}
 
 const int kTypedTestCases = 1;
@@ -230,6 +232,7 @@ TEST( ApiTest, TestCaseDisabledAccessorsWork ) {
 // These two tests are here to provide support for testing
 // test_case_to_run_count, disabled_test_count, and test_to_run_count.
 TEST( ApiTest, DISABLED_Dummy1 ) {}
+
 TEST( DISABLED_Test, Dummy2 ) {}
 
 class FinalSuccessChecker : public Environment {

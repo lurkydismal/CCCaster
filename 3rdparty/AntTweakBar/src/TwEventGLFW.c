@@ -182,15 +182,19 @@ TW_API int TW_CDECL_CALL TwEventMouseButtonGLFWcdecl( int glfwButton,
                                                       int glfwAction ) {
     return TwEventMouseButtonGLFW( glfwButton, glfwAction );
 }
+
 TW_API int TW_CDECL_CALL TwEventKeyGLFWcdecl( int glfwKey, int glfwAction ) {
     return TwEventKeyGLFW( glfwKey, glfwAction );
 }
+
 TW_API int TW_CDECL_CALL TwEventCharGLFWcdecl( int glfwChar, int glfwAction ) {
     return TwEventCharGLFW( glfwChar, glfwAction );
 }
+
 TW_API int TW_CDECL_CALL TwEventMousePosGLFWcdecl( int mouseX, int mouseY ) {
     return TwMouseMotion( mouseX, mouseY );
 }
+
 TW_API int TW_CDECL_CALL TwEventMouseWheelGLFWcdecl( int wheelPos ) {
     return TwMouseWheel( wheelPos );
 }
