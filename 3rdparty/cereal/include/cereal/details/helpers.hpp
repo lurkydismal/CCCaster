@@ -30,14 +30,14 @@
 #ifndef CEREAL_DETAILS_HELPERS_HPP_
 #define CEREAL_DETAILS_HELPERS_HPP_
 
-#include <cereal/details/static_object.hpp>
-
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+
+#include "static_object.hpp"
 
 namespace cereal {
 // ######################################################################

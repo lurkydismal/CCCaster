@@ -30,9 +30,9 @@
 #ifndef CEREAL_TYPES_ARRAY_HPP_
 #define CEREAL_TYPES_ARRAY_HPP_
 
-#include <cereal/cereal.hpp>
-
 #include <array>
+
+#include "../cereal.hpp"
 
 namespace cereal {
 //! Saving for std::array primitive types

@@ -30,7 +30,7 @@
 #ifndef CEREAL_DETAILS_STATIC_OBJECT_HPP_
 #define CEREAL_DETAILS_STATIC_OBJECT_HPP_
 
-#include <cereal/details/util.hpp>
+#include "util.hpp"
 
 namespace cereal {
 namespace detail {

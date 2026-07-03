@@ -29,10 +29,6 @@
 #ifndef CEREAL_CEREAL_HPP_
 #define CEREAL_CEREAL_HPP_
 
-#include <cereal/details/helpers.hpp>
-#include <cereal/details/traits.hpp>
-#include <cereal/types/base_class.hpp>
-
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -42,6 +38,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "details/helpers.hpp"
+#include "details/traits.hpp"
+#include "types/base_class.hpp"
 
 namespace cereal {
 // ######################################################################
@@ -1049,6 +1049,7 @@ private:
 } // namespace cereal
 
 // This include needs to come after things such as binary_data, make_nvp, etc
-#include <cereal/types/common.hpp>
+// WARN: Maybe will break something
+// #include "types/common.hpp"
 
 #endif // CEREAL_CEREAL_HPP_

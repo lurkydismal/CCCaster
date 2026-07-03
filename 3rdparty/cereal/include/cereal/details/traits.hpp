@@ -36,10 +36,10 @@
 #endif // gcc 4.7 or earlier
 #endif // __clang__
 
-#include <cereal/access.hpp>
-
 #include <type_traits>
 #include <typeindex>
+
+#include "../access.hpp"
 
 namespace cereal {
 namespace traits {
