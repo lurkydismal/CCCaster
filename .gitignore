@@ -26,3 +26,4 @@
 /cccaster
 /broken.txt
 **/*.exe
+/compile_commands.tmp
