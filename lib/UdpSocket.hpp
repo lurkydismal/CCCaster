@@ -15,6 +15,22 @@ struct UdpControl : public SerializableSequence {
     PROTOCOL_MESSAGE_BOILERPLATE( UdpControl, value )
 };
 
+namespace cereal {
+
+template < class Archive >
+void save( Archive& ar, const UdpControl::Enum& value ) {
+    ar( static_cast< uint8_t >( value ) );
+}
+
+template < class Archive >
+void load( Archive& ar, UdpControl::Enum& value ) {
+    uint8_t l_value;
+    ar( l_value );
+    value = static_cast< UdpControl::Enum >( l_value );
+}
+
+} // namespace cereal
+
 class UdpSocket : public Socket, private GoBackN::Owner {
 public:
     // UDP socket type enum

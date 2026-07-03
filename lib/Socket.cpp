@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include <cereal/types/array.hpp>
 #include <cereal/types/unordered_map.hpp>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -492,16 +493,27 @@ SocketShareData::SocketShareData( const IpAddrPort& address,
       info( info ) {}
 
 void SocketShareData::save( cereal::BinaryOutputArchive& ar ) const {
+    std::array< unsigned char, sizeof( info->ProviderId.Data4 ) > l_data4;
+    std::copy_n( info->ProviderId.Data4, sizeof( info->ProviderId.Data4 ),
+                 l_data4.begin() );
+
+    std::array< DWORD, MAX_PROTOCOL_CHAIN > l_chainEntries;
+    std::copy_n( info->ProtocolChain.ChainEntries, MAX_PROTOCOL_CHAIN,
+                 l_chainEntries.begin() );
+
+    std::array< WCHAR, WSAPROTOCOL_LEN + 1 > l_szProtocol;
+    std::copy_n( info->szProtocol, WSAPROTOCOL_LEN + 1, l_szProtocol.begin() );
+
     ar( address, protocol, readBuffer, readPos, isRaw, state, connectTimeout,
         info->dwServiceFlags1, info->dwServiceFlags2, info->dwServiceFlags3,
         info->dwServiceFlags4, info->dwProviderFlags, info->ProviderId.Data1,
-        info->ProviderId.Data2, info->ProviderId.Data3, info->ProviderId.Data4,
-        info->dwCatalogEntryId, info->ProtocolChain.ChainLen,
-        info->ProtocolChain.ChainEntries, info->iVersion, info->iAddressFamily,
-        info->iMaxSockAddr, info->iMinSockAddr, info->iSocketType,
-        info->iProtocol, info->iProtocolMaxOffset, info->iNetworkByteOrder,
+        info->ProviderId.Data2, info->ProviderId.Data3, l_data4,
+        info->dwCatalogEntryId, info->ProtocolChain.ChainLen, l_chainEntries,
+        info->iVersion, info->iAddressFamily, info->iMaxSockAddr,
+        info->iMinSockAddr, info->iSocketType, info->iProtocol,
+        info->iProtocolMaxOffset, info->iNetworkByteOrder,
         info->iSecurityScheme, info->dwMessageSize, info->dwProviderReserved,
-        info->szProtocol );
+        l_szProtocol );
 
     ar( udpType, Protocol::encode( gbnState ), childSockets );
 }
@@ -509,18 +521,30 @@ void SocketShareData::save( cereal::BinaryOutputArchive& ar ) const {
 void SocketShareData::load( cereal::BinaryInputArchive& ar ) {
     info.reset( new WSAPROTOCOL_INFO() );
 
+    std::array< unsigned char, sizeof( info->ProviderId.Data4 ) > l_data4;
+    std::array< DWORD, MAX_PROTOCOL_CHAIN > l_chainEntries;
+    std::array< WCHAR, WSAPROTOCOL_LEN + 1 > l_szProtocol;
+
     ar( address, protocol, readBuffer, readPos, isRaw, state, connectTimeout,
         info->dwServiceFlags1, info->dwServiceFlags2, info->dwServiceFlags3,
         info->dwServiceFlags4, info->dwProviderFlags, info->ProviderId.Data1,
-        info->ProviderId.Data2, info->ProviderId.Data3, info->ProviderId.Data4,
-        info->dwCatalogEntryId, info->ProtocolChain.ChainLen,
-        info->ProtocolChain.ChainEntries, info->iVersion, info->iAddressFamily,
-        info->iMaxSockAddr, info->iMinSockAddr, info->iSocketType,
-        info->iProtocol, info->iProtocolMaxOffset, info->iNetworkByteOrder,
+        info->ProviderId.Data2, info->ProviderId.Data3, l_data4,
+        info->dwCatalogEntryId, info->ProtocolChain.ChainLen, l_chainEntries,
+        info->iVersion, info->iAddressFamily, info->iMaxSockAddr,
+        info->iMinSockAddr, info->iSocketType, info->iProtocol,
+        info->iProtocolMaxOffset, info->iNetworkByteOrder,
         info->iSecurityScheme, info->dwMessageSize, info->dwProviderReserved,
-        info->szProtocol );
+        l_szProtocol );
 
-    string buffer;
+    std::copy_n( l_data4.begin(), sizeof( info->ProviderId.Data4 ),
+                 info->ProviderId.Data4 );
+
+    std::copy_n( l_chainEntries.begin(), MAX_PROTOCOL_CHAIN,
+                 info->ProtocolChain.ChainEntries );
+
+    std::copy_n( l_szProtocol.begin(), WSAPROTOCOL_LEN + 1, info->szProtocol );
+
+    std::string buffer;
     ar( udpType, buffer, childSockets );
 
     size_t consumed;

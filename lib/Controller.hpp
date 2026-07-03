@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cereal/types/array.hpp>
+
 #include <array>
 #include <string>
 #include <unordered_map>
@@ -280,7 +282,7 @@ private:
         // Joystick states
         JoystickState prevState, state;
 
-        JoystickInternalState() = delete;
+        JoystickInternalState() : info() {};
 
         JoystickInternalState( const JoystickInfo& info ) : info( info ) {}
     };
