@@ -40,7 +40,44 @@
 enum class MsgType : uint8_t {
     FirstType = 0,
 
+#if 0
 #include "ProtocolEnums.hpp"
+#endif
+
+    AckSequence,
+    BothInputs,
+    ChangeConfig,
+    ClientMode,
+    ConfirmConfig,
+    ControllerMappings,
+    ErrorMessage,
+    GoBackN,
+    InitialConfig,
+    InitialGameState,
+    IpAddrPort,
+    IpcConnected,
+    JoystickMappings,
+    JoysticksChanged,
+    KeyboardEvent,
+    KeyboardMappings,
+    MenuIndex,
+    NetplayConfig,
+    OptionsMessage,
+    PaletteManager,
+    Ping,
+    PingStats,
+    PlayerInputs,
+    RngState,
+    SocketShareData,
+    SpectateConfig,
+    SplitMessage,
+    Statistics,
+    SyncHash,
+    TestMessage,
+    TransitionIndex,
+    UdpControl,
+    Version,
+    VersionConfig,
 
     LastType
 };

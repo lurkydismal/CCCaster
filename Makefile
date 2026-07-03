@@ -206,16 +206,11 @@ define make_version
 @scripts/make_version $(VERSION)$(SUFFIX) > lib/Version.local.hpp
 endef
 
-define make_protocol
-@scripts/make_protocol $(NON_GEN_HEADERS)
-endef
-
 
 version:
 	$(make_version)
 
 proto:
-	$(make_protocol)
 
 reset-proto:
 	rm -f lib/ProtocolEnums.hpp
@@ -266,7 +261,6 @@ count:
 
 
 pre-build:
-	$(make_protocol)
 	@echo
 	@echo ========== Main-build ==========
 	@echo
