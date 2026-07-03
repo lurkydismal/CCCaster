@@ -30,30 +30,27 @@
 
 #include <vector>
 
-namespace MinHook
-{
-	struct TEMP_ADDR
-	{
-		uintptr_t	address;
-		size_t		position;
-		size_t		pc;
-	};
+namespace MinHook {
+struct TEMP_ADDR {
+    uintptr_t address;
+    size_t position;
+    size_t pc;
+};
 
-	struct CREATE_TREMPOLINE_T
-	{
-		void*					pTarget;
-		void*					pTrampoline;
-		bool					patchAbove;
-		std::vector<char>		trampoline;
-		std::vector<TEMP_ADDR>	tempAddr;
+struct CREATE_TREMPOLINE_T {
+    void* pTarget;
+    void* pTrampoline;
+    bool patchAbove;
+    std::vector< char > trampoline;
+    std::vector< TEMP_ADDR > tempAddr;
 #if defined _M_X64
-		void*					pTable;
-		std::vector<uintptr_t>	table;
+    void* pTable;
+    std::vector< uintptr_t > table;
 #endif
-		std::vector<uintptr_t>	oldIPs;
-		std::vector<uintptr_t>	newIPs;
-	};
+    std::vector< uintptr_t > oldIPs;
+    std::vector< uintptr_t > newIPs;
+};
 
-	bool CreateTrampolineFunction(CREATE_TREMPOLINE_T& ct);
-	bool ResolveTemporaryAddresses(CREATE_TREMPOLINE_T& ct);
-}
+bool CreateTrampolineFunction( CREATE_TREMPOLINE_T& ct );
+bool ResolveTemporaryAddresses( CREATE_TREMPOLINE_T& ct );
+} // namespace MinHook

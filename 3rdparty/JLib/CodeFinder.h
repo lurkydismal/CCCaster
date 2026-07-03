@@ -23,54 +23,55 @@
 #ifndef __PRAGMAONCE_CODEFINDER_H__
 #define __PRAGMAONCE_CODEFINDER_H__
 
-#include <vector>
-#include <string>
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <iterator>
+#include <string>
+#include <vector>
 
-typedef std::pair<std::string, unsigned> PhraseColorPair;
+typedef std::pair< std::string, unsigned > PhraseColorPair;
 
-std::vector<unsigned> FindCodeLocations(std::string text);
-bool ThreeDigitSequence(std::string::iterator start, std::string::iterator end);
+std::vector< unsigned > FindCodeLocations( std::string text );
+bool ThreeDigitSequence( std::string::iterator start,
+                         std::string::iterator end );
 
 // A function object used with for_each to extract locations
 // of color codes and phrases in a string.
-template <class Arg1 = std::string>
-struct CodeFinder
-{
-	typedef std::pair<Arg1, Arg1> CodePhrasePair;
-	typedef std::vector<CodePhrasePair> CodePhraseVector;
-	typedef std::vector<unsigned> LocationVector;
-	typedef std::pair<Arg1, LocationVector> PhraseLocationPair;
-	typedef std::vector<PhraseLocationPair> PhraseLocationVector;
+template < class Arg1 = std::string >
+struct CodeFinder {
+    typedef std::pair< Arg1, Arg1 > CodePhrasePair;
+    typedef std::vector< CodePhrasePair > CodePhraseVector;
+    typedef std::vector< unsigned > LocationVector;
+    typedef std::pair< Arg1, LocationVector > PhraseLocationPair;
+    typedef std::vector< PhraseLocationPair > PhraseLocationVector;
 
-	PhraseLocationVector m_phrasesAndLocations;
+    PhraseLocationVector m_phrasesAndLocations;
 
-	void operator()(Arg1 text)
-	{
-		PhraseLocationPair codes (text, FindCodeLocations(text));
-		m_phrasesAndLocations.push_back(codes);
-	}
+    void operator()( Arg1 text ) {
+        PhraseLocationPair codes( text, FindCodeLocations( text ) );
+        m_phrasesAndLocations.push_back( codes );
+    }
 
-	void WriteCodes()
-	{
-		typename PhraseLocationVector::iterator it = m_phrasesAndLocations.begin()
-			, end = m_phrasesAndLocations.end();
-		for( ; it != end; ++it )
-		{
-			std::cout << "Text: " << it->first << std::endl;
-			std::cout << "Codes Origins: ";
+    void WriteCodes() {
+        typename PhraseLocationVector::iterator it = m_phrasesAndLocations
+                                                         .begin(),
+                                                end =
+                                                    m_phrasesAndLocations.end();
+        for ( ; it != end; ++it ) {
+            std::cout << "Text: " << it->first << std::endl;
+            std::cout << "Codes Origins: ";
 
-			std::copy(it->second.begin(), it->second.end(), std::ostream_iterator<unsigned>(std::cout, " "));
-			std::cout << std::endl;
-		}
-	}
+            std::copy( it->second.begin(), it->second.end(),
+                       std::ostream_iterator< unsigned >( std::cout, " " ) );
+            std::cout << std::endl;
+        }
+    }
 };
 
 //		RemoveCodes
-//	Breaks a string into a pair of strings, one for the color code and one for the text
-//	to be colored.
-CodeFinder<>::CodePhraseVector RemoveCodes(CodeFinder<>::PhraseLocationVector::iterator e);
+//	Breaks a string into a pair of strings, one for the color code and one
+//for the text 	to be colored.
+CodeFinder<>::CodePhraseVector RemoveCodes(
+    CodeFinder<>::PhraseLocationVector::iterator e );
 
 #endif

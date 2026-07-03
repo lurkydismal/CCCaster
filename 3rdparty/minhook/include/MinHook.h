@@ -33,146 +33,164 @@
 #include <string>
 
 // MinHook Error Codes.
-typedef enum MH_STATUS
-{
-	// Unknown error. Should not be returned.
-	MH_UNKNOWN = -1,
+typedef enum MH_STATUS {
+    // Unknown error. Should not be returned.
+    MH_UNKNOWN = -1,
 
-	// Successful.
-	MH_OK = 0,
+    // Successful.
+    MH_OK = 0,
 
-	// MinHook is already initialized.
-	MH_ERROR_ALREADY_INITIALIZED,
+    // MinHook is already initialized.
+    MH_ERROR_ALREADY_INITIALIZED,
 
-	// MinHook is not initialized yet, or already uninitialized.
-	MH_ERROR_NOT_INITIALIZED,
+    // MinHook is not initialized yet, or already uninitialized.
+    MH_ERROR_NOT_INITIALIZED,
 
-	// The hook for the specified target function is already created.
-	MH_ERROR_ALREADY_CREATED,
+    // The hook for the specified target function is already created.
+    MH_ERROR_ALREADY_CREATED,
 
-	// The hook for the specified target function is not created yet.
-	MH_ERROR_NOT_CREATED,
+    // The hook for the specified target function is not created yet.
+    MH_ERROR_NOT_CREATED,
 
-	// The hook for the specified target function is already enabled.
-	MH_ERROR_ENABLED,
+    // The hook for the specified target function is already enabled.
+    MH_ERROR_ENABLED,
 
-	// The hook for the specified target function is not enabled yet, or already disabled.
-	MH_ERROR_DISABLED,
+    // The hook for the specified target function is not enabled yet, or already
+    // disabled.
+    MH_ERROR_DISABLED,
 
-	// The specified pointer is invalid. It points to the address of non-allocated and/or non-executable region.
-	MH_ERROR_NOT_EXECUTABLE,
+    // The specified pointer is invalid. It points to the address of
+    // non-allocated and/or non-executable region.
+    MH_ERROR_NOT_EXECUTABLE,
 
-	// The specified target function cannot be hooked.
-	MH_ERROR_UNSUPPORTED_FUNCTION,
+    // The specified target function cannot be hooked.
+    MH_ERROR_UNSUPPORTED_FUNCTION,
 
-	// Failed to allocate memory.
-	MH_ERROR_MEMORY_ALLOC,
+    // Failed to allocate memory.
+    MH_ERROR_MEMORY_ALLOC,
 
-	// Failed to change the memory protection.
-	MH_ERROR_MEMORY_PROTECT
+    // Failed to change the memory protection.
+    MH_ERROR_MEMORY_PROTECT
+} MH_STATUS;
+
+inline const char* MH_StatusString( MH_STATUS status ) {
+    switch ( status ) {
+        default:
+        case MH_UNKNOWN:
+            return "[MH_UNKNOWN] Unknown error. Should not be returned.";
+
+        case MH_OK:
+            return "[MH_OK] Successful.";
+
+        case MH_ERROR_ALREADY_INITIALIZED:
+            return "[MH_ERROR_ALREADY_INITIALIZED] MinHook is already "
+                   "initialized.";
+
+        case MH_ERROR_NOT_INITIALIZED:
+            return "[MH_ERROR_NOT_INITIALIZED] MinHook is not initialized yet, "
+                   "or already uninitialized.";
+
+        case MH_ERROR_ALREADY_CREATED:
+            return "[MH_ERROR_ALREADY_CREATED] The hook for the specified "
+                   "target function is already created.";
+
+        case MH_ERROR_NOT_CREATED:
+            return "[MH_ERROR_NOT_CREATED] The hook for the specified target "
+                   "function is not created yet.";
+
+        case MH_ERROR_ENABLED:
+            return "[MH_ERROR_ENABLED] The hook for the specified target "
+                   "function is already enabled.";
+
+        case MH_ERROR_DISABLED:
+            return "[MH_ERROR_DISABLED] The hook for the specified target "
+                   "function is not enabled yet: or already disabled.";
+
+        case MH_ERROR_NOT_EXECUTABLE:
+            return "[MH_ERROR_NOT_EXECUTABLE] The specified pointer is "
+                   "invalid. It points to the address of non-allocated and/or "
+                   "non-executable region.";
+
+        case MH_ERROR_UNSUPPORTED_FUNCTION:
+            return "[MH_ERROR_UNSUPPORTED_FUNCTION] The specified target "
+                   "function cannot be hooked.";
+
+        case MH_ERROR_MEMORY_ALLOC:
+            return "[MH_ERROR_MEMORY_ALLOC] Failed to allocate memory.";
+
+        case MH_ERROR_MEMORY_PROTECT:
+            return "[MH_ERROR_MEMORY_PROTECT] Failed to change the memory "
+                   "protection.";
+    }
 }
-MH_STATUS;
 
-inline const char *MH_StatusString ( MH_STATUS status )
-{
-	switch ( status )
-	{
-		default:
-		case MH_UNKNOWN:
-			return "[MH_UNKNOWN] Unknown error. Should not be returned.";
-
-		case MH_OK:
-			return "[MH_OK] Successful.";
-
-		case MH_ERROR_ALREADY_INITIALIZED:
-			return "[MH_ERROR_ALREADY_INITIALIZED] MinHook is already initialized.";
-
-		case MH_ERROR_NOT_INITIALIZED:
-			return "[MH_ERROR_NOT_INITIALIZED] MinHook is not initialized yet, or already uninitialized.";
-
-		case MH_ERROR_ALREADY_CREATED:
-			return "[MH_ERROR_ALREADY_CREATED] The hook for the specified target function is already created.";
-
-		case MH_ERROR_NOT_CREATED:
-			return "[MH_ERROR_NOT_CREATED] The hook for the specified target function is not created yet.";
-
-		case MH_ERROR_ENABLED:
-			return "[MH_ERROR_ENABLED] The hook for the specified target function is already enabled.";
-
-		case MH_ERROR_DISABLED:
-			return "[MH_ERROR_DISABLED] The hook for the specified target function is not enabled yet: or already disabled.";
-
-		case MH_ERROR_NOT_EXECUTABLE:
-			return "[MH_ERROR_NOT_EXECUTABLE] The specified pointer is invalid. It points to the address of non-allocated and/or non-executable region.";
-
-		case MH_ERROR_UNSUPPORTED_FUNCTION:
-			return "[MH_ERROR_UNSUPPORTED_FUNCTION] The specified target function cannot be hooked.";
-
-		case MH_ERROR_MEMORY_ALLOC:
-			return "[MH_ERROR_MEMORY_ALLOC] Failed to allocate memory.";
-
-		case MH_ERROR_MEMORY_PROTECT:
-			return "[MH_ERROR_MEMORY_PROTECT] Failed to change the memory protection.";
-	}
-}
-
-// Can be passed as a parameter to MH_EnableHook, MH_DisableHook, MH_QueueEnableHook or MH_QueueDisableHook.
+// Can be passed as a parameter to MH_EnableHook, MH_DisableHook,
+// MH_QueueEnableHook or MH_QueueDisableHook.
 #define MH_ALL_HOOKS NULL
 
 #if defined __cplusplus
 extern "C" {
 #endif
 
-	// Initialize the MinHook library.
-	MH_STATUS WINAPI MH_Initialize();
+// Initialize the MinHook library.
+MH_STATUS WINAPI MH_Initialize();
 
-	// Uninitialize the MinHook library.
-	MH_STATUS WINAPI MH_Uninitialize();
+// Uninitialize the MinHook library.
+MH_STATUS WINAPI MH_Uninitialize();
 
-	// Creates the Hook for the specified target function, in disabled state.
-	// Parameters:
-	//   pTarget    [in]  A pointer to the target function, which will be overridden by the detour function.
-	//   pDetour    [in]  A pointer to the detour function, which will override the target function.
-	//   ppOriginal [out] A pointer to the trampoline function, which will be used to call the original target function.
-	MH_STATUS WINAPI MH_CreateHook(void* pTarget, void* const pDetour, void** ppOriginal = 0);
+// Creates the Hook for the specified target function, in disabled state.
+// Parameters:
+//   pTarget    [in]  A pointer to the target function, which will be overridden
+//   by the detour function. pDetour    [in]  A pointer to the detour function,
+//   which will override the target function. ppOriginal [out] A pointer to the
+//   trampoline function, which will be used to call the original target
+//   function.
+MH_STATUS WINAPI MH_CreateHook( void* pTarget,
+                                void* const pDetour,
+                                void** ppOriginal = 0 );
 
-	// Removes the already created hook.
-	// Parameters:
-	//   pTarget [in] A pointer to the target function.
-	MH_STATUS WINAPI MH_RemoveHook(void* pTarget);
+// Removes the already created hook.
+// Parameters:
+//   pTarget [in] A pointer to the target function.
+MH_STATUS WINAPI MH_RemoveHook( void* pTarget );
 
-	// Enables the already created hook.
-	// Parameters:
-	//   pTarget [in] A pointer to the target function.
-	//                If this parameter is MH_ALL_HOOKS, all created hooks are enabled in one go.
-	MH_STATUS WINAPI MH_EnableHook(void* pTarget);
+// Enables the already created hook.
+// Parameters:
+//   pTarget [in] A pointer to the target function.
+//                If this parameter is MH_ALL_HOOKS, all created hooks are
+//                enabled in one go.
+MH_STATUS WINAPI MH_EnableHook( void* pTarget );
 
-	// Disables the already created hook.
-	// Parameters:
-	//   pTarget [in] A pointer to the target function.
-	//                If this parameter is MH_ALL_HOOKS, all created hooks are disabled in one go.
-	MH_STATUS WINAPI MH_DisableHook(void* pTarget);
+// Disables the already created hook.
+// Parameters:
+//   pTarget [in] A pointer to the target function.
+//                If this parameter is MH_ALL_HOOKS, all created hooks are
+//                disabled in one go.
+MH_STATUS WINAPI MH_DisableHook( void* pTarget );
 
-	// Queues to enable the already created hook.
-	// Parameters:
-	//   pTarget [in] A pointer to the target function.
-	//                If this parameter is MH_ALL_HOOKS, all created hooks are queued to be enabled.
-	MH_STATUS WINAPI MH_QueueEnableHook(void* pTarget);
+// Queues to enable the already created hook.
+// Parameters:
+//   pTarget [in] A pointer to the target function.
+//                If this parameter is MH_ALL_HOOKS, all created hooks are
+//                queued to be enabled.
+MH_STATUS WINAPI MH_QueueEnableHook( void* pTarget );
 
-	// Queues to disable the already created hook.
-	// Parameters:
-	//   pTarget [in] A pointer to the target function.
-	//                If this parameter is MH_ALL_HOOKS, all created hooks are queued to be disabled.
-	MH_STATUS WINAPI MH_QueueDisableHook(void* pTarget);
+// Queues to disable the already created hook.
+// Parameters:
+//   pTarget [in] A pointer to the target function.
+//                If this parameter is MH_ALL_HOOKS, all created hooks are
+//                queued to be disabled.
+MH_STATUS WINAPI MH_QueueDisableHook( void* pTarget );
 
-	// Applies all queued changes in one go.
-	MH_STATUS WINAPI MH_ApplyQueued();
+// Applies all queued changes in one go.
+MH_STATUS WINAPI MH_ApplyQueued();
 
 #if defined __cplusplus
 }
 #endif
 
-// Convenience macros to generate function type, pointer, and definition for Windows functions.
+// Convenience macros to generate function type, pointer, and definition for
+// Windows functions.
 //
 // Example usage:
 //
@@ -182,7 +200,8 @@ extern "C" {
 //
 // mQueryPerformanceCounter is the hooked function
 //
-// MH_WINAPI_HOOK ( BOOL, WINAPI, QueryPerformanceCounter, LARGE_INTEGER *lpPerformanceCount )
+// MH_WINAPI_HOOK ( BOOL, WINAPI, QueryPerformanceCounter, LARGE_INTEGER
+// *lpPerformanceCount )
 // {
 // 		return oQueryPerformanceCounter ( lpPerformanceCount );
 // }
@@ -191,12 +210,13 @@ extern "C" {
 //
 // MH_REMOVE_HOOK ( QueryPerformanceCounter );
 
-#define MH_WINAPI_HOOK(RETURN_TYPE, PREFIX, FUNC_NAME, ...)                     \
-    typedef RETURN_TYPE ( PREFIX *p ## FUNC_NAME ) ( __VA_ARGS__ );             \
-    p ## FUNC_NAME o ## FUNC_NAME = 0;                                          \
-    RETURN_TYPE PREFIX m ## FUNC_NAME ( __VA_ARGS__ )
+#define MH_WINAPI_HOOK( RETURN_TYPE, PREFIX, FUNC_NAME, ... )   \
+    typedef RETURN_TYPE( PREFIX* p##FUNC_NAME )( __VA_ARGS__ ); \
+    p##FUNC_NAME o##FUNC_NAME = 0;                              \
+    RETURN_TYPE PREFIX m##FUNC_NAME( __VA_ARGS__ )
 
-#define MH_CREATE_HOOK(FUNC_NAME) \
-    MH_CreateHook ( ( void * ) FUNC_NAME, ( void * ) m ## FUNC_NAME, ( void ** ) &o ## FUNC_NAME )
+#define MH_CREATE_HOOK( FUNC_NAME )                           \
+    MH_CreateHook( ( void* )FUNC_NAME, ( void* )m##FUNC_NAME, \
+                   ( void** )&o##FUNC_NAME )
 
-#define MH_REMOVE_HOOK(FUNC_NAME) MH_RemoveHook ( ( void * ) FUNC_NAME )
+#define MH_REMOVE_HOOK( FUNC_NAME ) MH_RemoveHook( ( void* )FUNC_NAME )

@@ -1,18 +1,15 @@
 #pragma once
 
-#include <string>
-#include <array>
 #include <d3dx9.h>
 
+#include <array>
+#include <string>
 
 #define DEFAULT_MESSAGE_TIMEOUT ( 3000 )
 
-
-namespace DllOverlayUi
-{
+namespace DllOverlayUi {
 
 void init();
-
 
 void enable();
 
@@ -24,17 +21,17 @@ bool isEnabled();
 
 bool isDisabled();
 
-std::array<std::string, 3> getText();
+std::array< std::string, 3 > getText();
 
 int getHeight();
 
 int getNewHeight();
 
-std::array<RECT, 2> getSelector();
+std::array< RECT, 2 > getSelector();
 
-std::array<bool, 2> getShouldDrawSelector();
+std::array< bool, 2 > getShouldDrawSelector();
 
-std::array<std::string, 2> getSelectorLine();
+std::array< std::string, 2 > getSelectorLine();
 
 bool isTrial();
 
@@ -48,17 +45,18 @@ bool isToggling();
 
 void updateText();
 
-void updateText ( const std::array<std::string, 3>& text );
+void updateText( const std::array< std::string, 3 >& text );
 
-void updateSelector ( uint8_t index, int position = 0, const std::string& line = "" );
+void updateSelector( uint8_t index,
+                     int position = 0,
+                     const std::string& line = "" );
 
-
-void showMessage ( const std::string& text, int timeout = DEFAULT_MESSAGE_TIMEOUT );
+void showMessage( const std::string& text,
+                  int timeout = DEFAULT_MESSAGE_TIMEOUT );
 
 void updateMessage();
 
 bool isShowingMessage();
-
 
 // #ifndef RELEASE
 
@@ -68,4 +66,4 @@ bool isShowingMessage();
 
 // #endif
 
-}
+} // namespace DllOverlayUi

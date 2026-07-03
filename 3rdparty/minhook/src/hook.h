@@ -30,15 +30,14 @@
 
 #include "MinHook.h"
 
-namespace MinHook
-{
-	MH_STATUS Initialize();
-	MH_STATUS Uninitialize();
-	MH_STATUS CreateHook(void* pTarget, void* const pDetour, void** ppOriginal);
-	MH_STATUS RemoveHook(void* pTarget);
-	MH_STATUS EnableHook(void* pTarget);
-	MH_STATUS DisableHook(void* pTarget);
-	MH_STATUS QueueEnableHook(void* pTarget);
-	MH_STATUS QueueDisableHook(void* pTarget);
-	MH_STATUS ApplyQueued();
-}
+namespace MinHook {
+MH_STATUS Initialize();
+MH_STATUS Uninitialize();
+MH_STATUS CreateHook( void* pTarget, void* const pDetour, void** ppOriginal );
+MH_STATUS RemoveHook( void* pTarget );
+MH_STATUS EnableHook( void* pTarget );
+MH_STATUS DisableHook( void* pTarget );
+MH_STATUS QueueEnableHook( void* pTarget );
+MH_STATUS QueueDisableHook( void* pTarget );
+MH_STATUS ApplyQueued();
+} // namespace MinHook

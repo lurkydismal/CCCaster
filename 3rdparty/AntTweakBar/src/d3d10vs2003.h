@@ -18,29 +18,29 @@
 #define __inout_opt
 #endif
 #ifndef __in_ecount
-#define __in_ecount(x)
+#define __in_ecount( x )
 #endif
 #ifndef __in_ecount_opt
-#define __in_ecount_opt(x)
+#define __in_ecount_opt( x )
 #endif
 #ifndef __out_ecount
-#define __out_ecount(x)
+#define __out_ecount( x )
 #endif
 #ifndef __out_ecount_opt
-#define __out_ecount_opt(x)
+#define __out_ecount_opt( x )
 #endif
 #ifndef __inout_ecount
-#define __inout_ecount(x)
+#define __inout_ecount( x )
 #endif
 #ifndef __inout_ecount_opt
-#define __inout_ecount_opt(x)
+#define __inout_ecount_opt( x )
 #endif
 #ifndef __in_bcount_opt
-#define __in_bcount_opt(x)
+#define __in_bcount_opt( x )
 #endif
 #ifndef __out_bcount_opt
-#define __out_bcount_opt(x)
+#define __out_bcount_opt( x )
 #endif
 #ifndef __inout_bcount_opt
-#define __inout_bcount_opt(x)
+#define __inout_bcount_opt( x )
 #endif

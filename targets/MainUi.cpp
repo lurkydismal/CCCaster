@@ -1,21 +1,22 @@
-#include "Main.hpp"
 #include "MainUi.hpp"
-#include "Version.hpp"
-#include "ConsoleUi.hpp"
-#include "Exceptions.hpp"
-#include "ErrorStringsExt.hpp"
-#include "CharacterSelect.hpp"
-#include "StringUtils.hpp"
-#include "NetplayStates.hpp"
 
-#include <algorithm>
-#include <iomanip>
 #include <mmsystem.h>
 #include <wininet.h>
+
+#include <algorithm>
 #include <fstream>
+#include <iomanip>
+
+#include "CharacterSelect.hpp"
+#include "ConsoleUi.hpp"
+#include "ErrorStringsExt.hpp"
+#include "Exceptions.hpp"
+#include "Main.hpp"
+#include "NetplayStates.hpp"
+#include "StringUtils.hpp"
+#include "Version.hpp"
 
 using namespace std;
-
 
 // Indent position of the pinging stats (must be a string)
 #define INDENT_STATS "20"
@@ -29,40 +30,38 @@ using namespace std;
 // Main update archive file name
 #define UPDATE_ARCHIVE "update.zip"
 
-// Run macro that deinitializes controllers, runs, then reinitializes controllers
-#define RUN(ADDRESS, CONFIG)                                                                            \
-    do {                                                                                                \
-        ControllerManager::get().deinitialize();                                                        \
-        run ( ADDRESS, CONFIG );                                                                        \
-        ControllerManager::get().loadMappings ( ProcessManager::appDir + FOLDER, MAPPINGS_EXT );        \
-        ControllerManager::get().initialize ( this );                                                   \
+// Run macro that deinitializes controllers, runs, then reinitializes
+// controllers
+#define RUN( ADDRESS, CONFIG )                               \
+    do {                                                     \
+        ControllerManager::get().deinitialize();             \
+        run( ADDRESS, CONFIG );                              \
+        ControllerManager::get().loadMappings(               \
+            ProcessManager::appDir + FOLDER, MAPPINGS_EXT ); \
+        ControllerManager::get().initialize( this );         \
     } while ( 0 )
-
 
 static const string uiTitle = "CCCaster " + LocalVersion.majorMinor();
 
-static ConsoleUi::Menu *mainMenu = 0;
+static ConsoleUi::Menu* mainMenu = 0;
 
 static Mutex uiMutex;
 
 static CondVar uiCondVar;
 
-MainUi::MainUi()
-{
-}
+MainUi::MainUi() {}
 
-void MainUi::netplay ( RunFuncPtr run )
-{
-    ConsoleUi::Prompt *menu = new ConsoleUi::Prompt ( ConsoleUi::Prompt::String,
-            "Enter/paste <ip>:<port> to join or <port> to host:" );
+void MainUi::netplay( RunFuncPtr run ) {
+    ConsoleUi::Prompt* menu = new ConsoleUi::Prompt(
+        ConsoleUi::Prompt::String,
+        "Enter/paste <ip>:<port> to join or <port> to host:" );
 
-    _ui->pushRight ( menu, { 1, 0 } ); // Expand width
+    _ui->pushRight( menu, { 1, 0 } ); // Expand width
 
-    for ( ;; )
-    {
-        menu->setInitial ( ( _address.addr.empty() && !_address.empty() )
-                           ? _address.str().substr ( 1 )
-                           : _address.str() );
+    for ( ;; ) {
+        menu->setInitial( ( _address.addr.empty() && !_address.empty() )
+                              ? _address.str().substr( 1 )
+                              : _address.str() );
 
         _ui->popUntilUserInput();
 
@@ -71,40 +70,35 @@ void MainUi::netplay ( RunFuncPtr run )
 
         _ui->clearBelow();
 
-        try
-        {
-            _address = trimmed ( menu->resultStr );
-        }
-        catch ( const Exception& exc )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( exc.user ), { 1, 0 } ); // Expand width
+        try {
+            _address = trimmed( menu->resultStr );
+        } catch ( const Exception& exc ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( exc.user ),
+                            { 1, 0 } ); // Expand width
             continue;
         }
 
-        if ( _address.addr.empty() )
-        {
-            _config.setInteger ( "lastUsedPort", _address.port );
+        if ( _address.addr.empty() ) {
+            _config.setInteger( "lastUsedPort", _address.port );
             saveConfig();
 
-            if ( ! gameMode ( true ) ) // Show below
+            if ( !gameMode( true ) ) // Show below
                 continue;
 
             initialConfig.mode.value = ClientMode::Host;
-        }
-        else
-        {
+        } else {
             initialConfig.mode.value = ClientMode::Client;
         }
 
         _netplayConfig.clear();
 
-        RUN ( _address, initialConfig );
+        RUN( _address, initialConfig );
 
         _ui->popNonUserInput();
 
-        if ( ! sessionError.empty() )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( sessionError ), { 1, 0 } ); // Expand width
+        if ( !sessionError.empty() ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( sessionError ),
+                            { 1, 0 } ); // Expand width
             sessionError.clear();
         }
     }
@@ -113,23 +107,21 @@ void MainUi::netplay ( RunFuncPtr run )
 }
 
 void MainUi::wait() {
-    while ( uiCondVar.wait ( uiMutex, 2500 ) ) {
-        if ( ! EventManager::get().isRunning() ) {
+    while ( uiCondVar.wait( uiMutex, 2500 ) ) {
+        if ( !EventManager::get().isRunning() ) {
             break;
         }
     }
 }
 
-void MainUi::spectate ( RunFuncPtr run )
-{
-    ConsoleUi::Prompt *menu = new ConsoleUi::Prompt ( ConsoleUi::Prompt::String,
-            "Enter/paste <ip>:<port> to spectate:" );
+void MainUi::spectate( RunFuncPtr run ) {
+    ConsoleUi::Prompt* menu = new ConsoleUi::Prompt(
+        ConsoleUi::Prompt::String, "Enter/paste <ip>:<port> to spectate:" );
 
-    _ui->pushRight ( menu, { 1, 0 } ); // Expand width
+    _ui->pushRight( menu, { 1, 0 } ); // Expand width
 
-    for ( ;; )
-    {
-        menu->setInitial ( !_address.addr.empty() ? _address.str() : "" );
+    for ( ;; ) {
+        menu->setInitial( !_address.addr.empty() ? _address.str() : "" );
 
         _ui->popUntilUserInput();
 
@@ -138,31 +130,29 @@ void MainUi::spectate ( RunFuncPtr run )
 
         _ui->clearBelow();
 
-        try
-        {
-            _address = trimmed ( menu->resultStr );
-        }
-        catch ( const Exception& exc )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( exc.user ), { 1, 0 } ); // Expand width
+        try {
+            _address = trimmed( menu->resultStr );
+        } catch ( const Exception& exc ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( exc.user ),
+                            { 1, 0 } ); // Expand width
             continue;
         }
 
-        if ( _address.addr.empty() )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( ERROR_INVALID_ADDR_PORT ), { 1, 0 } ); // Expand width
+        if ( _address.addr.empty() ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( ERROR_INVALID_ADDR_PORT ),
+                            { 1, 0 } ); // Expand width
             continue;
         }
 
         initialConfig.mode.value = ClientMode::SpectateNetplay;
 
-        RUN ( _address, initialConfig );
+        RUN( _address, initialConfig );
 
         _ui->popNonUserInput();
 
-        if ( ! sessionError.empty() )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( sessionError ), { 1, 0 } ); // Expand width
+        if ( !sessionError.empty() ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( sessionError ),
+                            { 1, 0 } ); // Expand width
             sessionError.clear();
         }
     }
@@ -170,33 +160,33 @@ void MainUi::spectate ( RunFuncPtr run )
     _ui->pop();
 }
 
-void MainUi::broadcast ( RunFuncPtr run )
-{
-    _ui->pushRight ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::Integer,
-                     "Enter/paste <port> to broadcast:" ), { 1, 0 } ); // Expand width
+void MainUi::broadcast( RunFuncPtr run ) {
+    _ui->pushRight( new ConsoleUi::Prompt( ConsoleUi::Prompt::Integer,
+                                           "Enter/paste <port> to broadcast:" ),
+                    { 1, 0 } ); // Expand width
 
-    _ui->top<ConsoleUi::Prompt>()->allowNegative = false;
-    _ui->top<ConsoleUi::Prompt>()->maxDigits = 5;
-    _ui->top<ConsoleUi::Prompt>()->setInitial ( _address.port ? _address.port : INT_MIN );
+    _ui->top< ConsoleUi::Prompt >()->allowNegative = false;
+    _ui->top< ConsoleUi::Prompt >()->maxDigits = 5;
+    _ui->top< ConsoleUi::Prompt >()->setInitial( _address.port ? _address.port
+                                                               : INT_MIN );
 
-    for ( ;; )
-    {
-        ConsoleUi::Element *menu = _ui->popUntilUserInput();
+    for ( ;; ) {
+        ConsoleUi::Element* menu = _ui->popUntilUserInput();
 
         if ( menu->resultInt == INT_MIN )
             break;
 
         _ui->clearBelow();
 
-        ASSERT ( menu->resultInt >= 0 );
+        ASSERT( menu->resultInt >= 0 );
 
-        if ( menu->resultInt > 0xFFFF )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( ERROR_INVALID_PORT ), { 1, 0 } ); // Expand width
+        if ( menu->resultInt > 0xFFFF ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( ERROR_INVALID_PORT ),
+                            { 1, 0 } ); // Expand width
             continue;
         }
 
-        if ( ! gameMode ( true ) ) // Show below
+        if ( !gameMode( true ) ) // Show below
             continue;
 
         _netplayConfig.clear();
@@ -209,16 +199,16 @@ void MainUi::broadcast ( RunFuncPtr run )
         _address.port = menu->resultInt;
         _address.invalidate();
 
-        _config.setInteger ( "lastUsedPort", _address.port );
+        _config.setInteger( "lastUsedPort", _address.port );
         saveConfig();
 
-        RUN ( "", _netplayConfig );
+        RUN( "", _netplayConfig );
 
         _ui->popNonUserInput();
 
-        if ( ! sessionError.empty() )
-        {
-            _ui->pushBelow ( new ConsoleUi::TextBox ( sessionError ), { 1, 0 } ); // Expand width
+        if ( !sessionError.empty() ) {
+            _ui->pushBelow( new ConsoleUi::TextBox( sessionError ),
+                            { 1, 0 } ); // Expand width
             sessionError.clear();
         }
     }
@@ -226,9 +216,8 @@ void MainUi::broadcast ( RunFuncPtr run )
     _ui->pop();
 }
 
-void MainUi::offline ( RunFuncPtr run )
-{
-    if ( ! offlineGameMode() )
+void MainUi::offline( RunFuncPtr run ) {
+    if ( !offlineGameMode() )
         return;
 
     const bool tournament = _netplayConfig.tournament;
@@ -239,16 +228,17 @@ void MainUi::offline ( RunFuncPtr run )
     _netplayConfig.delay = 0;
     _netplayConfig.hostPlayer = 1; // TODO make this configurable
     _netplayConfig.tournament = tournament;
-    _netplayConfig.trialAudioCue = _config.getString ( "trialAudioCueFile" );
-    _netplayConfig.trialFlashColor = _config.getInteger ( "trialScreenFlashColor" );
-    RUN ( "", _netplayConfig );
+    _netplayConfig.trialAudioCue = _config.getString( "trialAudioCueFile" );
+    _netplayConfig.trialFlashColor =
+        _config.getInteger( "trialScreenFlashColor" );
+    RUN( "", _netplayConfig );
 
     _ui->popNonUserInput();
 }
 
-bool MainUi::areYouSure()
-{
-    _ui->pushRight ( new ConsoleUi::Menu ( "Are you sure?", { "Yes" }, "Cancel" ) );
+bool MainUi::areYouSure() {
+    _ui->pushRight(
+        new ConsoleUi::Menu( "Are you sure?", { "Yes" }, "Cancel" ) );
 
     int ret = _ui->popUntilUserInput()->resultInt;
 
@@ -257,16 +247,17 @@ bool MainUi::areYouSure()
     return ( ret == 0 );
 }
 
-bool MainUi::gameMode ( bool below )
-{
-    ConsoleUi::Menu *menu = new ConsoleUi::Menu ( "Mode", { "Versus", "Training" }, "Cancel" );
+bool MainUi::gameMode( bool below ) {
+    ConsoleUi::Menu* menu =
+        new ConsoleUi::Menu( "Mode", { "Versus", "Training" }, "Cancel" );
 
     if ( below )
-        _ui->pushBelow ( menu );
+        _ui->pushBelow( menu );
     else
-        _ui->pushInFront ( menu );
+        _ui->pushInFront( menu );
 
-    _ui->popUntilUserInput ( true ); // Clear other messages since we're starting the game now
+    _ui->popUntilUserInput(
+        true ); // Clear other messages since we're starting the game now
 
     int mode = _ui->top()->resultInt;
 
@@ -279,19 +270,24 @@ bool MainUi::gameMode ( bool below )
     return true;
 }
 
-bool MainUi::offlineGameMode()
-{
-    _ui->pushRight ( new ConsoleUi::Menu ( "Mode", { "Training", "Versus", "Versus CPU", "Tournament", "Replay", "Trial" }, "Cancel" ) );
-    _ui->top<ConsoleUi::Menu>()->setPosition ( _config.getInteger ( "lastOfflineMenuPosition" ) - 1 );
+bool MainUi::offlineGameMode() {
+    _ui->pushRight( new ConsoleUi::Menu(
+        "Mode",
+        { "Training", "Versus", "Versus CPU", "Tournament", "Replay", "Trial" },
+        "Cancel" ) );
+    _ui->top< ConsoleUi::Menu >()->setPosition(
+        _config.getInteger( "lastOfflineMenuPosition" ) - 1 );
 
-    int mode = _ui->popUntilUserInput ( true )->resultInt; // Clear other messages since we're starting the game now
+    int mode = _ui->popUntilUserInput( true )
+                   ->resultInt; // Clear other messages since we're starting the
+                                // game now
 
     _ui->pop();
 
     if ( mode < 0 || mode > 5 )
         return false;
 
-    _config.setInteger ( "lastOfflineMenuPosition", mode + 1 );
+    _config.setInteger( "lastOfflineMenuPosition", mode + 1 );
     saveConfig();
 
     if ( mode == 0 )
@@ -303,18 +299,18 @@ bool MainUi::offlineGameMode()
     else if ( mode == 3 )
         _netplayConfig.tournament = true;
     else if ( mode == 4 )
-      initialConfig.mode.flags = ClientMode::Replay;
+        initialConfig.mode.flags = ClientMode::Replay;
     else if ( mode == 5 )
-      initialConfig.mode.flags = ClientMode::Training | ClientMode::Trial;
+        initialConfig.mode.flags = ClientMode::Training | ClientMode::Trial;
     else
         return false;
 
     return true;
 }
 
-void MainUi::joystickToBeDetached ( Controller *controller )
-{
-    LOG ( "controller=%08x; currentController=%08x", controller, _currentController );
+void MainUi::joystickToBeDetached( Controller* controller ) {
+    LOG( "controller=%08x; currentController=%08x", controller,
+         _currentController );
 
     if ( controller != _currentController )
         return;
@@ -323,275 +319,263 @@ void MainUi::joystickToBeDetached ( Controller *controller )
     EventManager::get().stop();
 }
 
-void MainUi::controllerKeyMapped ( Controller *controller, uint32_t key )
-{
-    ASSERT ( controller == _currentController );
+void MainUi::controllerKeyMapped( Controller* controller, uint32_t key ) {
+    ASSERT( controller == _currentController );
 
-    LOG ( "%s: controller=%08x; key=%08x", controller->getName(), controller, key );
+    LOG( "%s: controller=%08x; key=%08x", controller->getName(), controller,
+         key );
 
     _mappedKey = key;
     EventManager::get().stop();
 }
 
-void MainUi::controls()
-{
-    for ( ;; )
-    {
+void MainUi::controls() {
+    for ( ;; ) {
         ControllerManager::get().refreshJoysticks();
 
-        vector<Controller *> controllers = ControllerManager::get().getControllers();
+        vector< Controller* > controllers =
+            ControllerManager::get().getControllers();
 
-        vector<string> names;
-        names.reserve ( controllers.size() );
-        for ( Controller *c : controllers )
-            names.push_back ( c->getName() );
+        vector< string > names;
+        names.reserve( controllers.size() );
+        for ( Controller* c : controllers )
+            names.push_back( c->getName() );
 
-        _ui->pushRight ( new ConsoleUi::Menu ( "Controllers", names, "Back" ) );
-        int ret = _ui->popUntilUserInput ( true )->resultInt; // Clear popped since we don't care about messages
+        _ui->pushRight( new ConsoleUi::Menu( "Controllers", names, "Back" ) );
+        int ret =
+            _ui->popUntilUserInput( true )
+                ->resultInt; // Clear popped since we don't care about messages
         _ui->pop();
 
-        if ( ret < 0 || ret >= ( int ) controllers.size() )
+        if ( ret < 0 || ret >= ( int )controllers.size() )
             break;
 
-        Controller& controller = *controllers[ret];
+        Controller& controller = *controllers[ ret ];
 
         int pos = ( controller.isKeyboard() ? 0 : 4 );
 
-        for ( ;; )
-        {
-            loadMappings ( controller );
+        for ( ;; ) {
+            loadMappings( controller );
 
-            vector<string> options ( gameInputBits.size() );
+            vector< string > options( gameInputBits.size() );
 
-            for ( size_t i = 0; i < gameInputBits.size(); ++i )
-            {
-                const string mapping = controller.getMapping ( gameInputBits[i].second );
-                options[i] = format ( "%-11s: %s", gameInputBits[i].first, mapping );
+            for ( size_t i = 0; i < gameInputBits.size(); ++i ) {
+                const string mapping =
+                    controller.getMapping( gameInputBits[ i ].second );
+                options[ i ] =
+                    format( "%-11s: %s", gameInputBits[ i ].first, mapping );
             }
 
-            options.push_back ( "Clear all" );
-            options.push_back ( "Reset to defaults" );
+            options.push_back( "Clear all" );
+            options.push_back( "Reset to defaults" );
 
             if ( controller.isJoystick() )
-                options.push_back ( format ( "Set joystick deadzone (%.2f)", controller.getDeadzone() ) );
+                options.push_back( format( "Set joystick deadzone (%.2f)",
+                                           controller.getDeadzone() ) );
 
-            options.push_back ( format ( "Set SOCD method: %s", controller.getSocd() ) );
+            options.push_back(
+                format( "Set SOCD method: %s", controller.getSocd() ) );
 
             // Add instructions above menu
-            _ui->pushRight ( new ConsoleUi::TextBox (
-                                 controller.getName() + " mappings\n"
-                                 "Press Left/Right/Delete to delete a key\n"
-                                 "Press Escape to cancel mapping\n" ) );
+            _ui->pushRight( new ConsoleUi::TextBox(
+                controller.getName() +
+                " mappings\n"
+                "Press Left/Right/Delete to delete a key\n"
+                "Press Escape to cancel mapping\n" ) );
 
             // Add menu without title
-            _ui->pushBelow ( new ConsoleUi::Menu ( options, "Back" ) );
-            _ui->top<ConsoleUi::Menu>()->setPosition ( pos );
-            _ui->top<ConsoleUi::Menu>()->setDelete ( 2 );
+            _ui->pushBelow( new ConsoleUi::Menu( options, "Back" ) );
+            _ui->top< ConsoleUi::Menu >()->setPosition( pos );
+            _ui->top< ConsoleUi::Menu >()->setDelete( 2 );
 
-            for ( ;; )
-            {
+            for ( ;; ) {
                 pos = _ui->popUntilUserInput()->resultInt;
 
                 // Cancel or exit
-                if ( pos < 0 || pos > ( int ) options.size() )
+                if ( pos < 0 || pos > ( int )options.size() )
                     break;
 
                 // Modify a key
-                if ( pos >= 0 && pos < ( int ) gameInputBits.size() )
+                if ( pos >= 0 && pos < ( int )gameInputBits.size() )
                     break;
 
                 // Last 3 options (ignore delete)
-                if ( ! _ui->top()->resultStr.empty() )
+                if ( !_ui->top()->resultStr.empty() )
                     break;
             }
 
             // Cancel or exit
-            if ( pos < 0
-                    || pos > ( int ) options.size()
-                    || ( pos == ( int ) options.size() && !_ui->top()->resultStr.empty() ) )
-            {
+            if ( pos < 0 || pos > ( int )options.size() ||
+                 ( pos == ( int )options.size() &&
+                   !_ui->top()->resultStr.empty() ) ) {
                 _ui->pop();
                 _ui->pop();
                 break;
             }
 
             // Clear all
-            if ( pos == ( int ) gameInputBits.size() )
-            {
+            if ( pos == ( int )gameInputBits.size() ) {
                 _ui->pop();
                 _ui->pop();
 
-                if ( areYouSure() )
-                {
+                if ( areYouSure() ) {
                     controller.clearAllMappings();
-                    saveMappings ( controller );
+                    saveMappings( controller );
                 }
                 continue;
             }
 
             // Reset to defaults
-            if ( pos == ( int ) gameInputBits.size() + 1 )
-            {
+            if ( pos == ( int )gameInputBits.size() + 1 ) {
                 _ui->pop();
                 _ui->pop();
 
-                if ( areYouSure() )
-                {
+                if ( areYouSure() ) {
                     if ( controller.isKeyboard() )
-                        controller.setMappings ( ProcessManager::fetchKeyboardConfig() );
+                        controller.setMappings(
+                            ProcessManager::fetchKeyboardConfig() );
                     else
                         controller.resetToDefaults();
-                    saveMappings ( controller );
+                    saveMappings( controller );
                 }
                 continue;
             }
 
             // Set joystick deadzone
-            if ( pos == ( int ) gameInputBits.size() + 2 &&
-                 controller.isJoystick() )
-            {
+            if ( pos == ( int )gameInputBits.size() + 2 &&
+                 controller.isJoystick() ) {
                 _ui->pop();
                 _ui->pop();
 
-                if ( ! controller.isJoystick() )
+                if ( !controller.isJoystick() )
                     continue;
 
-                _ui->pushRight ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String,
-                                 "Enter a value between 0.0 and 1.0:" ) );
+                _ui->pushRight( new ConsoleUi::Prompt(
+                    ConsoleUi::Prompt::String,
+                    "Enter a value between 0.0 and 1.0:" ) );
 
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( format ( "%.2f", controller.getDeadzone() ) );
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    format( "%.2f", controller.getDeadzone() ) );
 
-                for ( ;; )
-                {
+                for ( ;; ) {
                     _ui->popUntilUserInput();
 
                     if ( _ui->top()->resultStr.empty() )
                         break;
 
-                    stringstream ss ( _ui->top()->resultStr );
+                    stringstream ss( _ui->top()->resultStr );
                     float ret = -1.0f;
 
-                    if ( ! ( ss >> ret ) || ret <= 0.0f || ret >= 1.0f )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox ( "Value must be a number between 0.0 and 1.0!" ) );
+                    if ( !( ss >> ret ) || ret <= 0.0f || ret >= 1.0f ) {
+                        _ui->pushBelow( new ConsoleUi::TextBox(
+                            "Value must be a number between 0.0 and 1.0!" ) );
                         continue;
                     }
 
-                    controller.setDeadzone ( ret );
+                    controller.setDeadzone( ret );
                     break;
                 }
 
-                saveMappings ( controller );
+                saveMappings( controller );
                 _ui->pop();
                 continue;
             }
             // Set SOCD
-            if ( pos == ( int ) gameInputBits.size() + 2 ||
-                 pos == ( int ) gameInputBits.size() + 3 )
-            {
+            if ( pos == ( int )gameInputBits.size() + 2 ||
+                 pos == ( int )gameInputBits.size() + 3 ) {
                 _ui->pop();
                 _ui->pop();
 
                 if ( controller.isJoystick() &&
-                     pos == ( int ) gameInputBits.size() + 2 )
+                     pos == ( int )gameInputBits.size() + 2 )
                     continue;
-                _ui->pushRight ( new ConsoleUi::Menu ( "SOCD settings", { "Default",
-                                                                          "L/R cancel",
-                                                                          "U/D cancel",
-                                                                          "L/R U/D cancel",
-                                                                          "U/D=U",
-                                                                          "L/R cancel U/D=U" },
-                        "Exit" ) );
-                _ui->top<ConsoleUi::Menu>()->setPosition ( controller.getSocdInt() );
-                for ( ;; )
-                {
+                _ui->pushRight( new ConsoleUi::Menu(
+                    "SOCD settings",
+                    { "Default", "L/R cancel", "U/D cancel", "L/R U/D cancel",
+                      "U/D=U", "L/R cancel U/D=U" },
+                    "Exit" ) );
+                _ui->top< ConsoleUi::Menu >()->setPosition(
+                    controller.getSocdInt() );
+                for ( ;; ) {
                     uint32_t ret = _ui->popUntilUserInput()->resultInt;
 
                     if ( ret > 5 )
                         break;
 
-                    controller.setSocd ( ret );
+                    controller.setSocd( ret );
                     break;
                 }
 
-                saveMappings ( controller );
+                saveMappings( controller );
                 _ui->pop();
                 continue;
             }
 
             // Delete specific mapping
-            if ( _ui->top()->resultStr.empty() )
-            {
-                if ( pos < ( int ) gameInputBits.size() )
-                    controller.clearMapping ( gameInputBits[pos].second );
+            if ( _ui->top()->resultStr.empty() ) {
+                if ( pos < ( int )gameInputBits.size() )
+                    controller.clearMapping( gameInputBits[ pos ].second );
 
-                saveMappings ( controller );
+                saveMappings( controller );
                 _ui->pop();
                 _ui->pop();
                 continue;
             }
 
             // Map selected key
-            _ui->top<ConsoleUi::Menu>()->overlayCurrentPosition ( format ( "%-11s: ...", gameInputBits[pos].first ) );
+            _ui->top< ConsoleUi::Menu >()->overlayCurrentPosition(
+                format( "%-11s: ...", gameInputBits[ pos ].first ) );
 
-            try
-            {
+            try {
                 _currentController = &controller;
 
-                LOG ( "currentController=%08x", _currentController );
+                LOG( "currentController=%08x", _currentController );
 
-                AutoManager _ ( _currentController, getConsoleWindow() );
+                AutoManager _( _currentController, getConsoleWindow() );
 
-                if ( controller.isKeyboard() )
-                {
-                    controller.startMapping ( this, gameInputBits[pos].second );
+                if ( controller.isKeyboard() ) {
+                    controller.startMapping( this,
+                                             gameInputBits[ pos ].second );
 
                     EventManager::get().start();
-                }
-                else
-                {
-                    ControllerManager::get().check(); // Flush joystick events before mapping
+                } else {
+                    ControllerManager::get()
+                        .check(); // Flush joystick events before mapping
 
-                    if ( _currentController )
-                    {
-                        controller.startMapping ( this, gameInputBits[pos].second );
+                    if ( _currentController ) {
+                        controller.startMapping( this,
+                                                 gameInputBits[ pos ].second );
 
                         EventManager::get().startPolling();
 
-                        while ( EventManager::get().poll ( 1 ) )
-                        {
+                        while ( EventManager::get().poll( 1 ) ) {
                             ControllerManager::get().check();
                         }
                     }
                 }
-            }
-            catch ( ... )
-            {
+            } catch ( ... ) {
             }
 
             _ui->pop();
             _ui->pop();
 
-            if ( ! _currentController )
+            if ( !_currentController )
                 break;
 
-            saveMappings ( controller );
+            saveMappings( controller );
             _currentController = 0;
 
             // Continue mapping
-            if ( _mappedKey && pos + 1 < ( int ) gameInputBits.size() )
-            {
+            if ( _mappedKey && pos + 1 < ( int )gameInputBits.size() ) {
                 ++pos;
-                _ungetch ( RETURN_KEY );
+                _ungetch( RETURN_KEY );
             }
         }
     }
 }
 
-void MainUi::settings()
-{
-    static const vector<string> options =
-    {
+void MainUi::settings() {
+    static const vector< string > options = {
         "Alert on connect",
         "Display name",
         "Show full character names",
@@ -606,24 +590,26 @@ void MainUi::settings()
         "About",
     };
 
-    _ui->pushRight ( new ConsoleUi::Menu ( "Settings", options, "Back" ) );
+    _ui->pushRight( new ConsoleUi::Menu( "Settings", options, "Back" ) );
 
-    for ( ;; )
-    {
-        ConsoleUi::Element *menu = _ui->popUntilUserInput ( true ); // Clear popped since we don't care about messages
+    for ( ;; ) {
+        ConsoleUi::Element* menu = _ui->popUntilUserInput(
+            true ); // Clear popped since we don't care about messages
 
-        if ( menu->resultInt < 0 || menu->resultInt >= ( int ) options.size() )
+        if ( menu->resultInt < 0 || menu->resultInt >= ( int )options.size() )
             break;
 
-        switch ( menu->resultInt )
-        {
-            case 0:
-            {
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Alert when connected?",
-                { "Focus window", "Play a sound", "Do both", "Don't alert" }, "Cancel" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+        switch ( menu->resultInt ) {
+            case 0: {
+                _ui->pushInFront(
+                    new ConsoleUi::Menu( "Alert when connected?",
+                                         { "Focus window", "Play a sound",
+                                           "Do both", "Don't alert" },
+                                         "Cancel" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Menu>()->setPosition ( ( _config.getInteger ( "alertOnConnect" ) + 3 ) % 4 );
+                _ui->top< ConsoleUi::Menu >()->setPosition(
+                    ( _config.getInteger( "alertOnConnect" ) + 3 ) % 4 );
                 _ui->popUntilUserInput();
 
                 int alertType = _ui->top()->resultInt;
@@ -633,28 +619,32 @@ void MainUi::settings()
                 if ( alertType < 0 || alertType > 3 )
                     break;
 
-                _config.setInteger ( "alertOnConnect", ( alertType + 1 ) % 4 );
+                _config.setInteger( "alertOnConnect", ( alertType + 1 ) % 4 );
                 saveConfig();
 
                 if ( alertType == 0 || alertType == 3 )
                     break;
 
-                _ui->pushInFront ( new ConsoleUi::TextBox (
-                                       "Enter/paste/drag a .wav file here:\n"
-                                       "(Leave blank to use SystemDefault)" ),
-                { 1, 0 }, true ); // Expand width and clear top
+                _ui->pushInFront( new ConsoleUi::TextBox(
+                                      "Enter/paste/drag a .wav file here:\n"
+                                      "(Leave blank to use SystemDefault)" ),
+                                  { 1, 0 },
+                                  true ); // Expand width and clear top
 
-                _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
+                _ui->pushBelow(
+                    new ConsoleUi::Prompt( ConsoleUi::Prompt::String ),
+                    { 1, 0 } ); // Expand width
 
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getString ( "alertWavFile" ) );
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    _config.getString( "alertWavFile" ) );
                 _ui->popUntilUserInput();
 
-                if ( _ui->top()->resultInt == 0 )
-                {
+                if ( _ui->top()->resultInt == 0 ) {
                     if ( _ui->top()->resultStr.empty() )
-                        _config.setString ( "alertWavFile", "SystemDefault" );
+                        _config.setString( "alertWavFile", "SystemDefault" );
                     else
-                        _config.setString ( "alertWavFile", _ui->top()->resultStr );
+                        _config.setString( "alertWavFile",
+                                           _ui->top()->resultStr );
                     saveConfig();
                 }
 
@@ -664,16 +654,18 @@ void MainUi::settings()
             }
 
             case 1:
-                _ui->pushInFront ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String,
-                                   "Enter name to show when connecting:" ),
-                { 1, 0 }, true ); // Expand width and clear top
+                _ui->pushInFront( new ConsoleUi::Prompt(
+                                      ConsoleUi::Prompt::String,
+                                      "Enter name to show when connecting:" ),
+                                  { 1, 0 },
+                                  true ); // Expand width and clear top
 
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getString ( "displayName" ) );
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    _config.getString( "displayName" ) );
                 _ui->popUntilUserInput();
 
-                if ( _ui->top()->resultInt == 0 )
-                {
-                    _config.setString ( "displayName", _ui->top()->resultStr );
+                if ( _ui->top()->resultInt == 0 ) {
+                    _config.setString( "displayName", _ui->top()->resultStr );
                     saveConfig();
                 }
 
@@ -681,16 +673,20 @@ void MainUi::settings()
                 break;
 
             case 2:
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Show full character names when spectating?",
-                { "Yes", "No" }, "Cancel" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Menu(
+                        "Show full character names when spectating?",
+                        { "Yes", "No" }, "Cancel" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Menu>()->setPosition ( ( _config.getInteger ( "fullCharacterName" ) + 1 ) % 2 );
+                _ui->top< ConsoleUi::Menu >()->setPosition(
+                    ( _config.getInteger( "fullCharacterName" ) + 1 ) % 2 );
                 _ui->popUntilUserInput();
 
-                if ( _ui->top()->resultInt >= 0 && _ui->top()->resultInt <= 1 )
-                {
-                    _config.setInteger ( "fullCharacterName", ( _ui->top()->resultInt + 1 ) % 2 );
+                if ( _ui->top()->resultInt >= 0 &&
+                     _ui->top()->resultInt <= 1 ) {
+                    _config.setInteger( "fullCharacterName",
+                                        ( _ui->top()->resultInt + 1 ) % 2 );
                     saveConfig();
                 }
 
@@ -698,16 +694,19 @@ void MainUi::settings()
                 break;
 
             case 3:
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Start game with high CPU priority?",
-                { "Yes", "No" }, "Cancel" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Menu( "Start game with high CPU priority?",
+                                         { "Yes", "No" }, "Cancel" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Menu>()->setPosition ( ( _config.getInteger ( "highCpuPriority" ) + 1 ) % 2 );
+                _ui->top< ConsoleUi::Menu >()->setPosition(
+                    ( _config.getInteger( "highCpuPriority" ) + 1 ) % 2 );
                 _ui->popUntilUserInput();
 
-                if ( _ui->top()->resultInt >= 0 && _ui->top()->resultInt <= 1 )
-                {
-                    _config.setInteger ( "highCpuPriority", ( _ui->top()->resultInt + 1 ) % 2 );
+                if ( _ui->top()->resultInt >= 0 &&
+                     _ui->top()->resultInt <= 1 ) {
+                    _config.setInteger( "highCpuPriority",
+                                        ( _ui->top()->resultInt + 1 ) % 2 );
                     saveConfig();
                 }
 
@@ -715,33 +714,36 @@ void MainUi::settings()
                 break;
 
             case 4:
-                _ui->pushInFront ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::Integer, "Enter versus mode win count:" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Prompt( ConsoleUi::Prompt::Integer,
+                                           "Enter versus mode win count:" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Prompt>()->allowNegative = false;
-                _ui->top<ConsoleUi::Prompt>()->maxDigits = 1;
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getInteger ( "versusWinCount" ) );
+                _ui->top< ConsoleUi::Prompt >()->allowNegative = false;
+                _ui->top< ConsoleUi::Prompt >()->maxDigits = 1;
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    _config.getInteger( "versusWinCount" ) );
 
-                for ( ;; )
-                {
+                for ( ;; ) {
                     _ui->popUntilUserInput();
 
                     if ( _ui->top()->resultInt < 0 )
                         break;
 
-                    if ( _ui->top()->resultInt == 0 )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox ( "Win count can't be zero!" ) );
+                    if ( _ui->top()->resultInt == 0 ) {
+                        _ui->pushBelow( new ConsoleUi::TextBox(
+                            "Win count can't be zero!" ) );
                         continue;
                     }
 
-                    if ( _ui->top()->resultInt > 5 )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox ( "Win count can't be greater than 5!" ) );
+                    if ( _ui->top()->resultInt > 5 ) {
+                        _ui->pushBelow( new ConsoleUi::TextBox(
+                            "Win count can't be greater than 5!" ) );
                         continue;
                     }
 
-                    _config.setInteger ( "versusWinCount", _ui->top()->resultInt );
+                    _config.setInteger( "versusWinCount",
+                                        _ui->top()->resultInt );
                     saveConfig();
                     break;
                 }
@@ -750,16 +752,19 @@ void MainUi::settings()
                 break;
 
             case 5:
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Check for updates on startup?",
-                { "Yes", "No" }, "Cancel" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Menu( "Check for updates on startup?",
+                                         { "Yes", "No" }, "Cancel" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Menu>()->setPosition ( ( _config.getInteger ( "autoCheckUpdates" ) + 1 ) % 2 );
+                _ui->top< ConsoleUi::Menu >()->setPosition(
+                    ( _config.getInteger( "autoCheckUpdates" ) + 1 ) % 2 );
                 _ui->popUntilUserInput();
 
-                if ( _ui->top()->resultInt >= 0 && _ui->top()->resultInt <= 1 )
-                {
-                    _config.setInteger ( "autoCheckUpdates", ( _ui->top()->resultInt + 1 ) % 2 );
+                if ( _ui->top()->resultInt >= 0 &&
+                     _ui->top()->resultInt <= 1 ) {
+                    _config.setInteger( "autoCheckUpdates",
+                                        ( _ui->top()->resultInt + 1 ) % 2 );
                     saveConfig();
                 }
 
@@ -767,34 +772,35 @@ void MainUi::settings()
                 break;
 
             case 6:
-                _ui->pushInFront ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::Integer,
-                                   "Enter max allowed network delay:" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Prompt( ConsoleUi::Prompt::Integer,
+                                           "Enter max allowed network delay:" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Prompt>()->allowNegative = false;
-                _ui->top<ConsoleUi::Prompt>()->maxDigits = 3;
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getInteger ( "maxRealDelay" ) );
+                _ui->top< ConsoleUi::Prompt >()->allowNegative = false;
+                _ui->top< ConsoleUi::Prompt >()->maxDigits = 3;
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    _config.getInteger( "maxRealDelay" ) );
 
-                for ( ;; )
-                {
+                for ( ;; ) {
                     _ui->popUntilUserInput();
 
                     if ( _ui->top()->resultInt < 0 )
                         break;
 
-                    if ( _ui->top()->resultInt == 0 )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox ( "Max network delay can't be zero!" ) );
+                    if ( _ui->top()->resultInt == 0 ) {
+                        _ui->pushBelow( new ConsoleUi::TextBox(
+                            "Max network delay can't be zero!" ) );
                         continue;
                     }
 
-                    if ( _ui->top()->resultInt >= 0xFF )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox ( ERROR_INVALID_DELAY ) );
+                    if ( _ui->top()->resultInt >= 0xFF ) {
+                        _ui->pushBelow(
+                            new ConsoleUi::TextBox( ERROR_INVALID_DELAY ) );
                         continue;
                     }
 
-                    _config.setInteger ( "maxRealDelay", _ui->top()->resultInt );
+                    _config.setInteger( "maxRealDelay", _ui->top()->resultInt );
                     saveConfig();
                     break;
                 }
@@ -803,28 +809,30 @@ void MainUi::settings()
                 break;
 
             case 7:
-                _ui->pushInFront ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::Integer, "Enter default rollback:" ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Prompt( ConsoleUi::Prompt::Integer,
+                                           "Enter default rollback:" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Prompt>()->allowNegative = false;
-                _ui->top<ConsoleUi::Prompt>()->maxDigits = 2;
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getInteger ( "defaultRollback" ) );
+                _ui->top< ConsoleUi::Prompt >()->allowNegative = false;
+                _ui->top< ConsoleUi::Prompt >()->maxDigits = 2;
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    _config.getInteger( "defaultRollback" ) );
 
-                for ( ;; )
-                {
+                for ( ;; ) {
                     _ui->popUntilUserInput();
 
                     if ( _ui->top()->resultInt < 0 )
                         break;
 
-                    if ( _ui->top()->resultInt > MAX_ROLLBACK )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox (
-                                             format ( ERROR_INVALID_ROLLBACK, 1 + MAX_ROLLBACK ) ) );
+                    if ( _ui->top()->resultInt > MAX_ROLLBACK ) {
+                        _ui->pushBelow( new ConsoleUi::TextBox( format(
+                            ERROR_INVALID_ROLLBACK, 1 + MAX_ROLLBACK ) ) );
                         continue;
                     }
 
-                    _config.setInteger ( "defaultRollback", _ui->top()->resultInt );
+                    _config.setInteger( "defaultRollback",
+                                        _ui->top()->resultInt );
                     saveConfig();
                     break;
                 }
@@ -832,36 +840,37 @@ void MainUi::settings()
                 _ui->pop();
                 break;
 
-            case 8:
-            {
-                _ui->pushInFront ( new ConsoleUi::TextBox (
-                                       "Number of seconds needed to hold the start button\n"
-                                       "in versus mode before it registers:" ),
-                { 1, 0 }, true ); // Expand width and clear top
+            case 8: {
+                _ui->pushInFront(
+                    new ConsoleUi::TextBox(
+                        "Number of seconds needed to hold the start button\n"
+                        "in versus mode before it registers:" ),
+                    { 1, 0 }, true ); // Expand width and clear top
 
-                _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ),
-                { 1, 0 } ); // Expand width
+                _ui->pushBelow(
+                    new ConsoleUi::Prompt( ConsoleUi::Prompt::String ),
+                    { 1, 0 } ); // Expand width
 
-                double value = _config.getDouble ( "heldStartDuration" );
+                double value = _config.getDouble( "heldStartDuration" );
 
-                _ui->top<ConsoleUi::Prompt>()->setInitial ( format ( "%.1f", value ) );
+                _ui->top< ConsoleUi::Prompt >()->setInitial(
+                    format( "%.1f", value ) );
 
-                for ( ;; )
-                {
+                for ( ;; ) {
                     _ui->popUntilUserInput();
 
                     if ( _ui->top()->resultStr.empty() )
                         break;
 
-                    stringstream ss ( _ui->top()->resultStr );
+                    stringstream ss( _ui->top()->resultStr );
 
-                    if ( ! ( ss >> value ) || value < 0.0 )
-                    {
-                        _ui->pushBelow ( new ConsoleUi::TextBox ( "Must be a decimal number and at least 0.0!" ) );
+                    if ( !( ss >> value ) || value < 0.0 ) {
+                        _ui->pushBelow( new ConsoleUi::TextBox(
+                            "Must be a decimal number and at least 0.0!" ) );
                         continue;
                     }
 
-                    _config.setDouble ( "heldStartDuration", value );
+                    _config.setDouble( "heldStartDuration", value );
                     saveConfig();
                     break;
                 }
@@ -870,18 +879,20 @@ void MainUi::settings()
                 break;
             }
 
-            case 9:
-            {
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Turn on automatic replay saving?",
-                                                         { "Yes", "No" }, "Cancel" ),
-                                   { 0, 0 }, true ); // Don't expand but DO clear top
+            case 9: {
+                _ui->pushInFront(
+                    new ConsoleUi::Menu( "Turn on automatic replay saving?",
+                                         { "Yes", "No" }, "Cancel" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
 
-                _ui->top<ConsoleUi::Menu>()->setPosition ( ( _config.getInteger ( "autoReplaySave" ) + 1 ) % 2 );
+                _ui->top< ConsoleUi::Menu >()->setPosition(
+                    ( _config.getInteger( "autoReplaySave" ) + 1 ) % 2 );
                 _ui->popUntilUserInput();
 
-                if ( _ui->top()->resultInt >= 0 && _ui->top()->resultInt <= 1 )
-                {
-                    _config.setInteger ( "autoReplaySave", ( _ui->top()->resultInt + 1 ) % 2 );
+                if ( _ui->top()->resultInt >= 0 &&
+                     _ui->top()->resultInt <= 1 ) {
+                    _config.setInteger( "autoReplaySave",
+                                        ( _ui->top()->resultInt + 1 ) % 2 );
                     saveConfig();
                 }
 
@@ -890,52 +901,66 @@ void MainUi::settings()
             }
 
             case 10:
-                _ui->pushInFront ( new ConsoleUi::Menu ( "Trial Input Guide Options",
-                                                         { "Trial Audio Cue", "Trial Screen Flash Color" }, "Cancel" ),
-                                   { 0, 0 }, true ); // Don't expand but DO clear top
+                _ui->pushInFront(
+                    new ConsoleUi::Menu(
+                        "Trial Input Guide Options",
+                        { "Trial Audio Cue", "Trial Screen Flash Color" },
+                        "Cancel" ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
                 while ( true ) {
                     _ui->popUntilUserInput();
                     int trialSetting = _ui->top()->resultInt;
                     if ( trialSetting == 0 ) {
-                        _ui->pushInFront ( new ConsoleUi::TextBox (
-                                                                   "Enter/paste/drag a .wav file here:\n"
-                                                                   "(Leave blank to use SystemDefault)" ),
-                                           { 1, 0 }, true ); // Expand width and clear top
+                        _ui->pushInFront(
+                            new ConsoleUi::TextBox(
+                                "Enter/paste/drag a .wav file here:\n"
+                                "(Leave blank to use SystemDefault)" ),
+                            { 1, 0 }, true ); // Expand width and clear top
 
-                        _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
-                        _ui->top<ConsoleUi::Prompt>()->setInitial ( _config.getString ( "trialAudioCueFile" ) );
+                        _ui->pushBelow(
+                            new ConsoleUi::Prompt( ConsoleUi::Prompt::String ),
+                            { 1, 0 } ); // Expand width
+                        _ui->top< ConsoleUi::Prompt >()->setInitial(
+                            _config.getString( "trialAudioCueFile" ) );
                         _ui->popUntilUserInput();
-                        if ( _ui->top()->resultInt == 0 )
-                        {
+                        if ( _ui->top()->resultInt == 0 ) {
                             if ( _ui->top()->resultStr.empty() )
-                                _config.setString ( "trialAudioCueFile", "SystemDefault" );
+                                _config.setString( "trialAudioCueFile",
+                                                   "SystemDefault" );
                             else
-                                _config.setString ( "trialAudioCueFile", _ui->top()->resultStr );
+                                _config.setString( "trialAudioCueFile",
+                                                   _ui->top()->resultStr );
                             saveConfig();
                         }
                         _ui->pop();
                         _ui->pop();
                     } else if ( trialSetting == 1 ) {
-                        _ui->pushInFront ( new ConsoleUi::TextBox (
-                                                                   "Enter screen flash color hex code" ),
-                                           { 1, 0 }, true ); // Expand width and clear top
+                        _ui->pushInFront(
+                            new ConsoleUi::TextBox(
+                                "Enter screen flash color hex code" ),
+                            { 1, 0 }, true ); // Expand width and clear top
 
-                        _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::String ), { 1, 0 } ); // Expand width
+                        _ui->pushBelow(
+                            new ConsoleUi::Prompt( ConsoleUi::Prompt::String ),
+                            { 1, 0 } ); // Expand width
                         stringstream stream;
-                        stream << "0x" << setfill('0') << setw(8) << hex << _config.getInteger ( "trialScreenFlashColor" );
+                        stream << "0x" << setfill( '0' ) << setw( 8 ) << hex
+                               << _config.getInteger( "trialScreenFlashColor" );
                         string color = stream.str();
-                        _ui->top<ConsoleUi::Prompt>()->setInitial ( color );
+                        _ui->top< ConsoleUi::Prompt >()->setInitial( color );
                         _ui->popUntilUserInput();
-                        if ( _ui->top()->resultInt == 0 )
-                        {
+                        if ( _ui->top()->resultInt == 0 ) {
                             if ( _ui->top()->resultStr.empty() )
-                                _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
+                                _config.setInteger( "trialScreenFlashColor",
+                                                    0xff0000ff );
                             else {
                                 string resStr = _ui->top()->resultStr;
                                 LOG( resStr );
-                                uint32_t resInt = strtoul(resStr.c_str(), NULL, 16);
+                                uint32_t resInt =
+                                    strtoul( resStr.c_str(), NULL, 16 );
                                 LOG( resInt );
-                                _config.setInteger ( "trialScreenFlashColor", resInt );
+                                _config.setInteger( "trialScreenFlashColor",
+                                                    resInt );
                             }
                             saveConfig();
                         }
@@ -948,13 +973,14 @@ void MainUi::settings()
                 }
                 break;
             case 11:
-                _ui->pushInFront ( new ConsoleUi::TextBox ( format ( "CCCaster %s%s\n\nRevision %s\n\nBuilt on %s\n\n"
-                                   "Created by Madscientist\n\nPress any key to go back",
-                                   LocalVersion.code,
-                                   "",
-                                   LocalVersion.revision, LocalVersion.buildTime ) ),
-                { 0, 0 }, true ); // Don't expand but DO clear top
-                system ( "@pause > nul" );
+                _ui->pushInFront(
+                    new ConsoleUi::TextBox( format(
+                        "CCCaster %s%s\n\nRevision %s\n\nBuilt on %s\n\n"
+                        "Created by Madscientist\n\nPress any key to go back",
+                        LocalVersion.code, "", LocalVersion.revision,
+                        LocalVersion.buildTime ) ),
+                    { 0, 0 }, true ); // Don't expand but DO clear top
+                system( "@pause > nul" );
                 break;
 
             default:
@@ -965,63 +991,60 @@ void MainUi::settings()
     _ui->pop();
 }
 
-void MainUi::results()
-{
-    static const vector<string> options =
-    {
-      "Show",
-      "Next",
-      "Back",
+void MainUi::results() {
+    static const vector< string > options = {
+        "Show",
+        "Next",
+        "Back",
     };
 
-    _ui->pushRight ( new ConsoleUi::Menu ( "Results", options, "Quit" ) );
+    _ui->pushRight( new ConsoleUi::Menu( "Results", options, "Quit" ) );
 
     stringstream buf;
     ifstream infile;
     string line;
-    vector<string> stvec;
+    vector< string > stvec;
     bool showResults = false;
     int index = 0;
     int maxIndex = 0;
 
-    infile.open ( "results.csv" );
-    while( getline ( infile, line ) ) {
-        stvec.push_back ( line );
+    infile.open( "results.csv" );
+    while ( getline( infile, line ) ) {
+        stvec.push_back( line );
         maxIndex += 1;
     }
-    for ( ;; )
-    {
-        ConsoleUi::Element *menu = _ui->popUntilUserInput ( false ); // Clear popped since we don't care about messages
+    for ( ;; ) {
+        ConsoleUi::Element* menu = _ui->popUntilUserInput(
+            false ); // Clear popped since we don't care about messages
 
-        if ( menu->resultInt < 0 || menu->resultInt >= ( int ) options.size() )
+        if ( menu->resultInt < 0 || menu->resultInt >= ( int )options.size() )
             break;
 
-        switch ( menu->resultInt )
-        {
+        switch ( menu->resultInt ) {
             case 0:
                 showResults = true;
                 buf.str( "" );
-                for ( int i = index; i < index + 10; ++ i) {
+                for ( int i = index; i < index + 10; ++i ) {
                     if ( i < maxIndex )
-                        buf << stvec[i] << endl;
+                        buf << stvec[ i ] << endl;
                 }
-                _ui->pushBelow ( new ConsoleUi::TextBox ( buf.str() ) ,
-                             { 1, 1 } ); // Don't expand but DO clear top
-                //system ( "@pause > nul" );
+                _ui->pushBelow( new ConsoleUi::TextBox( buf.str() ),
+                                { 1, 1 } ); // Don't expand but DO clear top
+                // system ( "@pause > nul" );
                 break;
             case 1:
                 if ( !showResults || index > maxIndex - 10 )
                     break;
                 //_ui->pop();
                 buf.str( "" );
-                if ( index < maxIndex - 10)
+                if ( index < maxIndex - 10 )
                     index += 10;
-                for ( int i = index; i < index + 10; ++ i) {
+                for ( int i = index; i < index + 10; ++i ) {
                     if ( i < maxIndex )
-                        buf << stvec[i] << endl;
+                        buf << stvec[ i ] << endl;
                 }
-                _ui->pushBelow ( new ConsoleUi::TextBox ( buf.str() ) ,
-                                 { 1, 1 } ); // Don't expand but DO clear top
+                _ui->pushBelow( new ConsoleUi::TextBox( buf.str() ),
+                                { 1, 1 } ); // Don't expand but DO clear top
                 break;
             case 2:
                 if ( !showResults || index < 10 )
@@ -1029,11 +1052,11 @@ void MainUi::results()
                 //_ui->pop();
                 buf.str( "" );
                 index -= 10;
-                for ( int i = index; i < index + 10; ++ i) {
-                    buf << stvec[i] << endl;
+                for ( int i = index; i < index + 10; ++i ) {
+                    buf << stvec[ i ] << endl;
                 }
-                _ui->pushBelow ( new ConsoleUi::TextBox ( buf.str() ) ,
-                                 { 1, 1 } ); // Don't expand but DO clear top
+                _ui->pushBelow( new ConsoleUi::TextBox( buf.str() ),
+                                { 1, 1 } ); // Don't expand but DO clear top
                 break;
 
             default:
@@ -1044,164 +1067,156 @@ void MainUi::results()
     _ui->pop();
 }
 
-void MainUi::setMaxRealDelay ( uint8_t delay )
-{
-    _config.setInteger ( "maxRealDelay", delay );
+void MainUi::setMaxRealDelay( uint8_t delay ) {
+    _config.setInteger( "maxRealDelay", delay );
     saveConfig();
 }
 
-void MainUi::setDefaultRollback ( uint8_t rollback )
-{
-    _config.setInteger ( "defaultRollback", rollback );
+void MainUi::setDefaultRollback( uint8_t rollback ) {
+    _config.setInteger( "defaultRollback", rollback );
     saveConfig();
 }
 
-void MainUi::initialize()
-{
-    _ui.reset ( new ConsoleUi ( uiTitle + LocalVersion.suffix(), ProcessManager::isWine() ) );
+void MainUi::initialize() {
+    _ui.reset( new ConsoleUi( uiTitle + LocalVersion.suffix(),
+                              ProcessManager::isWine() ) );
 
     // Configurable settings (defaults)
-    _config.setInteger ( "alertOnConnect", 3 );
-    _config.setString ( "alertWavFile", "SystemDefault" );
-    _config.setString ( "trialAudioCueFile", "SystemDefault" );
-    _config.setString ( "displayName", ProcessManager::fetchGameUserName() );
-    _config.setInteger ( "fullCharacterName", 0 );
-    _config.setInteger ( "highCpuPriority", 1 );
-    _config.setInteger ( "versusWinCount", 2 );
-    _config.setInteger ( "maxRealDelay", 254 );
-    _config.setInteger ( "defaultRollback", 4 );
-    _config.setInteger ( "autoCheckUpdates", 1 );
-    _config.setInteger ( "autoReplaySave", 1 );
-    _config.setDouble ( "heldStartDuration", 1.5 );
-    _config.setInteger ( "trialScreenFlashColor", 0xff0000ff );
+    _config.setInteger( "alertOnConnect", 3 );
+    _config.setString( "alertWavFile", "SystemDefault" );
+    _config.setString( "trialAudioCueFile", "SystemDefault" );
+    _config.setString( "displayName", ProcessManager::fetchGameUserName() );
+    _config.setInteger( "fullCharacterName", 0 );
+    _config.setInteger( "highCpuPriority", 1 );
+    _config.setInteger( "versusWinCount", 2 );
+    _config.setInteger( "maxRealDelay", 254 );
+    _config.setInteger( "defaultRollback", 4 );
+    _config.setInteger( "autoCheckUpdates", 1 );
+    _config.setInteger( "autoReplaySave", 1 );
+    _config.setDouble( "heldStartDuration", 1.5 );
+    _config.setInteger( "trialScreenFlashColor", 0xff0000ff );
 
     // Cached UI state (defaults)
-    _config.setInteger ( "lastUsedPort", -1 );
-    _config.setInteger ( "lastMainMenuPosition", -1 );
-    _config.setInteger ( "lastServerMenuPosition", -1 );
-    _config.setInteger ( "lastOfflineMenuPosition", -1 );
+    _config.setInteger( "lastUsedPort", -1 );
+    _config.setInteger( "lastMainMenuPosition", -1 );
+    _config.setInteger( "lastServerMenuPosition", -1 );
+    _config.setInteger( "lastOfflineMenuPosition", -1 );
 
-    // Load and save main config (this creates the config file on the first time)
+    // Load and save main config (this creates the config file on the first
+    // time)
     loadConfig();
     saveConfig();
 
     // Reset the initial config
     initialConfig.clear();
-    initialConfig.localName = _config.getString ( "displayName" );
-    initialConfig.winCount = _config.getInteger ( "versusWinCount" );
-    initialConfig.trialAudioCue = _config.getString ( "trialAudioCueFile" );
-    initialConfig.trialFlashColor = _config.getInteger ( "trialScreenFlashColor" );
+    initialConfig.localName = _config.getString( "displayName" );
+    initialConfig.winCount = _config.getInteger( "versusWinCount" );
+    initialConfig.trialAudioCue = _config.getString( "trialAudioCueFile" );
+    initialConfig.trialFlashColor =
+        _config.getInteger( "trialScreenFlashColor" );
 
     // Initialize controllers
-    ControllerManager::get().initialize ( this );
+    ControllerManager::get().initialize( this );
     ControllerManager::get().windowHandle = getConsoleWindow();
     ControllerManager::get().check();
 
     // Setup default mappings
-    ControllerManager::get().getKeyboard()->setMappings ( ProcessManager::fetchKeyboardConfig() );
-    for ( Controller *controller : ControllerManager::get().getJoysticks() )
+    ControllerManager::get().getKeyboard()->setMappings(
+        ProcessManager::fetchKeyboardConfig() );
+    for ( Controller* controller : ControllerManager::get().getJoysticks() )
         controller->resetToDefaults();
 
     // Load then save all controller mappings
-    ControllerManager::get().loadMappings ( ProcessManager::appDir + FOLDER, MAPPINGS_EXT );
-    ControllerManager::get().saveMappings ( ProcessManager::appDir + FOLDER, MAPPINGS_EXT );
+    ControllerManager::get().loadMappings( ProcessManager::appDir + FOLDER,
+                                           MAPPINGS_EXT );
+    ControllerManager::get().saveMappings( ProcessManager::appDir + FOLDER,
+                                           MAPPINGS_EXT );
 }
 
-void MainUi::saveConfig()
-{
+void MainUi::saveConfig() {
     const string file = ProcessManager::appDir + CONFIG_FILE;
 
-    LOG ( "Saving: %s", file );
+    LOG( "Saving: %s", file );
 
-    if ( _config.save ( file ) )
+    if ( _config.save( file ) )
         return;
 
-    const string msg = format ( "Failed to save: %s", file );
+    const string msg = format( "Failed to save: %s", file );
 
-    LOG ( "%s", msg );
+    LOG( "%s", msg );
 
-    if ( sessionError.find ( msg ) == string::npos )
-        sessionError += format ( "\n%s", msg );
+    if ( sessionError.find( msg ) == string::npos )
+        sessionError += format( "\n%s", msg );
 }
 
-void MainUi::loadConfig()
-{
+void MainUi::loadConfig() {
     const string file = ProcessManager::appDir + CONFIG_FILE;
 
-    LOG ( "Loading: %s", file );
+    LOG( "Loading: %s", file );
 
-    if ( _config.load ( file ) )
+    if ( _config.load( file ) )
         return;
 
-    LOG ( "Failed to load: %s", file );
+    LOG( "Failed to load: %s", file );
 }
 
-void MainUi::saveMappings ( const Controller& controller )
-{
-    const string file = ProcessManager::appDir + FOLDER + controller.getName() + MAPPINGS_EXT;
+void MainUi::saveMappings( const Controller& controller ) {
+    const string file =
+        ProcessManager::appDir + FOLDER + controller.getName() + MAPPINGS_EXT;
 
-    LOG ( "Saving: %s", file );
+    LOG( "Saving: %s", file );
 
-    if ( controller.saveMappings ( file ) )
+    if ( controller.saveMappings( file ) )
         return;
 
-    const string msg = format ( "Failed to save: %s", file );
+    const string msg = format( "Failed to save: %s", file );
 
-    LOG ( "%s", msg );
+    LOG( "%s", msg );
 
-    if ( sessionError.find ( msg ) == string::npos )
-        sessionError += format ( "\n%s", msg );
+    if ( sessionError.find( msg ) == string::npos )
+        sessionError += format( "\n%s", msg );
 }
 
-void MainUi::loadMappings ( Controller& controller )
-{
-    const string file = ProcessManager::appDir + FOLDER + controller.getName() + MAPPINGS_EXT;
+void MainUi::loadMappings( Controller& controller ) {
+    const string file =
+        ProcessManager::appDir + FOLDER + controller.getName() + MAPPINGS_EXT;
 
-    LOG ( "Loading: %s", file );
+    LOG( "Loading: %s", file );
 
-    if ( controller.loadMappings ( file ) )
+    if ( controller.loadMappings( file ) )
         return;
 
-    LOG ( "Failed to load: %s", file );
+    LOG( "Failed to load: %s", file );
 }
 
-static bool isOnline()
-{
+static bool isOnline() {
     DWORD state;
-    InternetGetConnectedState ( &state, 0 );
-    return ( state & ( INTERNET_CONNECTION_LAN | INTERNET_CONNECTION_MODEM | INTERNET_CONNECTION_PROXY ) );
+    InternetGetConnectedState( &state, 0 );
+    return ( state & ( INTERNET_CONNECTION_LAN | INTERNET_CONNECTION_MODEM |
+                       INTERNET_CONNECTION_PROXY ) );
 }
 
-void MainUi::main ( RunFuncPtr run )
-{
-    if ( _config.getInteger ( "autoCheckUpdates" ) )
-        sessionMessage = getUpdate ( true );
+void MainUi::main( RunFuncPtr run ) {
+    if ( _config.getInteger( "autoCheckUpdates" ) )
+        sessionMessage = getUpdate( true );
 
-    ASSERT ( _ui.get() != 0 );
+    ASSERT( _ui.get() != 0 );
 
     _ui->clearAll();
 
-    int mainSelection = _config.getInteger ( "lastMainMenuPosition" ) - 1;
+    int mainSelection = _config.getInteger( "lastMainMenuPosition" ) - 1;
 
-    for ( ;; )
-    {
-        const vector<string> options =
-        {
-            "Netplay",
-            "Spectate",
-            "Broadcast",
-            "Offline",
-            "Controls",
-            "Settings",
-            "Update",
-            "Results",
+    for ( ;; ) {
+        const vector< string > options = {
+            "Netplay",  "Spectate", "Broadcast", "Offline",
+            "Controls", "Settings", "Update",    "Results",
         };
 
-        _ui->pushRight ( new ConsoleUi::Menu ( uiTitle, options, "Quit" ) );
+        _ui->pushRight( new ConsoleUi::Menu( uiTitle, options, "Quit" ) );
 
-        mainMenu = _ui->top<ConsoleUi::Menu>();
-        mainMenu->setEscape ( false );
-        mainMenu->setPosition ( mainSelection );
+        mainMenu = _ui->top< ConsoleUi::Menu >();
+        mainMenu->setEscape( false );
+        mainMenu->setPosition( mainSelection );
 
         ConsoleUi::clearScreen();
 
@@ -1209,34 +1224,33 @@ void MainUi::main ( RunFuncPtr run )
 
         if ( !sessionError.empty() && !sessionMessage.empty() )
             message = sessionError + "\n" + sessionMessage;
-        else if ( ! sessionError.empty() )
+        else if ( !sessionError.empty() )
             message = sessionError;
-        else if ( ! sessionMessage.empty() )
+        else if ( !sessionMessage.empty() )
             message = sessionMessage;
 
         sessionError.clear();
         sessionMessage.clear();
 
-        _ui->pushRight ( new ConsoleUi::TextBox ( message ), { 1, 0 } ); // Expand width
+        _ui->pushRight( new ConsoleUi::TextBox( message ),
+                        { 1, 0 } ); // Expand width
 
         // Update cached UI state
-        initialConfig.localName = _config.getString ( "displayName" );
-        initialConfig.winCount = _config.getInteger ( "versusWinCount" );
+        initialConfig.localName = _config.getString( "displayName" );
+        initialConfig.winCount = _config.getInteger( "versusWinCount" );
 
         // Reset flags
         initialConfig.mode.flags = 0;
         _netplayConfig.clear();
 
-        if ( _address.empty() && _config.getInteger ( "lastUsedPort" ) > 0 )
-        {
-            _address.port = _config.getInteger ( "lastUsedPort" );
+        if ( _address.empty() && _config.getInteger( "lastUsedPort" ) > 0 ) {
+            _address.port = _config.getInteger( "lastUsedPort" );
             _address.invalidate();
         }
 
         mainSelection = _ui->popUntilUserInput()->resultInt;
 
-        if ( mainSelection < 0 || mainSelection >= ( int ) options.size() )
-        {
+        if ( mainSelection < 0 || mainSelection >= ( int )options.size() ) {
             mainMenu = 0;
             _ui->pop();
             break;
@@ -1244,28 +1258,26 @@ void MainUi::main ( RunFuncPtr run )
 
         _ui->clearRight();
 
-        if ( mainSelection >= 0 && mainSelection <= 4 )
-        {
-            _config.setInteger ( "lastMainMenuPosition", mainSelection + 1 );
+        if ( mainSelection >= 0 && mainSelection <= 4 ) {
+            _config.setInteger( "lastMainMenuPosition", mainSelection + 1 );
             saveConfig();
         }
 
-        switch ( mainSelection )
-        {
+        switch ( mainSelection ) {
             case 0:
-                netplay ( run );
+                netplay( run );
                 break;
 
             case 1:
-                spectate ( run );
+                spectate( run );
                 break;
 
             case 2:
-                broadcast ( run );
+                broadcast( run );
                 break;
 
             case 3:
-                offline ( run );
+                offline( run );
                 break;
 
             case 4:
@@ -1291,71 +1303,72 @@ void MainUi::main ( RunFuncPtr run )
     ControllerManager::get().deinitialize();
 }
 
-void MainUi::display ( const string& message, bool replace )
-{
-    if ( replace && ( _ui->empty() || !_ui->top()->requiresUser || _ui->top() != mainMenu ) )
-        _ui->pushInFront ( new ConsoleUi::TextBox ( message ), { 1, 0 }, true ); // Expand width and clear top
+void MainUi::display( const string& message, bool replace ) {
+    if ( replace && ( _ui->empty() || !_ui->top()->requiresUser ||
+                      _ui->top() != mainMenu ) )
+        _ui->pushInFront( new ConsoleUi::TextBox( message ), { 1, 0 },
+                          true ); // Expand width and clear top
     else if ( _ui->top() == 0 || _ui->top()->expandWidth() )
-        _ui->pushBelow ( new ConsoleUi::TextBox ( message ), { 1, 0 } ); // Expand width
+        _ui->pushBelow( new ConsoleUi::TextBox( message ),
+                        { 1, 0 } ); // Expand width
     else
-        _ui->pushRight ( new ConsoleUi::TextBox ( message ), { 1, 0 } ); // Expand width
+        _ui->pushRight( new ConsoleUi::TextBox( message ),
+                        { 1, 0 } ); // Expand width
 }
 
-void MainUi::alertUser()
-{
-    int alert = _config.getInteger ( "alertOnConnect" );
+void MainUi::alertUser() {
+    int alert = _config.getInteger( "alertOnConnect" );
 
     if ( alert & 1 )
-        SetForegroundWindow ( ( HWND ) getConsoleWindow() );
+        SetForegroundWindow( ( HWND )getConsoleWindow() );
 
-    if ( alert & 2 )
-    {
-        const string buffer = _config.getString ( "alertWavFile" );
+    if ( alert & 2 ) {
+        const string buffer = _config.getString( "alertWavFile" );
 
-        if ( buffer.find ( SYSTEM_ALERT_PREFEX ) == 0 )
-            PlaySound ( TEXT ( buffer.c_str() ), 0, SND_ALIAS | SND_ASYNC );
+        if ( buffer.find( SYSTEM_ALERT_PREFEX ) == 0 )
+            PlaySound( TEXT( buffer.c_str() ), 0, SND_ALIAS | SND_ASYNC );
         else
-            PlaySound ( TEXT ( buffer.c_str() ), 0, SND_FILENAME | SND_ASYNC | SND_NODEFAULT );
+            PlaySound( TEXT( buffer.c_str() ), 0,
+                       SND_FILENAME | SND_ASYNC | SND_NODEFAULT );
     }
 }
 
-bool MainUi::configure ( const PingStats& pingStats )
-{
+bool MainUi::configure( const PingStats& pingStats ) {
     alertUser();
 
     bool ret = false;
 
-    ASSERT ( _ui.get() != 0 );
+    ASSERT( _ui.get() != 0 );
 
-    const int delay = computeDelay ( pingStats.latency.getMean() );
-    const int worst = computeDelay ( pingStats.latency.getWorst() );
-    const int variance = computeDelay ( pingStats.latency.getVariance() );
+    const int delay = computeDelay( pingStats.latency.getMean() );
+    const int worst = computeDelay( pingStats.latency.getWorst() );
+    const int variance = computeDelay( pingStats.latency.getVariance() );
 
-    int rollback = clamped ( delay + worst + variance, 0, _config.getInteger ( "defaultRollback" ) );
+    int rollback = clamped( delay + worst + variance, 0,
+                            _config.getInteger( "defaultRollback" ) );
 
     _netplayConfig.delay = worst + 1;
 
     // TODO maybe implement this as a slider or something
 
-    _ui->pushBelow ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::Integer, "Enter max frames of rollback:" ) );
+    _ui->pushBelow( new ConsoleUi::Prompt( ConsoleUi::Prompt::Integer,
+                                           "Enter max frames of rollback:" ) );
 
-    _ui->top<ConsoleUi::Prompt>()->allowNegative = false;
-    _ui->top<ConsoleUi::Prompt>()->maxDigits = 2;
-    _ui->top<ConsoleUi::Prompt>()->setInitial ( rollback );
+    _ui->top< ConsoleUi::Prompt >()->allowNegative = false;
+    _ui->top< ConsoleUi::Prompt >()->maxDigits = 2;
+    _ui->top< ConsoleUi::Prompt >()->setInitial( rollback );
 
-    for ( ;; )
-    {
-        ConsoleUi::Element *menu = _ui->popUntilUserInput();
+    for ( ;; ) {
+        ConsoleUi::Element* menu = _ui->popUntilUserInput();
 
-        if ( menu->resultInt < 0 )
-        {
+        if ( menu->resultInt < 0 ) {
             _ui->pop();
             break;
         }
 
-        if ( menu->resultInt > MAX_ROLLBACK )
-        {
-            _ui->pushRight ( new ConsoleUi::TextBox ( format ( ERROR_INVALID_ROLLBACK, 1 + MAX_ROLLBACK ) ) );
+        if ( menu->resultInt > MAX_ROLLBACK ) {
+            _ui->pushRight( new ConsoleUi::TextBox(
+                format( ERROR_INVALID_ROLLBACK, 1 + MAX_ROLLBACK ) ) );
             continue;
         }
 
@@ -1363,22 +1376,22 @@ bool MainUi::configure ( const PingStats& pingStats )
 
         rollback = _netplayConfig.rollback = menu->resultInt;
 
-        _ui->pushInFront ( new ConsoleUi::Prompt ( ConsoleUi::Prompt::Integer, "Enter input delay:" ) );
+        _ui->pushInFront( new ConsoleUi::Prompt( ConsoleUi::Prompt::Integer,
+                                                 "Enter input delay:" ) );
 
-        _ui->top<ConsoleUi::Prompt>()->allowNegative = false;
-        _ui->top<ConsoleUi::Prompt>()->maxDigits = 3;
-        _ui->top<ConsoleUi::Prompt>()->setInitial ( clamped ( delay - rollback, 0, delay ) );
+        _ui->top< ConsoleUi::Prompt >()->allowNegative = false;
+        _ui->top< ConsoleUi::Prompt >()->maxDigits = 3;
+        _ui->top< ConsoleUi::Prompt >()->setInitial(
+            clamped( delay - rollback, 0, delay ) );
 
-        for ( ;; )
-        {
+        for ( ;; ) {
             menu = _ui->popUntilUserInput();
 
             if ( menu->resultInt < 0 )
                 break;
 
-            if ( menu->resultInt >= 0xFF )
-            {
-                _ui->pushRight ( new ConsoleUi::TextBox ( ERROR_INVALID_DELAY ) );
+            if ( menu->resultInt >= 0xFF ) {
+                _ui->pushRight( new ConsoleUi::TextBox( ERROR_INVALID_DELAY ) );
                 continue;
             }
 
@@ -1387,9 +1400,10 @@ bool MainUi::configure ( const PingStats& pingStats )
             else
                 _netplayConfig.delay = menu->resultInt;
 
-            _netplayConfig.winCount = _config.getInteger ( "versusWinCount" );
+            _netplayConfig.winCount = _config.getInteger( "versusWinCount" );
             // _netplayConfig.hostPlayer = 1 + ( rand() % 2 );
-            _netplayConfig.hostPlayer = 1; // Host is always player 1 for easier debugging
+            _netplayConfig.hostPlayer =
+                1; // Host is always player 1 for easier debugging
 
             ret = true;
             _ui->pop();
@@ -1401,90 +1415,100 @@ bool MainUi::configure ( const PingStats& pingStats )
             break;
     }
 
-    if ( ret )
-    {
-        _ui->pushBelow ( new ConsoleUi::TextBox ( format ( "Using %u delay%s",
-                         ( _netplayConfig.rollback ? _netplayConfig.rollbackDelay : _netplayConfig.delay ),
-                         ( _netplayConfig.rollback ? format ( ", %u rollback", _netplayConfig.rollback ) : "" ) ) ),
-        { 1, 0 } ); // Expand width
+    if ( ret ) {
+        _ui->pushBelow(
+            new ConsoleUi::TextBox( format(
+                "Using %u delay%s",
+                ( _netplayConfig.rollback ? _netplayConfig.rollbackDelay
+                                          : _netplayConfig.delay ),
+                ( _netplayConfig.rollback
+                      ? format( ", %u rollback", _netplayConfig.rollback )
+                      : "" ) ) ),
+            { 1, 0 } ); // Expand width
     }
 
     return ret;
 }
 
-bool MainUi::connected ( const InitialConfig& initialConfig, const PingStats& pingStats )
-{
-    ASSERT ( _ui.get() != 0 );
+bool MainUi::connected( const InitialConfig& initialConfig,
+                        const PingStats& pingStats ) {
+    ASSERT( _ui.get() != 0 );
 
-    const string connectString = ( initialConfig.mode.isHost()
-                                   ? initialConfig.remoteName + " connected"
-                                   : "Connected to " + initialConfig.remoteName );
+    const string connectString =
+        ( initialConfig.mode.isHost()
+              ? initialConfig.remoteName + " connected"
+              : "Connected to " + initialConfig.remoteName );
 
-    const string modeString = ( initialConfig.mode.isTraining()
-                                ? "Training mode"
-                                : format ( "Versus mode, each game is %u rounds", initialConfig.winCount ) );
+    const string modeString =
+        ( initialConfig.mode.isTraining()
+              ? "Training mode"
+              : format( "Versus mode, each game is %u rounds",
+                        initialConfig.winCount ) );
 
-    _ui->pushInFront ( new ConsoleUi::TextBox (
-                           connectString
-                           + "\n\n" + modeString
-                           + "\n\n" + formatStats ( pingStats ) ), { 1, 0 }, true ); // Expand width and clear top
+    _ui->pushInFront(
+        new ConsoleUi::TextBox( connectString + "\n\n" + modeString + "\n\n" +
+                                formatStats( pingStats ) ),
+        { 1, 0 }, true ); // Expand width and clear top
 
-    if ( configure ( pingStats ) )
-    {
-        display ( string ( "Waiting for " ) + ( initialConfig.mode.isHost() ? "client" : "host" ) + "...", false );
+    if ( configure( pingStats ) ) {
+        display( string( "Waiting for " ) +
+                     ( initialConfig.mode.isHost() ? "client" : "host" ) +
+                     "...",
+                 false );
         return true;
     }
 
     return false;
 }
 
-void MainUi::spectate ( const SpectateConfig& spectateConfig )
-{
+void MainUi::spectate( const SpectateConfig& spectateConfig ) {
     alertUser();
 
-    ASSERT ( _ui.get() != 0 );
+    ASSERT( _ui.get() != 0 );
 
     string text;
 
-    if ( spectateConfig.mode.isBroadcast() )
-    {
-        text = format ( "Spectating a %s mode broadcast (0 delay)\n\n",
-                        ( spectateConfig.mode.isTraining() ? "training" : "versus" ) );
-    }
-    else
-    {
-        text = format ( "Spectating %s mode (%u delay%s)\n\n",
-                        ( spectateConfig.mode.isTraining() ? "training" : "versus" ), spectateConfig.delay,
-                        ( spectateConfig.rollback ? format ( ", %u rollback", spectateConfig.rollback ) : "" ) );
+    if ( spectateConfig.mode.isBroadcast() ) {
+        text = format(
+            "Spectating a %s mode broadcast (0 delay)\n\n",
+            ( spectateConfig.mode.isTraining() ? "training" : "versus" ) );
+    } else {
+        text = format(
+            "Spectating %s mode (%u delay%s)\n\n",
+            ( spectateConfig.mode.isTraining() ? "training" : "versus" ),
+            spectateConfig.delay,
+            ( spectateConfig.rollback
+                  ? format( ", %u rollback", spectateConfig.rollback )
+                  : "" ) );
     }
 
-    CharaNameFunc charaNameFunc = ( _config.getInteger ( "fullCharacterName" ) ? getFullCharaName : getShortCharaName );
+    CharaNameFunc charaNameFunc =
+        ( _config.getInteger( "fullCharacterName" ) ? getFullCharaName
+                                                    : getShortCharaName );
 
-    if ( spectateConfig.initial.netplayState <= NetplayState::CharaSelect )
-    {
+    if ( spectateConfig.initial.netplayState <= NetplayState::CharaSelect ) {
         if ( spectateConfig.mode.isBroadcast() )
             text += "Currently selecting characters...";
         else
-            text += format ( "%s vs %s", spectateConfig.names[0], spectateConfig.names[1] );
-    }
-    else
-    {
-        text += spectateConfig.formatPlayer ( 1, charaNameFunc )
-                + " vs " + spectateConfig.formatPlayer ( 2, charaNameFunc );
+            text += format( "%s vs %s", spectateConfig.names[ 0 ],
+                            spectateConfig.names[ 1 ] );
+    } else {
+        text += spectateConfig.formatPlayer( 1, charaNameFunc ) + " vs " +
+                spectateConfig.formatPlayer( 2, charaNameFunc );
     }
 
     text += "\n\n(Tap the spacebar to toggle fast-forward)";
 
-    _ui->pushInFront ( new ConsoleUi::TextBox ( text ), { 1, 0 }, true ); // Expand width and clear top
+    _ui->pushInFront( new ConsoleUi::TextBox( text ), { 1, 0 },
+                      true ); // Expand width and clear top
 }
 
-bool MainUi::confirm ( const string& question )
-{
+bool MainUi::confirm( const string& question ) {
     bool ret = false;
 
-    ASSERT ( _ui.get() != 0 );
+    ASSERT( _ui.get() != 0 );
 
-    _ui->pushBelow ( new ConsoleUi::Menu ( question, { "Yes" }, "No" ) );
+    _ui->pushBelow( new ConsoleUi::Menu( question, { "Yes" }, "No" ) );
 
     ret = ( _ui->popUntilUserInput()->resultInt == 0 );
 
@@ -1493,26 +1517,26 @@ bool MainUi::confirm ( const string& question )
     return ret;
 }
 
-void *MainUi::getConsoleWindow()
-{
+void* MainUi::getConsoleWindow() {
     return ConsoleUi::getConsoleWindow();
 }
 
-string MainUi::formatStats ( const PingStats& pingStats )
-{
-    return format (
-               "%-" INDENT_STATS "s Ping: %.2f ms"
-               "\n%-" INDENT_STATS "s Worst: %.2f ms"
-               "\n%-" INDENT_STATS "s StdErr: %.2f ms"
-               "\n%-" INDENT_STATS "s StdDev: %.2f ms"
-               "\n%-" INDENT_STATS "s Packet Loss: %d%%"
-               , format ( "Network delay: %d", computeDelay ( pingStats.latency.getMean() ) )
-               , pingStats.latency.getMean()
-               , "", pingStats.latency.getWorst()
-               , "", pingStats.latency.getStdErr()
-               , "", pingStats.latency.getStdDev()
-               , "", pingStats.packetLoss
-           );
+string MainUi::formatStats( const PingStats& pingStats ) {
+    return format( "%-" INDENT_STATS
+                   "s Ping: %.2f ms"
+                   "\n%-" INDENT_STATS
+                   "s Worst: %.2f ms"
+                   "\n%-" INDENT_STATS
+                   "s StdErr: %.2f ms"
+                   "\n%-" INDENT_STATS
+                   "s StdDev: %.2f ms"
+                   "\n%-" INDENT_STATS "s Packet Loss: %d%%",
+                   format( "Network delay: %d",
+                           computeDelay( pingStats.latency.getMean() ) ),
+                   pingStats.latency.getMean(), "",
+                   pingStats.latency.getWorst(), "",
+                   pingStats.latency.getStdErr(), "",
+                   pingStats.latency.getStdDev(), "", pingStats.packetLoss );
 }
 
 string MainUi::getUpdate( bool isStartup ) {
@@ -1525,26 +1549,23 @@ void MainUi::sendConnected() {
     }
 }
 
-void MainUi::connectionFailed ( Lobby *lobby )
-{
+void MainUi::connectionFailed( Lobby* lobby ) {
     LOG( "mainUI Lobby Connection Failed" );
     EventManager::get().stop();
     if ( !_lobby->connectionSuccess )
         unlock( lobby );
 }
 
-void MainUi::unlock ( Lobby *lobby )
-{
+void MainUi::unlock( Lobby* lobby ) {
     LOG( "mainUI lobby unlock" );
-    LOCK ( uiMutex );
+    LOCK( uiMutex );
     uiCondVar.signal();
 }
 
-void MainUi::connectionFailed ( MatchmakingManager *mmm )
-{
+void MainUi::connectionFailed( MatchmakingManager* mmm ) {
     LOG( "mainUI mmm Connection Failed" );
     EventManager::get().stop();
-    LOCK ( uiMutex );
+    LOCK( uiMutex );
     if ( !mmm->connectionSuccess ) {
         uiCondVar.signal();
     }
@@ -1553,22 +1574,17 @@ void MainUi::connectionFailed ( MatchmakingManager *mmm )
     }
 }
 
-void MainUi::unlock ( MatchmakingManager *mmm )
-{
+void MainUi::unlock( MatchmakingManager* mmm ) {
     LOG( "mainUI mmm unlock" );
-    LOCK ( uiMutex );
+    LOCK( uiMutex );
     uiCondVar.signal();
 }
 
-
-void MainUi::setAddr ( MatchmakingManager *mmm, string addr )
-{
+void MainUi::setAddr( MatchmakingManager* mmm, string addr ) {
     _address = addr;
 }
 
-
-void MainUi::setMode ( MatchmakingManager *mmm, string mode )
-{
+void MainUi::setMode( MatchmakingManager* mmm, string mode ) {
     if ( mode == "Host" ) {
         initialConfig.mode.value = ClientMode::Host;
     } else if ( mode == "Client" ) {
@@ -1576,15 +1592,14 @@ void MainUi::setMode ( MatchmakingManager *mmm, string mode )
     } else {
         initialConfig.mode.value = ClientMode::Offline;
     }
-    LOG(initialConfig.mode.value);
+    LOG( initialConfig.mode.value );
 }
 
 void MainUi::hostReady() {
     if ( _mmm && _mmm->isRunning() && isMatchmaking ) {
-        //Mutex host = _mmm->hostMutex;
-        //LOCK( host );
+        // Mutex host = _mmm->hostMutex;
+        // LOCK( host );
         //_mmm->hostCondVar.signal();
         _mmm->sendHostReady();
     }
 }
-

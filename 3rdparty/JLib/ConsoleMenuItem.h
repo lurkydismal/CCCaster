@@ -23,6 +23,7 @@
 #ifndef _PRAGMA_ONCE_CONSOLEITEM_H_
 #define _PRAGMA_ONCE_CONSOLEITEM_H_
 #include <windows.h>
+
 #include <string>
 #include <utility>
 
@@ -31,67 +32,65 @@
 // and a userdefined value.  The user defined value is of type DWORD
 // so you could potentially store something more meaningful than a
 // number, like a function address.
-class ConsoleMenuItem
-{
+class ConsoleMenuItem {
 public:
-	//		ConsoleMenuItem
-	//	Creates an empty menu item.
-	ConsoleMenuItem();
+    //		ConsoleMenuItem
+    //	Creates an empty menu item.
+    ConsoleMenuItem();
 
-	//		ConsoleMenuItem
-	//	Copies a menu item.
-	//	Arguments:
-	//		const ConsoleMenuItem& rhs:	what to copy.
-	ConsoleMenuItem(const ConsoleMenuItem& rhs);
+    //		ConsoleMenuItem
+    //	Copies a menu item.
+    //	Arguments:
+    //		const ConsoleMenuItem& rhs:	what to copy.
+    ConsoleMenuItem( const ConsoleMenuItem& rhs );
 
-	//		ConsoleMenuItem
-	//	Creates a menu item with 0 as the user defined value.
-	//	Arguments:
-	//		string text:	the menu item label.
-	ConsoleMenuItem(const std::string& text);
+    //		ConsoleMenuItem
+    //	Creates a menu item with 0 as the user defined value.
+    //	Arguments:
+    //		string text:	the menu item label.
+    ConsoleMenuItem( const std::string& text );
 
-	//		ConsoleMenuItem
-	//	Creates a menu item.
-	//	Arguments:
-	//		string text:	the menu item label.
-	//		DWORD value:	a user defined value.
-	ConsoleMenuItem(const std::string& text, DWORD value);
+    //		ConsoleMenuItem
+    //	Creates a menu item.
+    //	Arguments:
+    //		string text:	the menu item label.
+    //		DWORD value:	a user defined value.
+    ConsoleMenuItem( const std::string& text, DWORD value );
 
-	//		Text
-	//	Gets the text of the item.
-	//	Returns: the text of the item.
-	std::string Text() const;
+    //		Text
+    //	Gets the text of the item.
+    //	Returns: the text of the item.
+    std::string Text() const;
 
-	//		Text
-	//	Sets the text of the item.
-	//	Arguments:
-	//		string text:	the label.
-	std::string Text(const std::string& text);
+    //		Text
+    //	Sets the text of the item.
+    //	Arguments:
+    //		string text:	the label.
+    std::string Text( const std::string& text );
 
-	//		Value
-	//	Gets the user defined value of the item.
-	//	Returns: the user defined value of the item.
-	DWORD Value() const;
+    //		Value
+    //	Gets the user defined value of the item.
+    //	Returns: the user defined value of the item.
+    DWORD Value() const;
 
-	//		Value
-	//	Sets the user defined value of the item.
-	//	Arguments:
-	//		DWORD value:	a user defined value.
-	//	Returns: the old value.
-	DWORD Value(DWORD value);
+    //		Value
+    //	Sets the user defined value of the item.
+    //	Arguments:
+    //		DWORD value:	a user defined value.
+    //	Returns: the old value.
+    DWORD Value( DWORD value );
 
-	//		operator=
-	//	Assigns a menu item to this.
-	//	Arguments:
-	//		const ConsoleMenuItem& rhs:	what to copy.
-	//	Returns: this.
-	ConsoleMenuItem& operator=(const ConsoleMenuItem& rhs);
+    //		operator=
+    //	Assigns a menu item to this.
+    //	Arguments:
+    //		const ConsoleMenuItem& rhs:	what to copy.
+    //	Returns: this.
+    ConsoleMenuItem& operator=( const ConsoleMenuItem& rhs );
 
 private:
-	typedef std::pair<std::string, DWORD> MenuItemPair;
-	MenuItemPair m_data;
+    typedef std::pair< std::string, DWORD > MenuItemPair;
+    MenuItemPair m_data;
 };
 
-bool operator==(const ConsoleMenuItem& lhs, const ConsoleMenuItem& rhs);
+bool operator==( const ConsoleMenuItem& lhs, const ConsoleMenuItem& rhs );
 #endif
-

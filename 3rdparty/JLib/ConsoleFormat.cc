@@ -21,75 +21,58 @@
 // You should have received a copy of the GNU General Public License
 // along with JLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ConsoleFormat.h"
+
 #include <cstdlib>
 using namespace std;
 
-ConsoleFormat::ConsoleFormat()
-	:m_color(ConsoleFormat::BLACK)
-{
+ConsoleFormat::ConsoleFormat() : m_color( ConsoleFormat::BLACK ) {}
+
+ConsoleFormat::ConsoleFormat( const ConsoleFormat& rhs )
+    : m_color( rhs.m_color ) {}
+
+ConsoleFormat::ConsoleFormat( unsigned char bits ) : m_color( bits ) {}
+
+ConsoleFormat::ConsoleFormat( const string& bits ) : m_color( 0 ) {
+    if ( bits.length() )
+        m_color = atoi( bits.c_str() );
+}
+void ConsoleFormat::Set( Bit bit, bool value ) {
+    if ( BitValid( bit ) )
+        m_color |= ( unsigned( value ) << bit );
+    else
+        throw "bit out of range";
 }
 
-ConsoleFormat::ConsoleFormat(const ConsoleFormat& rhs)
-	:m_color(rhs.m_color)
-{
+bool ConsoleFormat::Get( Bit bit ) const {
+    if ( BitValid( bit ) )
+        return ( m_color & ( 1u << bit ) );
+    return false;
 }
 
-ConsoleFormat::ConsoleFormat(unsigned char bits)
-	:m_color(bits)
-{
+unsigned char ConsoleFormat::Color() const {
+    return ( unsigned char )m_color;
 }
 
-ConsoleFormat::ConsoleFormat(const string& bits)
-	:m_color(0)
-{
-	if(bits.length())
-		m_color = atoi(bits.c_str());
-}
-void ConsoleFormat::Set(Bit bit, bool value)
-{
-	if(BitValid(bit))
-		m_color |= ( unsigned ( value ) << bit );
-	else
-		throw "bit out of range";
+void ConsoleFormat::Color( unsigned char bits ) {
+    m_color = bits;
 }
 
-bool ConsoleFormat::Get(Bit bit) const
-{
-	if(BitValid(bit))
-		return ( m_color & ( 1u << bit ) );
-	return false;
+ConsoleFormat& ConsoleFormat::operator=( const ConsoleFormat& rhs ) {
+    if ( this != &rhs )
+        m_color = rhs.m_color;
+    return *this;
 }
 
-unsigned char ConsoleFormat::Color() const
-{
-	return (unsigned char)m_color;
+ConsoleFormat operator|( const ConsoleFormat& rhs, const ConsoleFormat& lhs ) {
+    return ConsoleFormat( rhs.Color() | lhs.Color() );
 }
 
-void ConsoleFormat::Color(unsigned char bits)
-{
-	m_color = bits;
+ConsoleFormat operator~( const ConsoleFormat& rhs ) {
+    return ConsoleFormat( ~rhs.Color() );
 }
 
-ConsoleFormat& ConsoleFormat::operator=(const ConsoleFormat& rhs)
-{
-	if(this != &rhs)
-		m_color = rhs.m_color;
-	return *this;
-}
-
-ConsoleFormat operator|(const ConsoleFormat& rhs, const ConsoleFormat& lhs)
-{
-	return ConsoleFormat(rhs.Color() | lhs.Color());
-}
-
-ConsoleFormat operator~(const ConsoleFormat& rhs)
-{
-	return ConsoleFormat(~rhs.Color());
-}
-
-bool ConsoleFormat::BitValid(Bit bit) const
-{
-	if((bit >= 0) && (bit < NUMBER_OF_BITS))
-		return true;
-	return false;
+bool ConsoleFormat::BitValid( Bit bit ) const {
+    if ( ( bit >= 0 ) && ( bit < NUMBER_OF_BITS ) )
+        return true;
+    return false;
 }

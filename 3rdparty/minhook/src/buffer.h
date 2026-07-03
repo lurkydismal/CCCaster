@@ -28,13 +28,12 @@
 
 #pragma once
 
-namespace MinHook
-{
-	void	InitializeBuffer();
-	void	UninitializeBuffer();
-	void*	AllocateCodeBuffer(void* const pOrigin, size_t size);
-	void*	AllocateDataBuffer(void* const pOrigin, size_t size);
-	void	FreeBuffer(void* const pBuffer);
-	void	RollbackBuffer();
-	void	CommitBuffer();
-}
+namespace MinHook {
+void InitializeBuffer();
+void UninitializeBuffer();
+void* AllocateCodeBuffer( void* const pOrigin, size_t size );
+void* AllocateDataBuffer( void* const pOrigin, size_t size );
+void FreeBuffer( void* const pBuffer );
+void RollbackBuffer();
+void CommitBuffer();
+} // namespace MinHook

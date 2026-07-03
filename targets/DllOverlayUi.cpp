@@ -1,48 +1,42 @@
 #include "DllOverlayUi.hpp"
-#include "Constants.hpp"
 
 #include <d3dx9.h>
 
+#include "Constants.hpp"
+
 using namespace std;
 using namespace DllOverlayUi;
-
 
 static bool initalizedDirectX = false;
 
 static bool shouldInitDirectX = false;
 
+namespace DllOverlayUi {
 
-namespace DllOverlayUi
-{
-
-void init()
-{
+void init() {
     shouldInitDirectX = true;
 }
 
 } // namespace DllOverlayUi
 
-
-void initOverlayText ( IDirect3DDevice9 *device );
+void initOverlayText( IDirect3DDevice9* device );
 
 void invalidateOverlayText();
 
-void renderOverlayText ( IDirect3DDevice9 *device, const D3DVIEWPORT9& viewport );
+void renderOverlayText( IDirect3DDevice9* device,
+                        const D3DVIEWPORT9& viewport );
 
-
-void InitializeDirectX ( IDirect3DDevice9 *device )
-{
-    if ( ! shouldInitDirectX )
+void InitializeDirectX( IDirect3DDevice9* device ) {
+    if ( !shouldInitDirectX )
         return;
 
     initalizedDirectX = true;
 
-    initOverlayText ( device );
+    initOverlayText( device );
 }
 
-void InvalidateDeviceObjects()
-{
-    if ( ! initalizedDirectX )
+void InvalidateDeviceObjects() {
+    if ( !initalizedDirectX )
         return;
 
     initalizedDirectX = false;
@@ -50,19 +44,17 @@ void InvalidateDeviceObjects()
     invalidateOverlayText();
 }
 
-
 // Note: this is called on the SAME thread as the main application thread
-void PresentFrameBegin ( IDirect3DDevice9 *device )
-{
-    if ( ! initalizedDirectX )
-        InitializeDirectX ( device );
+void PresentFrameBegin( IDirect3DDevice9* device ) {
+    if ( !initalizedDirectX )
+        InitializeDirectX( device );
 
     D3DVIEWPORT9 viewport;
-    device->GetViewport ( &viewport );
+    device->GetViewport( &viewport );
 
     // Only draw in the main viewport; there should only be one with this width
-    if ( viewport.Width != * CC_SCREEN_WIDTH_ADDR )
+    if ( viewport.Width != *CC_SCREEN_WIDTH_ADDR )
         return;
 
-    renderOverlayText ( device, viewport );
+    renderOverlayText( device, viewport );
 }

@@ -28,52 +28,56 @@
 
 #pragma once
 
-#include <vector>
 #include <windows.h>
+
+#include <vector>
 
 #include "trampoline.h"
 
-namespace MinHook
-{
-	// CriticalSection with scoped lock feature.
-	class CriticalSection
-	{
-		CriticalSection(const CriticalSection&);
-		void operator=(const CriticalSection&);
-	public:
-		class ScopedLock
-		{
-			ScopedLock(const ScopedLock&);
-			void operator=(const ScopedLock&);
-		private:
-			CriticalSection& cs_;
-		public:
-			ScopedLock(CriticalSection& cs);
-			~ScopedLock();
-		};
+namespace MinHook {
+// CriticalSection with scoped lock feature.
+class CriticalSection {
+    CriticalSection( const CriticalSection& );
+    void operator=( const CriticalSection& );
 
-	private:
-		CRITICAL_SECTION cs_;
-	public:
-		CriticalSection();
-		~CriticalSection();
-		void enter();
-		void leave();
-	};
+public:
+    class ScopedLock {
+        ScopedLock( const ScopedLock& );
+        void operator=( const ScopedLock& );
 
-	// Halt all other threads in the running process.
-	class ScopedThreadExclusive
-	{
-	private:
-		std::vector<DWORD> threads_;
-	public:
-		ScopedThreadExclusive(const std::vector<uintptr_t>& oldIPs, const std::vector<uintptr_t>& newIPs);
-		~ScopedThreadExclusive();
-	private:
-		static void GetThreads(std::vector<DWORD>& threads);
-		static void Freeze(
-			const std::vector<DWORD>& threads, const std::vector<uintptr_t>& oldIPs, const std::vector<uintptr_t>& newIPs);
-		static void Unfreeze(const std::vector<DWORD>& threads);
-	};
-}
+    private:
+        CriticalSection& cs_;
 
+    public:
+        ScopedLock( CriticalSection& cs );
+        ~ScopedLock();
+    };
+
+private:
+    CRITICAL_SECTION cs_;
+
+public:
+    CriticalSection();
+    ~CriticalSection();
+    void enter();
+    void leave();
+};
+
+// Halt all other threads in the running process.
+class ScopedThreadExclusive {
+private:
+    std::vector< DWORD > threads_;
+
+public:
+    ScopedThreadExclusive( const std::vector< uintptr_t >& oldIPs,
+                           const std::vector< uintptr_t >& newIPs );
+    ~ScopedThreadExclusive();
+
+private:
+    static void GetThreads( std::vector< DWORD >& threads );
+    static void Freeze( const std::vector< DWORD >& threads,
+                        const std::vector< uintptr_t >& oldIPs,
+                        const std::vector< uintptr_t >& newIPs );
+    static void Unfreeze( const std::vector< DWORD >& threads );
+};
+} // namespace MinHook

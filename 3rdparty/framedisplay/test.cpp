@@ -1,15 +1,13 @@
-#include "mbaacc_framedisplay.h"
-#include "render.h"
-
 #include <SDL.h>
-
 #include <gl.h>
 #include <glext.h>
 
 #include <string>
 
-using namespace std;
+#include "mbaacc_framedisplay.h"
+#include "render.h"
 
+using namespace std;
 
 static MBAACC_FrameDisplay fdisp;
 
@@ -23,66 +21,64 @@ static int position_y = 400;
 
 static const RenderProperties props = { 1, 0, 0, 0, 0, 0 };
 
-
-static void setup_opengl()
-{
-    glMatrixMode ( GL_PROJECTION );
+static void setup_opengl() {
+    glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    glOrtho ( 0, window_width, window_height, 0, -2048, 2048 );
+    glOrtho( 0, window_width, window_height, 0, -2048, 2048 );
 
-    glMatrixMode ( GL_MODELVIEW );
+    glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
-    glEnable ( GL_BLEND );
-    glBlendFunc ( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    glDisable ( GL_DEPTH_TEST );
+    glDisable( GL_DEPTH_TEST );
 }
 
-static void display_bg()
-{
-    glBegin ( GL_QUADS );
-    glColor4f ( 0.0, 0.0, 0.0, 1.0 );
-    glVertex2f ( 0.0, 0.0 );
-    glVertex2f ( window_width, 0.0 );
-    glVertex2f ( window_width, window_height );
-    glVertex2f ( 0.0, window_height );
+static void display_bg() {
+    glBegin( GL_QUADS );
+    glColor4f( 0.0, 0.0, 0.0, 1.0 );
+    glVertex2f( 0.0, 0.0 );
+    glVertex2f( window_width, 0.0 );
+    glVertex2f( window_width, window_height );
+    glVertex2f( 0.0, window_height );
     glEnd();
 }
 
-static void display_scene()
-{
+static void display_scene() {
     display_bg();
 
     glPushMatrix();
-    glTranslatef ( position_x, position_y, 0.0 );
-    glScalef ( window_scale, window_scale, 1.0 );
+    glTranslatef( position_x, position_y, 0.0 );
+    glScalef( window_scale, window_scale, 1.0 );
 
-    fdisp.render ( &props );
+    fdisp.render( &props );
 
     glPopMatrix();
 }
 
-int main ( int argc, char *argv[] )
-{
-    if ( argc >= 2 && !fdisp.init ( ( string ( argv[1] ) + "/0002.p" ).c_str() ) )
+int main( int argc, char* argv[] ) {
+    if ( argc >= 2 &&
+         !fdisp.init( ( string( argv[ 1 ] ) + "/0002.p" ).c_str() ) )
         return 0;
 
     if ( !fdisp.init() )
         return 0;
 
-    SDL_Init ( SDL_INIT_VIDEO | SDL_INIT_TIMER );
+    SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER );
 
-    SDL_GL_SetAttribute ( SDL_GL_DEPTH_SIZE, 16 );
-    SDL_GL_SetAttribute ( SDL_GL_DOUBLEBUFFER, 1 );
-    SDL_Surface *surface = SDL_SetVideoMode ( 640, 480, 0, SDL_OPENGL | SDL_RESIZABLE );
+    SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
+    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+    SDL_Surface* surface =
+        SDL_SetVideoMode( 640, 480, 0, SDL_OPENGL | SDL_RESIZABLE );
 
     if ( !surface )
         return -1;
 
-    SDL_EnableKeyRepeat ( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL );
+    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY,
+                         SDL_DEFAULT_REPEAT_INTERVAL );
 
-    SDL_WM_SetCaption ( "Test", 0 );
+    SDL_WM_SetCaption( "Test", 0 );
 
     setup_opengl();
 
@@ -91,34 +87,28 @@ int main ( int argc, char *argv[] )
     int animate = 1;
     bool done = false, render = false;
 
-    while ( !done )
-    {
-        if ( animate )
-        {
-            fdisp.command ( COMMAND_SUBFRAME_NEXT, 0 );
+    while ( !done ) {
+        if ( animate ) {
+            fdisp.command( COMMAND_SUBFRAME_NEXT, 0 );
             render = 1;
         }
 
-        if ( render )
-        {
+        if ( render ) {
             display_scene();
             SDL_GL_SwapBuffers();
 
             render = 0;
         }
 
-        SDL_Delay ( 16 );
+        SDL_Delay( 16 );
 
         SDL_Event sdl_event;
         SDL_PumpEvents();
 
-        while ( SDL_PollEvent ( &sdl_event ) )
-        {
-            switch ( sdl_event.type )
-            {
+        while ( SDL_PollEvent( &sdl_event ) ) {
+            switch ( sdl_event.type ) {
                 case SDL_KEYDOWN:
-                    switch ( sdl_event.key.keysym.sym )
-                    {
+                    switch ( sdl_event.key.keysym.sym ) {
                         case SDLK_ESCAPE:
                             done = 1;
                             break;
@@ -130,42 +120,42 @@ int main ( int argc, char *argv[] )
                         case SDLK_UP:
                         case SDLK_KP8:
                             // prev seq
-                            fdisp.command ( COMMAND_SEQUENCE_PREV, 0 );
+                            fdisp.command( COMMAND_SEQUENCE_PREV, 0 );
                             render = 1;
                             break;
 
                         case SDLK_DOWN:
                         case SDLK_KP2:
                             // next seq
-                            fdisp.command ( COMMAND_SEQUENCE_NEXT, 0 );
+                            fdisp.command( COMMAND_SEQUENCE_NEXT, 0 );
                             render = 1;
                             break;
 
                         case SDLK_LEFT:
                         case SDLK_KP4:
                             // prev frame
-                            fdisp.command ( COMMAND_FRAME_PREV, 0 );
+                            fdisp.command( COMMAND_FRAME_PREV, 0 );
                             render = 1;
                             break;
 
                         case SDLK_RIGHT:
                         case SDLK_KP6:
                             // next frame
-                            fdisp.command ( COMMAND_FRAME_NEXT, 0 );
+                            fdisp.command( COMMAND_FRAME_NEXT, 0 );
                             render = 1;
                             break;
 
                         case SDLK_PAGEUP:
                         case SDLK_KP9:
                             // prev char
-                            fdisp.command ( COMMAND_CHARACTER_PREV, 0 );
+                            fdisp.command( COMMAND_CHARACTER_PREV, 0 );
                             render = 1;
                             break;
 
                         case SDLK_PAGEDOWN:
                         case SDLK_KP3:
                             // next char
-                            fdisp.command ( COMMAND_CHARACTER_NEXT, 0 );
+                            fdisp.command( COMMAND_CHARACTER_NEXT, 0 );
                             render = 1;
                             break;
 
@@ -190,7 +180,7 @@ int main ( int argc, char *argv[] )
 
                         case SDLK_TAB:
                             // flush textures
-                            fdisp.command ( COMMAND_PALETTE_NEXT, 0 );
+                            fdisp.command( COMMAND_PALETTE_NEXT, 0 );
 
                             render = 1;
                             break;
@@ -205,9 +195,9 @@ int main ( int argc, char *argv[] )
                     break;
 
                 case SDL_VIDEORESIZE:
-                    SDL_SetVideoMode ( sdl_event.resize.w, sdl_event.resize.h, 0,
-                                       SDL_OPENGL | SDL_RESIZABLE );
-                    glViewport ( 0, 0, sdl_event.resize.w, sdl_event.resize.h );
+                    SDL_SetVideoMode( sdl_event.resize.w, sdl_event.resize.h, 0,
+                                      SDL_OPENGL | SDL_RESIZABLE );
+                    glViewport( 0, 0, sdl_event.resize.w, sdl_event.resize.h );
 
                     window_width = sdl_event.resize.w;
                     window_height = sdl_event.resize.h;

@@ -1,3 +1,3 @@
 #pragma once
 
-int RunAllTests ( int& argc, char *argv[] );
+int RunAllTests( int& argc, char* argv[] );

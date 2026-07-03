@@ -16,11 +16,11 @@
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR
+  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -32,41 +32,36 @@
 
 #include <chrono>
 
-namespace cereal
-{
-  //! Saving std::chrono::duration
-  template <class Archive, class R, class P> inline
-  void save( Archive & ar, std::chrono::duration<R, P> const & dur )
-  {
-    ar( _CEREAL_NVP("count", dur.count()) );
-  }
+namespace cereal {
+//! Saving std::chrono::duration
+template < class Archive, class R, class P >
+inline void save( Archive& ar, std::chrono::duration< R, P > const& dur ) {
+    ar( _CEREAL_NVP( "count", dur.count() ) );
+}
 
-  //! Loading std::chrono::duration
-  template <class Archive, class R, class P> inline
-  void load( Archive & ar, std::chrono::duration<R, P> & dur )
-  {
+//! Loading std::chrono::duration
+template < class Archive, class R, class P >
+inline void load( Archive& ar, std::chrono::duration< R, P >& dur ) {
     R count;
-    ar( _CEREAL_NVP("count", count) );
+    ar( _CEREAL_NVP( "count", count ) );
 
-    dur = std::chrono::duration<R, P>{count};
-  }
+    dur = std::chrono::duration< R, P >{ count };
+}
 
-  //! Saving std::chrono::time_point
-  template <class Archive, class C, class D> inline
-  void save( Archive & ar, std::chrono::time_point<C, D> const & dur )
-  {
-    ar( _CEREAL_NVP("time_since_epoch", dur.time_since_epoch()) );
-  }
+//! Saving std::chrono::time_point
+template < class Archive, class C, class D >
+inline void save( Archive& ar, std::chrono::time_point< C, D > const& dur ) {
+    ar( _CEREAL_NVP( "time_since_epoch", dur.time_since_epoch() ) );
+}
 
-  //! Loading std::chrono::time_point
-  template <class Archive, class C, class D> inline
-  void load( Archive & ar, std::chrono::time_point<C, D> & dur )
-  {
+//! Loading std::chrono::time_point
+template < class Archive, class C, class D >
+inline void load( Archive& ar, std::chrono::time_point< C, D >& dur ) {
     D elapsed;
-    ar( _CEREAL_NVP("time_since_epoch", elapsed) );
+    ar( _CEREAL_NVP( "time_since_epoch", elapsed ) );
 
-    dur = std::chrono::time_point<C, D>{elapsed};
-  }
+    dur = std::chrono::time_point< C, D >{ elapsed };
+}
 } // namespace cereal
 
 #endif // CEREAL_TYPES_CHRONO_HPP_

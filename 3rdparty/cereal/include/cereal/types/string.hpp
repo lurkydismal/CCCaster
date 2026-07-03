@@ -16,11 +16,11 @@
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR
+  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -31,31 +31,33 @@
 #define CEREAL_TYPES_STRING_HPP_
 
 #include <cereal/cereal.hpp>
+
 #include <string>
 
-namespace cereal
-{
-  //! Serialization for basic_string types, if binary data is supported
-  template<class Archive, class CharT, class Traits, class Alloc> inline
-  typename std::enable_if<traits::is_output_serializable<BinaryData<CharT>, Archive>::value, void>::type
-  save(Archive & ar, std::basic_string<CharT, Traits, Alloc> const & str)
-  {
+namespace cereal {
+//! Serialization for basic_string types, if binary data is supported
+template < class Archive, class CharT, class Traits, class Alloc >
+inline typename std::enable_if<
+    traits::is_output_serializable< BinaryData< CharT >, Archive >::value,
+    void >::type
+save( Archive& ar, std::basic_string< CharT, Traits, Alloc > const& str ) {
     // Save number of chars + the data
-    ar( make_size_tag( static_cast<size_type>(str.size()) ) );
-    ar( binary_data( str.data(), str.size() * sizeof(CharT) ) );
-  }
+    ar( make_size_tag( static_cast< size_type >( str.size() ) ) );
+    ar( binary_data( str.data(), str.size() * sizeof( CharT ) ) );
+}
 
-  //! Serialization for basic_string types, if binary data is supported
-  template<class Archive, class CharT, class Traits, class Alloc> inline
-  typename std::enable_if<traits::is_input_serializable<BinaryData<CharT>, Archive>::value, void>::type
-  load(Archive & ar, std::basic_string<CharT, Traits, Alloc> & str)
-  {
+//! Serialization for basic_string types, if binary data is supported
+template < class Archive, class CharT, class Traits, class Alloc >
+inline typename std::enable_if<
+    traits::is_input_serializable< BinaryData< CharT >, Archive >::value,
+    void >::type
+load( Archive& ar, std::basic_string< CharT, Traits, Alloc >& str ) {
     size_type size;
     ar( make_size_tag( size ) );
-    str.resize(static_cast<std::size_t>(size));
-    ar( binary_data( const_cast<CharT *>( str.data() ), static_cast<std::size_t>(size) * sizeof(CharT) ) );
-  }
+    str.resize( static_cast< std::size_t >( size ) );
+    ar( binary_data( const_cast< CharT* >( str.data() ),
+                     static_cast< std::size_t >( size ) * sizeof( CharT ) ) );
+}
 } // namespace cereal
 
 #endif // CEREAL_TYPES_STRING_HPP_
-

@@ -8,13 +8,12 @@
 
 // using namespace std;
 
-
 // #define PACKET_LOSS     50
 // #define CHECK_SUM_FAIL  50
 // #define LONG_TIMEOUT    ( 120 * 1000 )
 
-
-// TEST_CONNECT                ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
+// TEST_CONNECT                ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL,
+// LONG_TIMEOUT, LONG_TIMEOUT )
 
 // TEST_TIMEOUT                ( UdpSocket, 0, 0, 1000, 1000 )
 
@@ -22,11 +21,12 @@
 
 // TEST_DISCONNECT_ACCEPTED    ( UdpSocket, 0, 0, 1000, LONG_TIMEOUT )
 
-// TEST_SEND                   ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
+// TEST_SEND                   ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL,
+// LONG_TIMEOUT, LONG_TIMEOUT )
 
 // // This test doesn't make sense since there is only one UDP socket
-// // TEST_SEND_WITHOUT_SERVER    ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL, LONG_TIMEOUT, LONG_TIMEOUT )
-
+// // TEST_SEND_WITHOUT_SERVER    ( UdpSocket, PACKET_LOSS, CHECK_SUM_FAIL,
+// LONG_TIMEOUT, LONG_TIMEOUT )
 
 // TEST ( UdpSocket, SendConnectionLess )
 // {
@@ -41,14 +41,15 @@
 //         void socketConnected ( Socket *socket ) override {}
 //         void socketDisconnected ( Socket *socket ) override {}
 
-//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const
+//         IpAddrPort& address ) override
 //         {
 //             this->msg = msg;
 
 //             if ( socket->getRemoteAddress().addr.empty() )
 //             {
-//                 socket->send ( new TestMessage ( "Hello client!" ), address );
-//                 sent = true;
+//                 socket->send ( new TestMessage ( "Hello client!" ), address
+//                 ); sent = true;
 //             }
 //         }
 
@@ -78,8 +79,8 @@
 //         }
 
 //         TestSocket ( const string& address, uint16_t port )
-//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-//             , timer ( this ), sent ( false )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) )
+//             ) , timer ( this ), sent ( false )
 //         {
 //             timer.start ( 1000 );
 //         }
@@ -137,13 +138,15 @@
 //         void socketAccepted ( Socket *socket ) override
 //         {
 //             accepted = socket->accept ( this );
-//             accepted->send ( new TestMessage ( "Accepted message" ), accepted->address );
+//             accepted->send ( new TestMessage ( "Accepted message" ),
+//             accepted->address );
 //             ++done;
 //         }
 
 //         void socketConnected ( Socket *socket ) override
 //         {
-//             socket->send ( new TestMessage ( "Connected message" ), socket->address );
+//             socket->send ( new TestMessage ( "Connected message" ),
+//             socket->address );
 //             ++done;
 //         }
 
@@ -152,7 +155,8 @@
 //             EventManager::get().stop();
 //         }
 
-//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const
+//         IpAddrPort& address ) override
 //         {
 //             if ( socket->getAsUDP().isConnectionLess() )
 //                 bindedMsg = msg;
@@ -160,7 +164,8 @@
 //                 connectedMsg = msg;
 
 //             if ( socket->address.addr.empty() )
-//                 socket->send ( new TestMessage ( "Connection-less message" ), address );
+//                 socket->send ( new TestMessage ( "Connection-less message" ),
+//                 address );
 
 //             ++done;
 //             if ( done >= 6 )
@@ -175,7 +180,8 @@
 //             if ( step == 0 )
 //             {
 //                 if ( ! socket->address.addr.empty() )
-//                     socket->send ( new TestMessage ( "Connection-less message" ), socket->address );
+//                     socket->send ( new TestMessage ( "Connection-less
+//                     message" ), socket->address );
 
 //                 timer->start ( 1000 );
 //                 ++step;
@@ -209,8 +215,8 @@
 //         }
 
 //         TestSocket ( const string& address, uint16_t port )
-//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-//             , timer ( this )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) )
+//             ) , timer ( this )
 //         {
 //             timer.start ( 1000 );
 //         }
@@ -237,15 +243,17 @@
 //     if ( server.bindedMsg.get() )
 //     {
 //         EXPECT_EQ ( MsgType::TestMessage, server.bindedMsg->getMsgType() );
-//         EXPECT_EQ ( "Connection-less message", server.bindedMsg->getAs<TestMessage>().str );
+//         EXPECT_EQ ( "Connection-less message",
+//         server.bindedMsg->getAs<TestMessage>().str );
 //     }
 
 //     EXPECT_TRUE ( server.connectedMsg.get() );
 
 //     if ( server.connectedMsg.get() )
 //     {
-//         EXPECT_EQ ( MsgType::TestMessage, server.connectedMsg->getMsgType() );
-//         EXPECT_EQ ( "Connected message", server.connectedMsg->getAs<TestMessage>().str );
+//         EXPECT_EQ ( MsgType::TestMessage, server.connectedMsg->getMsgType()
+//         ); EXPECT_EQ ( "Connected message",
+//         server.connectedMsg->getAs<TestMessage>().str );
 //     }
 
 //     EXPECT_TRUE ( client.socket.get() );
@@ -257,15 +265,17 @@
 //     if ( client.bindedMsg.get() )
 //     {
 //         EXPECT_EQ ( MsgType::TestMessage, client.bindedMsg->getMsgType() );
-//         EXPECT_EQ ( "Connection-less message", client.bindedMsg->getAs<TestMessage>().str );
+//         EXPECT_EQ ( "Connection-less message",
+//         client.bindedMsg->getAs<TestMessage>().str );
 //     }
 
 //     EXPECT_TRUE ( client.connectedMsg.get() );
 
 //     if ( client.connectedMsg.get() )
 //     {
-//         EXPECT_EQ ( MsgType::TestMessage, client.connectedMsg->getMsgType() );
-//         EXPECT_EQ ( "Accepted message", client.connectedMsg->getAs<TestMessage>().str );
+//         EXPECT_EQ ( MsgType::TestMessage, client.connectedMsg->getMsgType()
+//         ); EXPECT_EQ ( "Accepted message",
+//         client.connectedMsg->getAs<TestMessage>().str );
 //     }
 
 //     SocketManager::get().deinitialize();

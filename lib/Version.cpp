@@ -4,52 +4,46 @@
 
 using namespace std;
 
-
-// List of versions that made compatibility breaking changes between the same major.minor versions.
-// There is also an implicit assumption that compatibility is broken whenever the minor version increments.
-static vector<Version> breakingVersions =
-{
-    "2.1e", // Changed protocol by adding UdpControl::Disconnect
+// List of versions that made compatibility breaking changes between the same
+// major.minor versions. There is also an implicit assumption that compatibility
+// is broken whenever the minor version increments.
+static vector< Version > breakingVersions = {
+    "2.1e",     // Changed protocol by adding UdpControl::Disconnect
     "3.0a.019", // Changed round over logic
 };
 
-
-string Version::get ( PartEnum part ) const
-{
-    size_t i = code.find ( '.' );
+string Version::get( PartEnum part ) const {
+    size_t i = code.find( '.' );
 
     if ( part == Major )
-        return code.substr ( 0, i );
+        return code.substr( 0, i );
 
     if ( i == string::npos )
         return "";
 
-    size_t j = code.find_first_not_of ( "0123456789", i + 1 );
+    size_t j = code.find_first_not_of( "0123456789", i + 1 );
 
     if ( part == Minor )
-        return code.substr ( i + 1, j - ( i + 1 ) );
+        return code.substr( i + 1, j - ( i + 1 ) );
 
     if ( j == string::npos )
         return "";
 
-    if ( code[j] == '.' )
+    if ( code[ j ] == '.' )
         ++j;
 
-    return code.substr ( j );
+    return code.substr( j );
 }
 
-bool Version::isCustom() const
-{
+bool Version::isCustom() const {
     if ( revision.empty() )
         return false;
 
-    return ( revision.rfind ( "-custom" ) + 7 == revision.size() );
+    return ( revision.rfind( "-custom" ) + 7 == revision.size() );
 }
 
-bool Version::isSimilar ( const Version& other, uint8_t level ) const
-{
-    switch ( level )
-    {
+bool Version::isSimilar( const Version& other, uint8_t level ) const {
+    switch ( level ) {
         default:
         case 4:
             if ( buildTime != other.buildTime )
@@ -67,10 +61,8 @@ bool Version::isSimilar ( const Version& other, uint8_t level ) const
                 return false;
 
         case 1:
-            if ( level == 1 )
-            {
-                for ( const Version& divider : breakingVersions )
-                {
+            if ( level == 1 ) {
+                for ( const Version& divider : breakingVersions ) {
                     if ( *this >= divider && other < divider )
                         return false;
 
@@ -91,8 +83,7 @@ bool Version::isSimilar ( const Version& other, uint8_t level ) const
     return true;
 }
 
-bool operator< ( const Version& a, const Version& b )
-{
+bool operator<( const Version& a, const Version& b ) {
     if ( a.major() < b.major() )
         return true;
 

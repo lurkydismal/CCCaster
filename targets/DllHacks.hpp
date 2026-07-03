@@ -2,11 +2,9 @@
 
 #include "DllAsmHacks.hpp"
 
+namespace DllHacks {
 
-namespace DllHacks
-{
-
-extern void *windowHandle;
+extern void* windowHandle;
 
 // Hacks to apply before entry into the main game loop
 void initializePreLoad();
@@ -17,4 +15,4 @@ void initializePostLoad();
 // Disable all hacks
 void deinitialize();
 
-}
+} // namespace DllHacks

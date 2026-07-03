@@ -23,61 +23,46 @@
 #include "ConsoleMenuItem.h"
 using namespace std;
 
-ConsoleMenuItem::ConsoleMenuItem()
-	:m_data(MenuItemPair("",0))
-{
+ConsoleMenuItem::ConsoleMenuItem() : m_data( MenuItemPair( "", 0 ) ) {}
+ConsoleMenuItem::ConsoleMenuItem( const ConsoleMenuItem& rhs )
+    : m_data( rhs.m_data ) {}
+
+ConsoleMenuItem::ConsoleMenuItem( const string& text )
+    : m_data( MenuItemPair( text, 0 ) ) {}
+
+ConsoleMenuItem::ConsoleMenuItem( const string& text, DWORD value )
+    : m_data( MenuItemPair( text, value ) ) {}
+
+string ConsoleMenuItem::Text() const {
+    return m_data.first;
 }
-ConsoleMenuItem::ConsoleMenuItem(const ConsoleMenuItem& rhs)
-	:m_data(rhs.m_data)
-{
+string ConsoleMenuItem::Text( const std::string& text ) {
+    string old = m_data.first;
+    m_data.first = text;
+    return old;
+}
+DWORD ConsoleMenuItem::Value() const {
+    return m_data.second;
+}
+DWORD ConsoleMenuItem::Value( DWORD value ) {
+    DWORD old = m_data.second;
+    m_data.second = value;
+    return old;
 }
 
-ConsoleMenuItem::ConsoleMenuItem(const string& text)
-	:m_data(MenuItemPair(text,0))
-{
+ConsoleMenuItem& ConsoleMenuItem::operator=( const ConsoleMenuItem& rhs ) {
+    if ( this != &rhs )
+        m_data = rhs.m_data;
+    return *this;
 }
 
-ConsoleMenuItem::ConsoleMenuItem(const string& text, DWORD value)
-	:m_data(MenuItemPair(text,value))
-{
-}
-
-string ConsoleMenuItem::Text() const
-{
-	return m_data.first;
-}
-string ConsoleMenuItem::Text(const std::string& text)
-{
-	string old = m_data.first;
-	m_data.first = text;
-	return old;
-}
-DWORD ConsoleMenuItem::Value() const
-{
-	return m_data.second;
-}
-DWORD ConsoleMenuItem::Value(DWORD value)
-{
-	DWORD old = m_data.second;
-	m_data.second = value;
-	return old;
-}
-
-ConsoleMenuItem& ConsoleMenuItem::operator=(const ConsoleMenuItem& rhs)
-{
-	if(this != &rhs)
-		m_data = rhs.m_data;
-	return *this;
-}
-
-bool operator==(const ConsoleMenuItem& lhs, const ConsoleMenuItem& rhs)
-{
-	if(&lhs == &rhs)
-		return true;
-	else if(lhs.Text() != rhs.Text())
-		return false;
-	else if(lhs.Value() != rhs.Value())
-		return false;
-	else
-		return true;
+bool operator==( const ConsoleMenuItem& lhs, const ConsoleMenuItem& rhs ) {
+    if ( &lhs == &rhs )
+        return true;
+    else if ( lhs.Text() != rhs.Text() )
+        return false;
+    else if ( lhs.Value() != rhs.Value() )
+        return false;
+    else
+        return true;
 }

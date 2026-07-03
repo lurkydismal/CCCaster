@@ -16,11 +16,11 @@
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR
+  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -31,82 +31,89 @@
 #define CEREAL_TYPES_VECTOR_HPP_
 
 #include <cereal/cereal.hpp>
+
 #include <vector>
 
-namespace cereal
-{
-  //! Serialization for std::vectors of arithmetic (but not bool) using binary serialization, if supported
-  template <class Archive, class T, class A> inline
-  typename std::enable_if<traits::is_output_serializable<BinaryData<T>, Archive>::value
-                          && std::is_arithmetic<T>::value && !std::is_same<T, bool>::value, void>::type
-  save( Archive & ar, std::vector<T, A> const & vector )
-  {
-    ar( make_size_tag( static_cast<size_type>(vector.size()) ) ); // number of elements
-    ar( binary_data( vector.data(), vector.size() * sizeof(T) ) );
-  }
+namespace cereal {
+//! Serialization for std::vectors of arithmetic (but not bool) using binary
+//! serialization, if supported
+template < class Archive, class T, class A >
+inline typename std::enable_if<
+    traits::is_output_serializable< BinaryData< T >, Archive >::value &&
+        std::is_arithmetic< T >::value && !std::is_same< T, bool >::value,
+    void >::type
+save( Archive& ar, std::vector< T, A > const& vector ) {
+    ar( make_size_tag(
+        static_cast< size_type >( vector.size() ) ) ); // number of elements
+    ar( binary_data( vector.data(), vector.size() * sizeof( T ) ) );
+}
 
-  //! Serialization for std::vectors of arithmetic (but not bool) using binary serialization, if supported
-  template <class Archive, class T, class A> inline
-  typename std::enable_if<traits::is_input_serializable<BinaryData<T>, Archive>::value
-                          && std::is_arithmetic<T>::value && !std::is_same<T, bool>::value, void>::type
-  load( Archive & ar, std::vector<T, A> & vector )
-  {
+//! Serialization for std::vectors of arithmetic (but not bool) using binary
+//! serialization, if supported
+template < class Archive, class T, class A >
+inline typename std::enable_if<
+    traits::is_input_serializable< BinaryData< T >, Archive >::value &&
+        std::is_arithmetic< T >::value && !std::is_same< T, bool >::value,
+    void >::type
+load( Archive& ar, std::vector< T, A >& vector ) {
     size_type vectorSize;
     ar( make_size_tag( vectorSize ) );
 
-    vector.resize( static_cast<std::size_t>( vectorSize ) );
-    ar( binary_data( vector.data(), static_cast<std::size_t>( vectorSize ) * sizeof(T) ) );
-  }
+    vector.resize( static_cast< std::size_t >( vectorSize ) );
+    ar( binary_data( vector.data(),
+                     static_cast< std::size_t >( vectorSize ) * sizeof( T ) ) );
+}
 
-  //! Serialization for non-arithmetic vector types
-  template <class Archive, class T, class A> inline
-  typename std::enable_if<!traits::is_output_serializable<BinaryData<T>, Archive>::value
-                          || !std::is_arithmetic<T>::value, void>::type
-  save( Archive & ar, std::vector<T, A> const & vector )
-  {
-    ar( make_size_tag( static_cast<size_type>(vector.size()) ) ); // number of elements
-    for( auto it = vector.begin(), end = vector.end(); it != end; ++it )
-      ar( *it );
-  }
+//! Serialization for non-arithmetic vector types
+template < class Archive, class T, class A >
+inline typename std::enable_if<
+    !traits::is_output_serializable< BinaryData< T >, Archive >::value ||
+        !std::is_arithmetic< T >::value,
+    void >::type
+save( Archive& ar, std::vector< T, A > const& vector ) {
+    ar( make_size_tag(
+        static_cast< size_type >( vector.size() ) ) ); // number of elements
+    for ( auto it = vector.begin(), end = vector.end(); it != end; ++it )
+        ar( *it );
+}
 
-  //! Serialization for non-arithmetic vector types
-  template <class Archive, class T, class A> inline
-  typename std::enable_if<!traits::is_input_serializable<BinaryData<T>, Archive>::value
-                          || !std::is_arithmetic<T>::value, void>::type
-  load( Archive & ar, std::vector<T, A> & vector )
-  {
+//! Serialization for non-arithmetic vector types
+template < class Archive, class T, class A >
+inline typename std::enable_if<
+    !traits::is_input_serializable< BinaryData< T >, Archive >::value ||
+        !std::is_arithmetic< T >::value,
+    void >::type
+load( Archive& ar, std::vector< T, A >& vector ) {
     size_type size;
     ar( make_size_tag( size ) );
 
-    vector.resize( static_cast<std::size_t>( size ) );
-    for( auto it = vector.begin(), end = vector.end(); it != end; ++it )
-      ar( *it );
-  }
+    vector.resize( static_cast< std::size_t >( size ) );
+    for ( auto it = vector.begin(), end = vector.end(); it != end; ++it )
+        ar( *it );
+}
 
-  //! Serialization for bool vector types
-  template <class Archive, class A> inline
-  void save( Archive & ar, std::vector<bool, A> const & vector )
-  {
-    ar( make_size_tag( static_cast<size_type>(vector.size()) ) ); // number of elements
-    for( auto it = vector.begin(), end = vector.end(); it != end; ++it )
-      ar( static_cast<bool>( *it ) );
-  }
+//! Serialization for bool vector types
+template < class Archive, class A >
+inline void save( Archive& ar, std::vector< bool, A > const& vector ) {
+    ar( make_size_tag(
+        static_cast< size_type >( vector.size() ) ) ); // number of elements
+    for ( auto it = vector.begin(), end = vector.end(); it != end; ++it )
+        ar( static_cast< bool >( *it ) );
+}
 
-  //! Serialization for bool vector types
-  template <class Archive, class A> inline
-  void load( Archive & ar, std::vector<bool, A> & vector )
-  {
+//! Serialization for bool vector types
+template < class Archive, class A >
+inline void load( Archive& ar, std::vector< bool, A >& vector ) {
     size_type size;
     ar( make_size_tag( size ) );
 
-    vector.resize( static_cast<std::size_t>( size ) );
-    for( auto it = vector.begin(), end = vector.end(); it != end; ++it )
-    {
-      bool b;
-      ar( b );
-      *it = b;
+    vector.resize( static_cast< std::size_t >( size ) );
+    for ( auto it = vector.begin(), end = vector.end(); it != end; ++it ) {
+        bool b;
+        ar( b );
+        *it = b;
     }
-  }
+}
 } // namespace cereal
 
 #endif // CEREAL_TYPES_VECTOR_HPP_

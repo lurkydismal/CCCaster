@@ -12,11 +12,9 @@
 
 // using namespace std;
 
-
 // #define EPSILON_MILLISECONDS    ( 50 )
 // #define NUM_ITERATIONS          ( 10 )
 // #define MAX_DELAY_MILLISECONDS  ( 2000 )
-
 
 // TEST ( Timer, RepeatRandom )
 // {
@@ -31,7 +29,8 @@
 //         {
 //             if ( lastExpiry != 0 )
 //             {
-//                 validTimers.push_back ( abs ( ( long long ) ( TimerManager::get().getNow() - lastExpiry ) )
+//                 validTimers.push_back ( abs ( ( long long ) (
+//                 TimerManager::get().getNow() - lastExpiry ) )
 //                                         < EPSILON_MILLISECONDS );
 //             }
 
@@ -47,7 +46,8 @@
 //             --count;
 //         }
 
-//         TestTimer() : timer ( this ), count ( NUM_ITERATIONS ), lastExpiry ( 0 )
+//         TestTimer() : timer ( this ), count ( NUM_ITERATIONS ), lastExpiry (
+//         0 )
 //         {
 //             timer.start ( 1000 );
 //         }

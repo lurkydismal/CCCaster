@@ -1,49 +1,41 @@
 #pragma once
 
 #include <map>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
-
-class KeyValueStore
-{
+class KeyValueStore {
 public:
+    bool hasString( const std::string& key ) const;
 
-    bool hasString ( const std::string& key ) const;
+    std::string getString( const std::string& key ) const;
 
-    std::string getString ( const std::string& key ) const;
+    void setString( const std::string& key, const std::string& value );
 
-    void setString ( const std::string& key, const std::string& value );
+    bool hasInteger( const std::string& key ) const;
 
+    int getInteger( const std::string& key ) const;
 
-    bool hasInteger ( const std::string& key ) const;
+    void setInteger( const std::string& key, int value );
 
-    int getInteger ( const std::string& key ) const;
+    bool hasDouble( const std::string& key ) const;
 
-    void setInteger ( const std::string& key, int value );
+    double getDouble( const std::string& key ) const;
 
+    void setDouble( const std::string& key, double value );
 
-    bool hasDouble ( const std::string& key ) const;
+    bool save( const std::string& file ) const;
 
-    double getDouble ( const std::string& key ) const;
-
-    void setDouble ( const std::string& key, double value );
-
-
-    bool save ( const std::string& file ) const;
-
-    bool load ( const std::string& file );
+    bool load( const std::string& file );
 
 private:
-
     enum class Type : uint8_t { String, Integer, Double };
 
-    std::map<std::string, Type> _types;
+    std::map< std::string, Type > _types;
 
-    std::unordered_map<std::string, std::string> _strings;
+    std::unordered_map< std::string, std::string > _strings;
 
-    std::unordered_map<std::string, int> _integers;
+    std::unordered_map< std::string, int > _integers;
 
-    std::unordered_map<std::string, double> _doubles;
+    std::unordered_map< std::string, double > _doubles;
 };
-

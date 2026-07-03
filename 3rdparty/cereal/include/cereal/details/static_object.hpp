@@ -16,11 +16,11 @@
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR
+  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -32,46 +32,40 @@
 
 #include <cereal/details/util.hpp>
 
-namespace cereal
-{
-  namespace detail
-  {
-    //! A static, pre-execution object
-    /*! This class will create a single copy (singleton) of some
-        type and ensures that merely referencing this type will
-        cause it to be instantiated and initialized pre-execution.
+namespace cereal {
+namespace detail {
+//! A static, pre-execution object
+/*! This class will create a single copy (singleton) of some
+    type and ensures that merely referencing this type will
+    cause it to be instantiated and initialized pre-execution.
 
-        For example, this is used heavily in the polymorphic pointer
-        serialization mechanisms to bind various archive types with
-        different polymorphic classes */
-    template <class T>
-    class StaticObject
-    {
-      private:
-        //! Forces instantiation at pre-execution time
-        static void instantiate( T const & ) {}
+    For example, this is used heavily in the polymorphic pointer
+    serialization mechanisms to bind various archive types with
+    different polymorphic classes */
+template < class T >
+class StaticObject {
+private:
+    //! Forces instantiation at pre-execution time
+    static void instantiate( T const& ) {}
 
-        static T & create()
-        {
-          static T t;
-          instantiate(instance);
-          return t;
-        }
+    static T& create() {
+        static T t;
+        instantiate( instance );
+        return t;
+    }
 
-        StaticObject( StaticObject const & /*other*/ ) {}
+    StaticObject( StaticObject const& /*other*/ ) {}
 
-      public:
-        static T & getInstance()
-        {
-          return create();
-        }
+public:
+    static T& getInstance() { return create(); }
 
-      private:
-        static T & instance;
-    };
+private:
+    static T& instance;
+};
 
-    template <class T> T & StaticObject<T>::instance = StaticObject<T>::create();
-  }
+template < class T >
+T& StaticObject< T >::instance = StaticObject< T >::create();
+} // namespace detail
 } // namespace cereal
 
 #endif // CEREAL_DETAILS_STATIC_OBJECT_HPP_

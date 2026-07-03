@@ -21,627 +21,565 @@
 // You should have received a copy of the GNU General Public License
 // along with JLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ConsoleMenu.h"
-#include "ConsoleCore.h"
+
 #include <time.h>
+
+#include "ConsoleCore.h"
 
 using namespace std;
 
-ConsoleMenu::ConsoleMenu(COORD origin, ConsoleFormat format
-    , ConsoleFormat selectionFormat)
-    :m_origin(origin)
-    ,m_format(format)
-    ,m_selectionFormat(selectionFormat)
-    ,m_longestItem(0)
-    ,m_selected(m_items.end())
-    ,m_enableEscape(true)
-    ,m_enableDelete(0)
-{
-}
+ConsoleMenu::ConsoleMenu( COORD origin,
+                          ConsoleFormat format,
+                          ConsoleFormat selectionFormat )
+    : m_origin( origin ),
+      m_format( format ),
+      m_selectionFormat( selectionFormat ),
+      m_longestItem( 0 ),
+      m_selected( m_items.end() ),
+      m_enableEscape( true ),
+      m_enableDelete( 0 ) {}
 
-ConsoleMenu::ConsoleMenu(const ConsoleMenu& rhs)
-    :m_origin(rhs.m_origin)
-    ,m_format(rhs.m_format)
-    ,m_selectionFormat(rhs.m_selectionFormat)
-    ,m_longestItem(rhs.m_longestItem)
-    ,m_items(rhs.m_items)
-    ,m_selected(m_items.end())
-    ,m_enableEscape(rhs.m_enableEscape)
-    ,m_enableDelete(rhs.m_enableDelete)
-{
-}
+ConsoleMenu::ConsoleMenu( const ConsoleMenu& rhs )
+    : m_origin( rhs.m_origin ),
+      m_format( rhs.m_format ),
+      m_selectionFormat( rhs.m_selectionFormat ),
+      m_longestItem( rhs.m_longestItem ),
+      m_items( rhs.m_items ),
+      m_selected( m_items.end() ),
+      m_enableEscape( rhs.m_enableEscape ),
+      m_enableDelete( rhs.m_enableDelete ) {}
 
-COORD ConsoleMenu::Origin() const
-{
+COORD ConsoleMenu::Origin() const {
     return m_origin;
 }
-COORD ConsoleMenu::Origin(COORD origin)
-{
+COORD ConsoleMenu::Origin( COORD origin ) {
     COORD old = m_origin;
     m_origin = origin;
     return old;
 }
-const ConsoleFormat& ConsoleMenu::DisplayFormat() const
-{
+const ConsoleFormat& ConsoleMenu::DisplayFormat() const {
     return m_format;
 }
-ConsoleFormat ConsoleMenu::DisplayFormat(ConsoleFormat format)
-{
+ConsoleFormat ConsoleMenu::DisplayFormat( ConsoleFormat format ) {
     ConsoleFormat old = m_format;
     m_format = format;
     return old;
 }
-const ConsoleFormat& ConsoleMenu::SelectionFormat() const
-{
+const ConsoleFormat& ConsoleMenu::SelectionFormat() const {
     return m_selectionFormat;
 }
-ConsoleFormat ConsoleMenu::SelectionFormat(ConsoleFormat format)
-{
+ConsoleFormat ConsoleMenu::SelectionFormat( ConsoleFormat format ) {
     ConsoleFormat old = m_selectionFormat;
     m_selectionFormat = format;
     return old;
 }
 
-unsigned ConsoleMenu::Count() const
-{
+unsigned ConsoleMenu::Count() const {
     return m_items.size();
 }
-void ConsoleMenu::Append(ConsoleMenuItem item)
-{
-    if(item.Text().length() > m_longestItem)
+void ConsoleMenu::Append( ConsoleMenuItem item ) {
+    if ( item.Text().length() > m_longestItem )
         m_longestItem = item.Text().length();
-    m_items.push_back(item);
+    m_items.push_back( item );
 }
 
-void ConsoleMenu::Append(const string& text, DWORD value)
-{
-    if(text.length() > m_longestItem)
+void ConsoleMenu::Append( const string& text, DWORD value ) {
+    if ( text.length() > m_longestItem )
         m_longestItem = text.length();
-    m_items.push_back(ConsoleMenuItem(text,value));
+    m_items.push_back( ConsoleMenuItem( text, value ) );
 }
-void ConsoleMenu::InsertAfter(ConsoleMenuItem what, Iterator where)
-{
-    if(what.Text().length() > m_longestItem)
+void ConsoleMenu::InsertAfter( ConsoleMenuItem what, Iterator where ) {
+    if ( what.Text().length() > m_longestItem )
         m_longestItem = what.Text().length();
-    m_items.insert(where,what);
+    m_items.insert( where, what );
 }
-void ConsoleMenu::Clear()
-{
+void ConsoleMenu::Clear() {
     m_items.clear();
     m_selected = m_items.end();
 }
 
-ConsoleMenu::ConstIterator ConsoleMenu::GetIterator(BOOL back) const
-{
+ConsoleMenu::ConstIterator ConsoleMenu::GetIterator( BOOL back ) const {
     ConstIterator it = m_items.begin();
-    if(back)
-        advance(it,m_items.size()-1);
+    if ( back )
+        advance( it, m_items.size() - 1 );
     return it;
 }
 
-ConsoleMenu::Iterator ConsoleMenu::GetIterator(BOOL back)
-{
+ConsoleMenu::Iterator ConsoleMenu::GetIterator( BOOL back ) {
     Iterator it = m_items.begin();
-    if(back)
-        advance(it,m_items.size()-1);
+    if ( back )
+        advance( it, m_items.size() - 1 );
     return it;
 }
 
-ConsoleMenu::ConstIterator ConsoleMenu::GetEnd() const
-{
+ConsoleMenu::ConstIterator ConsoleMenu::GetEnd() const {
     return m_items.end();
 }
 
-ConsoleMenu::Iterator ConsoleMenu::GetEnd()
-{
+ConsoleMenu::Iterator ConsoleMenu::GetEnd() {
     return m_items.end();
 }
 
-unsigned ConsoleMenu::LongestItem() const
-{
+unsigned ConsoleMenu::LongestItem() const {
     return m_longestItem;
 }
 
-DWORD ConsoleMenu::Show()
-{
-    if(m_items.empty())
+DWORD ConsoleMenu::Show() {
+    if ( m_items.empty() )
         return BADMENU;
     ConsoleCore* pCore = ConsoleCore::GetInstance();
     ConsoleFormat oldFormat = pCore->Color();
     COORD bufferOrigin = m_origin;
 
-    COORD bufferSize = {m_longestItem,m_items.size()};
-    PCHAR_INFO menuBuffer = new CHAR_INFO[bufferSize.X*bufferSize.Y];
-    memset(menuBuffer,0,sizeof(CHAR_INFO)*bufferSize.X*bufferSize.Y);
+    COORD bufferSize = { m_longestItem, m_items.size() };
+    PCHAR_INFO menuBuffer = new CHAR_INFO[ bufferSize.X * bufferSize.Y ];
+    memset( menuBuffer, 0, sizeof( CHAR_INFO ) * bufferSize.X * bufferSize.Y );
 
     // Use the last selected item if possible
-    if (m_selected == m_items.end())
+    if ( m_selected == m_items.end() )
         m_selected = GetIterator();
 
     bool selected = false;
-    do
-    {
+    do {
         // restore the screen.
         COORD cursorOffset = m_origin;
-        pCore->LoadScreen(menuBuffer,bufferSize,cursorOffset);
-        ConsoleMenu::Iterator it = GetIterator()
-            ,end = GetEnd();
-        for(;it != end; ++it)
-        {
-            if(it == m_selected)
-            {
+        pCore->LoadScreen( menuBuffer, bufferSize, cursorOffset );
+        ConsoleMenu::Iterator it = GetIterator(), end = GetEnd();
+        for ( ; it != end; ++it ) {
+            if ( it == m_selected ) {
                 m_cursorPosition = cursorOffset;
-                pCore->Prints(it->Text(),FALSE,&SelectionFormat(),cursorOffset.X,cursorOffset.Y);
-            }
-            else
-            {
-                pCore->Prints(it->Text(),FALSE,&DisplayFormat(),cursorOffset.X,cursorOffset.Y);
+                pCore->Prints( it->Text(), FALSE, &SelectionFormat(),
+                               cursorOffset.X, cursorOffset.Y );
+            } else {
+                pCore->Prints( it->Text(), FALSE, &DisplayFormat(),
+                               cursorOffset.X, cursorOffset.Y );
             }
             cursorOffset.X = m_origin.X;
             cursorOffset.Y++;
         }
-        pCore->CursorPosition(&cursorOffset);
+        pCore->CursorPosition( &cursorOffset );
         // Draw the menu
-        pCore->Color(&oldFormat);
+        pCore->Color( &oldFormat );
         // Return if selection has been made
-        if (selected)
-        {
-            delete [] menuBuffer;
+        if ( selected ) {
+            delete[] menuBuffer;
             return 0;
         }
         // reset the old format
-        pCore->SaveScreen(menuBuffer,bufferSize,bufferOrigin);
-        switch(int c = _getch())
-        {
-        case UP_KEY:
-            if(m_selected == GetIterator())
-                m_selected = GetIterator(TRUE);
-            else
-                --m_selected;
-            break;
-        case DOWN_KEY:
-            if(m_selected == GetIterator(TRUE))
+        pCore->SaveScreen( menuBuffer, bufferSize, bufferOrigin );
+        switch ( int c = _getch() ) {
+            case UP_KEY:
+                if ( m_selected == GetIterator() )
+                    m_selected = GetIterator( TRUE );
+                else
+                    --m_selected;
+                break;
+            case DOWN_KEY:
+                if ( m_selected == GetIterator( TRUE ) )
+                    m_selected = GetIterator();
+                else
+                    ++m_selected;
+                break;
+            case RETURN_KEY:
+                delete[] menuBuffer;
+                pCore->Color( &oldFormat );
+                return 0;
+            case ESCAPE_KEY:
+                if ( !m_enableEscape )
+                    break;
+                delete[] menuBuffer;
+                pCore->Color( &oldFormat );
+                return USERESC;
+            case LEFT_KEY:
+            case RIGHT_KEY:
+                if ( m_enableDelete != ENABLE_LR_DELETE )
+                    break;
+            case DELETE_KEY:
+            case BACKSPACE_KEY:
+                if ( m_enableDelete == DISABLE_DELETE )
+                    break;
+                delete[] menuBuffer;
+                pCore->Color( &oldFormat );
+                return USERDELETE;
+            case '0' ... '9':
+                if ( ( c - '0' ) >= Count() )
+                    break;
+                if ( c == '0' )
+                    c = Count() - 1;
+                else
+                    c = ( c - '1' );
                 m_selected = GetIterator();
-            else
-                ++m_selected;
-            break;
-        case RETURN_KEY:
-            delete [] menuBuffer;
-            pCore->Color(&oldFormat);
-            return 0;
-        case ESCAPE_KEY:
-            if (!m_enableEscape)
+                while ( c-- )
+                    ++m_selected;
+                selected = true;
                 break;
-            delete [] menuBuffer;
-            pCore->Color(&oldFormat);
-            return USERESC;
-        case LEFT_KEY:
-        case RIGHT_KEY:
-            if (m_enableDelete != ENABLE_LR_DELETE)
-                break;
-        case DELETE_KEY:
-        case BACKSPACE_KEY:
-            if (m_enableDelete == DISABLE_DELETE)
-                break;
-            delete [] menuBuffer;
-            pCore->Color(&oldFormat);
-            return USERDELETE;
-        case '0' ... '9':
-            if ((c - '0') >= Count())
-                break;
-            if (c == '0')
-                c = Count()-1;
-            else
-                c = (c - '1');
-            m_selected = GetIterator();
-            while (c--)
-                ++m_selected;
-            selected = true;
-            break;
         }
-    }
-    while(TRUE);
+    } while ( TRUE );
 }
 
-string ConsoleMenu::SelectedText() const
-{
-    if(m_selected == m_items.end())
+string ConsoleMenu::SelectedText() const {
+    if ( m_selected == m_items.end() )
         return "";
     return m_selected->Text();
 }
 
-DWORD ConsoleMenu::SelectedValue() const
-{
-    if(m_selected == m_items.end())
+DWORD ConsoleMenu::SelectedValue() const {
+    if ( m_selected == m_items.end() )
         return -1;
     return m_selected->Value();
 }
 
-ConsoleMenuItem ConsoleMenu::SelectedItem()
-{
-    if(m_selected == m_items.end())
+ConsoleMenuItem ConsoleMenu::SelectedItem() {
+    if ( m_selected == m_items.end() )
         return ConsoleMenuItem();
     return *m_selected;
 }
 
-BOOL ConsoleMenu::SelectedItem(int position)
-{
-    if(position >= m_items.size())
+BOOL ConsoleMenu::SelectedItem( int position ) {
+    if ( position >= m_items.size() )
         return FALSE;
     m_selected = GetIterator();
-    while (position--)
+    while ( position-- )
         ++m_selected;
     return TRUE;
 }
 
-void ConsoleMenu::EnableEscape(bool enableEscape)
-{
+void ConsoleMenu::EnableEscape( bool enableEscape ) {
     m_enableEscape = enableEscape;
 }
 
-void ConsoleMenu::EnableDelete(int enableDelete)
-{
+void ConsoleMenu::EnableDelete( int enableDelete ) {
     m_enableDelete = enableDelete;
 }
 
-COORD ConsoleMenu::CursorPosition() const
-{
+COORD ConsoleMenu::CursorPosition() const {
     return m_cursorPosition;
 }
 
-void ConsoleMenu::Selection(ConsoleMenu::Iterator it)
-{
+void ConsoleMenu::Selection( ConsoleMenu::Iterator it ) {
     m_selected = it;
 }
-ConsoleMenu::Iterator ConsoleMenu::Selection()
-{
+ConsoleMenu::Iterator ConsoleMenu::Selection() {
     return m_selected;
 }
 ////////////////////////////////
 
-ScrollingMenu::ScrollingMenu(COORD origin, unsigned maxToShow
-    ,ConsoleFormat format, ConsoleFormat selectionFormat)
-    :ConsoleMenu(origin, format,selectionFormat)
-    ,m_maxToShow(maxToShow)
-    ,m_menuAnchor(m_items.end())
-{
-}
+ScrollingMenu::ScrollingMenu( COORD origin,
+                              unsigned maxToShow,
+                              ConsoleFormat format,
+                              ConsoleFormat selectionFormat )
+    : ConsoleMenu( origin, format, selectionFormat ),
+      m_maxToShow( maxToShow ),
+      m_menuAnchor( m_items.end() ) {}
 
-ScrollingMenu::ScrollingMenu(const ScrollingMenu& rhs)
-    :ConsoleMenu(rhs)
-    ,m_maxToShow(rhs.m_maxToShow)
-    ,m_menuAnchor(m_items.end())
-{
+ScrollingMenu::ScrollingMenu( const ScrollingMenu& rhs )
+    : ConsoleMenu( rhs ),
+      m_maxToShow( rhs.m_maxToShow ),
+      m_menuAnchor( m_items.end() ) {
     timeout = 0;
 }
 
-unsigned ScrollingMenu::MaxToShow() const
-{
+unsigned ScrollingMenu::MaxToShow() const {
     return m_maxToShow;
 }
 
-void ScrollingMenu::MaxToShow(unsigned max)
-{
+void ScrollingMenu::MaxToShow( unsigned max ) {
     m_maxToShow = max;
 }
 
-DWORD ScrollingMenu::Show()
-{
+DWORD ScrollingMenu::Show() {
     DWORD result = BADMENU;
-    if(Count() == 0)
+    if ( Count() == 0 )
         return result;
-    if(m_maxToShow > Count())
+    if ( m_maxToShow > Count() )
         return BADMENU;
     ConsoleCore* pCore = ConsoleCore::GetInstance();
     unsigned menuOffset = 0;
-    COORD bufferOrigin = {Origin().X,Origin().Y}
-        ,cursorOffset
-        ,bufferSize = {LongestItem(),m_maxToShow};
-    PCHAR_INFO menuBuffer = new CHAR_INFO[bufferSize.X*bufferSize.Y];
-    memset(menuBuffer,0,sizeof(CHAR_INFO)*bufferSize.X*bufferSize.Y);
+    COORD bufferOrigin = { Origin().X, Origin().Y }, cursorOffset,
+          bufferSize = { LongestItem(), m_maxToShow };
+    PCHAR_INFO menuBuffer = new CHAR_INFO[ bufferSize.X * bufferSize.Y ];
+    memset( menuBuffer, 0, sizeof( CHAR_INFO ) * bufferSize.X * bufferSize.Y );
     ConsoleFormat oldFormat = pCore->Color();
     pCore->SaveScreen();
 
     // Use the last selected item if possible
     // The "anchor" is the top-most displayed element.
     // It is used to guide drawing relative items and to scroll the menu.
-    if (m_selected == m_items.end())
-    {
-        Selection(GetIterator());
+    if ( m_selected == m_items.end() ) {
+        Selection( GetIterator() );
         m_menuAnchor = Selection();
-    }
-    else
-    {
-        Selection(m_selected);
-        if (m_menuAnchor == m_items.end())
+    } else {
+        Selection( m_selected );
+        if ( m_menuAnchor == m_items.end() )
             m_menuAnchor = Selection();
     }
 
     bool selected = false;
     time_t start_time;
     time_t now;
-    start_time = time(NULL);
+    start_time = time( NULL );
     double seconds;
-    do
-    {
+    do {
         cursorOffset = Origin();
-        pCore->LoadScreen(menuBuffer,bufferSize,cursorOffset);
+        pCore->LoadScreen( menuBuffer, bufferSize, cursorOffset );
         // Draw only as many items as needed.
         ConstIterator toDraw;
         unsigned shown = 0;
-        for(toDraw = m_menuAnchor; shown < (menuOffset+m_maxToShow); ++shown,++toDraw)
-        {
-            pCore->Prints(string(LongestItem(),' '),FALSE,&DisplayFormat(),cursorOffset.X,cursorOffset.Y);
-            if(toDraw == Selection())
-            {
+        for ( toDraw = m_menuAnchor; shown < ( menuOffset + m_maxToShow );
+              ++shown, ++toDraw ) {
+            pCore->Prints( string( LongestItem(), ' ' ), FALSE,
+                           &DisplayFormat(), cursorOffset.X, cursorOffset.Y );
+            if ( toDraw == Selection() ) {
                 m_cursorPosition = cursorOffset;
-                pCore->Prints(toDraw->Text(),FALSE,&SelectionFormat(),cursorOffset.X,cursorOffset.Y);
-            }
-            else
-            {
-                pCore->Prints(toDraw->Text(),FALSE,&DisplayFormat(),cursorOffset.X,cursorOffset.Y);
+                pCore->Prints( toDraw->Text(), FALSE, &SelectionFormat(),
+                               cursorOffset.X, cursorOffset.Y );
+            } else {
+                pCore->Prints( toDraw->Text(), FALSE, &DisplayFormat(),
+                               cursorOffset.X, cursorOffset.Y );
             }
             cursorOffset.X = Origin().X;
             cursorOffset.Y++;
         }
-        pCore->CursorPosition(&cursorOffset);
-        pCore->Color(&oldFormat);
+        pCore->CursorPosition( &cursorOffset );
+        pCore->Color( &oldFormat );
         // Return if selection has been made
-        if (selected)
-        {
-            delete [] menuBuffer;
+        if ( selected ) {
+            delete[] menuBuffer;
             return 0;
         }
-        pCore->SaveScreen(menuBuffer,bufferSize,bufferOrigin);
+        pCore->SaveScreen( menuBuffer, bufferSize, bufferOrigin );
         int c;
-        while (1) {
+        while ( 1 ) {
             if ( kbhit() )
                 break;
             if ( timeout < 0 ) {
                 return 0;
             }
             if ( timeout != 0 ) {
-                now = time(NULL);
-                seconds = difftime(now, start_time);
+                now = time( NULL );
+                seconds = difftime( now, start_time );
                 if ( seconds >= timeout )
                     return MENUTIMEOUT;
             }
         }
-        switch(int c = _getch())
-        {
-        case UP_KEY:
-            {
+        switch ( int c = _getch() ) {
+            case UP_KEY: {
                 // Move up when highlighting the anchor
                 Iterator selection = Selection();
-                if(selection == m_menuAnchor)
-                {
+                if ( selection == m_menuAnchor ) {
                     // Not at the top of the menu?  Just go back one element
-                    if(m_menuAnchor != GetIterator())
-                    {
+                    if ( m_menuAnchor != GetIterator() ) {
                         m_menuAnchor--;
                         selection--;
-                    }
-                    else    // At the top?  Selection becomes bottom, anchor becomes bottom-maxToShow
+                    } else // At the top?  Selection becomes bottom, anchor
+                           // becomes bottom-maxToShow
                     {
-                        selection = GetIterator(TRUE);
+                        selection = GetIterator( TRUE );
                         m_menuAnchor = selection;
-                        advance(m_menuAnchor,-(int)(m_maxToShow-1));
+                        advance( m_menuAnchor, -( int )( m_maxToShow - 1 ) );
                     }
-                }
-                else
+                } else
                     selection--;
-                Selection(selection);
-            }
-            break;
-        case DOWN_KEY:
-            {
+                Selection( selection );
+            } break;
+            case DOWN_KEY: {
                 Iterator selection = Selection();
                 Iterator bottomAnchor = m_menuAnchor;
-                advance(bottomAnchor,m_maxToShow-1);
+                advance( bottomAnchor, m_maxToShow - 1 );
                 // Moving down when at bottom of list
-                if(selection == bottomAnchor)
-                {
+                if ( selection == bottomAnchor ) {
                     // Not at bottom end of list?
-                    if(bottomAnchor != GetIterator(TRUE))
-                    {
+                    if ( bottomAnchor != GetIterator( TRUE ) ) {
                         m_menuAnchor++;
                         selection++;
-                    }
-                    else // At bottom? Selection becomes top, anchor becomes top.
+                    } else // At bottom? Selection becomes top, anchor becomes
+                           // top.
                     {
                         selection = GetIterator();
                         m_menuAnchor = selection;
                     }
-                }
-                else
+                } else
                     selection++;
-                Selection(selection);
-            }
-            break;
-        case RETURN_KEY:
-            delete [] menuBuffer;
-            return 0;
-        case ESCAPE_KEY:
-            if (!m_enableEscape)
+                Selection( selection );
+            } break;
+            case RETURN_KEY:
+                delete[] menuBuffer;
+                return 0;
+            case ESCAPE_KEY:
+                if ( !m_enableEscape )
+                    break;
+                delete[] menuBuffer;
+                return USERESC;
+            case LEFT_KEY:
+            case RIGHT_KEY:
+                if ( m_enableDelete != 2 )
+                    break;
+            case DELETE_KEY:
+            case BACKSPACE_KEY:
+                if ( !m_enableDelete )
+                    break;
+                delete[] menuBuffer;
+                return USERDELETE;
+            case '0' ... '9':
+                if ( ( c - '0' ) >= Count() )
+                    break;
+                if ( c == '0' )
+                    c = Count() - 1;
+                else
+                    c = ( c - '1' );
+                m_selected = GetIterator();
+                while ( c-- )
+                    ++m_selected;
+                Selection( m_selected );
+                selected = true;
                 break;
-            delete [] menuBuffer;
-            return USERESC;
-        case LEFT_KEY:
-        case RIGHT_KEY:
-            if (m_enableDelete != 2)
+            case 'a' ... 'z':
+                if ( ( c - 'a' ) + 10 >= Count() )
+                    break;
+                c = ( c - 'a' ) + 9;
+                m_selected = GetIterator();
+                while ( c-- )
+                    ++m_selected;
+                Selection( m_selected );
+                selected = true;
                 break;
-        case DELETE_KEY:
-        case BACKSPACE_KEY:
-            if (!m_enableDelete)
-                break;
-            delete [] menuBuffer;
-            return USERDELETE;
-        case '0' ... '9':
-            if ((c - '0') >= Count())
-                break;
-            if (c == '0')
-                c = Count()-1;
-            else
-                c = (c - '1');
-            m_selected = GetIterator();
-            while (c--)
-                ++m_selected;
-            Selection(m_selected);
-            selected = true;
-            break;
-        case 'a' ... 'z':
-            if ((c - 'a') + 10 >= Count())
-                break;
-            c = (c - 'a') + 9;
-            m_selected = GetIterator();
-            while (c--)
-                ++m_selected;
-            Selection(m_selected);
-            selected = true;
-            break;
         }
-    }
-    while(TRUE);
+    } while ( TRUE );
 }
 
-void ScrollingMenu::setTimeout( DWORD _timeout )
-{
+void ScrollingMenu::setTimeout( DWORD _timeout ) {
     timeout = _timeout;
 }
 
-ConsoleMenuItem ScrollingMenu::SelectedItem()
-{
-    if(m_selected == m_items.end())
+ConsoleMenuItem ScrollingMenu::SelectedItem() {
+    if ( m_selected == m_items.end() )
         return ConsoleMenuItem();
     return *m_selected;
 }
 
-BOOL ScrollingMenu::SelectedItem(int position)
-{
-    if(position >= m_items.size())
+BOOL ScrollingMenu::SelectedItem( int position ) {
+    if ( position >= m_items.size() )
         return FALSE;
     m_selected = GetIterator();
-    while (position--)
+    while ( position-- )
         ++m_selected;
     m_menuAnchor = m_items.begin();
-    Selection(m_selected);
+    Selection( m_selected );
     return TRUE;
 }
 
 ////////////////////////////////
 
-WindowedMenu::WindowedMenu (COORD origin, unsigned maxToShow, const string& title
-        , ConsoleFormat format
-        , ConsoleFormat selectionFormat
-        , ConsoleFormat windowColor
-        , ConsoleFormat clientColor
-        , char fill)
-    :ScrollingMenu(origin, maxToShow, format, selectionFormat)
-    ,m_title(title)
-    ,m_scrollable(maxToShow != 0)
-    ,m_windowColor(windowColor)
-    ,m_clientColor(clientColor)
-    ,m_fill(fill)
-{
-}
-WindowedMenu::WindowedMenu(const WindowedMenu & rhs)
-    :ScrollingMenu(rhs)
-    ,m_title(rhs.m_title)
-    ,m_scrollable(rhs.m_scrollable)
-    ,m_windowColor(rhs.m_windowColor)
-    ,m_clientColor(rhs.m_clientColor)
-    ,m_fill(rhs.m_fill)
-{
-}
-const string& WindowedMenu ::Title() const
-{
+WindowedMenu::WindowedMenu( COORD origin,
+                            unsigned maxToShow,
+                            const string& title,
+                            ConsoleFormat format,
+                            ConsoleFormat selectionFormat,
+                            ConsoleFormat windowColor,
+                            ConsoleFormat clientColor,
+                            char fill )
+    : ScrollingMenu( origin, maxToShow, format, selectionFormat ),
+      m_title( title ),
+      m_scrollable( maxToShow != 0 ),
+      m_windowColor( windowColor ),
+      m_clientColor( clientColor ),
+      m_fill( fill ) {}
+WindowedMenu::WindowedMenu( const WindowedMenu& rhs )
+    : ScrollingMenu( rhs ),
+      m_title( rhs.m_title ),
+      m_scrollable( rhs.m_scrollable ),
+      m_windowColor( rhs.m_windowColor ),
+      m_clientColor( rhs.m_clientColor ),
+      m_fill( rhs.m_fill ) {}
+const string& WindowedMenu ::Title() const {
     return m_title;
 }
-void WindowedMenu::Title(const string& title)
-{
+void WindowedMenu::Title( const string& title ) {
     m_title = title;
 }
-BOOL WindowedMenu::Scrollable() const
-{
+BOOL WindowedMenu::Scrollable() const {
     return m_scrollable;
 }
-void WindowedMenu::Scrollable(BOOL allow)
-{
+void WindowedMenu::Scrollable( BOOL allow ) {
     m_scrollable = allow;
 }
-ConsoleFormat WindowedMenu::WindowColor() const
-{
+ConsoleFormat WindowedMenu::WindowColor() const {
     return m_windowColor;
 }
-ConsoleFormat WindowedMenu::WindowColor(ConsoleFormat color)
-{
+ConsoleFormat WindowedMenu::WindowColor( ConsoleFormat color ) {
     ConsoleFormat old = m_windowColor;
     m_windowColor = color;
     return old;
 }
-ConsoleFormat WindowedMenu::ClientColor() const
-{
+ConsoleFormat WindowedMenu::ClientColor() const {
     return m_clientColor;
 }
 
-ConsoleFormat WindowedMenu::ClientColor(ConsoleFormat color)
-{
+ConsoleFormat WindowedMenu::ClientColor( ConsoleFormat color ) {
     ConsoleFormat old = m_clientColor;
     m_clientColor = color;
     return old;
 }
 
-char WindowedMenu::Fill() const
-{
+char WindowedMenu::Fill() const {
     return m_fill;
 }
-void WindowedMenu::Fill(char fill)
-{
+void WindowedMenu::Fill( char fill ) {
     m_fill = fill;
 }
-DWORD WindowedMenu::Show()
-{
+DWORD WindowedMenu::Show() {
     DWORD result = BADMENU;
 
-    if(Count() == 0)
+    if ( Count() == 0 )
         return result;
 
-    if(!m_scrollable)
+    if ( !m_scrollable )
         return ShowNoScroll();
 
-    COORD ulWindow = Origin(), brWindow = {Origin().X+LongestItem()+2,Origin().Y+MaxToShow()+(m_title.empty()?2:4)};
+    COORD ulWindow = Origin(),
+          brWindow = { Origin().X + LongestItem() + 2,
+                       Origin().Y + MaxToShow() + ( m_title.empty() ? 2 : 4 ) };
 
-    CharacterWindow wnd(ulWindow,brWindow,m_title,WindowColor(),ClientColor(),Fill());
+    CharacterWindow wnd( ulWindow, brWindow, m_title, WindowColor(),
+                         ClientColor(), Fill() );
     wnd.Draw();
 
-    COORD oldOrigin = Origin(), menuItemOrigin = {Origin().X+1,Origin().Y+(m_title.empty()?1:3)};
+    COORD oldOrigin = Origin(),
+          menuItemOrigin = { Origin().X + 1,
+                             Origin().Y + ( m_title.empty() ? 1 : 3 ) };
 
-    oldOrigin = Origin(menuItemOrigin);
+    oldOrigin = Origin( menuItemOrigin );
     result = ScrollingMenu::Show();
-    Origin(oldOrigin);
+    Origin( oldOrigin );
 
     return result;
 }
-unsigned WindowedMenu::LongestItem() const
-{
-    return ConsoleMenu::LongestItem() > Title().length() ? ConsoleMenu::LongestItem() : Title().length();
+unsigned WindowedMenu::LongestItem() const {
+    return ConsoleMenu::LongestItem() > Title().length()
+               ? ConsoleMenu::LongestItem()
+               : Title().length();
 }
-DWORD WindowedMenu::ShowNoScroll()
-{
+DWORD WindowedMenu::ShowNoScroll() {
     DWORD result = BADMENU;
 
-    if(Count() == 0)
+    if ( Count() == 0 )
         return result;
 
-    COORD ulWindow = Origin(), brWindow = {Origin().X+LongestItem()+2,Origin().Y+Count()+(m_title.empty()?2:4)};
+    COORD ulWindow = Origin(),
+          brWindow = { Origin().X + LongestItem() + 2,
+                       Origin().Y + Count() + ( m_title.empty() ? 2 : 4 ) };
 
-    CharacterWindow wnd(ulWindow,brWindow,m_title,WindowColor(),ClientColor(),Fill());
+    CharacterWindow wnd( ulWindow, brWindow, m_title, WindowColor(),
+                         ClientColor(), Fill() );
     wnd.Draw();
 
-    COORD oldOrigin = Origin(), menuItemOrigin = {Origin().X+1,Origin().Y+(m_title.empty()?1:3)};
+    COORD oldOrigin = Origin(),
+          menuItemOrigin = { Origin().X + 1,
+                             Origin().Y + ( m_title.empty() ? 1 : 3 ) };
 
-    oldOrigin = Origin(menuItemOrigin);
+    oldOrigin = Origin( menuItemOrigin );
     result = ConsoleMenu::Show();
-    Origin(oldOrigin);
+    Origin( oldOrigin );
 
     return result;
 }

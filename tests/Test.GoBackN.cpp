@@ -10,18 +10,17 @@
 
 // using namespace std;
 
-
 // #define PACKET_LOSS     50
 // #define CHECK_SUM_FAIL  50
 // #define LONG_TIMEOUT    ( 120 * 1000 )
 
-
-// struct TestClass : public GoBackN::Owner, public Socket::Owner, public Timer::Owner
+// struct TestClass : public GoBackN::Owner, public Socket::Owner, public
+// Timer::Owner
 // {
-//     virtual void goBackNSendRaw ( GoBackN *gbn, const MsgPtr& msg ) override {}
-//     virtual void goBackNRecvRaw ( GoBackN *gbn, const MsgPtr& msg ) override {}
-//     virtual void goBackNRecvMsg ( GoBackN *gbn, const MsgPtr& msg ) override {}
-//     virtual void goBackNTimeout ( GoBackN *gbn ) override {}
+//     virtual void goBackNSendRaw ( GoBackN *gbn, const MsgPtr& msg ) override
+//     {} virtual void goBackNRecvRaw ( GoBackN *gbn, const MsgPtr& msg )
+//     override {} virtual void goBackNRecvMsg ( GoBackN *gbn, const MsgPtr& msg
+//     ) override {} virtual void goBackNTimeout ( GoBackN *gbn ) override {}
 
 //     virtual void socketAccepted ( Socket *socket ) override {}
 //     virtual void socketConnected ( Socket *socket ) override {}
@@ -29,7 +28,6 @@
 
 //     virtual void timerExpired ( Timer *timer ) override {}
 // };
-
 
 // TEST ( GoBackN, SendOnce )
 // {
@@ -54,7 +52,8 @@
 //             EventManager::get().stop();
 //         }
 
-//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const
+//         IpAddrPort& address ) override
 //         {
 //             if ( this->address.empty() )
 //                 this->address = address;
@@ -85,8 +84,8 @@
 //         }
 
 //         TestSocket ( const string& address, uint16_t port )
-//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-//             , address ( address, port ), gbn ( this ), timer ( this )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) )
+//             ) , address ( address, port ), gbn ( this ), timer ( this )
 //         {
 //             socket->setPacketLoss ( PACKET_LOSS );
 //             socket->setCheckSumFail ( CHECK_SUM_FAIL );
@@ -140,7 +139,8 @@
 //             }
 //         }
 
-//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const
+//         IpAddrPort& address ) override
 //         {
 //             if ( this->address.empty() )
 //                 this->address = address;
@@ -175,8 +175,8 @@
 //         }
 
 //         TestSocket ( const string& address, uint16_t port )
-//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-//             , address ( address, port ), gbn ( this ), timer ( this )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) )
+//             ) , address ( address, port ), gbn ( this ), timer ( this )
 //         {
 //             socket->setPacketLoss ( PACKET_LOSS );
 //             socket->setCheckSumFail ( CHECK_SUM_FAIL );
@@ -198,7 +198,8 @@
 //     {
 //         LOG ( "Server got '%s'", server.msgs[i]->getAs<TestMessage>().str );
 //         EXPECT_EQ ( MsgType::TestMessage, server.msgs[i]->getMsgType() );
-//         EXPECT_EQ ( format ( "Message %u", i + 1 ), server.msgs[i]->getAs<TestMessage>().str );
+//         EXPECT_EQ ( format ( "Message %u", i + 1 ),
+//         server.msgs[i]->getAs<TestMessage>().str );
 //     }
 
 //     SocketManager::get().deinitialize();
@@ -239,7 +240,8 @@
 //             }
 //         }
 
-//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const
+//         IpAddrPort& address ) override
 //         {
 //             if ( this->address.empty() )
 //                 this->address = address;
@@ -251,13 +253,15 @@
 //         {
 //             if ( ! sent )
 //             {
-//                 gbn.sendViaGoBackN ( new TestMessage ( socket->isClient() ? "Client 1" : "Server 1" ) );
-//                 gbn.sendViaGoBackN ( new TestMessage ( socket->isClient() ? "Client 2" : "Server 2" ) );
-//                 gbn.sendViaGoBackN ( new TestMessage ( socket->isClient() ? "Client 3" : "Server 3" ) );
-//                 gbn.sendViaGoBackN ( new TestMessage ( socket->isClient() ? "Client 4" : "Server 4" ) );
-//                 gbn.sendViaGoBackN ( new TestMessage ( socket->isClient() ? "Client 5" : "Server 5" ) );
-//                 sent = true;
-//                 timer->start ( LONG_TIMEOUT );
+//                 gbn.sendViaGoBackN ( new TestMessage ( socket->isClient() ?
+//                 "Client 1" : "Server 1" ) ); gbn.sendViaGoBackN ( new
+//                 TestMessage ( socket->isClient() ? "Client 2" : "Server 2" )
+//                 ); gbn.sendViaGoBackN ( new TestMessage ( socket->isClient()
+//                 ? "Client 3" : "Server 3" ) ); gbn.sendViaGoBackN ( new
+//                 TestMessage ( socket->isClient() ? "Client 4" : "Server 4" )
+//                 ); gbn.sendViaGoBackN ( new TestMessage ( socket->isClient()
+//                 ? "Client 5" : "Server 5" ) ); sent = true; timer->start (
+//                 LONG_TIMEOUT );
 //             }
 //             else
 //             {
@@ -276,8 +280,9 @@
 //         }
 
 //         TestSocket ( const string& address, uint16_t port )
-//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) )
-//             , address ( address, port ), gbn ( this ), timer ( this ), sent ( false )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) )
+//             ) , address ( address, port ), gbn ( this ), timer ( this ), sent
+//             ( false )
 //         {
 //             socket->setPacketLoss ( PACKET_LOSS );
 //             socket->setCheckSumFail ( CHECK_SUM_FAIL );
@@ -299,7 +304,8 @@
 //     {
 //         LOG ( "Server got '%s'", server.msgs[i]->getAs<TestMessage>().str );
 //         EXPECT_EQ ( MsgType::TestMessage, server.msgs[i]->getMsgType() );
-//         EXPECT_EQ ( format ( "Client %u", i + 1 ), server.msgs[i]->getAs<TestMessage>().str );
+//         EXPECT_EQ ( format ( "Client %u", i + 1 ),
+//         server.msgs[i]->getAs<TestMessage>().str );
 //     }
 
 //     EXPECT_EQ ( 5, client.msgs.size() );
@@ -308,7 +314,8 @@
 //     {
 //         LOG ( "Client got '%s'", client.msgs[i]->getAs<TestMessage>().str );
 //         EXPECT_EQ ( MsgType::TestMessage, client.msgs[i]->getMsgType() );
-//         EXPECT_EQ ( format ( "Server %u", i + 1 ), client.msgs[i]->getAs<TestMessage>().str );
+//         EXPECT_EQ ( format ( "Server %u", i + 1 ),
+//         client.msgs[i]->getAs<TestMessage>().str );
 //     }
 
 //     EXPECT_EQ ( 2, done );
@@ -343,12 +350,13 @@
 
 //             if ( done >= 2 )
 //             {
-//                 LOG ( "Stopping because both GoBackN instances have timed out" );
-//                 EventManager::get().stop();
+//                 LOG ( "Stopping because both GoBackN instances have timed
+//                 out" ); EventManager::get().stop();
 //             }
 //         }
 
-//         void socketRead ( Socket *socket, const MsgPtr& msg, const IpAddrPort& address ) override
+//         void socketRead ( Socket *socket, const MsgPtr& msg, const
+//         IpAddrPort& address ) override
 //         {
 //             if ( this->address.empty() )
 //                 this->address = address;
@@ -361,7 +369,8 @@
 //             if ( stage == 0 )
 //             {
 //                 if ( socket->isClient() )
-//                     gbn.sendViaGoBackN ( new TestMessage ( "Hello server!" ) );
+//                     gbn.sendViaGoBackN ( new TestMessage ( "Hello server!" )
+//                     );
 //                 timer->start ( 1000 );
 //             }
 //             else if ( stage == 1 )
@@ -379,15 +388,17 @@
 //         }
 
 //         TestSocket ( uint16_t port )
-//             : socket ( UdpSocket::bind ( this, port ) ), gbn ( this, DEFAULT_SEND_INTERVAL, 1000 )
-//             , timer ( this ), properTimeout ( false ), stage ( 0 )
+//             : socket ( UdpSocket::bind ( this, port ) ), gbn ( this,
+//             DEFAULT_SEND_INTERVAL, 1000 ) , timer ( this ), properTimeout (
+//             false ), stage ( 0 )
 //         {
 //             timer.start ( 1000 );
 //         }
 
 //         TestSocket ( const string& address, uint16_t port )
-//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) ) ), address ( address, port )
-//             , gbn ( this, DEFAULT_SEND_INTERVAL, 1000 ), timer ( this ), properTimeout ( false ), stage ( 0 )
+//             : socket ( UdpSocket::bind ( this, IpAddrPort ( address, port ) )
+//             ), address ( address, port ) , gbn ( this, DEFAULT_SEND_INTERVAL,
+//             1000 ), timer ( this ), properTimeout ( false ), stage ( 0 )
 //         {
 //             timer.start ( 1000 );
 //         }

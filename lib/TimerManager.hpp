@@ -3,14 +3,10 @@
 #include <cstdint>
 #include <unordered_set>
 
-
 class Timer;
 
-
-class TimerManager
-{
+class TimerManager {
 public:
-
     // Update current time
     void updateNow();
 
@@ -18,8 +14,8 @@ public:
     void check();
 
     // Add / remove / clear timer instances
-    void add ( Timer *timer );
-    void remove ( Timer *timer );
+    void add( Timer* timer );
+    void remove( Timer* timer );
     void clear();
 
     // Initialize / deinitialize timer manager
@@ -32,7 +28,11 @@ public:
 
     // Get the current time in milliseconds
     uint64_t getNow() const { return _now; }
-    uint64_t getNow ( bool update ) { if ( update ) updateNow(); return _now; }
+    uint64_t getNow( bool update ) {
+        if ( update )
+            updateNow();
+        return _now;
+    }
 
     // Get the next time when a timer will expire
     uint64_t getNextExpiry() const { return _nextExpiry; }
@@ -41,9 +41,8 @@ public:
     static TimerManager& get();
 
 private:
-
     // Sets of active and allocated timer instances
-    std::unordered_set<Timer *> _activeTimers, _allocatedTimers;
+    std::unordered_set< Timer* > _activeTimers, _allocatedTimers;
 
     // Indicates if the hi-res timer should be used
     bool _useHiResTimer;
@@ -65,6 +64,6 @@ private:
 
     // Private constructor, etc. for singleton class
     TimerManager();
-    TimerManager ( const TimerManager& );
-    const TimerManager& operator= ( const TimerManager& );
+    TimerManager( const TimerManager& );
+    const TimerManager& operator=( const TimerManager& );
 };

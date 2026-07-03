@@ -27,52 +27,46 @@
  */
 
 #include <windows.h>
+
 #include "MinHook.h"
 #include "hook.h"
 
 using namespace MinHook;
 
-MH_STATUS WINAPI MH_Initialize()
-{
-	return Initialize();
+MH_STATUS WINAPI MH_Initialize() {
+    return Initialize();
 }
 
-MH_STATUS WINAPI MH_Uninitialize()
-{
-	return Uninitialize();
+MH_STATUS WINAPI MH_Uninitialize() {
+    return Uninitialize();
 }
 
-MH_STATUS WINAPI MH_CreateHook(void* pTarget, void* const pDetour, void** ppOriginal)
-{
-	return CreateHook(pTarget, pDetour, ppOriginal);
+MH_STATUS WINAPI MH_CreateHook( void* pTarget,
+                                void* const pDetour,
+                                void** ppOriginal ) {
+    return CreateHook( pTarget, pDetour, ppOriginal );
 }
 
-MH_STATUS WINAPI MH_RemoveHook(void* pTarget)
-{
-	return RemoveHook(pTarget);
+MH_STATUS WINAPI MH_RemoveHook( void* pTarget ) {
+    return RemoveHook( pTarget );
 }
 
-MH_STATUS WINAPI MH_EnableHook(void* pTarget)
-{
-	return EnableHook(pTarget);
+MH_STATUS WINAPI MH_EnableHook( void* pTarget ) {
+    return EnableHook( pTarget );
 }
 
-MH_STATUS WINAPI MH_DisableHook(void* pTarget)
-{
-	return DisableHook(pTarget);
+MH_STATUS WINAPI MH_DisableHook( void* pTarget ) {
+    return DisableHook( pTarget );
 }
 
-MH_STATUS WINAPI MH_QueueEnableHook(void* pTarget)
-{
-	return QueueEnableHook(pTarget);
+MH_STATUS WINAPI MH_QueueEnableHook( void* pTarget ) {
+    return QueueEnableHook( pTarget );
 }
 
-MH_STATUS WINAPI MH_QueueDisableHook(void* pTarget)
-{
-	return QueueDisableHook(pTarget);
+MH_STATUS WINAPI MH_QueueDisableHook( void* pTarget ) {
+    return QueueDisableHook( pTarget );
 }
 
-MH_STATUS WINAPI MH_ApplyQueued()
-{
-	return ApplyQueued();
+MH_STATUS WINAPI MH_ApplyQueued() {
+    return ApplyQueued();
 }
