@@ -129,7 +129,7 @@ $(FOLDER)/$(DLL): $(addprefix $(BUILD_PREFIX)/,$(DLL_OBJECTS)) res/rollback.o ta
 	@echo
 
 $(FOLDER)/$(LAUNCHER): tools/Launcher.cpp | $(FOLDER)
-	$(CXX) -o $@ $^ -m32 -s -Os -O2 -Wall -static -mwindows
+	$(CXX) -o $@ $^ -m32 -s -O2 -Wall -static -mwindows
 	@echo
 	$(STRIP) $@
 	$(CHMOD_X)
@@ -156,7 +156,7 @@ GENERATOR_PREFIX = build_generator_$(BRANCH)
 GENERATOR_LIB_OBJECTS = \
 	$(addprefix $(GENERATOR_PREFIX)/,$(filter-out lib/Version.o lib/LoggerLogVersion.o lib/ConsoleUi.o,$(LIB_OBJECTS)))
 
-GENERATOR_FLAGS = -s -Os -O2
+GENERATOR_FLAGS = -s -O2
 
 tools/$(GENERATOR): tools/Generator.cpp $(GENERATOR_LIB_OBJECTS)
 	$(CXX) -o $@ $(CC_FLAGS) $(GENERATOR_FLAGS) -Wall -std=c++11 $^ $(LD_FLAGS)

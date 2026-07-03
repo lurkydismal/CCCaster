@@ -189,9 +189,9 @@ private:
 
     virtual void loadBase( cereal::BinaryInputArchive& ar ) {}
 
-    friend struct Protocol;
-    friend struct SerializableMessage;
-    friend struct SerializableSequence;
+    friend class Protocol;
+    friend class SerializableMessage;
+    friend class SerializableSequence;
 
     // #ifndef RELEASE
     //     // Allow UdpSocket access to munge the hash for testing purposes

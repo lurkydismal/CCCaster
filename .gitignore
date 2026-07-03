@@ -27,3 +27,4 @@
 /broken.txt
 **/*.exe
 /compile_commands.tmp
+/generator.log
